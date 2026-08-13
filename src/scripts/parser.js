@@ -1,6 +1,8 @@
 const fs = require("node:fs")
 const path = require("node:path")
+
 const { parse: parseVue } = require("@vue/compiler-sfc")
+const { parse: parseTemplate } = require("@vue/compiler-dom")
 const babelParser = require("@babel/parser")
 const YAML = require("yaml")
 
@@ -9,8 +11,7 @@ const YAML = require("yaml")
 // ---------------------------------------------------------
 
 const projectRoot = path.resolve(__dirname, "../..")
-//Users/atharva.kulkarni/Desktop/nebras-open-finance-agent/community-standards/src/pages/tech/tpp-standards/trust-framework/index.vue
-//Users/atharva.kulkarni/Desktop/nebras-open-finance-agent/community-standards/src/pages/tech/tpp-standards/index.vue
+
 const defaultInput = path.resolve(
   projectRoot,
   "../community-standards/src/pages/tech/tpp-standards/index.vue",
@@ -18,14 +19,14 @@ const defaultInput = path.resolve(
 
 const defaultOutput = path.resolve(
   projectRoot,
-  "scripts/rag/output/tpp-standards.json",
+  "scripts/rag/output/document.json",
 )
 
 const inputPath = path.resolve(process.argv[2] || defaultInput)
 const outputPath = path.resolve(process.argv[3] || defaultOutput)
 
 // ---------------------------------------------------------
-// Small helpers
+// Text helpers
 // ---------------------------------------------------------
 
 function decodeHtml(text) {
@@ -43,11 +44,34 @@ function decodeHtml(text) {
     .replaceAll("&gt;", ">")
     .replaceAll("&quot;", '"')
     .replaceAll("&#39;", "'")
+    .replaceAll("&nbsp;", " ")
     .replace(/<code>(.*?)<\/code>/g, "$1")
 }
 
+function cleanText(text) {
+  return decodeHtml(text || "")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .trim()
+}
+
+function isMeaningfulText(text) {
+  const cleaned = cleanText(text)
+
+  if (!cleaned) {
+    return false
+  }
+
+  // Ignore decorative / UI-only symbol content
+  if (/^[→←↑↓•·›»‹«\-–—]+$/.test(cleaned)) {
+    return false
+  }
+
+  return true
+}
+
 // ---------------------------------------------------------
-// Parse Vue file
+// Vue parser
 // ---------------------------------------------------------
 
 function parseVueFile(filePath) {
@@ -59,9 +83,7 @@ function parseVueFile(filePath) {
 
   if (errors.length > 0) {
     throw new Error(
-      `Could not parse ${filePath}:\n${errors
-        .map(String)
-        .join("\n")}`,
+      `Could not parse ${filePath}:\n${errors.map(String).join("\n")}`,
     )
   }
 
@@ -69,7 +91,7 @@ function parseVueFile(filePath) {
 }
 
 // ---------------------------------------------------------
-// Extract route metadata
+// Route metadata
 // ---------------------------------------------------------
 
 function extractMetadata(descriptor) {
@@ -87,44 +109,50 @@ function extractMetadata(descriptor) {
 }
 
 // ---------------------------------------------------------
-// AST helpers
+// Babel parsing
 // ---------------------------------------------------------
 
-/**
- * Converts the limited JavaScript/TypeScript AST structures
- * used by our documentation config into normal JS values.
- *
- * This is NOT a general JavaScript evaluator.
- */
+function parseScriptSetup(descriptor) {
+  if (!descriptor.scriptSetup) {
+    return null
+  }
+
+  return babelParser.parse(
+    descriptor.scriptSetup.content,
+    {
+      sourceType: "module",
+      plugins: ["typescript"],
+    },
+  )
+}
+
+// ---------------------------------------------------------
+// Babel AST -> JS
+// ---------------------------------------------------------
+
 function astToValue(node) {
   if (!node) {
     return null
   }
 
   switch (node.type) {
-    // "hello"
     case "StringLiteral":
-      return decodeHtml(node.value)
+      return cleanText(node.value)
 
-    // 123
     case "NumericLiteral":
       return node.value
 
-    // true / false
     case "BooleanLiteral":
       return node.value
 
-    // null
     case "NullLiteral":
       return null
 
-    // ["a", "b"]
     case "ArrayExpression":
       return node.elements
         .filter(Boolean)
-        .map((element) => astToValue(element))
+        .map(astToValue)
 
-    // { title: "...", tags: [...] }
     case "ObjectExpression": {
       const result = {}
 
@@ -137,7 +165,9 @@ function astToValue(node) {
 
         if (property.key.type === "Identifier") {
           key = property.key.name
-        } else if (property.key.type === "StringLiteral") {
+        } else if (
+          property.key.type === "StringLiteral"
+        ) {
           key = property.key.value
         } else {
           continue
@@ -149,11 +179,9 @@ function astToValue(node) {
       return result
     }
 
-    // `/tech/${selectedVersion.value}/banking`
     case "TemplateLiteral":
       return templateLiteralToString(node)
 
-    // identifiers such as undefined
     case "Identifier":
       if (node.name === "undefined") {
         return undefined
@@ -162,17 +190,9 @@ function astToValue(node) {
       return node.name
 
     default:
-      console.warn(
-        `Skipping unsupported AST node: ${node.type}`,
-      )
-
       return null
   }
 }
-
-// ---------------------------------------------------------
-// Convert template literal
-// ---------------------------------------------------------
 
 function templateLiteralToString(node) {
   let result = ""
@@ -185,11 +205,10 @@ function templateLiteralToString(node) {
     }
   }
 
-  return decodeHtml(result)
+  return cleanText(result)
 }
 
 function expressionToString(node) {
-  // selectedVersion.value
   if (node.type === "MemberExpression") {
     const objectName =
       node.object.type === "Identifier"
@@ -209,7 +228,6 @@ function expressionToString(node) {
     }
   }
 
-  // selectedVersion
   if (
     node.type === "Identifier" &&
     node.name === "selectedVersion"
@@ -221,25 +239,7 @@ function expressionToString(node) {
 }
 
 // ---------------------------------------------------------
-// Parse <script setup>
-// ---------------------------------------------------------
-
-function parseScriptSetup(descriptor) {
-  if (!descriptor.scriptSetup) {
-    return null
-  }
-
-  return babelParser.parse(
-    descriptor.scriptSetup.content,
-    {
-      sourceType: "module",
-      plugins: ["typescript"],
-    },
-  )
-}
-
-// ---------------------------------------------------------
-// Find sections variable
+// Extract script sections
 // ---------------------------------------------------------
 
 function extractSections(ast) {
@@ -253,11 +253,6 @@ function extractSections(ast) {
     }
 
     for (const declaration of node.declarations) {
-      // Looking for:
-      //
-      // const sections = ...
-      //
-
       if (
         declaration.id.type !== "Identifier" ||
         declaration.id.name !== "sections"
@@ -267,30 +262,8 @@ function extractSections(ast) {
 
       const init = declaration.init
 
-      if (!init) {
+      if (!init || init.type !== "CallExpression") {
         continue
-      }
-
-      /*
-       * Expected structure:
-       *
-       * const sections = computed<SectionConfig[]>(() => [
-       *    ...
-       * ])
-       *
-       * AST:
-       *
-       * CallExpression
-       *   └── arguments[0]
-       *         └── ArrowFunctionExpression
-       *               └── body
-       *                     └── ArrayExpression
-       */
-
-      if (init.type !== "CallExpression") {
-        throw new Error(
-          "`sections` is not initialized using a function call",
-        )
       }
 
       const callback = init.arguments[0]
@@ -299,19 +272,11 @@ function extractSections(ast) {
         !callback ||
         callback.type !== "ArrowFunctionExpression"
       ) {
-        throw new Error(
-          "Could not find sections arrow function",
-        )
+        continue
       }
 
       let arrayNode = callback.body
 
-      // Support:
-      //
-      // () => {
-      //   return [...]
-      // }
-      //
       if (arrayNode.type === "BlockStatement") {
         const returnStatement = arrayNode.body.find(
           (statement) =>
@@ -321,145 +286,485 @@ function extractSections(ast) {
         arrayNode = returnStatement?.argument
       }
 
-      if (!arrayNode) {
+      if (
+        !arrayNode ||
+        arrayNode.type !== "ArrayExpression"
+      ) {
         return []
       }
 
-      if (arrayNode.type !== "ArrayExpression") {
-        throw new Error(
-          "Sections function does not return an array",
-        )
-      }
-
-      const sections = astToValue(arrayNode)
-
-      return sections ?? []
+      return astToValue(arrayNode) ?? []
     }
   }
 
   return []
 }
 
-// ---------------------------------------------------------
-// Extract sections declared in the Vue template
-// ---------------------------------------------------------
+function cleanSections(sections) {
+  return sections.map((section) => {
+    const result = {}
 
-function getStaticAttribute(element, name) {
-  const attribute = element.props.find(
-    (prop) => prop.type === 6 && prop.name === name,
-  )
+    if (section.category) {
+      result.category = cleanText(section.category)
+    }
 
-  return attribute?.value
-    ? decodeHtml(attribute.value.content)
-    : undefined
+    if (section.title) {
+      result.title = cleanText(section.title)
+    }
+
+    if (section.url) {
+      result.url = section.url
+    }
+
+    if (section.desc) {
+      result.description = cleanText(section.desc)
+    }
+
+    if (section.tags?.length) {
+      result.tags = section.tags
+        .map(cleanText)
+        .filter(isMeaningfulText)
+    }
+
+    if (section.subItems?.length) {
+      result.subItems = section.subItems
+        .map((item) => ({
+          label: cleanText(item.label),
+
+          ...(item.hint
+            ? {
+                hint: cleanText(item.hint),
+              }
+            : {}),
+
+          url: item.url,
+        }))
+        .filter((item) =>
+          isMeaningfulText(item.label),
+        )
+    }
+
+    return result
+  })
 }
 
-function extractText(node) {
+// ---------------------------------------------------------
+// Vue template AST helpers
+// ---------------------------------------------------------
+
+function getNodeText(node) {
   if (!node) {
     return ""
   }
 
-  // Plain text
+  // Text node
   if (node.type === 2) {
-    return decodeHtml(node.content)
+    return node.content
   }
 
-  // {{ interpolation }}
+  // Interpolation: {{ something }}
+  // Ignore dynamic interpolation for now.
   if (node.type === 5) {
-    return node.loc.source
-  }
-
-  if (!Array.isArray(node.children)) {
     return ""
   }
 
-  return node.children
-    .map((child) => extractText(child))
-    .filter(Boolean)
-    .join(" ")
-    .replace(/\s+/g, " ")
-    .trim()
-}
-
-/**
- * Documentation pages declare their sections in one of two ways:
- *
- * 1. A `sections` config array in <script setup> (the landing page).
- * 2. <EdSectionBand> components in <template> (content pages).
- *
- * This extracts the second form into the same shape as the config array.
- */
-function extractTemplateSections(descriptor) {
-  const root = descriptor.template?.ast
-
-  if (!root) {
-    return []
+  if (node.children) {
+    return node.children
+      .map(getNodeText)
+      .join(" ")
   }
 
-  const sections = []
+  return ""
+}
 
-  function visit(node) {
-    if (!node || typeof node !== "object") {
-      return
-    }
+function getAttribute(node, name) {
+  if (!node?.props) {
+    return undefined
+  }
 
-    // Vue compiler AST: type 1 is an Element node.
-    if (node.type === 1 && node.tag === "EdSectionBand") {
-      const id = getStaticAttribute(node, "id")
-      const title = getStaticAttribute(node, "title")
-      const eyebrow = getStaticAttribute(node, "eyebrow")
-      const description = extractText(node)
+  const prop = node.props.find(
+    (prop) =>
+      prop.type === 6 &&
+      prop.name === name,
+  )
 
-      sections.push({
-        category: eyebrow,
-        title,
-        url: id ? `#${id}` : undefined,
-        desc: description,
-      })
-    }
+  return prop?.value?.content
+}
 
-    if (Array.isArray(node.children)) {
-      for (const child of node.children) {
-        visit(child)
+// ---------------------------------------------------------
+// List extraction
+// ---------------------------------------------------------
+
+function extractList(node) {
+  const items = []
+
+  for (const child of node.children ?? []) {
+    if (
+      child.type === 1 &&
+      child.tag?.toLowerCase() === "li"
+    ) {
+      const text = cleanText(
+        getNodeText(child),
+      )
+
+      if (isMeaningfulText(text)) {
+        items.push(text)
       }
     }
   }
 
-  visit(root)
-  return sections
+  return items
 }
 
 // ---------------------------------------------------------
-// Clean sections
+// Find descendants
 // ---------------------------------------------------------
 
-function cleanSections(sections) {
-  return sections.map((section) => {
-    const cleaned = {
-      category: section.category,
-      title: section.title,
-      url: section.url,
-      description: section.desc,
+function findDescendantsByTag(node, tagName) {
+  const found = []
+
+  function walk(current) {
+    if (!current) {
+      return
     }
 
-    if (section.tags?.length) {
-      cleaned.tags = section.tags
+    if (
+      current.type === 1 &&
+      current.tag?.toLowerCase() ===
+        tagName.toLowerCase()
+    ) {
+      found.push(current)
     }
 
-    if (section.subItems?.length) {
-      cleaned.subItems = section.subItems.map(
-        (subItem) => ({
-          label: subItem.label,
-          ...(subItem.hint
-            ? { hint: subItem.hint }
-            : {}),
-          url: subItem.url,
-        }),
-      )
+    for (const child of current.children ?? []) {
+      walk(child)
+    }
+  }
+
+  walk(node)
+
+  return found
+}
+
+// ---------------------------------------------------------
+// Table extraction
+// ---------------------------------------------------------
+
+function extractTable(node) {
+  const headers = []
+  const rows = []
+
+  const headerNodes =
+    findDescendantsByTag(node, "th")
+
+  for (const header of headerNodes) {
+    const text = cleanText(
+      getNodeText(header),
+    )
+
+    if (isMeaningfulText(text)) {
+      headers.push(text)
+    }
+  }
+
+  const rowNodes =
+    findDescendantsByTag(node, "tr")
+
+  for (const row of rowNodes) {
+    const cells = []
+
+    for (const child of row.children ?? []) {
+      if (
+        child.type === 1 &&
+        child.tag?.toLowerCase() === "td"
+      ) {
+        const text = cleanText(
+          getNodeText(child),
+        )
+
+        cells.push(text)
+      }
     }
 
-    return cleaned
-  })
+    const meaningfulCells =
+      cells.filter(isMeaningfulText)
+
+    if (meaningfulCells.length > 0) {
+      rows.push(cells)
+    }
+  }
+
+  return {
+    type: "table",
+    headers,
+    rows,
+  }
+}
+
+// ---------------------------------------------------------
+// Code extraction
+// ---------------------------------------------------------
+
+function extractCode(node) {
+  const text = cleanText(
+    getNodeText(node),
+  )
+
+  if (!isMeaningfulText(text)) {
+    return null
+  }
+
+  return {
+    type: "code",
+    text,
+  }
+}
+
+// ---------------------------------------------------------
+// Block-based template extraction
+// ---------------------------------------------------------
+
+function extractTemplateStructure(descriptor) {
+  if (!descriptor.template?.content) {
+    return {
+      intro: [],
+      sections: [],
+    }
+  }
+
+  const ast = parseTemplate(
+    descriptor.template.content,
+  )
+
+  const document = {
+    intro: [],
+    sections: [],
+  }
+
+  let currentSection = null
+  let currentSubsection = null
+
+  function addBlock(block) {
+    if (!block) {
+      return
+    }
+
+    if (currentSubsection) {
+      currentSubsection.blocks.push(block)
+      return
+    }
+
+    if (currentSection) {
+      currentSection.blocks.push(block)
+      return
+    }
+
+    document.intro.push(block)
+  }
+
+  function walk(node) {
+    if (!node) {
+      return
+    }
+
+    if (node.type === 1) {
+      const tag = node.tag?.toLowerCase()
+
+      // ---------------------------------------------------
+      // H1
+      // ---------------------------------------------------
+
+      if (tag === "h1") {
+        const text = cleanText(
+          getNodeText(node),
+        )
+
+        if (isMeaningfulText(text)) {
+          document.title = text
+        }
+
+        return
+      }
+
+      // ---------------------------------------------------
+      // H2
+      // ---------------------------------------------------
+
+      if (tag === "h2") {
+        const text = cleanText(
+          getNodeText(node),
+        )
+
+        if (isMeaningfulText(text)) {
+          currentSection = {
+            heading: text,
+            level: 2,
+            anchor:
+              getAttribute(node, "id") ??
+              null,
+            blocks: [],
+            subsections: [],
+          }
+
+          document.sections.push(
+            currentSection,
+          )
+
+          currentSubsection = null
+        }
+
+        return
+      }
+
+      // ---------------------------------------------------
+      // H3 / H4
+      // ---------------------------------------------------
+
+      if (
+        tag === "h3" ||
+        tag === "h4"
+      ) {
+        const text = cleanText(
+          getNodeText(node),
+        )
+
+        if (
+          isMeaningfulText(text) &&
+          currentSection
+        ) {
+          currentSubsection = {
+            heading: text,
+            level: Number(tag.slice(1)),
+            anchor:
+              getAttribute(node, "id") ??
+              null,
+            blocks: [],
+          }
+
+          currentSection.subsections.push(
+            currentSubsection,
+          )
+        }
+
+        return
+      }
+
+      // ---------------------------------------------------
+      // Paragraph
+      // ---------------------------------------------------
+
+      if (tag === "p") {
+        const text = cleanText(
+          getNodeText(node),
+        )
+
+        if (isMeaningfulText(text)) {
+          addBlock({
+            type: "paragraph",
+            text,
+          })
+        }
+
+        return
+      }
+
+      // ---------------------------------------------------
+      // UL / OL
+      // ---------------------------------------------------
+
+      if (
+        tag === "ul" ||
+        tag === "ol"
+      ) {
+        const items = extractList(node)
+          .filter(isMeaningfulText)
+
+        if (items.length > 0) {
+          addBlock({
+            type:
+              tag === "ol"
+                ? "ordered_list"
+                : "list",
+            items,
+          })
+        }
+
+        return
+      }
+
+      // ---------------------------------------------------
+      // Table
+      // ---------------------------------------------------
+
+      if (tag === "table") {
+        const table = extractTable(node)
+
+        if (
+          table.headers.length > 0 ||
+          table.rows.length > 0
+        ) {
+          addBlock(table)
+        }
+
+        return
+      }
+
+      // ---------------------------------------------------
+      // PRE / code block
+      // ---------------------------------------------------
+
+      if (tag === "pre") {
+        const code = extractCode(node)
+
+        if (code) {
+          addBlock(code)
+        }
+
+        return
+      }
+    }
+
+    // Walk container children
+    for (const child of node.children ?? []) {
+      walk(child)
+    }
+  }
+
+  walk(ast)
+
+  return document
+}
+
+// ---------------------------------------------------------
+// Create document ID from file path
+// ---------------------------------------------------------
+
+function createDocumentId(filePath) {
+  const normalized = filePath.replace(
+    /\\/g,
+    "/",
+  )
+
+  const marker = "/src/pages/"
+
+  const index =
+    normalized.indexOf(marker)
+
+  if (index === -1) {
+    return path.basename(
+      filePath,
+      ".vue",
+    )
+  }
+
+  let id = normalized.slice(
+    index + marker.length,
+  )
+
+  id = id.replace(/\/index\.vue$/, "")
+  id = id.replace(/\.vue$/, "")
+
+  return id
 }
 
 // ---------------------------------------------------------
@@ -467,25 +772,26 @@ function cleanSections(sections) {
 // ---------------------------------------------------------
 
 function main() {
-  const descriptor = parseVueFile(inputPath)
+  const descriptor =
+    parseVueFile(inputPath)
 
-  // Route YAML
-  const metadata = extractMetadata(descriptor)
+  const metadata =
+    extractMetadata(descriptor)
 
-  // TypeScript <script setup>
-  const ast = parseScriptSetup(descriptor)
+  const scriptAst =
+    parseScriptSetup(descriptor)
 
-  // Extract sections
-  const scriptSections = extractSections(ast)
-  const rawSections = scriptSections.length > 0
-    ? scriptSections
-    : extractTemplateSections(descriptor)
+  const rawScriptSections =
+    extractSections(scriptAst)
 
-  // Remove UI-only data such as colors
-  const sections = cleanSections(rawSections)
+  const navigationSections =
+    cleanSections(rawScriptSections)
+
+  const template =
+    extractTemplateStructure(descriptor)
 
   const output = {
-    id: "tech/tpp-standards",
+    id: createDocumentId(inputPath),
 
     source: {
       file: inputPath,
@@ -494,23 +800,39 @@ function main() {
 
     metadata,
 
-    sections,
+    content: template,
+
+    ...(navigationSections.length
+      ? {
+          navigation:
+            navigationSections,
+        }
+      : {}),
   }
 
-  fs.mkdirSync(path.dirname(outputPath), {
-    recursive: true,
-  })
+  fs.mkdirSync(
+    path.dirname(outputPath),
+    {
+      recursive: true,
+    },
+  )
 
   fs.writeFileSync(
     outputPath,
-    `${JSON.stringify(output, null, 2)}\n`,
+    `${JSON.stringify(
+      output,
+      null,
+      2,
+    )}\n`,
   )
 
-  console.log(`Wrote ${outputPath}`)
+  console.log(
+    `Wrote ${outputPath}`,
+  )
 
-  console.dir(output, {
-    depth: null,
-  })
+  console.log(
+    JSON.stringify(output, null, 2),
+  )
 }
 
 // ---------------------------------------------------------
