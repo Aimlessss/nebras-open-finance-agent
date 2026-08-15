@@ -6,7 +6,7 @@
       "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination#bank-data-sharing-pagination#0",
       "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination",
       "type": "intro",
-      "text": "Bank Data Sharing — Pagination\n\nList endpoints on the Bank Data Sharing API return pagination information in the response body. The TPP walks through a paginated result set by following the URLs in the Links object — there are no page or page-size query parameters to set on the request. For the end-to-end picture — including how the API Hub converts LFI meta into the TPP Links envelope — see Pagination — LFI meta to TPP Links.",
+      "text": "Bank Data Sharing — Pagination\n\nList endpoints on the Bank Data Sharing API return pagination information in the response body. The TPP walks through a paginated result set by following the URLs in the Links object — there are no page or page-size query parameters to set on the request.\n\nFor the end-to-end picture — including how the API Hub converts LFI meta into the TPP Links envelope — see Pagination — LFI meta to TPP Links.",
       "metadata": {
         "title": "Bank Data Sharing — Pagination",
         "source_repo": "community-standards",
@@ -18,7 +18,7 @@
       "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination#bank-data-sharing-pagination--two-response-shapes-to-handle--paginated-and-unpaginated-one-loop#1",
       "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination",
       "type": "section",
-      "text": "Bank Data Sharing — Pagination > Two response shapes to handle > Paginated and unpaginated, one loop\n\nPagination is ultimately driven by the LFI. The UAE Open Finance standard requires LFIs to paginate /accounts/{AccountId}/transactions and /accounts/{AccountId}/statements, but during rollout not every LFI will have implemented it on day one. A TPP SHOULD therefore be ready for either of the following: - Paginated — the LFI returned a page of the filtered result set. Meta.TotalPages > 1 and Links.Next is populated while more pages remain. - Unpaginated — the LFI returned the full result set in a single response. Meta.TotalPages is 1 (or 0 for an empty result) and Links contains only Self. The loop pattern below — follow Links.Next until it is absent — handles both cases without branching. A TPP that only supports the paginated shape will appear to work correctly while the LFI is unpaginated (it fetches page 1 and stops), but will silently truncate to the first page once the LFI enables pagination. Using Links.Next as the stop condition avoids that regression.",
+      "text": "Bank Data Sharing — Pagination > Two response shapes to handle > Paginated and unpaginated, one loop\n\nPagination is ultimately driven by the LFI. The UAE Open Finance standard requires LFIs to paginate /accounts/{AccountId}/transactions and /accounts/{AccountId}/statements, but during rollout not every LFI will have implemented it on day one. A TPP SHOULD therefore be ready for either of the following:\n\n- Paginated — the LFI returned a page of the filtered result set. Meta.TotalPages > 1 and Links.Next is populated while more pages remain.\n- Unpaginated — the LFI returned the full result set in a single response. Meta.TotalPages is 1 (or 0 for an empty result) and Links contains only Self.\n\nThe loop pattern below — follow Links.Next until it is absent — handles both cases without branching. A TPP that only supports the paginated shape will appear to work correctly while the LFI is unpaginated (it fetches page 1 and stops), but will silently truncate to the first page once the LFI enables pagination. Using Links.Next as the stop condition avoids that regression.",
       "metadata": {
         "title": "Bank Data Sharing — Pagination",
         "section": "Paginated and unpaginated, one loop",
@@ -33,7 +33,7 @@
       "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination#bank-data-sharing-pagination--which-endpoints-paginate--required-vs-optional-pagination#2",
       "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination",
       "type": "section",
-      "text": "Bank Data Sharing — Pagination > Which endpoints paginate > Required vs optional pagination\n\nEndpoint | Pagination GET /accounts/{AccountId}/transactions | Required GET /accounts/{AccountId}/statements | Required GET /accounts | Optional GET /accounts/{AccountId}/balances | Optional GET /accounts/{AccountId}/beneficiaries | Optional GET /accounts/{AccountId}/direct-debits | Optional GET /accounts/{AccountId}/scheduled-payments | Optional GET /accounts/{AccountId}/standing-orders | Optional GET /accounts/{AccountId}/product | Optional GET /accounts/{AccountId}/parties | Optional Transactions and statements span long history (at least two years) and routinely produce large result sets. For other list endpoints the full result set is usually returned in one response, but TPPs SHOULD still follow Links.Next defensively in case an LFI chooses to paginate them.",
+      "text": "Bank Data Sharing — Pagination > Which endpoints paginate > Required vs optional pagination\n\nEndpoint | Pagination\nGET /accounts/{AccountId}/transactions | Required\nGET /accounts/{AccountId}/statements | Required\nGET /accounts | Optional\nGET /accounts/{AccountId}/balances | Optional\nGET /accounts/{AccountId}/beneficiaries | Optional\nGET /accounts/{AccountId}/direct-debits | Optional\nGET /accounts/{AccountId}/scheduled-payments | Optional\nGET /accounts/{AccountId}/standing-orders | Optional\nGET /accounts/{AccountId}/product | Optional\nGET /accounts/{AccountId}/parties | Optional\n\nTransactions and statements span long history (at least two years) and routinely produce large result sets. For other list endpoints the full result set is usually returned in one response, but TPPs SHOULD still follow Links.Next defensively in case an LFI chooses to paginate them.",
       "metadata": {
         "title": "Bank Data Sharing — Pagination",
         "section": "Required vs optional pagination",
@@ -48,7 +48,7 @@
       "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination#bank-data-sharing-pagination--the-links-envelope--what-each-links-field-means#3",
       "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination",
       "type": "section",
-      "text": "Bank Data Sharing — Pagination > The Links envelope > What each Links field means\n\nEvery paginated response includes a Links object alongside Data: Field | Required | Meaning Self | Yes | The URL that produced this response First | No | Link to the first page. Omitted when the response is unpaginated Prev | No | Link to the previous page. Omitted on the first page Next | No | Link to the next page. Omitted on the last page and when the response is unpaginated Last | No | Link to the last page. Omitted when the response is unpaginated The URLs in Links are opaque — treat them as strings to fetch, not as templates to parse or rebuild. The API Hub may evolve the pagination parameters it embeds in these URLs without breaking your client.",
+      "text": "Bank Data Sharing — Pagination > The Links envelope > What each Links field means\n\nEvery paginated response includes a Links object alongside Data:\n\nField | Required | Meaning\nSelf | Yes | The URL that produced this response\nFirst | No | Link to the first page. Omitted when the response is unpaginated\nPrev | No | Link to the previous page. Omitted on the first page\nNext | No | Link to the next page. Omitted on the last page and when the response is unpaginated\nLast | No | Link to the last page. Omitted when the response is unpaginated\n\nThe URLs in Links are opaque — treat them as strings to fetch, not as templates to parse or rebuild. The API Hub may evolve the pagination parameters it embeds in these URLs without breaking your client.",
       "metadata": {
         "title": "Bank Data Sharing — Pagination",
         "section": "What each Links field means",
@@ -63,7 +63,7 @@
       "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination#bank-data-sharing-pagination--the-meta-object--counts-and-history-boundaries#4",
       "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination",
       "type": "section",
-      "text": "Bank Data Sharing — Pagination > The Meta object > Counts and history boundaries\n\nField | Applies to | Meaning TotalPages | All list endpoints | Total number of pages in the filtered result set. 1 when the response is unpaginated, 0 for an empty result set FirstAvailableDateTime | Transactions, statements | ISO 8601 timestamp of the earliest record the LFI holds for this account LastAvailableDateTime | Transactions, statements | ISO 8601 timestamp of the most recent record the LFI holds for this account FirstAvailableDateTime and LastAvailableDateTime reflect the full history the LFI holds, not the slice returned by the current query. They are useful for narrowing follow-up requests with fromBookingDateTime / toBookingDateTime.",
+      "text": "Bank Data Sharing — Pagination > The Meta object > Counts and history boundaries\n\nField | Applies to | Meaning\nTotalPages | All list endpoints | Total number of pages in the filtered result set. 1 when the response is unpaginated, 0 for an empty result set\nFirstAvailableDateTime | Transactions, statements | ISO 8601 timestamp of the earliest record the LFI holds for this account\nLastAvailableDateTime | Transactions, statements | ISO 8601 timestamp of the most recent record the LFI holds for this account\n\nFirstAvailableDateTime and LastAvailableDateTime reflect the full history the LFI holds, not the slice returned by the current query. They are useful for narrowing follow-up requests with fromBookingDateTime / toBookingDateTime.",
       "metadata": {
         "title": "Bank Data Sharing — Pagination",
         "section": "Counts and history boundaries",
@@ -78,7 +78,7 @@
       "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination#bank-data-sharing-pagination--following-links-next--the-canonical-fetch-loop#5",
       "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination",
       "type": "section",
-      "text": "Bank Data Sharing — Pagination > Following Links.Next > The canonical fetch loop\n\nThe canonical pattern is a loop that fetches Links.Next until the field is absent. The same logic terminates correctly whether the LFI paginated the result or returned it in a single response. The access token is valid for the same 10-minute window used elsewhere. For very large result sets, refresh proactively using the refresh token flow in Step 10 — Refreshing the Access Token rather than waiting for a 401 mid-loop. Each page is a separate HTTP request. Cap your loop with a sensible maximum page count and respect any 429 Too Many Requests backoff the API Hub returns — do not retry Links.Next in a tight loop.",
+      "text": "Bank Data Sharing — Pagination > Following Links.Next > The canonical fetch loop\n\nThe canonical pattern is a loop that fetches Links.Next until the field is absent. The same logic terminates correctly whether the LFI paginated the result or returned it in a single response.\n\nThe access token is valid for the same 10-minute window used elsewhere. For very large result sets, refresh proactively using the refresh token flow in Step 10 — Refreshing the Access Token rather than waiting for a 401 mid-loop.\n\nEach page is a separate HTTP request. Cap your loop with a sensible maximum page count and respect any 429 Too Many Requests backoff the API Hub returns — do not retry Links.Next in a tight loop.",
       "metadata": {
         "title": "Bank Data Sharing — Pagination",
         "section": "The canonical fetch loop",
@@ -108,7 +108,7 @@
       "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination#bank-data-sharing-pagination--worked-example-transactions-3-page-result--walking-three-pages-of-transactions#7",
       "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination",
       "type": "section",
-      "text": "Bank Data Sharing — Pagination > Worked example — transactions, 3-page result > Walking three pages of transactions\n\nInitial request: Response — page 1 of 3: The TPP follows Links.Next. On page 3, the response has no Next field: The loop terminates on the absence of Links.Next.",
+      "text": "Bank Data Sharing — Pagination > Worked example — transactions, 3-page result > Walking three pages of transactions\n\nInitial request:\n\nResponse — page 1 of 3:\n\nThe TPP follows Links.Next. On page 3, the response has no Next field:\n\nThe loop terminates on the absence of Links.Next.",
       "metadata": {
         "title": "Bank Data Sharing — Pagination",
         "section": "Walking three pages of transactions",
@@ -123,7 +123,7 @@
       "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination#bank-data-sharing-pagination--worked-example-lfi-returns-everything-in-one-response--unpaginated-response-handled-by-the-same-loop#8",
       "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/pagination",
       "type": "section",
-      "text": "Bank Data Sharing — Pagination > Worked example — LFI returns everything in one response > Unpaginated response handled by the same loop\n\nWhen the LFI has not enabled pagination, the same request returns the full result set in one response: Links.Next is absent, so the loop exits after the first iteration. No TPP-side branching is required.",
+      "text": "Bank Data Sharing — Pagination > Worked example — LFI returns everything in one response > Unpaginated response handled by the same loop\n\nWhen the LFI has not enabled pagination, the same request returns the full result set in one response:\n\nLinks.Next is absent, so the loop exits after the first iteration. No TPP-side branching is required.",
       "metadata": {
         "title": "Bank Data Sharing — Pagination",
         "section": "Unpaginated response handled by the same loop",

@@ -18,7 +18,8 @@ const outputPath = path.resolve(
 
 function cleanText(text) {
   return String(text || "")
-    .replace(/\s+/g, " ")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
     .trim()
 }
 

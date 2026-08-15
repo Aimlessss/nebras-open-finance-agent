@@ -6,7 +6,7 @@
       "id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information#personal-identifiable-information-pii#0",
       "document_id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information",
       "type": "intro",
-      "text": "Personal Identifiable Information (PII)\n\nEvery payment instruction carries sensitive data about who is paying and who is receiving the funds — creditor account details, optional debtor account, and risk indicators. This data is collectively referred to as Personal Identifiable Information (PII). PII arrives at the LFI as an encrypted JWE string in the PersonalIdentifiableInformation field. The API Hub passes the JWE through without inspection — it cannot read or validate the contents. This means:",
+      "text": "Personal Identifiable Information (PII)\n\nEvery payment instruction carries sensitive data about who is paying and who is receiving the funds — creditor account details, optional debtor account, and risk indicators. This data is collectively referred to as Personal Identifiable Information (PII).\n\nPII arrives at the LFI as an encrypted JWE string in the PersonalIdentifiableInformation field. The API Hub passes the JWE through without inspection — it cannot read or validate the contents. This means:",
       "metadata": {
         "title": "Personal Identifiable Information (PII)",
         "source_repo": "community-standards",
@@ -18,7 +18,7 @@
       "id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information#personal-identifiable-information-pii--what-this-implies--the-hub-does-not-see-pii#1",
       "document_id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information",
       "type": "section",
-      "text": "Personal Identifiable Information (PII) > What this implies > The Hub does not see PII\n\n- The LFI is solely responsible for decrypting and validating PII. - The PII has not been schema-validated by the API Hub. - The PII content has not been read or inspected by any intermediary. Unlike other fields in the consent or payment request — which the API Hub validates against the OpenAPI specification before forwarding — PII is opaque to the API Hub. The LFI MUST decrypt, parse, and validate the PII independently against the schema defined in the OpenAPI specification. A malformed or invalid PII payload MUST be rejected by the LFI.",
+      "text": "Personal Identifiable Information (PII) > What this implies > The Hub does not see PII\n\n- The LFI is solely responsible for decrypting and validating PII.\n- The PII has not been schema-validated by the API Hub.\n- The PII content has not been read or inspected by any intermediary.\n\nUnlike other fields in the consent or payment request — which the API Hub validates against the OpenAPI specification before forwarding — PII is opaque to the API Hub. The LFI MUST decrypt, parse, and validate the PII independently against the schema defined in the OpenAPI specification. A malformed or invalid PII payload MUST be rejected by the LFI.",
       "metadata": {
         "title": "Personal Identifiable Information (PII)",
         "section": "The Hub does not see PII",
@@ -33,7 +33,7 @@
       "id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information#personal-identifiable-information-pii--when-pii-is-received--two-points-in-the-payment-lifecycle#2",
       "document_id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information",
       "type": "section",
-      "text": "Personal Identifiable Information (PII) > When PII is received > Two points in the payment lifecycle\n\nPII is present at two points in the payment lifecycle: Stage | Source | Field Consent authorisation | Consent Manager → LFI | consent.PersonalIdentifiableInformation Payment creation | Ozone Connect → LFI | payment.PersonalIdentifiableInformation The structure of the decrypted PII differs between the two stages — see PII (Consent — Consent Manager) and PII (Payments — Ozone Connect) for the full schemas.",
+      "text": "Personal Identifiable Information (PII) > When PII is received > Two points in the payment lifecycle\n\nPII is present at two points in the payment lifecycle:\n\nStage | Source | Field\nConsent authorisation | Consent Manager → LFI | consent.PersonalIdentifiableInformation\nPayment creation | Ozone Connect → LFI | payment.PersonalIdentifiableInformation\n\nThe structure of the decrypted PII differs between the two stages — see PII (Consent — Consent Manager) and PII (Payments — Ozone Connect) for the full schemas.",
       "metadata": {
         "title": "Personal Identifiable Information (PII)",
         "section": "Two points in the payment lifecycle",
@@ -48,7 +48,7 @@
       "id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information#personal-identifiable-information-pii--why-pii-is-encrypted--end-to-end-confidentiality#3",
       "document_id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information",
       "type": "section",
-      "text": "Personal Identifiable Information (PII) > Why PII is encrypted > End-to-end confidentiality\n\nPayment consents are stored centrally at the API Hub. Because the API Hub acts as an intermediary between TPPs and LFIs, PII is encrypted end-to-end before it leaves the TPP — ensuring that the API Hub, and any other party in transit, cannot read the sensitive payment details. The encryption uses the LFI's public encryption key ( Enc1 ). Only the LFI can decrypt the payload using the corresponding Enc1 private key.",
+      "text": "Personal Identifiable Information (PII) > Why PII is encrypted > End-to-end confidentiality\n\nPayment consents are stored centrally at the API Hub. Because the API Hub acts as an intermediary between TPPs and LFIs, PII is encrypted end-to-end before it leaves the TPP — ensuring that the API Hub, and any other party in transit, cannot read the sensitive payment details.\n\nThe encryption uses the LFI's public encryption key ( Enc1 ). Only the LFI can decrypt the payload using the corresponding Enc1 private key.",
       "metadata": {
         "title": "Personal Identifiable Information (PII)",
         "section": "End-to-end confidentiality",
@@ -63,7 +63,7 @@
       "id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information#personal-identifiable-information-pii--lfi-responsibilities--decrypt-validate-reject#4",
       "document_id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information",
       "type": "section",
-      "text": "Personal Identifiable Information (PII) > LFI responsibilities > Decrypt, validate, reject\n\nBecause the API Hub cannot inspect PII, the LFI takes on additional responsibilities compared to other parts of the request: Responsibility | Description Decryption | Decrypt the JWE using the Enc1 private key — see How to Decrypt PII Schema validation | Validate the decrypted payload against the OpenAPI schema — no additional properties are permitted Field validation | Verify mandatory fields, IBAN format, BIC consistency, and creditor matching rules — see Debtor Account and Creditor Rejection | Mark the consent invalid via POST /consent/action/validate if PII is malformed, missing required fields, or fails validation",
+      "text": "Personal Identifiable Information (PII) > LFI responsibilities > Decrypt, validate, reject\n\nBecause the API Hub cannot inspect PII, the LFI takes on additional responsibilities compared to other parts of the request:\n\nResponsibility | Description\nDecryption | Decrypt the JWE using the Enc1 private key — see How to Decrypt PII\nSchema validation | Validate the decrypted payload against the OpenAPI schema — no additional properties are permitted\nField validation | Verify mandatory fields, IBAN format, BIC consistency, and creditor matching rules — see Debtor Account and Creditor\nRejection | Mark the consent invalid via POST /consent/action/validate if PII is malformed, missing required fields, or fails validation",
       "metadata": {
         "title": "Personal Identifiable Information (PII)",
         "section": "Decrypt, validate, reject",
@@ -78,7 +78,7 @@
       "id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information#personal-identifiable-information-pii--structure-of-the-pii-payload--initiation-and-risk#5",
       "document_id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information",
       "type": "section",
-      "text": "Personal Identifiable Information (PII) > Structure of the PII payload > Initiation and Risk\n\nThe decrypted PII contains two top-level sections: Property | Description Initiation | Creditor and debtor account details — structure differs between consent and payment stages Risk | Fraud and risk indicators about the debtor, transaction, and creditor",
+      "text": "Personal Identifiable Information (PII) > Structure of the PII payload > Initiation and Risk\n\nThe decrypted PII contains two top-level sections:\n\nProperty | Description\nInitiation | Creditor and debtor account details — structure differs between consent and payment stages\nRisk | Fraud and risk indicators about the debtor, transaction, and creditor",
       "metadata": {
         "title": "Personal Identifiable Information (PII)",
         "section": "Initiation and Risk",
@@ -93,7 +93,7 @@
       "id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information#personal-identifiable-information-pii--structure-of-the-pii-payload--initiation-and-risk--at-consent-validation-post-consent-action-validate#6",
       "document_id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information",
       "type": "subsection",
-      "text": "Personal Identifiable Information (PII) > Structure of the PII payload > Initiation and Risk > At consent validation ( POST /consent/action/validate )\n\n- Initiation.Creditor is an array of 1–10 creditor entries (or omitted for open beneficiary) - Initiation.DebtorAccount is optionally present",
+      "text": "Personal Identifiable Information (PII) > Structure of the PII payload > Initiation and Risk > At consent validation ( POST /consent/action/validate )\n\n- Initiation.Creditor is an array of 1–10 creditor entries (or omitted for open beneficiary)\n- Initiation.DebtorAccount is optionally present",
       "metadata": {
         "title": "Personal Identifiable Information (PII)",
         "section": "Initiation and Risk",
@@ -109,7 +109,7 @@
       "id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information#personal-identifiable-information-pii--structure-of-the-pii-payload--initiation-and-risk--at-payment-time-ozone-connect-payment-instruction#7",
       "document_id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information",
       "type": "subsection",
-      "text": "Personal Identifiable Information (PII) > Structure of the PII payload > Initiation and Risk > At payment time (Ozone Connect payment instruction)\n\n- Creditor fields sit directly on Initiation as a single creditor (not an array) - DebtorAccount is absent — the debtor account was fixed during consent authorisation",
+      "text": "Personal Identifiable Information (PII) > Structure of the PII payload > Initiation and Risk > At payment time (Ozone Connect payment instruction)\n\n- Creditor fields sit directly on Initiation as a single creditor (not an array)\n- DebtorAccount is absent — the debtor account was fixed during consent authorisation",
       "metadata": {
         "title": "Personal Identifiable Information (PII)",
         "section": "Initiation and Risk",
