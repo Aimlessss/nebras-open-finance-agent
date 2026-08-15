@@ -1,0 +1,173 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-draft/insurance/quotation/quote-types",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-draft/insurance/quotation/quote-types.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "Quote Types — New, Renewal, Switch"
+  },
+  "content": {
+    "title": "Quote Types — New, Renewal, Switch",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Every quote request carries a QuoteType of New, Renewal, or Switch. The three values determine what data the TPP MUST supply, what the LFI MAY assume about the customer, and how the resulting policy relates to any prior policy. This page is the single source of truth referenced from both the LFI Integration Guide and TPP Standards."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "New — first-time policy",
+        "level": 2,
+        "anchor": "new",
+        "category": "QuoteType: New",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The customer has no existing policy of this sector that the quote is intended to replace or continue. The TPP supplies the customer\\'s demographic and risk-relevant data inline; the LFI underwrites from scratch."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "What the TPP must supply",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "A unique QuoteReference — TPP-generated, used by the TPP to thread the quote through its own systems. Distinct from QuoteId, which the LFI mints.",
+                  "Sector-specific risk data (vehicle for Motor, property address for Home, trip details for Travel, salary band for Health, etc.).",
+                  "Customer identifying data sufficient for the LFI to KYC and underwrite (Emirates ID, date of birth, etc.)."
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "What the LFI may assume",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "No prior policy history with this LFI for this customer at this sector.",
+                  "The LFI MUST run its full new-business underwriting process — risk scoring, screening, pricing — from the supplied data alone."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Renewal — continuing with the same insurer",
+        "level": 2,
+        "anchor": "renewal",
+        "category": "QuoteType: Renewal",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The customer holds an existing policy with this LFI at the same sector and wishes to renew it. The TPP references the prior policy so the LFI can carry forward underwriting context (no-claims discount, established risk profile, customer history) rather than re-underwriting from scratch."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "What the TPP must supply",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "The InsurancePolicyId of the prior policy at this LFI, retrieved through Insurance Data Sharing under a customer consent. The TPP MUST have held a valid consent at the time of the policy retrieval — the LFI MAY refuse to renew where it cannot evidence prior data sharing.",
+                  "Any data the customer wishes to update at renewal (address change, vehicle change, beneficiary update, etc.).",
+                  "The same QuoteReference shape as for New."
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "What the LFI may assume",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "The customer is already known — KYC may be lighter-touch.",
+                  "The prior policy\\'s claims history, no-claims discount, and risk rating may be carried forward where appropriate.",
+                  "The LFI MAY decline to renew where its underwriting appetite has changed — 204 is the correct response, not a 201 with adverse pricing."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Renewal always references a policy held at this LFI. If the customer is moving from a different insurer, the correct QuoteType is Switch."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Switch — moving from a different insurer",
+        "level": 2,
+        "anchor": "switch",
+        "category": "QuoteType: Switch",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The customer holds an existing policy at a different LFI (the incumbent) and wishes to move. The TPP supplies enough information about the incumbent policy for the LFI to price competitively and, where applicable, coordinate the switch (handing back NCD, avoiding double-coverage)."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "What the TPP must supply",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "The incumbent policy\\'s details — insurer name, policy number, sums insured, premium, renewal date — retrieved through Insurance Data Sharing against the incumbent under a customer consent.",
+                  "The customer\\'s demographic and risk data, the same way as for New. Switching does not exempt the new LFI from underwriting.",
+                  "Any switch-specific instructions (effective date, overlap window)."
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "What the LFI may assume",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Claims history from the incumbent is declared, not authoritative — the LFI MUST run its own screening and, where required, request additional declarations.",
+                  "The incumbent policy is not yet cancelled. The LFI MAY make policy issuance contingent on the customer cancelling the incumbent within the policy effective date."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "When the LFI cannot fulfil the requested QuoteType",
+        "level": 2,
+        "anchor": "declining",
+        "category": "Declining to quote",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "If the LFI does not offer a particular combination of sector and quote type (e.g. switching is not supported for Travel, or the LFI does not renew expired policies older than 30 days), the Create Quote endpoint MUST return 204 with an empty body. Do not return 201 with no quotes — a 201 implies success and breaks the TPP\\'s ability to surface a \"no quote available\" outcome cleanly to the customer."
+          },
+          {
+            "type": "paragraph",
+            "text": "The set of supported sector + quote type combinations SHOULD be published in the LFI\\'s Trust Framework metadata so TPPs can predict declines rather than discovering them via 204 responses."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

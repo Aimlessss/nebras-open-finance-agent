@@ -1,0 +1,150 @@
+{
+  "id": "proposals/ofp-010",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/proposals/ofp-010/index.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "OFP-010 · Make the transaction narrative (TransactionInformation) a required field"
+  },
+  "content": {
+    "title": "OFP-010 · Make the transaction narrative (TransactionInformation) a required field",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Add TransactionInformation — the transaction narrative — to the required list on every transaction the data-sharing API returns. The narrative is what powers categorisation, affordability, and underwriting; without it the dataset is close to meaningless. This codifies what Nebras already enforces for CASA, and asks the ecosystem whether it is achievable for every product."
+      },
+      {
+        "type": "paragraph",
+        "text": "The voting period has ended. The votes cast are shown below."
+      },
+      {
+        "type": "paragraph",
+        "text": "Sign in with the Trust Framework to vote — For, Against, or Abstain — recorded in the open with your reasoning. Your organisation and name come from your directory profile, and each person may vote once."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "The narrative is the value — and it is optional",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "A transaction returned from GET /accounts/{AccountId}/transactions carries the structured essentials — an amount, a date, a credit/debit indicator, and a type. What tells a TPP what the transaction was actually for is the narrative: the free-text TransactionInformation field. It is an important input to many Open Finance use cases, including categorisation, affordability assessment, and underwriting. Strip it out and a statement collapses into a column of amounts a TPP cannot reason about."
+          },
+          {
+            "type": "paragraph",
+            "text": "Yet in the specification the field is defined but not required. In the TPP Standards spec, TransactionInformation is a string of 1–500 characters described as “the transaction narrative, which is unstructured text”, but it does not appear in the AETransaction required list. The picture is the same on the LFI side: the Ozone Connect transactionInformation field is optional on CbuaeTransaction too. An LFI can therefore return a schema-valid transactions response with no narrative at all."
+          },
+          {
+            "type": "paragraph",
+            "text": "In practice Nebras has not accepted that. Where an LFI’s CASA transaction data has arrived without narratives, it has been treated as a functional-certification failure and a remediation plan has been required before sign-off — because a dataset without the narrative is not a functioning dataset. This proposal asks that we stop enforcing that case by case and write it into the standard."
+          },
+          {
+            "type": "paragraph",
+            "text": "The complication is scope. The remediation practice grew up around CASA — current and savings accounts, where a narrative is dependable. But the transactions endpoint is a single shared schema used for every product: credit cards, personal finance, mortgages, and SME / corporate accounts all report through it. We have not scrutinised the narrative for those products the way we have for CASA. Making the field technically required turns it on for all of them at once — so the honest question this proposal puts to the ecosystem is whether every LFI can actually supply it, for every product."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Require it on the transaction object",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Add TransactionInformation to the required list of the transaction object, on both sides of the Hub: AETransaction in the TPP Standards spec and transactionInformation on CbuaeTransaction in the Ozone Connect spec. The field already exists and is already sized — this is a one-line addition to a required array, not a new field or a shape change. Field bounds (1–500 characters) do not move."
+          },
+          {
+            "type": "paragraph",
+            "text": "Because the LFI is the producer of this data, the obligation binds the LFI. It is asserted primarily at functional certification — exactly where Nebras already asserts it for CASA — so that a narrative-less transactions response fails sign-off before production rather than being remediated ad hoc afterwards. Writing it into the schema makes the rule published and testable instead of discretionary."
+          },
+          {
+            "type": "paragraph",
+            "text": "The proposal deliberately recommends the uniform change — required across every product — because that is what a schema-level requirement means, and because a consistent narrative across LFIs is what makes the data comparable. But it does not assume every product can meet it. Whether that is achievable for credit cards, personal finance, mortgages, and SME accounts is the central open question below, and the answer may move us toward a product-scoped rule enforced at certification rather than in the schema. We would rather surface that trade-off than legislate through it."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What changes in the spec",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "A single field added to the transaction object’s required list on each side — field definition and bounds unchanged."
+          },
+          {
+            "type": "paragraph",
+            "text": "Add TransactionInformation to AETransaction.required in uae-account-information-openapi.yaml. The field’s own definition ( string, minLength 1, maxLength 500 ) is untouched."
+          },
+          {
+            "type": "paragraph",
+            "text": "Add transactionInformation to CbuaeTransaction.required in uae-ozone-connect-bank-data-sharing-openapi.yaml, so the obligation binds the LFI as the data producer and the two sides stay in step."
+          },
+          {
+            "type": "paragraph",
+            "text": "The Ozone Connect transactionInformation currently declares no length bounds. Add minLength 1 / maxLength 500 so both sides agree on what a valid narrative is — otherwise a field that is “required” could still be an empty string."
+          },
+          {
+            "type": "paragraph",
+            "text": "Primarily at functional certification, against the LFI’s pre-production environment — the same gate at which Nebras already requires CASA narratives. Formalising it in the schema turns today’s case-by-case remediation into a standing conformance rule."
+          },
+          {
+            "type": "paragraph",
+            "text": "This is a response field, so strict runtime rejection is blunt: a single narrative missing from an LFI response would otherwise fail schema validation for a whole page of transactions. Certification is therefore the primary control; any runtime handling at the API Hub should be decided deliberately rather than defaulting to a hard reject."
+          },
+          {
+            "type": "paragraph",
+            "text": "Only the first row on the right is caught by the schema (the field is now required and absent). The rest pass a presence check yet carry no narrative — which is precisely what the quality question below is about."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What requiring the narrative buys",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "✓"
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What it costs",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "×"
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What we’re asking the ecosystem",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The recommendation is uniform on purpose — but whether it is achievable everywhere is genuinely open. Settle this and it folds into the change."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

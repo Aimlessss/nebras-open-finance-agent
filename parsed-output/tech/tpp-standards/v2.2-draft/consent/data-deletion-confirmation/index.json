@@ -1,0 +1,136 @@
+{
+  "id": "tech/tpp-standards/v2.2-draft/consent/data-deletion-confirmation",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.2-draft/consent/data-deletion-confirmation/index.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "Data Deletion Confirmation",
+    "isIndex": true
+  },
+  "content": {
+    "title": "Data Deletion Confirmation",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "When a consent ends, the TPP must review the data it holds under that consent and confirm what it did with it. That confirmation is recorded as an Attestation Event, posted to an append-only attestations sub-resource on the consent itself. For the request and response schemas, see the API Reference."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "The obligation",
+        "level": 2,
+        "anchor": "obligation",
+        "category": "What is required",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Once a consent reaches a terminal status, the TPP MUST review every category of data it holds under that consent and record an Attestation Event stating, per category, whether the data was deleted or lawfully retained."
+          },
+          {
+            "type": "paragraph",
+            "text": "The terminal statuses in scope are Revoked, Expired, and Consumed. Rejected consents are explicitly out of scope — no data was ever shared under them, so there is nothing to attest to."
+          },
+          {
+            "type": "paragraph",
+            "text": "A payment consent is not empty for this purpose. It carries debtor and creditor account details, amounts, references, and charge and exchange-rate information, plus any account data the TPP retrieved in order to set the payment up. When a payment consent reaches a terminal status, that data falls under the same obligation as a Data Sharing consent."
+          },
+          {
+            "type": "paragraph",
+            "text": "Data the TPP holds outside the consent — data the customer supplied directly, or data obtained under a separate lawful basis — is not covered by this attestation."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The attestations sub-resource",
+        "level": 2,
+        "anchor": "sub-resource",
+        "category": "Where it is recorded",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Every consent type gains an attestations sub-resource. Each is scoped to its own API family, so a TPP only needs the scopes it already holds."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Consent type",
+              "Path",
+              "Scope"
+            ],
+            "rows": [
+              [
+                "Bank Data Sharing",
+                "/account-access-consents/{ConsentId}/attestations",
+                "accounts"
+              ],
+              [
+                "Bank Service Initiation",
+                "/payment-consents/{ConsentId}/attestations",
+                "payments"
+              ],
+              [
+                "Insurance",
+                "/insurance-consents/{ConsentId}/attestations",
+                "insurance"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "POST appends a new Attestation Event. GET returns the events the TPP has posted against that consent, most recent first, each paired with its receipt."
+          },
+          {
+            "type": "paragraph",
+            "text": "Attestations are recorded and validated wholly within the API Hub. There is no corresponding Ozone Connect endpoint and no change to the consent record an LFI holds."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The 45-day deadline",
+        "level": 2,
+        "anchor": "deadline",
+        "category": "When it is due",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Attestation Event MUST reach the API Hub within 45 days of the consent reaching its terminal status. The API Hub stamps every event with RegulatoryDeadlineMetIndicator, stating whether it arrived inside that window."
+          },
+          {
+            "type": "paragraph",
+            "text": "The deadline runs from the status change, not from the moment the TPP noticed it. A TPP subscribed to the consent status webhook is notified when a consent becomes terminal; a TPP that is not subscribed MUST poll the consent to detect the transition. Either way, knowing is the TPP's responsibility."
+          },
+          {
+            "type": "paragraph",
+            "text": "A late event is still recorded. The API Hub does not reject it — RegulatoryDeadlineMetIndicator simply reports false. A late attestation is more useful than a missing one, and the indicator preserves the compliance signal."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Append-only and stateless",
+        "level": 2,
+        "anchor": "model",
+        "category": "How the register behaves",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The sub-resource is append-only. Each POST records a new, immutable event; the API Hub applies no de-duplication and stores every successfully recorded event."
+          },
+          {
+            "type": "paragraph",
+            "text": "There is deliberately no state model and no correction endpoint. A TPP that needs to restate an attestation simply posts another event. Which event is surfaced in reporting is a reporting-layer matter, not consent state."
+          },
+          {
+            "type": "paragraph",
+            "text": "AttestationType is the extension point. A future obligation to attest to something else against a consent becomes a new type — not a new API."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

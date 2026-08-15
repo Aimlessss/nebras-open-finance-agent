@@ -1,0 +1,123 @@
+{
+  "document_id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide",
+  "chunk_count": 8,
+  "chunks": [
+    {
+      "id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide#insurance-quote-status-event-api-guide#0",
+      "document_id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide",
+      "type": "intro",
+      "text": "Insurance Quote Status Event — API Guide\n\nWhen you accept an insurance quote with a Subscription.Webhook attached, the API Hub delivers an Insurance Quote Status Event to your registered URL each time the LFI emits a quote-log update. Events flow through the full lifecycle from ApplicationPending to a terminal state.",
+      "metadata": {
+        "title": "Insurance Quote Status Event — API Guide",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide#insurance-quote-status-event-api-guide--prerequisites--what-you-need-before-events-can-be-delivered#1",
+      "document_id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide",
+      "type": "section",
+      "text": "Insurance Quote Status Event — API Guide > Prerequisites > What you need before events can be delivered\n\nBefore receiving an Insurance Quote Status Event, ensure the following requirements are met: - Registered Application — the application must be created within the Trust Framework and assigned the ISP role as defined in Roles. - Valid Encryption Certificate — an active encryption certificate must be issued and registered in the Trust Framework to receive the event as an encrypted JWE. - Accepted quote with a Subscription.Webhook — the webhook is registered per-quote on PATCH Accept (see Insurance Quotation API Guide ).",
+      "metadata": {
+        "title": "Insurance Quote Status Event — API Guide",
+        "section": "What you need before events can be delivered",
+        "category": "Prerequisites",
+        "anchor": "prerequisites",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide#insurance-quote-status-event-api-guide--how-it-works--push-delivery-on-every-quote-log-status-change#2",
+      "document_id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide",
+      "type": "section",
+      "text": "Insurance Quote Status Event — API Guide > How It Works > Push delivery on every quote-log status change\n\nInsurance Quotation does not use a per-customer consent. The webhook subscription is attached to the quote itself when you PATCH Accept. From that point, every time the LFI emits a status to PATCH /insurance-quote-log/{logId}, the Hub delivers an Insurance Quote Status Event to your registered Webhook.Url as a JWE-encrypted POST. The JWE is encrypted using your public Encryption Certificate. You must respond with 202 Accepted immediately and decrypt the event payload asynchronously.",
+      "metadata": {
+        "title": "Insurance Quote Status Event — API Guide",
+        "section": "Push delivery on every quote-log status change",
+        "category": "How It Works",
+        "anchor": "how-it-works",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide#insurance-quote-status-event-api-guide--step-1--subscribe-on-patch-accept-quote#3",
+      "document_id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide",
+      "type": "section",
+      "text": "Insurance Quote Status Event — API Guide > Step 1 > Subscribe on PATCH Accept Quote\n\nAttach a Subscription.Webhook object to the PATCH Accept Quote body. The subscription covers the entire lifecycle of the quote — you do not need to re-subscribe for each status. Update or pause delivery mid-flow by PATCHing again with only a Subscription object (omit Data ).",
+      "metadata": {
+        "title": "Insurance Quote Status Event — API Guide",
+        "section": "Subscribe on PATCH Accept Quote",
+        "category": "Step 1",
+        "anchor": "step-1",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide#insurance-quote-status-event-api-guide--step-2--receive-and-acknowledge-the-event#4",
+      "document_id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide",
+      "type": "section",
+      "text": "Insurance Quote Status Event — API Guide > Step 2 > Receive and acknowledge the event\n\nThe Hub POSTs the event to your Webhook.Url with Content-Type: application/jwe. Respond 202 Accepted with an empty body immediately — process the payload asynchronously. Failure to respond with 202 promptly may cause the Hub to retry delivery. Treat events as idempotent — the same event may arrive more than once.",
+      "metadata": {
+        "title": "Insurance Quote Status Event — API Guide",
+        "section": "Receive and acknowledge the event",
+        "category": "Step 2",
+        "anchor": "step-2",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide#insurance-quote-status-event-api-guide--step-3--decrypt-the-jwe-and-verify-the-inner-jws#5",
+      "document_id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide",
+      "type": "section",
+      "text": "Insurance Quote Status Event — API Guide > Step 3 > Decrypt the JWE and verify the inner JWS\n\nThe event is a JWE compact serialisation encrypted with your registered Encryption Certificate. The JWE header contains a kid that identifies which of your keys to use — decode the header first to select the correct private key, then decrypt. See Receiving Event Notifications for the full FAPI-aligned guidance: key selection by kid, JWS signature verification, and required security checks.",
+      "metadata": {
+        "title": "Insurance Quote Status Event — API Guide",
+        "section": "Decrypt the JWE and verify the inner JWS",
+        "category": "Step 3",
+        "anchor": "step-3",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide#insurance-quote-status-event-api-guide--event-payload-meta--envelope-metadata#6",
+      "document_id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide",
+      "type": "section",
+      "text": "Insurance Quote Status Event — API Guide > Event Payload — Meta > Envelope metadata\n\nField | Type | Description EventDateTime | string (date-time) | When the event was generated. EventResource | string | The resource URI that triggered the event — e.g. /motor-insurance-quotes/{QuoteId}. EventType | string | One of: Resource.Created, Resource.Updated, Resource.Deleted. QuoteId | string (UUID) | The identifier of the quote the status change applies to.",
+      "metadata": {
+        "title": "Insurance Quote Status Event — API Guide",
+        "section": "Envelope metadata",
+        "category": "Event Payload — Meta",
+        "anchor": "payload-meta",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide#insurance-quote-status-event-api-guide--event-payload-data--one-of-three-event-shapes-per-quotestatus#7",
+      "document_id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide",
+      "type": "section",
+      "text": "Insurance Quote Status Event — API Guide > Event Payload — Data > One of three event shapes per QuoteStatus\n\nThe Data object conforms to one of three schemas drawn from AEInsurance.AEInsuranceEvent: - Pending Completion Status — QuoteStatus is one of ApplicationPending, ApplicationApproved, PaymentRequired, PolicyIssued. May include BrokerInstructions[] (typically a payment URL) and Documents[] (on PolicyIssued in TPP-Led mode). - Completed Status — QuoteStatus: Completed. Carries the finalised Premium, PolicyTerm, CustomerPaidInFull, PolicyCountrySubDivision, and (where applicable) the Commission due to the TPP. - Terminal Status — QuoteStatus is one of Expired, Rejected, CustomerCancelled, LFICancelled. May include a Reason string. The full schema is documented in Insurance Quotation API Guide — Event Schema and surfaced as an OpenAPI viewer in Insurance Quote Status Change Event.",
+      "metadata": {
+        "title": "Insurance Quote Status Event — API Guide",
+        "section": "One of three event shapes per QuoteStatus",
+        "category": "Event Payload — Data",
+        "anchor": "payload-data",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide.vue",
+        "parser": "vue-sfc"
+      }
+    }
+  ]
+}

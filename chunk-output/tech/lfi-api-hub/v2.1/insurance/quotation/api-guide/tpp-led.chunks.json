@@ -1,0 +1,123 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led",
+  "chunk_count": 8,
+  "chunks": [
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led#insurance-quotation-tpp-led-flow#0",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led",
+      "type": "intro",
+      "text": "Insurance Quotation — TPP-Led Flow\n\nThe TPP collects KYC in its own UI and surfaces an LFI-hosted payment URL to the customer. Your LFI is responsible for underwriting, premium pricing, payment hosting, and policy document generation — but customer interaction outside the payment page lives entirely with the TPP.",
+      "metadata": {
+        "title": "Insurance Quotation — TPP-Led Flow",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led#insurance-quotation-tpp-led-flow--post-type-insurance-quotes--underwrite-and-return-one-or-more-quotes#1",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led",
+      "type": "section",
+      "text": "Insurance Quotation — TPP-Led Flow > POST /{type}-insurance-quotes > Underwrite and return one or more quotes\n\nCreate Quote behaves identically to LFI-Led mode — mint a QuoteId, run underwriting, return 201 with the quote details (or 204 to decline). The mode forks on PATCH Accept, not on Create.",
+      "metadata": {
+        "title": "Insurance Quotation — TPP-Led Flow",
+        "section": "Underwrite and return one or more quotes",
+        "category": "POST /{type}-insurance-quotes",
+        "anchor": "create-quote",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led#insurance-quotation-tpp-led-flow--patch-type-insurance-quotes-quoteid--accept-the-quote-return-policyissuanceallowed#2",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led",
+      "type": "section",
+      "text": "Insurance Quotation — TPP-Led Flow > PATCH /{type}-insurance-quotes/{QuoteId} > Accept the quote — return PolicyIssuanceAllowed\n\nRespond 200 with data.PolicyIssuanceAllowed declaring which steps the TPP may perform. All three booleans are required. Immediately after responding, PATCH the quote-log with QuoteStatus: ApplicationPending so the TPP knows the application has been registered. The TPP will then collect KYC in its own UI.",
+      "metadata": {
+        "title": "Insurance Quotation — TPP-Led Flow",
+        "section": "Accept the quote — return PolicyIssuanceAllowed",
+        "category": "PATCH /{type}-insurance-quotes/{QuoteId}",
+        "anchor": "accept",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led#insurance-quotation-tpp-led-flow--patch-type-insurance-quotes-quoteid-second-call--receive-the-tpp-s-kyc-submission#3",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led",
+      "type": "section",
+      "text": "Insurance Quotation — TPP-Led Flow > PATCH /{type}-insurance-quotes/{QuoteId} (second call) > Receive the TPP's KYC submission\n\nThe TPP submits the collected KYC by PATCHing the same quote endpoint again. The body conforms to the sector\\'s accept-quote request schema ( AEInsurance.AE{Type}InsuranceQuoteAcceptQuoteRequestProperties ). Validate it as you would a direct application: Emirates ID checks, sanctions screening, any sector-specific underwriting confirmations. If KYC fails, respond 400 with a descriptive errorMessage; the TPP will surface the error to the customer and let them retry. If KYC passes, respond 200 (no body) and proceed to issue the payment URL.",
+      "metadata": {
+        "title": "Insurance Quotation — TPP-Led Flow",
+        "section": "Receive the TPP's KYC submission",
+        "category": "PATCH /{type}-insurance-quotes/{QuoteId} (second call)",
+        "anchor": "submit-kyc",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led#insurance-quotation-tpp-led-flow--patch-insurance-quote-log-logid--emit-applicationapproved-brokerinstructions-url#4",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led",
+      "type": "section",
+      "text": "Insurance Quotation — TPP-Led Flow > PATCH /insurance-quote-log/{logId} > Emit ApplicationApproved + BrokerInstructions.Url\n\nGenerate a single-use payment URL on your LFI-hosted payment surface and emit a Pending Completion event: The TPP will redirect the customer to this URL. Customer payment is collected on your LFI’s page — the TPP never sees the card details. After payment success, your LFI redirects the customer back to the URL the TPP supplied (typically as part of its webhook subscription or out-of-band registration). Invalidate the URL after first redemption or after a session window of 15–30 minutes. The TPP MUST NOT cache or replay it. If the customer abandons and returns later, you can emit a fresh PaymentRequired event with a new URL.",
+      "metadata": {
+        "title": "Insurance Quotation — TPP-Led Flow",
+        "section": "Emit ApplicationApproved + BrokerInstructions.Url",
+        "category": "PATCH /insurance-quote-log/{logId}",
+        "anchor": "emit-application-approved",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led#insurance-quotation-tpp-led-flow--post-type-insurance-policies--issue-the-policy-from-the-kyc-payment-confirmed-quote#5",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led",
+      "type": "section",
+      "text": "Insurance Quotation — TPP-Led Flow > POST /{type}-insurance-policies > Issue the policy from the KYC + payment-confirmed quote\n\nOnce payment is confirmed, the TPP calls POST to create the policy. The body carries the originating QuoteId plus any additional data your LFI requires (most KYC was already submitted via the second PATCH). Issue the policy and respond 201. If the TPP retries with the same QuoteId, return the same policy reference — policy creation MUST be idempotent.",
+      "metadata": {
+        "title": "Insurance Quotation — TPP-Led Flow",
+        "section": "Issue the policy from the KYC + payment-confirmed quote",
+        "category": "POST /{type}-insurance-policies",
+        "anchor": "create-policy",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led#insurance-quotation-tpp-led-flow--patch-insurance-quote-log-logid--emit-policyissued-documents#6",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led",
+      "type": "section",
+      "text": "Insurance Quotation — TPP-Led Flow > PATCH /insurance-quote-log/{logId} > Emit PolicyIssued + Documents\n\nIn TPP-Led mode the TPP is the document delivery channel — your LFI MUST NOT email or post documents to the customer directly. Attach every customer-facing document (Policy Booklet, Terms & Conditions, IPID, etc.) as base64-encoded Documents entries with SHA-256 hashes for integrity verification. Documents MUST be PDFs ( application/pdf ) or images ( image/jpeg, image/png ). The TPP verifies each Hash against the decoded Content before surfacing to the customer.",
+      "metadata": {
+        "title": "Insurance Quotation — TPP-Led Flow",
+        "section": "Emit PolicyIssued + Documents",
+        "category": "PATCH /insurance-quote-log/{logId}",
+        "anchor": "emit-policy-issued",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led#insurance-quotation-tpp-led-flow--patch-insurance-quote-log-logid--emit-completed-and-close-the-lifecycle#7",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led",
+      "type": "section",
+      "text": "Insurance Quotation — TPP-Led Flow > PATCH /insurance-quote-log/{logId} > Emit Completed and close the lifecycle\n\nSame as LFI-Led: emit a final Completed Status event with the finalised premium breakdown, policy term, and (where applicable) the Commission due to the TPP. The Hub rejects any subsequent PATCH for this logId. Commission.PaymentMethod controls how the LFI pays the TPP: DirectToTPP for direct bilateral settlement, or ThroughAPIHub for Hub-routed payment.",
+      "metadata": {
+        "title": "Insurance Quotation — TPP-Led Flow",
+        "section": "Emit Completed and close the lifecycle",
+        "category": "PATCH /insurance-quote-log/{logId}",
+        "anchor": "emit-completed",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/tpp-led.vue",
+        "parser": "vue-sfc"
+      }
+    }
+  ]
+}

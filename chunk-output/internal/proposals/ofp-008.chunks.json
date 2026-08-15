@@ -1,0 +1,109 @@
+{
+  "document_id": "internal/proposals/ofp-008",
+  "chunk_count": 8,
+  "chunks": [
+    {
+      "id": "internal/proposals/ofp-008#ofp-008-protect-financerates-with-an-lfi-hosted-display-element#0",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "intro",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element\n\nRetire the encrypted-JWE protection for FinanceRates. Instead of handing the TPP an encrypted rate to decrypt on the device, the LFI returns a reference to a surface it renders itself, which the TPP embeds as a cross-origin element — 3DS-style — so the rate is never received by the TPP at all. The voting period has ended. The votes cast are shown below. Sign in with the Trust Framework to vote — For, Against, or Abstain — recorded in the open with your reasoning. Your organisation and name come from your directory profile, and each person may vote once. This changes how a protected rate reaches the customer for every LFI and TPP, so the reasoning you record carries as much weight as the tally itself.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "internal/proposals/ofp-008#ofp-008-protect-financerates-with-an-lfi-hosted-display-element--the-encrypted-rate-design-is-heavy-to-build-and-thin-on-protection#1",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > The encrypted-rate design is heavy to build and thin on protection\n\nWhen a TPP holds ReadProductFinanceRates and calls GET /accounts/{AccountId}/product, the LFI MAY return the FinanceRates field as a compact JWE rather than a cleartext object. The TPP forwards that JWE to the customer’s browser and decrypts it locally, using a one-time code the LFI sends the customer out of band. The Encrypted FinanceRates guide documents the full flow. LFI feedback has surfaced two structural problems. First, it is heavy to implement for thin protection. The LFI must generate a per-call JWE (PBES2-HS512+A256KW / A256GCM), mint and deliver a one-time code on a channel it controls, and operate OTP-spam rate limits — a significant build. Yet once the browser decrypts the JWE, the cleartext rate exists in a context the TPP controls; whether it is stored or leaves the device rests on trusting the TPP to behave as it demonstrated at certification. Second, that certification is a point-in-time check, and it is not technically required. The optional certification attests, once, that the TPP decrypts and displays locally and does not persist the rate — it cannot bind the TPP’s runtime behaviour thereafter. Separately, nothing in the API Hub currently prevents an uncertified TPP from requesting ReadProductFinanceRates when it creates a consent; the dependency is documented but not enforced. The net effect is real engineering cost on the LFI side buying protection that still rests on trust, with an enforcement gap on top.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "The encrypted-rate design is heavy to build and thin on protection",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "internal/proposals/ofp-008#ofp-008-protect-financerates-with-an-lfi-hosted-display-element--have-the-lfi-show-the-rate-itself-inside-the-tpp-s-screen#2",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > Have the LFI show the rate itself, inside the TPP’s screen\n\nOn GET /accounts/{AccountId}/product, an LFI protecting a rate returns — in place of the rate value — a short-lived reference to an LFI-hosted display surface. The TPP embeds that surface as a cross-origin element (a plain iframe, or an LFI-provided web component) within its own screen. The customer sees the rate in the flow of the TPP application; it is rendered by LFI-origin content that the TPP’s code cannot read, script into, or capture. This mirrors 3-D Secure: the LFI is the issuer, the TPP is the merchant, and the sensitive interaction happens in an issuer-controlled frame the merchant hosts but cannot see into. LFIs that already run 3DS challenge infrastructure can reuse that tooling to authenticate the customer inside the surface, replacing the out-of-band OTP entirely. The customer’s browser or app loads the LFI surface directly from the LFI origin, exactly as it already reaches the LFI when the customer authenticates during consent authorisation. Strict mediation is preserved — the invariant governs API and data traffic, and the rate value is never proxied to the TPP; only a reference is.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "Have the LFI show the rate itself, inside the TPP’s screen",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "internal/proposals/ofp-008#ofp-008-protect-financerates-with-an-lfi-hosted-display-element--what-the-reference-means-precisely#3",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > What the reference means, precisely\n\nThe reference and the surface behind it become something TPPs and LFIs build against, so the shape and the controls have to be pinned down rather than left to implementation. - FinanceRates becomes anyOf a cleartext AEProductFinanceRates object or a new AERateDisplayRef. The AEJwe shape is removed from this field. - AERateDisplayRef carries a DisplayUrl on the LFI’s customer-facing display origin — itself carrying a signed, single-use request token bound to the consent, AccountId, ProductId, and the TPP’s client identity — and an ExpiresAt. - Confidentiality comes from cross-origin isolation. Because the frame is cross-origin, the TPP page cannot read the rate from the DOM, script into the frame, or capture its content. This holds regardless of any allowlist. - Access comes from the token. A valid DisplayUrl only ever reaches the legitimate TPP, because obtaining one requires an authenticated, consented call through the API Hub. The LFI validates the token before rendering anything. - Expiry is enforced by the LFI, server-side. After ExpiresAt the surface stops rendering the rate — it is no longer a TPP obligation to honour a display window. - No per-TPP embedding-origin registration. We deliberately avoid a frame-ancestors allowlist; it would only add clickjacking defence for a display-only surface showing the customer their own rate, at the cost of a new registration artifact and LFI upkeep, and it does not map cleanly onto native / webview. - ReadProductFinanceRates is unchanged. It still gates whether the LFI surfaces the rate at all; if the permission is absent, FinanceRates is omitted from the Product record, exactly as today. The baseline embedding is a plain cross-origin iframe — the lowest common denominator and the closest reuse of 3DS browser flows — with an optional LFI-provided web-component or mobile-SDK profile defined for richer embedding, and for native contexts where an iframe is not the host.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "What the reference means, precisely",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "internal/proposals/ofp-008#ofp-008-protect-financerates-with-an-lfi-hosted-display-element--what-changes#4",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > What changes\n\nOne schema change, a display surface on the LFI side, a repurposed certification the API Hub can enforce, and documentation. The consent, audit, and billing semantics are untouched. In the account-information specification, change FinanceRates to anyOf [ AEProductFinanceRates, AERateDisplayRef ], add the AERateDisplayRef schema, and remove AEJwe from this field. Targets V2.2. Because no LFI has a live JWE implementation, the removal affects no one and needs no deprecation window. A protecting LFI stands up (or reuses) a tokenised, customer-facing display surface that validates the request token, authenticates the customer where it chooses to — reusing existing 3DS / challenge infrastructure — renders the rate, and enforces ExpiresAt server-side. In return it retires the JWE generation, the one-time-code minting and delivery, and the OTP-spam rate limits. No per-TPP allowlist is maintained. Rename the optional Access Encrypted Resource Data certification — a misnomer once there is no encryption — to Rate Display Embedding, and repurpose it: the TPP demonstrates it can correctly embed and operate the LFI element and does not attempt to defeat its isolation. The API Hub SHOULD then reject a consent requesting ReadProductFinanceRates from a TPP that does not hold the certification, using the trust-framework record it already holds — closing today’s enforcement gap. Rewrite the two Encrypted FinanceRates guides (TPP and LFI) and the Data Sharing requirements tables around the embedded surface, update the certification page under its new name, and record the change as an errata. No new registration field is introduced.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "What changes",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "internal/proposals/ofp-008#ofp-008-protect-financerates-with-an-lfi-hosted-display-element--a-different-shape-of-work-not-obviously-less-of-it#5",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > A different shape of work, not obviously less of it\n\nThis proposal trades one build for another. It retires the JWE crypto, the one-time-code delivery, and the OTP rate limiting — genuinely the heaviest parts of today’s LFI work — but in their place a protecting LFI has to expose a customer-facing display surface with token validation and, if it wants friction control, a challenge step. For an LFI that already runs 3DS this is largely reuse; for one that does not, it is new front-end responsibility. The change is meaningful for TPPs too: they move from forwarding a JWE and decrypting in-browser to embedding and operating a cross-origin element they cannot style. And it is a breaking schema change to FinanceRates, taken at V2.2. The one thing that makes it cheap right now is that no LFI has shipped the JWE path, so nothing has to be migrated — this is close to a clean start rather than a transition. A vote in favour is a statement that your institution would build to this — an LFI that it would host the surface, a TPP that it would embed it — not merely that it reads as more secure. If the ecosystem would rather keep the encrypted-rate design, or would not use the protected path at all, that is a perfectly good outcome and the work will not be scheduled.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "A different shape of work, not obviously less of it",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "internal/proposals/ofp-008#ofp-008-protect-financerates-with-an-lfi-hosted-display-element--what-the-display-surface-buys#6",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > What the display surface buys\n\n- ✓",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "What the display surface buys",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "internal/proposals/ofp-008#ofp-008-protect-financerates-with-an-lfi-hosted-display-element--what-it-costs#7",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > What it costs\n\n- ×",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "What it costs",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc"
+      }
+    }
+  ]
+}

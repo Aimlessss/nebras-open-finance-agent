@@ -1,0 +1,226 @@
+{
+  "id": "tech/tpp-standards/security/request-headers",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/security/request-headers.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "Request Headers"
+  },
+  "content": {
+    "title": "Request Headers",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "These headers apply to all authenticated API calls made in the UAE Open Finance ecosystem. They are defined by the FAPI 2.0 Security Profile and the UAE Open Finance standard."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "At-a-glance summary of every supported header",
+        "level": 2,
+        "anchor": "header-reference",
+        "category": "Header Reference",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Header",
+              "Level",
+              "Applies To"
+            ],
+            "rows": [
+              [
+                "x-fapi-interaction-id",
+                "Recommended",
+                "All endpoints"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Conditional",
+                "All endpoints"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Conditional",
+                "Data Sharing, Service Initiation, Confirmation of Payee"
+              ],
+              [
+                "x-customer-user-agent",
+                "Optional",
+                "Data Sharing, Service Initiation, Confirmation of Payee"
+              ],
+              [
+                "x-idempotency-key",
+                "Required",
+                "POST /payments"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "UUID v4 correlation ID for end-to-end tracing",
+        "level": 2,
+        "anchor": "interaction-id",
+        "category": "x-fapi-interaction-id",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "A UUID v4 correlation identifier that links a request to its response and enables end-to-end traceability across the ecosystem."
+          },
+          {
+            "type": "list",
+            "items": [
+              "Format: UUID v4 (RFC 4122), e.g. 7b5b4e3c-1d2a-4f5e-8c3b-9a0d6e2f1b4c",
+              "Level: Recommended on all requests. TPPs SHOULD include this header on every outbound call.",
+              "LFI behaviour: The API Hub echoes the value verbatim in the x-fapi-interaction-id response header. If the header is absent, the API Hub generates a UUID and returns it in the response."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "TPPs should log the interaction ID alongside every outbound request and its response. This enables correlation of issues across TPP systems, the API Hub and the LFI systems, and Nebras support."
+          },
+          {
+            "type": "paragraph",
+            "text": "The API Hub validates the format of x-fapi-interaction-id. If the value is not a valid UUID v4, the request will not fail, but the interaction ID will be silently discarded and will not be stored at the API Hub. This means the ID cannot be used for tracing or support — the value in your logs will not match anything on the API Hub side."
+          },
+          {
+            "type": "paragraph",
+            "text": "Do not use any format that does not conform to RFC 4122 UUID v4. Even values that look similar (e.g. GUIDs or UUIDs without hyphens) will be discarded."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "IP address of the customer's device at request time",
+        "level": 2,
+        "anchor": "customer-ip",
+        "category": "x-fapi-customer-ip-address",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The IP address of the customer's device at the time of the request."
+          },
+          {
+            "type": "list",
+            "items": [
+              "Format: IPv4 or IPv6 string, e.g. 192.168.1.1 or 2001:db8::1",
+              "Level: Required when the customer is present in an active end user-facing session. Required on all Product and Leads endpoints regardless of session context."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Where the TPP cannot determine the customer's IP address (e.g. in a server-to-server background call), this header should be omitted."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Last time the customer authenticated with the TPP",
+        "level": 2,
+        "anchor": "auth-date",
+        "category": "x-fapi-auth-date",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The date and time at which the customer last authenticated with the TPP."
+          },
+          {
+            "type": "list",
+            "items": [
+              "Format: RFC 7231 HTTP-date, e.g. Sun, 10 Sep 2023 19:43:31 UTC",
+              "Level: Required when the customer is present in an active end user-facing session (i.e. the request is being made on behalf of a customer who is currently logged in). Optional for background/automated calls."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "This header informs the LFI's fraud and risk controls. Omitting it during an end user-facing session may cause the LFI to treat the call as a background operation, which can affect consent and session handling."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The customer's browser or app user-agent string",
+        "level": 2,
+        "anchor": "user-agent",
+        "category": "x-customer-user-agent",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The user-agent string of the customer's browser or application."
+          },
+          {
+            "type": "list",
+            "items": [
+              "Format: Standard HTTP User-Agent string, e.g. Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X)",
+              "Level: Optional. Recommended where the customer is accessing the TPP via a browser or native application."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "This header supports LFI fraud detection and device fingerprinting. It should reflect the customer's actual device, not the TPP's server."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Exactly-once processing for payment initiation",
+        "level": 2,
+        "anchor": "idempotency-key",
+        "category": "x-idempotency-key",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "A unique key that guarantees exactly-once processing of payment initiation requests."
+          },
+          {
+            "type": "list",
+            "items": [
+              "Format: String, maximum 40 characters, no whitespace — pattern ^(\\S*)$",
+              "Level: Required on all POST /payments requests.",
+              "Scope: Unique per consent. The same key must not be reused across different consents."
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Rules",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "If the API Hub receives a POST /payments request with an x-idempotency-key it has already processed for the same consent, it must return the original response without re-processing the payment.",
+                  "TPPs must not change the request body when replaying a request with the same idempotency key.",
+                  "TPPs must preserve the idempotency key when retrying after a network failure or timeout. Do not generate a new key for a retry — this would create a duplicate payment.",
+                  "The API Hub echoes the x-idempotency-key in the response header."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "If a TPP generates a new x-idempotency-key on retry after a timeout, it risks creating a duplicate payment. The correct behaviour on retry is to resend the original key with the original request body."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Request signing is handled separately",
+        "level": 2,
+        "anchor": "message-signing",
+        "category": "Message Signing",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Request signing ( x-jws-signature ) is handled separately. Refer to Message Signing for requirements and implementation guidance."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

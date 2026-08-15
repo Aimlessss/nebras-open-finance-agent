@@ -1,0 +1,295 @@
+{
+  "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+  "chunk_count": 19,
+  "chunks": [
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide#0",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "intro",
+      "text": "Bank Data Sharing — API Guide\n\nCreate a Bank Data Sharing consent, redirect the user to authenticate at their LFI, exchange the authorization code for tokens, and call the account APIs — an end-to-end walkthrough of the customer-present data-sharing flow.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--prerequisites--what-you-need-before-creating-a-consent#1",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Prerequisites > What you need before creating a consent\n\nBefore creating a Bank Data Sharing consent, ensure the following requirements are met: - Registered Application — the application must be created within the Trust Framework and assigned the BDSP role as defined in Roles. - Valid Transport Certificate — an active transport certificate must be issued and registered in the Trust Framework to establish secure mTLS communication. - Valid Signing Certificate — an active signing certificate must be issued and registered in the Trust Framework. This certificate is used to sign request objects and client assertions. - Registration with the relevant API Hub (Authorisation Server) — the application must be registered with the API Hub (Server) of the LFI for which you intend to create a Bank Data Sharing consent. - Understanding of the FAPI Security Profile and Tokens & Assertions — you should understand how request object signing, client authentication, and access token validation underpin secure API interactions. - Understanding of Consents — you should understand how to create, retrieve, and manage consents, including consent states and lifecycle transitions.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "What you need before creating a consent",
+        "category": "Prerequisites",
+        "anchor": "prerequisites",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--post-par-step-1-constructing-authorization-details--build-the-consent-payload#2",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload\n\nTo send a /par request, first we need to generate the request JWT. We do this by first constructing authorization_details of type ( urn:openfinanceuae:account-access-consent:v2.1 ).",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--post-par-step-1-constructing-authorization-details--build-the-consent-payload--authorization-details#3",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > authorization_details\n\nField | Type | Description | Example type * | enum | Must be urn:openfinanceuae:account-access-consent:v2.1 | urn:openfinanceuae:account-access-consent:v2.1 consent * | object | Properties of the consent agreed by the User with the TPP. Described below. | Described below subscription | object | Optional subscription to Event Notifications, to be sent to the TPP Webhook Url. Described below. | Described below",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "authorization_details",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--post-par-step-1-constructing-authorization-details--build-the-consent-payload--consent-required-authorization-details-consent#4",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > consent (Required) | authorization_details.consent\n\nField | Type | Description | Example ConsentId * | string (uuid) | Unique ID assigned by the TPP (1–128 chars) | 123e4567-e89b-12d3-a456-426614174001 BaseConsentId | string (uuid) | Used when renewing or modifying an existing consent | 123e4567-e89b-12d3-a456-426614174000 Permissions * | array<enum> | List of account access permissions being consented by the user | ReadAccountsBasic, ReadBalances ExpirationDateTime * | date-time | Expiry date/time (ISO 8601 with timezone, max 1 year) | 2025-11-03T15:46:00+00:00 FromDate | date | Start date for transaction access (ISO 8601 format) | 2023-11-03 ToDate | date | End date for transaction access (ISO 8601 format) | 2025-11-03 AccountType | array<enum> | Allowed: Retail, SME, Corporate | Retail AccountSubType | array<enum> | Allowed: CurrentAccount, Savings, CreditCard, Mortgage, Finance | Savings OpenFinanceBilling * | object | Billing parameters specified by the TPP. Described below. | Described below OnBehalfOf | object | Provided when TPP is acting for another regulated entity. Described below. | Described below",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "consent (Required) | authorization_details.consent",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--post-par-step-1-constructing-authorization-details--build-the-consent-payload--openfinancebilling-required-authorization-details-consent-openfinancebilling#5",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > OpenFinanceBilling (Required) | authorization_details.consent.OpenFinanceBilling\n\nField | Type | Allowed Values | Example UserType * | enum | Retail, SME, Corporate | Retail Purpose * | enum | AccountAggregation, RiskAssessment, TaxFiling, Onboarding, Verification, QuoteComparison, BudgetingAnalysis, FinancialAdvice, AuditReconciliation | AccountAggregation",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "OpenFinanceBilling (Required) | authorization_details.consent.OpenFinanceBilling",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--post-par-step-1-constructing-authorization-details--build-the-consent-payload--onbehalfof-optional-authorization-details-consent-onbehalfof#6",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > OnBehalfOf (Optional) | authorization_details.consent.OnBehalfOf\n\nField | Type | Description | Example TradingName | string | Trading name if acting on behalf of another entity | Acme Ltd LegalName | string | Legal name of represented entity | Acme Legal Name IdentifierType | enum | Only Other currently supported | Other Identifier | string | Identifier value | 9876543210",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "OnBehalfOf (Optional) | authorization_details.consent.OnBehalfOf",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--post-par-step-1-constructing-authorization-details--build-the-consent-payload--subscription-optional-authorization-details-subscription#7",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > subscription (Optional) | authorization_details.subscription\n\nField | Type | Description | Example Webhook * | object | Described below. | Described below",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "subscription (Optional) | authorization_details.subscription",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--post-par-step-1-constructing-authorization-details--build-the-consent-payload--webhook-required-authorization-details-subscription-webhook#8",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > Webhook (Required) | authorization_details.subscription.Webhook\n\nField | Type | Description | Example Url * | string | HTTPS callback URL | https://tpp.example.com/webhook IsActive * | boolean | Whether webhook is active | true",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "Webhook (Required) | authorization_details.subscription.Webhook",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--post-par-step-1-constructing-authorization-details--build-the-consent-payload--example-request#9",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > Example request\n\nSee an example of a valid authorization_details for urn:openfinanceuae:account-access-consent:v2.1:",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "Example request",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--post-par-step-2-constructing-the-request-jwt--bind-pkce-and-authorization-details-into-a-signed-jwt#10",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > POST /par · Step 2 — Constructing the Request JWT > Bind PKCE and authorization details into a signed JWT\n\nWith your authorization_details ready, generate a PKCE code pair then use the buildRequestJWT() helper from the FAPI page, passing accounts openid as the scope. Save codeVerifier in your server-side session or an httpOnly cookie. You will need it in Step 7 to exchange the authorization code for tokens. See Preparing the Request JWT for the full JWT claim reference and PKCE helpers.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Bind PKCE and authorization details into a signed JWT",
+        "category": "POST /par · Step 2 — Constructing the Request JWT",
+        "anchor": "step-2-request-jwt",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--post-par-step-3-creating-a-client-assertion--prove-the-application-s-identity-to-the-api-hub#11",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > POST /par · Step 3 — Creating a Client Assertion > Prove the application's identity to the API Hub\n\nEvery call to the API Hub (Authorisation Server) requires a client assertion — a short-lived signed JWT that proves your application's identity in place of a client secret. Use the signJWT() helper from the FAPI Message Signing page: See Tokens & Assertions for the full claims reference and Preparing Your Client Assertion for a step-by-step walkthrough.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Prove the application's identity to the API Hub",
+        "category": "POST /par · Step 3 — Creating a Client Assertion",
+        "anchor": "step-3-client-assertion",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--post-par-step-4-sending-the-par-request--push-the-request-to-the-api-hub#12",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > POST /par · Step 4 — Sending the /par Request > Push the request to the API Hub\n\nWith your signed Request JWT and client assertion ready, POST both to the API Hub's /par endpoint. The connection must use your mTLS transport certificate. Include x-fapi-interaction-id — a UUID v4 you generate per request. The API Hub echoes it in the response, enabling end-to-end traceability. See Request Headers for the full header reference. You must present your transport certificate on every connection to the API Hub and resource APIs. In Node.js, configure an https.Agent with your PEM certificate and private key. See Certificates for how to obtain and configure your transport certificate. The /par response contains: Field | Description | Example request_uri | A single-use reference to your pushed authorization request | urn:ietf:params:oauth:request-uri:bwc4JDpSd7 expires_in | Seconds until the request_uri expires — redirect the user before this window closes | 90",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Push the request to the API Hub",
+        "category": "POST /par · Step 4 — Sending the /par Request",
+        "anchor": "step-4-par-request",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--redirecting-the-user-step-5-building-the-authorization-url--send-the-user-to-the-lfi-to-authenticate#13",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Redirecting the User · Step 5 — Building the Authorization URL > Send the user to the LFI to authenticate\n\nUse the request_uri returned by /par to build the redirect URL. The authorization_endpoint is found in the LFI's.well-known/openid-configuration — not constructed from the issuer URL directly. All authorization parameters are already inside the signed Request JWT, so the only query parameters needed are client_id, response_type, and request_uri. See User Experience for screen mockups of the Consent and Authorization pages the user sees at the bank, including an interactive example where you can edit the consent JSON and preview the resulting UI. After redirecting, the user will: - Authenticate with their bank. - Review the consent — accounts, permissions, and expiry — on the bank's authorization screen. - Approve or decline.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Send the user to the LFI to authenticate",
+        "category": "Redirecting the User · Step 5 — Building the Authorization URL",
+        "anchor": "step-5-authorization-url",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--handling-the-callback-step-6-extracting-the-authorization-code--validate-state-and-issuer-on-the-redirect#14",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Handling the Callback · Step 6 — Extracting the Authorization Code > Validate state and issuer on the redirect\n\nAfter the user approves, the bank redirects them back to your redirect_uri. The callback includes an authorization code, the state you sent in your Request JWT, and the iss (issuer) of the API Hub Authorisation Server: Extract all three parameters and validate state and iss before proceeding: See Handling Authorization Callbacks for a full guide on security best practices including issuer verification, replay prevention, and keeping callback logic minimal.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Validate state and issuer on the redirect",
+        "category": "Handling the Callback · Step 6 — Extracting the Authorization Code",
+        "anchor": "step-6-extract-code",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--exchanging-the-code-for-tokens-step-7-post-token-authorization-code--swap-the-auth-code-for-an-access-and-refresh-token#15",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Exchanging the Code for Tokens · Step 7 — POST /token (Authorization Code) > Swap the auth code for an access and refresh token\n\nExchange the authorization code for an access token and refresh token. Include the code_verifier from Step 2 — the API Hub will verify it against the code_challenge in your Request JWT before issuing tokens. Store both tokens securely. The access token expires in 10 minutes; the refresh token remains valid for the lifetime of the consent. Never store tokens in localStorage. Use httpOnly cookies or a server-side session store. See Tokens & Assertions for the full token lifecycle and expiry guidance.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Swap the auth code for an access and refresh token",
+        "category": "Exchanging the Code for Tokens · Step 7 — POST /token (Authorization Code)",
+        "anchor": "step-7-post-token-authorization-code",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--calling-the-account-apis-step-8-get-accounts--retrieve-the-consented-accounts#16",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Calling the Account APIs · Step 8 — GET /accounts > Retrieve the consented accounts\n\nWith a valid access token, retrieve all accounts the user consented to share. Include x-fapi-interaction-id on every request, and when the customer is present also send x-fapi-customer-ip-address and x-customer-user-agent and x-fapi-auth-date if the customer has been authenticated. See Request Headers. See the GET /accounts API reference for the full response schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Retrieve the consented accounts",
+        "category": "Calling the Account APIs · Step 8 — GET /accounts",
+        "anchor": "step-8-get-accounts",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--calling-the-account-apis-step-9-get-accounts-accountid-balances--fetch-sub-resources-for-a-specific-account#17",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Calling the Account APIs · Step 9 — GET /accounts/{AccountId}/balances > Fetch sub-resources for a specific account\n\nUse a stored AccountId to fetch data from a specific account's sub-resources. Each endpoint requires the matching Read* permission in your consent. Apply the same FAPI headers as Step 8. All available sub-resources and their required permissions: Endpoint | Required Permission | API Reference /accounts/{AccountId}/balances | ReadBalances | reference /accounts/{AccountId}/transactions | ReadTransactionsBasic | reference /accounts/{AccountId}/beneficiaries | ReadBeneficiariesBasic | reference /accounts/{AccountId}/direct-debits | ReadDirectDebits | reference /accounts/{AccountId}/standing-orders | ReadStandingOrdersBasic | reference /accounts/{AccountId}/scheduled-payments | ReadScheduledPaymentsBasic | reference /accounts/{AccountId}/statements | ReadStatements | reference /accounts/{AccountId}/parties | ReadParty | reference For /transactions and /statements, an LFI MUST make at least two years of history available. A 200 response with an empty data array therefore only means no records exist when your query range falls within that guaranteed two-year window. If you query a period older than two years, an empty or partial result does not imply the customer had no activity then — the LFI may simply not retain data that far back (it MAY return older records, but is not required to). Do not infer absence of spend, income, or other activity for any period beyond the two-year guarantee. The API Hub rejects a date-range query with 400 Resource.InvalidFormat before it reaches the LFI when fromBookingDateTime is after toBookingDateTime, or when toBookingDateTime / toStatementDate is in the future. A fromBookingDateTime in the future is not rejected but serves no purpose — the range can never match a record. See Date Filters for the full behaviour.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Fetch sub-resources for a specific account",
+        "category": "Calling the Account APIs · Step 9 — GET /accounts/{AccountId}/balances",
+        "anchor": "step-9-get-balances",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide#bank-data-sharing-api-guide--refresh-token-flow-step-10-refreshing-the-access-token--keep-the-session-alive-without-re-authorisation#18",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Refresh Token Flow · Step 10 — Refreshing the Access Token > Keep the session alive without re-authorisation\n\nAccess tokens expire after 10 minutes. Track the expires_in value returned by /token and refresh proactively rather than waiting for a 401 Unauthorized. Each refresh requires a fresh client assertion. Always replace both access_token and refresh_token from the response. If the API Hub rotates refresh tokens, continuing to use the old one will return 400 invalid_grant. The refresh token remains valid until the consent's ExpirationDateTime. Once expired, the user must go through the full authorization flow again — send a new /par request with a new ConsentId.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Keep the session alive without re-authorisation",
+        "category": "Refresh Token Flow · Step 10 — Refreshing the Access Token",
+        "anchor": "step-10-refreshing-the-access-token",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    }
+  ]
+}

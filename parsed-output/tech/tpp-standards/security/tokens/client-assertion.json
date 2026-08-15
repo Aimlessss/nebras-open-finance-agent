@@ -1,0 +1,175 @@
+{
+  "id": "tech/tpp-standards/security/tokens/client-assertion",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/security/tokens/client-assertion.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "Preparing Client Assertion"
+  },
+  "content": {
+    "title": "Preparing Client Assertion",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "A client assertion is a short-lived, signed JWT that your application presents to the Authorization Server to prove its identity. It takes the place of a static client secret, providing a stronger and more auditable form of client authentication."
+      },
+      {
+        "type": "paragraph",
+        "text": "Because each assertion is signed with your application's private key, the Authorization Server can verify it using your public key from the Trust Framework — without any shared secret ever leaving your system."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Two endpoints require a client assertion",
+        "level": 2,
+        "anchor": "where-used",
+        "category": "Where it's used",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "In UAE Open Finance, a client assertion is required on two endpoints:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Endpoint",
+              "Use"
+            ],
+            "rows": [
+              [
+                "/token",
+                "Exchanging an authorisation code for tokens, refreshing an access token, or obtaining a client credentials token"
+              ],
+              [
+                "/par",
+                "Submitting a Pushed Authorization Request to initiate a consent journey"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "A client assertion must be freshly generated for every request. The jti claim (a unique UUID) ensures the Authorization Server can detect and reject replayed assertions."
+          },
+          {
+            "type": "paragraph",
+            "text": "For a complete per-claim reference — including the exact aud value, jti uniqueness requirements, exp / iat lifetime window, and a side-by-side comparison with the Request Object — see JWT Claim Rules."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "JOSE header — algorithm and signing key identifier",
+        "level": 2,
+        "anchor": "header",
+        "category": "Structure — Header",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The client assertion is a signed JWT composed of a header and a set of claims."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value",
+              "Description"
+            ],
+            "rows": [
+              [
+                "alg",
+                "PS256",
+                "The only algorithm supported by the UAE Open Finance FAPI profile"
+              ],
+              [
+                "kid",
+                "string",
+                "Key ID of your signing certificate, as registered in the Trust Framework"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Identity, audience, and short-lived timing claims",
+        "level": 2,
+        "anchor": "claims",
+        "category": "Structure — Claims",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Claim",
+              "Description",
+              "Example"
+            ],
+            "rows": [
+              [
+                "aud",
+                "The Authorization Server's issuer URI — obtained from the.well-known discovery endpoint",
+                "https://auth.[LFICode].apihub.openfinance.ae"
+              ],
+              [
+                "iss",
+                "Your application's client_id from the Trust Framework",
+                "a1b2c3d4-..."
+              ],
+              [
+                "sub",
+                "Same as iss — your client_id",
+                "a1b2c3d4-..."
+              ],
+              [
+                "iat",
+                "Unix timestamp of when the JWT was issued",
+                "1713196123"
+              ],
+              [
+                "exp",
+                "Unix timestamp when the JWT expires. Keep this short — 5 minutes is standard",
+                "1713196423"
+              ],
+              [
+                "jti",
+                "A unique identifier (UUID) for this assertion. Prevents replay attacks",
+                "f47ac10b-58cc-..."
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Set exp to no more than 5 minutes after iat. Long-lived assertions increase the window of exposure if intercepted."
+          },
+          {
+            "type": "paragraph",
+            "text": "The sandbox provides O3 Utility endpoints that accept your private key and return a ready-made client assertion JWT — useful for confirming your key setup is correct before writing your own signing code. See O3 Sandbox Utilities."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Assemble the claims and sign as a JWS using PS256",
+        "level": 2,
+        "anchor": "signing",
+        "category": "Signing the Assertion",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Once the header and claims are assembled, sign the JWT as a JWS using the PS256 algorithm and your private signing key."
+          },
+          {
+            "type": "paragraph",
+            "text": "Send the resulting string in the client_assertion form parameter alongside client_assertion_type when calling /par or /token:"
+          },
+          {
+            "type": "paragraph",
+            "text": "See Message Signing (JWS) for the underlying signing helper and additional context on how the signature is produced."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

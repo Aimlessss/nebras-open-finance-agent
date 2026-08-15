@@ -1,0 +1,343 @@
+{
+  "id": "policy/api-response-time",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/policy/api-response-time.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "API Response Time Policy",
+    "appliesTo": [
+      "Licensed Financial Institutions (LFIs)",
+      "Nebras"
+    ],
+    "purpose": "Defines the 500 ms p95 response-time target for every TPP-facing Open Finance API request that reaches an LFI — measured end to end across TPP → API Hub → Ozone Connect → API Hub → TPP, how the window is attributed between Nebras and the LFI, and the degradation incident process when the target is missed.",
+    "readTime": "8 min",
+    "updated": "2026-08-04"
+  },
+  "content": {
+    "title": "API Response Time Policy",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "Where this policy applies",
+        "level": 2,
+        "anchor": "scope",
+        "category": "Scope",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The subject of this policy is the request as the TPP experiences it — not any single hop within it. A request that is fast on one leg and slow on another is a slow request, and is measured as such."
+          },
+          {
+            "type": "paragraph",
+            "text": "A request is in scope where the API Hub calls Ozone Connect to serve it. Requests the API Hub answers entirely on its own are out of scope, because there is no LFI segment for the end-to-end figure to say anything about."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Out of scope",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Requests the API Hub serves without calling Ozone Connect — consent reads, authorisation, and token endpoints among them. The Hub's performance on these is managed by Nebras outside this policy.",
+                  "Sandbox or non-production environments",
+                  "The public internet between the TPP and the API Hub, and anything happening inside the TPP's own systems",
+                  "Time taken by the LFI to complete fraud, sanctions, and compliance screening of a payment after the API response has been returned",
+                  "Time taken by the underlying payment rail to process and settle a payment (for example Aani), governed by the applicable scheme rules",
+                  "Time a customer spends completing authentication at the LFI — measured separately under the Consent Journey requirements"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Nothing else is excluded. In particular, there is no exclusion for time spent calling an external service — whether that call is made by the API Hub or by the LFI, and whether the service is the Trust Framework, a core banking platform, or any other dependency. Dependency latency is response time."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "500 ms p95 per endpoint, per calendar day",
+        "level": 2,
+        "anchor": "target",
+        "category": "Response time target",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Endpoints in scope (examples)",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Bank Data Sharing — GET /accounts, GET /accounts/{accountId}/balances, GET /accounts/{accountId}/transactions, GET /accounts/{accountId}/standing-orders, GET /accounts/{accountId}/beneficiaries, and other account-scoped reads",
+                  "Service Initiation — POST /payments, POST /payment-consents, POST /payment-consents/{consentId}/file, POST /payment-consents/{consentId}/refund, GET /payments/{paymentId}",
+                  "Confirmation of Payee — POST /customers/action/cop-query",
+                  "Products and Leads — GET /products, POST /leads",
+                  "Insurance, FX, Account Opening, ATM, User Operations, and Consent Events — all endpoints under the corresponding API families"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "This target aligns with the 500 ms average response time published in the Availability, Performance and Usage Benchmarks standard. Holding each endpoint to this p95 figure — rather than only an average — ensures the customer experience remains consistent across the long tail of requests, not just on average."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "TPP → API Hub → Ozone Connect → API Hub → TPP",
+        "level": 2,
+        "anchor": "window",
+        "category": "Measured window",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The request arrives at the API Hub resource server ( rs1.{lfiCode}.apihub.openfinance.ae ). Measurement begins here, which is why the public internet between the TPP and the Hub falls outside the window."
+          },
+          {
+            "type": "paragraph",
+            "text": "mTLS and DPoP verification, access token validation, consent validation, OpenAPI schema enforcement, and request enrichment with the customer, account, and TPP information the LFI needs. Any call the Hub makes to an external service while handling the request — including the Trust Framework — is inside the window."
+          },
+          {
+            "type": "paragraph",
+            "text": "Both network legs, plus everything Ozone Connect does in between. The LFI's own onward calls are inside the window too — to its core banking platform, to internal authorisation or decisioning services, and to any external service it depends on. No portion of the elapsed time is deducted for a slow dependency."
+          },
+          {
+            "type": "paragraph",
+            "text": "Response normalisation and error mapping, until the last byte is written to the TPP."
+          },
+          {
+            "type": "paragraph",
+            "text": "The measurement is taken as observed. There is no mechanism for either Nebras or an LFI to exclude a downstream system from its figures. Where a dependency is the cause of a missed target, the owning party is expected to address it — by caching, by moving the call off the request path, or by working with the provider — rather than to treat it as an exclusion."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "One target, two owners",
+        "level": 2,
+        "anchor": "accountability",
+        "category": "Accountability",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Nebras owns the API Hub segment",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Hub processing on the way in and on the way out (stages 02 and 04 above)",
+                  "Every call the Hub makes to an external service while handling the request, including the Trust Framework",
+                  "The Hub's network legs to and from Ozone Connect"
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "The LFI owns the Ozone Connect segment",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Everything from the request arriving at Ozone Connect to the last byte of its response leaving (stage 03 above)",
+                  "Every onward call Ozone Connect makes while handling the request, to internal or external systems alike"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Attribution is settled by the API Hub's per-segment timing record. LFIs see their own segment in the Admin Portal through the LFI Performance report, which reports response times with API Hub processing removed; the Performance report alongside it reports the end-to-end figure this policy targets. Neither party may attribute a breach to the other in place of that record. Where a breach spans both segments, remediation is planned jointly."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "What 500 ms covers for POST /payments",
+        "level": 2,
+        "anchor": "payments",
+        "category": "Payments",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Payment processing spans three distinct phases, each with its own expectation:"
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI acknowledges the payment request and returns an initial payment status, which the API Hub maps and returns to the TPP. This is the point at which the TPP knows the request is in the LFI's hands and can show the customer an appropriate in-progress state."
+          },
+          {
+            "type": "paragraph",
+            "text": "Screening runs after the API response has been returned. Once screening is complete, the LFI updates the payment status accordingly — either progressing the payment to the rail or rejecting it with the appropriate reason."
+          },
+          {
+            "type": "paragraph",
+            "text": "For domestic instant payments this is subject to the Aani scheme rules (3 seconds per payment end-to-end, as set out in the Availability, Performance and Usage Benchmarks standard). The LFI's obligations toward the scheme operator are defined by the scheme and sit outside this policy."
+          },
+          {
+            "type": "paragraph",
+            "text": "The same structure — fast API acknowledgement followed by asynchronous processing — applies to other service initiation endpoints such as POST /payment-consents/{consentId}/file and the refund and FX endpoints. In every case, the 500 ms target in this policy refers only to the API response time."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Proving the target before go-live",
+        "level": 2,
+        "anchor": "proving",
+        "category": "Live proving",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before an LFI is signed off as compliant with this policy and approved to go live on the ecosystem, the LFI must complete a live proving period with one or more TPPs."
+          },
+          {
+            "type": "list",
+            "items": [
+              "During the proving period, the LFI operates its Ozone Connect endpoints against real TPP traffic in production",
+              "The 500 ms p95 target must be demonstrably met across all in-scope endpoints over the proving period, measured on the full TPP-facing request",
+              "Nebras reviews the results and confirms, or withholds, sign-off before the LFI is approved for general availability"
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "An LFI that does not meet the target during proving remains in proving until it does, with Nebras support where required. Where the API Hub segment is the cause, Nebras remediates it and the proving period is not counted against the LFI. This requirement applies equally to initial go-live and to any subsequent major version go-live."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Continuous, central observation",
+        "level": 2,
+        "anchor": "monitoring",
+        "category": "Monitoring & intervention",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "LFIs are expected to review their own response times, including the segment timings the API Hub reports back to them."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "When the target is persistently missed",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "\"Persistently\" is assessed in the round, but typically means any of:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Missing the 500 ms p95 target for the same endpoint in three consecutive calendar months",
+                  "Three or more P1 or P2 degradations in a rolling 90-day window",
+                  "Failure to deliver remediation actions agreed in a previous review"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Engagement may include a formal review meeting, a written remediation plan with owners and dates, enhanced (typically weekly) reporting, and escalation to the relevant regulatory authority where non-compliance is persistent or where the interests of customers or TPPs require it. Where the attributed cause sits in the API Hub segment, the same expectations fall on Nebras."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "A sustained breach is functionally an incident",
+        "level": 2,
+        "anchor": "degradation",
+        "category": "Performance degradation",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Severity definitions",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Obligations during a P1 or P2 degradation",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "For P1, within 15 minutes of the owning party becoming aware. For P2, within 1 hour."
+              },
+              {
+                "type": "paragraph",
+                "text": "Through the agreed incident channel. Where the LFI owns the cause, it notifies Nebras; where the API Hub segment is the cause, Nebras notifies the affected LFIs."
+              },
+              {
+                "type": "paragraph",
+                "text": "For P1, at least every 30 minutes until performance is restored. For P2, at least every 2 hours."
+              },
+              {
+                "type": "paragraph",
+                "text": "Only once performance has been stable within target for a reasonable observation period (typically 30 minutes)."
+              },
+              {
+                "type": "paragraph",
+                "text": "Nebras takes responsibility for cascading status information to affected TPPs through its own communication channels, whichever segment the degradation sits in. LFIs are not expected to communicate directly with TPPs during degradation incidents."
+              }
+            ]
+          },
+          {
+            "heading": "Post-incident review",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "For every P1 degradation — and for any P2 that recurs within 30 days — the party that owns the attributed cause is expected to provide a post-incident review within five business days of resolution. Where the cause spans both segments, the review is produced jointly. The review should cover:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "A factual timeline of the degradation",
+                  "The root cause, including any capacity, data-growth, or dependency factors",
+                  "The customer and TPP impact",
+                  "The remediation already applied",
+                  "Any further actions that will be taken to prevent recurrence, with owners and dates"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "A minimum, not an aspiration",
+        "level": 2,
+        "anchor": "improvement",
+        "category": "Continuous improvement",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Customer experience improves continuously as response times fall. Nebras and LFIs alike are expected to:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Track response times against target across every endpoint, not just in aggregate, and at segment level as well as end to end",
+              "Pay attention to trends at p99 even where p95 remains within target — p99 is an early warning of capacity or data-growth issues",
+              "Review monthly response time reports with their engineering and operations leadership",
+              "Invest in the capacity, caching, and downstream tuning required to keep pace with volume growth",
+              "Keep dependency calls off the request path wherever the data allows it to be cached or pre-fetched",
+              "Participate in ecosystem-wide reviews convened by Nebras to share practices for keeping Open Finance services fast"
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "id": "knowledge-base/articles/identity-assurance-claims",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/knowledge-base/articles/identity-assurance-claims.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "Identity Assurance Claims — OIDC IDA as the response format for customer data",
+    "description": "Why GET /customer, GET /accounts/{AccountId}/customer, and the CoP query response all share a verifiedClaims envelope derived from OpenID Connect for Identity Assurance 1.0.",
+    "category": "Integration",
+    "readTime": "9 min",
+    "updated": "2026-04-21",
+    "tags": [
+      "OIDC IDA",
+      "Customer Data",
+      "Ozone Connect"
+    ]
+  },
+  "content": {
+    "title": "Identity Assurance Claims — OIDC IDA as the response format for customer data",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "Customer identity as verified claims",
+        "level": 2,
+        "anchor": "why",
+        "category": "Why OIDC IDA",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "UAE Open Finance treats customer identity as verified claims — assertions about a person or organisation that the LFI has checked under a known framework. OIDC IDA is the standards-track JSON format for exactly this: claims grouped inside a verifiedClaims object, each group labelled with the verification.trustFramework under which it was verified."
+          },
+          {
+            "type": "paragraph",
+            "text": "Reusing IDA across every customer-returning endpoint gives TPPs a single parser and a single mental model — whether the data comes from a consented account, a Confirmation of Payee lookup, or a direct call for the authenticated end user's identity, the shape is the same."
+          },
+          {
+            "type": "paragraph",
+            "text": "Party Identity Assurance (Response) Schema — Based on the OpenID Connect for Identity Assurance 1.0 Specification"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The three-level structure used everywhere",
+        "level": 2,
+        "anchor": "envelope",
+        "category": "Shared envelope",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Level",
+              "Purpose"
+            ],
+            "rows": [
+              [
+                "verifiedClaims[]",
+                "Array — allows multiple claim groups for the same subject, each verified under a different framework or evidence path. Most LFIs return a single element"
+              ],
+              [
+                "verification",
+                "Describes how the claims were verified. trustFramework is the primary discriminator"
+              ],
+              [
+                "claims",
+                "The actual identity attributes — name, Emirates ID, address, business name, trade licence, etc."
+              ]
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "verification.trustFramework",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "For UAE Open Finance, the canonical value is UAE.FI — the Trust Framework under which UAE Licensed Financial Institutions verify customer identity to onboarding standards set by the CBUAE."
+              }
+            ]
+          },
+          {
+            "heading": "claims — person vs. organisation",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The shape of claims depends on whether the subject is a natural person or an organisation. identityType discriminates:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "identityType",
+                  "Used for",
+                  "Key claims"
+                ],
+                "rows": [
+                  [
+                    "Person",
+                    "Retail customers",
+                    "fullName, givenName, familyName, emiratesId, emiratesIdExpiryDate, birthDate, nationality, mobileNumber, email, residentialAddress"
+                  ],
+                  [
+                    "Organisation",
+                    "SME / Corporate customers",
+                    "businessName, tradeLicenceNumber, taxIdentificationNumber, dateOfIncorporation, countryOfIncorporation, corporateAddress"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "LFIs MUST populate every claim that exists or is derivable for the subject. The OpenAPI spec marks the minimum required set; holding back optional fields degrades the TPP experience without serving any protection purpose — the claims have already been released under the authorized consent."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "How each endpoint uses the envelope",
+        "level": 2,
+        "anchor": "endpoints",
+        "category": "Per endpoint",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "GET /customer",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The record for the end user who authenticated the consent. The LFI identifies the end user from the o3-psu-identifier header and returns one customer record:"
+              },
+              {
+                "type": "paragraph",
+                "text": "Single object under data, not an array."
+              }
+            ]
+          },
+          {
+            "heading": "GET /accounts/{accountId}/customer",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Returns one record per customer associated with the account. Joint accounts produce one record per joint holder. Each record carries customerType ( Sole, Joint, Delegate ) and accountRole ( Principal, SecondaryOwner, PowerOfAttorney, etc.) in addition to the shared envelope:"
+              }
+            ]
+          },
+          {
+            "heading": "POST /customers/action/cop-query",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Returns one record per customer on the account being looked up. The schema uses a slightly leaner shape — only the verifiedClaims envelope with the name-related claims the Hub needs to run the CoP match:"
+              },
+              {
+                "type": "paragraph",
+                "text": "For business accounts, CoP uses verifiedClaims[].organisationClaims.name in place of claims:"
+              },
+              {
+                "type": "paragraph",
+                "text": "The Hub compares these values against the name submitted by the TPP and returns a match verdict to the caller."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Why the same envelope for CoP as for data sharing",
+        "level": 2,
+        "anchor": "shared",
+        "category": "Shared shape",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "CoP and GET /customer have very different use cases — a name-match check before a payment vs. the full identity of a consented end user — but the shape of the answer is the same because the question is the same at its core: \"under which trust framework has this institution verified this party's identity, and what are the claims?\""
+          },
+          {
+            "type": "paragraph",
+            "text": "Having one envelope means LFIs implement one internal mapping from their core banking identity records to OIDC IDA, and that mapping serves every customer-returning endpoint. TPPs parse one format. Auditors review one schema."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "At a glance",
+        "level": 2,
+        "anchor": "summary",
+        "category": "Summary",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Aspect",
+              "Rule"
+            ],
+            "rows": [
+              [
+                "Response envelope",
+                "verifiedClaims[] → verification + claims (or organisationClaims for CoP businesses)"
+              ],
+              [
+                "Trust framework",
+                "UAE.FI for UAE Open Finance"
+              ],
+              [
+                "Person vs. organisation",
+                "Discriminated by identityType ( Person / Organisation )"
+              ],
+              [
+                "Field population",
+                "Every claim the LFI holds or can derive MUST be populated"
+              ],
+              [
+                "Source specification",
+                "OpenID Connect for Identity Assurance 1.0"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,365 @@
+{
+  "id": "tech/tpp-standards/v2.1/insurance/quotation/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/insurance/quotation/api-guide/index.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "Insurance Quotation — API Guide",
+    "isIndex": true
+  },
+  "content": {
+    "title": "Insurance Quotation — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "End-to-end walkthrough of the Insurance Quotation flow from the TPP perspective. The flow runs on the Client Credentials Grant — no per-customer consent journey. After accepting a quote, you can subscribe to webhook events to receive status updates without polling. This page covers the subscription mechanism and the full event schema; the per-mode pages walk through the specific call sequences."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Pick the mode you're implementing",
+        "level": 2,
+        "anchor": "modes",
+        "category": "Two flow variants",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "The LFI hosts the customer through completion",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Single-PATCH accept flow. Your app collects quote inputs, the LFI hosts everything from acceptance through to issuance. You observe progress via webhook events or polling."
+              }
+            ]
+          },
+          {
+            "heading": "You collect KYC; the LFI hosts only payment",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Two-PATCH flow. You submit KYC, the LFI returns a payment URL via webhook event, you redirect the customer to pay, then deliver documents in your app."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Subscribe to events on PATCH Accept Quote",
+        "level": 2,
+        "anchor": "subscription",
+        "category": "Webhook subscription",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When you PATCH a quote to accept it, you can attach a Subscription.Webhook object to register for event notifications. The Hub will POST status events to your registered URL whenever the LFI emits a quote-log update. Subscribing once on accept covers the entire lifecycle — you do not need to re-subscribe for each status. The webhook delivery surface is documented in Insurance Quote Status Event — API Guide, with the OpenAPI schema at Insurance Quote Status Change Event."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Subscription object",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "Webhook.Url",
+                    "string (HTTPS URL)",
+                    "On first registration",
+                    "Your HTTPS endpoint that will receive event POSTs. Must match ^https://.+."
+                  ],
+                  [
+                    "Webhook.IsActive",
+                    "boolean",
+                    "Always",
+                    "true enables delivery; false pauses without removing the URL."
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Updating the subscription mid-lifecycle",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "You can PATCH the quote again at any time with only a Subscription object to update or pause webhook delivery. Omit the Data field; the LFI will not treat this as a re-acceptance."
+              },
+              {
+                "type": "paragraph",
+                "text": "If you do not register a webhook, poll GET /{type}-insurance-quotes/{QuoteId} to retrieve the current status. Do not exceed one request per minute under normal load — the Hub may rate-limit aggressive polling. Webhooks are strongly preferred."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "The three event shapes you must handle",
+        "level": 2,
+        "anchor": "event-schema",
+        "category": "Insurance Quote Event Schema",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Every event delivered to your webhook conforms to one of three schemas, drawn from the API Hub Consent Manager spec. The QuoteStatus field identifies which schema applies."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "1. Pending Completion Status",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Sent when the quote is making progress but not yet final. QuoteStatus is one of: ApplicationPending, ApplicationApproved, PaymentRequired, PolicyIssued."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Required",
+                  "Notes"
+                ],
+                "rows": [
+                  [
+                    "QuoteStatus",
+                    "Always",
+                    "One of the pending-completion enum values above."
+                  ],
+                  [
+                    "BrokerInstructions[]",
+                    "When LFI requires TPP action",
+                    "Each entry: ActionRequired (text), Reason (text), Url (e.g. payment URL)."
+                  ],
+                  [
+                    "Documents[]",
+                    "On PolicyIssued in TPP-Led mode",
+                    "Base64-encoded policy documents with SHA-256 hashes. See \"Documents\" below."
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "2. Completed Status",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Final event for a successful flow. QuoteStatus: Completed. Carries the finalised premium, policy term, and commission information. No further events follow."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Required",
+                  "Notes"
+                ],
+                "rows": [
+                  [
+                    "QuoteStatus",
+                    "Always",
+                    "Always \"Completed\"."
+                  ],
+                  [
+                    "PolicyTerm",
+                    "Always",
+                    "ISO 8601 duration, e.g. P1Y, P2Y3M."
+                  ],
+                  [
+                    "Premium",
+                    "Always",
+                    "Object with OneYearPremiumExcludingVAT, VATAmount, TotalOneYearPremium, and (optionally) TotalPolicyPremium."
+                  ],
+                  [
+                    "CustomerPaidInFull",
+                    "Always",
+                    "Boolean indicating full payment was received."
+                  ],
+                  [
+                    "PolicyCountrySubDivision",
+                    "Always",
+                    "UAE Emirate where the policy was issued."
+                  ],
+                  [
+                    "PolicyStartDate / PolicyEndDate",
+                    "Recommended",
+                    "ISO 8601 date."
+                  ],
+                  [
+                    "CustomerSalary",
+                    "Required for Health",
+                    "Under4K or Over4K (AED/month)."
+                  ],
+                  [
+                    "Commission",
+                    "When TPP commission applies",
+                    "CommissionAmount + PaymentMethod ( DirectToTPP or ThroughAPIHub )."
+                  ],
+                  [
+                    "Documents[]",
+                    "Optional",
+                    "Final policy documents if not already delivered on PolicyIssued."
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "3. Terminal Status",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Negative terminal events. QuoteStatus is one of: Expired, Rejected, CustomerCancelled, LFICancelled. No further events follow."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Required",
+                  "Notes"
+                ],
+                "rows": [
+                  [
+                    "QuoteStatus",
+                    "Always",
+                    "One of the four terminal enum values."
+                  ],
+                  [
+                    "Reason",
+                    "Optional",
+                    "Free-text (1–1000 chars) explaining the termination — surface to the customer where helpful."
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "PolicyIssued with documents (TPP-Led)",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          }
+        ]
+      },
+      {
+        "heading": "Verifying and surfacing policy documents",
+        "level": 2,
+        "anchor": "documents",
+        "category": "Document handling",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "In TPP-Led mode, the PolicyIssued event carries every customer-facing document the LFI would normally deliver itself. Your TPP becomes the document delivery channel — the LFI will not email or post the documents."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Document object",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Notes"
+                ],
+                "rows": [
+                  [
+                    "Type",
+                    "Document category (e.g. \"Policy Booklet\", \"Terms & Conditions\", \"IPID\"). Free-text."
+                  ],
+                  [
+                    "FileName",
+                    "Original file name with extension. No path components."
+                  ],
+                  [
+                    "ContentType",
+                    "One of application/pdf, image/jpeg, image/png."
+                  ],
+                  [
+                    "Content",
+                    "Base64-encoded file bytes."
+                  ],
+                  [
+                    "HashType",
+                    "Always SHA256."
+                  ],
+                  [
+                    "Hash",
+                    "SHA-256 of the raw file bytes (decoded Content ). Required for integrity verification."
+                  ],
+                  [
+                    "AdditionalInformation",
+                    "Optional free text (max 1000 chars)."
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Verification",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Before surfacing a document to the customer, decode Content, compute its SHA-256, and compare against Hash. Mismatches indicate corruption or tampering — do not deliver. Log the x-fapi-interaction-id from the event delivery and raise a support ticket including that ID and the QuoteId."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Verify event signatures before acting",
+        "level": 2,
+        "anchor": "webhook-verification",
+        "category": "Webhook security",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Events delivered to your webhook are signed by the Hub. You MUST verify the signature on every event before applying it. See Receiving Event Notifications for the signature scheme."
+          },
+          {
+            "type": "paragraph",
+            "text": "The Hub may redeliver an event after a transient delivery failure. Treat events as idempotent — apply the latest QuoteStatus for the QuoteId, do not count events. Tracking by QuoteId + QuoteStatus + event timestamp is sufficient to dedupe."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "New, Renewal, and Switch differences",
+        "level": 2,
+        "anchor": "quote-types",
+        "category": "Per-quote-type rules",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The semantic differences between New, Renewal, and Switch — and the per-type field requirements — are documented in the shared Quote Types explainer. Read it before issuing Renewal or Switch quotes; both require referencing a prior policy retrieved through Insurance Data Sharing under a customer consent."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

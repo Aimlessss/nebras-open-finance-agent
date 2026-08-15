@@ -1,0 +1,181 @@
+{
+  "id": "proposals/ofp-006",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/proposals/ofp-006.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "OFP-006 · Carry the requested API version into the Ozone Connect path"
+  },
+  "content": {
+    "title": "OFP-006 · Carry the requested API version into the Ozone Connect path",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "An LFI dual-running two versions can only tell them apart by parsing the o3-api-uri header, because the base path the API Hub prepends is a static string. Let the LFI place a ${VERSION} token in that path and have the API Hub substitute the version the TPP actually requested."
+      },
+      {
+        "type": "paragraph",
+        "text": "The voting period has ended. The votes cast are shown below."
+      },
+      {
+        "type": "paragraph",
+        "text": "Sign in with the Trust Framework to vote — For, Against, or Abstain — recorded in the open with your reasoning. Your organisation and name come from your directory profile, and each person may vote once. Because this change carries a real engineering cost, the two questions on the form matter as much as the vote itself."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "The forwarded path looks the same whatever version was asked for",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When a TPP calls the API Hub, the Hub validates the token and consent, enforces the OpenAPI schema, enriches the request, and then forwards it to the LFI's Ozone Connect Base URL. Between that base URL and the endpoint, the Hub inserts an optional API family base path the LFI configures per environment during environment-specific onboarding — one field each for Data Sharing, Service Initiation, Products, Consent Events, and Health Check — so an LFI can route different API families to different paths on the same server."
+          },
+          {
+            "type": "paragraph",
+            "text": "That configured path is a static string. It is prepended verbatim to every request in that family, whatever version the TPP asked for."
+          },
+          {
+            "type": "paragraph",
+            "text": "The TPP, meanwhile, carries the version as a segment of the request URL — v2.1 in /open-finance/account-information/v2.1/parties. The API Hub knows which version was requested; it is what the Hub routed and schema-validated on. But by the time the request reaches the LFI, the only place that fact survives is the o3-api-uri header, which carries the parameterised URL the TPP called:"
+          },
+          {
+            "type": "paragraph",
+            "text": "So an LFI wanting to serve two concurrent versions from one Ozone Connect deployment has to parse the version out of o3-api-uri and branch on it — a routing decision taken inside the application, on a header, rather than at the edge where routing normally happens. The alternative is to duplicate configuration or stand up bespoke routing in front of the backend."
+          },
+          {
+            "type": "paragraph",
+            "text": "This is not a hypothetical requirement. The Major Version Deprecation Policy requires an LFI going live with a new major version to run the prior and new versions concurrently for the whole deprecation window — up to a 17-month transition envelope — routing each TPP request to the correct implementation, and keeping the two independently maintained with no cross-version dependencies. Every LFI will face this at every major version transition. Today the policy itself notes the routing signal is “currently via the o3-api-uri header”, because that is all there is."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "A ${VERSION} token in the configured path",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Allow an LFI to include a substitution token — ${VERSION} — in the API family base path it configures for an environment. At proxy time, the API Hub replaces the token with the version the TPP requested, parsed from the request URL path, before forwarding to Ozone Connect."
+          },
+          {
+            "type": "paragraph",
+            "text": "The version then appears in the URL, which is where gateways, load balancers, service meshes, and reverse proxies already route. An LFI can point /data-sharing/v2.0 and /data-sharing/v2.1 at two independent deployments using infrastructure it already runs, rather than reading a header in application code to decide where a request goes."
+          },
+          {
+            "type": "paragraph",
+            "text": "This is deliberately opt-in and non-breaking. The token is something an LFI chooses to put in a field it already fills in. A configured path with no ${VERSION} in it behaves exactly as it does today — byte for byte — so no existing LFI is affected unless it decides to adopt this. Because the base path is already per API family and per environment, adoption is too: an LFI can use the token for Data Sharing in pre-production alone and leave everything else untouched."
+          },
+          {
+            "type": "paragraph",
+            "text": "Nothing else changes. The o3-api-uri header still carries the parameterised URL including the version, exactly as it does now. The Ozone Connect contract, the headers, the schemas, and the TPP-facing API are all unchanged. An LFI may adopt the token, keep routing on the header, or run both while it migrates."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What the token means, precisely",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The substituted value becomes something LFIs route on, so it has to be pinned down rather than left to implementation."
+          },
+          {
+            "type": "list",
+            "items": [
+              "The token is literal and case-sensitive: ${VERSION}. Any other text in the configured path is passed through verbatim, as today.",
+              "The substituted value is the version segment exactly as it appears in the TPP's request path — e.g. v2.1, including the leading v.",
+              "The token may appear at most once in a configured path, and may sit at any position within it ( /data-sharing/${VERSION} or /${VERSION}/data-sharing ).",
+              "It is available on every API family that has a configurable base path, and is configured independently per environment, like the path itself.",
+              "A path containing no token behaves exactly as it does today. This is the default and remains so.",
+              "If a request has no version segment to substitute, the API Hub rejects the configuration at onboarding rather than forwarding a malformed path at runtime — the token is only offered for families whose requests are versioned."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The version used is the one the API Hub itself resolved for the request — the same value it routed and schema-validated on, and the same one it writes into o3-api-uri. The two can therefore never disagree."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What changes",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "One change in the API Hub's proxy path, one in onboarding validation, and documentation. No change to the Ozone Connect contract, the headers, the schemas, or anything TPP-facing."
+          },
+          {
+            "type": "paragraph",
+            "text": "When constructing the forwarded URL, the API Hub substitutes ${VERSION} in the configured API family base path with the resolved request version before appending the endpoint. Where no token is present the path is used verbatim, as today. This sits on the request path for every proxied call, so it must be a cheap, allocation-light string substitution."
+          },
+          {
+            "type": "paragraph",
+            "text": "Accept ${VERSION} in the environment-specific base path fields, validating that it appears at most once, that the surrounding path is otherwise valid, and that the API family is one whose requests carry a version. A configuration that could not resolve at runtime is rejected at onboarding, not at proxy time."
+          },
+          {
+            "type": "paragraph",
+            "text": "Document the token on the Environment-Specific Configuration page alongside the existing optional API family base paths, with the worked example above. Update the Major Version Deprecation Policy so that dual-running names both routing options — the o3-api-uri header and, where the LFI has configured it, the version in the forwarded path."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "This only goes ahead if the ecosystem would genuinely use it",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The proposal reads as a small idea — a token in a configuration field — and the change to any individual LFI is small. The change to the API Hub is not. It touches request routing, which is on the hot path for every single proxied call in the ecosystem, and it makes a value that is currently fixed at configuration time into one resolved per request. That has to be specified, built, and then tested and supported across every API family, every environment, and every LFI configuration — including the overwhelming majority who will not use it and whose behaviour must be provably unchanged."
+          },
+          {
+            "type": "paragraph",
+            "text": "This is a meaningful piece of engineering work, and Nebras would only commit to it if a significant part of the ecosystem would actually make use of it. A change of this size on the critical path is not worth making for one or two adopters, and it is not worth making at all if LFIs would continue to route on the o3-api-uri header regardless because that is what they have already built."
+          },
+          {
+            "type": "paragraph",
+            "text": "That is what this proposal is asking. A vote in favour is a statement that your institution would use this, not merely that it seems like a good idea. The two questions on the vote form — whether you would route on the path instead of the header, and how you dual-run today — carry as much weight in the decision as the tally itself. If the answers show the ecosystem would keep using the header, that is a perfectly good outcome and the work will not be scheduled."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What the token buys",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "✓"
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What it costs",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "×"
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

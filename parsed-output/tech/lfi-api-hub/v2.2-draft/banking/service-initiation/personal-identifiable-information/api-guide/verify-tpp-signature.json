@@ -1,0 +1,122 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information/api-guide/verify-tpp-signature",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/service-initiation/personal-identifiable-information/api-guide/verify-tpp-signature.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "Verifying the TPP JWS Signature"
+  },
+  "content": {
+    "title": "Verifying the TPP JWS Signature",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The PersonalIdentifiableInformation field is embedded within a request that the API Hub has already verified was signed by the TPP. The outer JWS signature confirms that the PII was submitted by the authenticated TPP and has not been modified in transit."
+      },
+      {
+        "type": "paragraph",
+        "text": "Verifying the inner JWS signature on the PII payload is therefore not required, but LFIs may choose to implement it as a defence-in-depth measure."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Reasons to verify the inner JWS",
+        "level": 2,
+        "anchor": "when-to-consider",
+        "category": "When to consider this",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "You may want to verify the TPP's JWS signature on the PII if:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Your security policy requires independent verification of all signed payloads, regardless of upstream validation.",
+              "You want to confirm the specific TPP identity that constructed the PII (available in the iss and sub claims).",
+              "You are building an audit trail that requires cryptographic proof tied to the TPP's signing key."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Resolve the JWKS, verify the signature",
+        "level": 2,
+        "anchor": "how-to-verify",
+        "category": "How to verify",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The inner JWS (the result of decrypting the JWE) is signed by the TPP using their signing key. The JWS header contains the kid of the TPP's signing key, and the iss / sub claims identify the TPP's client_id."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Step 1 — Discover the TPP's JWKS",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The TPP's public signing keys are published through the Trust Framework directory. You can resolve the TPP's JWKS URI using the o3-caller-software-statement-id header from the inbound request:"
+              }
+            ]
+          },
+          {
+            "heading": "Step 2 — Verify the JWS",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Claims to validate",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If you verify the JWS, you SHOULD also validate the following claims:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Claim",
+                  "Validation"
+                ],
+                "rows": [
+                  [
+                    "iss",
+                    "Must match the TPP's client_id (available in the o3-caller-client-id request header)"
+                  ],
+                  [
+                    "sub",
+                    "Must match the TPP's client_id"
+                  ],
+                  [
+                    "aud",
+                    "Must contain your LFI's issuer identifier"
+                  ],
+                  [
+                    "exp",
+                    "Must not be expired"
+                  ],
+                  [
+                    "iat",
+                    "Must be in the past"
+                  ],
+                  [
+                    "jti",
+                    "Record for replay detection if required by your security policy"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

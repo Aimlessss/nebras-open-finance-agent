@@ -1,0 +1,124 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led",
+  "chunk_count": 8,
+  "chunks": [
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led#insurance-quotation-lfi-led-flow#0",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led",
+      "type": "intro",
+      "text": "Insurance Quotation — LFI-Led Flow\n\nThe TPP creates a quote and hands the customer to your LFI on accept. Your LFI hosts customer verification, payment, and document delivery; the TPP’s only role after acceptance is to observe lifecycle events through the quote-log.",
+      "metadata": {
+        "title": "Insurance Quotation — LFI-Led Flow",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led#insurance-quotation-lfi-led-flow--post-type-insurance-quotes--underwrite-and-return-one-or-more-quotes#1",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led",
+      "type": "section",
+      "text": "Insurance Quotation — LFI-Led Flow > POST /{type}-insurance-quotes > Underwrite and return one or more quotes\n\nThe Hub validates the TPP’s access token, signed request, and schema, then proxies to your endpoint with the sector slug in the path. Receive the quote request, run your underwriting, and respond with 201 + data: [...] for one or more quotes, or 204 to decline.",
+      "metadata": {
+        "title": "Insurance Quotation — LFI-Led Flow",
+        "section": "Underwrite and return one or more quotes",
+        "category": "POST /{type}-insurance-quotes",
+        "anchor": "create-quote",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led#insurance-quotation-lfi-led-flow--post-type-insurance-quotes--underwrite-and-return-one-or-more-quotes--quoteid-minting#2",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led",
+      "type": "subsection",
+      "text": "Insurance Quotation — LFI-Led Flow > POST /{type}-insurance-quotes > Underwrite and return one or more quotes > QuoteId minting\n\nMint a unique QuoteId per quote — UUIDv4 is recommended. Persist it for at least the policy retention period of the sector. The QuoteId threads the rest of the lifecycle: TPP retrievals, the accept PATCH, policy creation, and every status event you emit to the quote-log.",
+      "metadata": {
+        "title": "Insurance Quotation — LFI-Led Flow",
+        "section": "Underwrite and return one or more quotes",
+        "category": "POST /{type}-insurance-quotes",
+        "subsection": "QuoteId minting",
+        "anchor": "create-quote",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led#insurance-quotation-lfi-led-flow--patch-type-insurance-quotes-quoteid--accept-the-quote-return-204#3",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led",
+      "type": "section",
+      "text": "Insurance Quotation — LFI-Led Flow > PATCH /{type}-insurance-quotes/{QuoteId} > Accept the quote — return 204\n\nFor LFI-Led mode, respond 204 No Content. You are signalling: the TPP has done its part; the LFI will drive everything from here. Then immediately PATCH the quote-log with ApplicationPending so the TPP (subscribed or polling) sees the application has been registered. The Subscription.Webhook object on the PATCH body is consumed by the Hub for its own event delivery to the TPP. Your LFI MUST NOT act on it — just emit quote-log status updates as normal, and the Hub fans them out.",
+      "metadata": {
+        "title": "Insurance Quotation — LFI-Led Flow",
+        "section": "Accept the quote — return 204",
+        "category": "PATCH /{type}-insurance-quotes/{QuoteId}",
+        "anchor": "accept",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led#insurance-quotation-lfi-led-flow--lfi-hosted-screens--your-lfi-hosts-the-customer-through-to-issuance#4",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led",
+      "type": "section",
+      "text": "Insurance Quotation — LFI-Led Flow > LFI-hosted screens > Your LFI hosts the customer through to issuance\n\nAfter PATCH Accept, your LFI presents the customer with the quote summary, KYC capture, and payment screens. These are entirely under your control — the Hub is not in the loop. See the User Journeys page for the screens you typically host. The TPP’s view of progress comes from the quote-log events you emit at each transition. You can emit additional intermediate events with BrokerInstructions[].Reason explaining customer-facing status the TPP should surface (e.g. \"Document upload required\", \"Awaiting payment confirmation\").",
+      "metadata": {
+        "title": "Insurance Quotation — LFI-Led Flow",
+        "section": "Your LFI hosts the customer through to issuance",
+        "category": "LFI-hosted screens",
+        "anchor": "hosted-flow",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led#insurance-quotation-lfi-led-flow--post-type-insurance-policies--issue-the-policy#5",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led",
+      "type": "section",
+      "text": "Insurance Quotation — LFI-Led Flow > POST /{type}-insurance-policies > Issue the policy\n\nOnce your hosted flow completes (KYC passed, payment confirmed), the TPP calls POST to create the policy. In LFI-Led mode the body is minimal — just the originating QuoteId: Run your standard policy issuance. Return 201 Created. The InsurancePolicyId is delivered to the TPP via the PolicyIssued event, not in this response body — this keeps the API symmetric with TPP-Led mode.",
+      "metadata": {
+        "title": "Insurance Quotation — LFI-Led Flow",
+        "section": "Issue the policy",
+        "category": "POST /{type}-insurance-policies",
+        "anchor": "create-policy",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led#insurance-quotation-lfi-led-flow--patch-insurance-quote-log-logid--emit-policyissued-insurancepolicyid#6",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led",
+      "type": "section",
+      "text": "Insurance Quotation — LFI-Led Flow > PATCH /insurance-quote-log/{logId} > Emit PolicyIssued + InsurancePolicyId\n\nEmit a Pending Completion event carrying the issued policy reference. In LFI-Led mode the documents stay with your LFI (you have already delivered them to the customer via your hosted screens), so only the InsurancePolicyId is needed.",
+      "metadata": {
+        "title": "Insurance Quotation — LFI-Led Flow",
+        "section": "Emit PolicyIssued + InsurancePolicyId",
+        "category": "PATCH /insurance-quote-log/{logId}",
+        "anchor": "emit-policy-issued",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led#insurance-quotation-lfi-led-flow--patch-insurance-quote-log-logid--emit-completed-and-close-the-lifecycle#7",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led",
+      "type": "section",
+      "text": "Insurance Quotation — LFI-Led Flow > PATCH /insurance-quote-log/{logId} > Emit Completed and close the lifecycle\n\nAfter any post-issuance work has settled (commission booked, customer onboarding emails sent), emit a final Completed Status event with the finalised premium breakdown and policy term. This is the terminal event — the Hub will reject any subsequent PATCH for this logId.",
+      "metadata": {
+        "title": "Insurance Quotation — LFI-Led Flow",
+        "section": "Emit Completed and close the lifecycle",
+        "category": "PATCH /insurance-quote-log/{logId}",
+        "anchor": "emit-completed",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/api-guide/lfi-led.vue",
+        "parser": "vue-sfc"
+      }
+    }
+  ]
+}

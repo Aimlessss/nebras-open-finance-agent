@@ -1,0 +1,154 @@
+{
+  "id": "tech/tpp-standards/security/fapi/scopes",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/security/fapi/scopes.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "OAuth 2.0 Scopes"
+  },
+  "content": {
+    "title": "OAuth 2.0 Scopes",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Scopes define what your application is requesting permission to do on behalf of the user. They are declared in the scope field of your Request JWT and echoed back in the access token issued by the Authorization Server."
+      },
+      {
+        "type": "paragraph",
+        "text": "In UAE Open Finance, scopes are consent-bound — the scope alone does not grant access. The authorization_details in your request object describes the specific consent (account access permissions, payment details, etc.), and the scope indicates which API family the consent belongs to."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "The four scopes recognised by the Authorization Server",
+        "level": 2,
+        "anchor": "available-scopes",
+        "category": "Available Scopes",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Scope",
+              "API",
+              "Description"
+            ],
+            "rows": [
+              [
+                "openid",
+                "All",
+                "Activates OpenID Connect support. Required on every request — enables the Authorization Server to return an ID Token alongside the access token"
+              ],
+              [
+                "accounts",
+                "Bank Data Sharing",
+                "Grants access to account information APIs ( /accounts, /balances, /transactions, etc.). The access token is bound to the account-access-consent from authorization_details"
+              ],
+              [
+                "payments",
+                "Service Initiation",
+                "Grants access to payment initiation APIs ( /payments ). The access token is bound to the payment consent from authorization_details. Also grants read access to account information required for payment context"
+              ],
+              [
+                "products",
+                "Products & Leads",
+                "Grants access to product discovery and leads APIs. Does not require a user consent flow"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Space-separated values in the scope field",
+        "level": 2,
+        "anchor": "combining-scopes",
+        "category": "Combining Scopes",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Scopes are space-separated in the scope field. Always include openid."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Use Case",
+              "Scope Value"
+            ],
+            "rows": [
+              [
+                "Bank Data Sharing",
+                "accounts openid"
+              ],
+              [
+                "Payment Initiation",
+                "payments openid"
+              ],
+              [
+                "Products (public data)",
+                "products openid"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "For accounts and payments, the access token issued by the Authorization Server is cryptographically bound to the specific consent created in your authorization_details. The token cannot be used to access resources outside that consent's permissions."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Declared in the scope claim of the JWT payload",
+        "level": 2,
+        "anchor": "using-scopes",
+        "category": "Using Scopes in the Request JWT",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Errors returned when a scope is unknown or inconsistent",
+        "level": 2,
+        "anchor": "validation-errors",
+        "category": "Scope Validation Errors",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "If the scope in your Request JWT does not match any of the supported values, or is inconsistent with the authorization_details type, the Authorization Server will reject the request with:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Error",
+              "Description"
+            ],
+            "rows": [
+              [
+                "invalid_scope",
+                "The requested scope is unknown or not supported by this Authorization Server"
+              ],
+              [
+                "AccessToken.InvalidScope",
+                "The access token presented to a resource endpoint does not have the scope required for that operation"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Tokens internally encode the consent they were granted against",
+        "level": 2,
+        "anchor": "parameterized-scopes",
+        "category": "Parameterized Scopes",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The accounts and payments scopes are described in the OpenAPI specifications as parameterized with the ConsentId. This means the issued access token internally encodes the consent it was granted against. When presenting the token to a resource endpoint, the server validates that the requested resource falls within the permissions of the bound consent — this is handled automatically by the Authorization Server and is transparent to your application."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

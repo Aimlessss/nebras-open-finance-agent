@@ -1,0 +1,1089 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+  "chunk_count": 69,
+  "chunks": [
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide#0",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "intro",
+      "text": "Bank Data Sharing — API Guide\n\nBank Data Sharing lets a TPP retrieve a customer's account list, account details, balances, transactions, statements, beneficiaries, direct debits, scheduled payments, standing orders, products, and customer details from your LFI via the API Hub. This guide covers the Ozone Connect endpoints your LFI MUST implement so the Hub can serve TPP requests. The behavioural rules for each endpoint — including account status handling, required field population, and AccountSubType coverage — are in the Bank Data Sharing Requirements. This guide covers the request and response shape of each endpoint. To see what the TPP receives for each field you return — and which consent permission exposes it — see the Field Mapping pages, one per endpoint, starting with GET /accounts.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--prerequisites--what-must-be-in-place-before-you-implement#1",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Prerequisites > What must be in place before you implement\n\nBefore implementing Bank Data Sharing, ensure the following are in place: - API Hub onboarded — Your API Hub instance is provisioned and your environment-specific configuration is complete. - Consent Journey implemented — The Consent Journey API Guide MUST be implemented first. A Bank Data Sharing request cannot be served without an authorized consent, so GET /auth, GET /consents/{consentId}, PATCH /consents/{consentId}, POST /auth/{interactionId}/doConfirm, and POST /auth/{interactionId}/doFail must already be in place. - Ozone Connect connectivity verified — Bidirectional mTLS connectivity is confirmed between the API Hub and your Ozone Connect base URL. See Connectivity & Certificates.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "What must be in place before you implement",
+        "category": "Prerequisites",
+        "anchor": "prerequisites",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--consent-validation--validate-the-consent-before-it-is-created#2",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Consent validation > Validate the consent before it is created\n\nDuring consent creation, if your LFI has configured the POST /consent/action/validate endpoint, the API Hub forwards the full consent payload to your Ozone Connect server before the consent is created. The request and response shape, and the overall placement of this call in the consent lifecycle, are covered in the Consent Journey API Guide — Validate the consent. For Bank Data Sharing consents ( consentType: cbuae-account-access-consents ), your LFI MUST respond with data.status: invalid in the cases listed in Bank Data Sharing Requirements — Consent Validation. If the validate endpoint is not configured, the API Hub assumes all consents are valid and creates them immediately — those checks then cannot be enforced. Configuring the endpoint is strongly recommended for Bank Data Sharing.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent validation",
+        "anchor": "consent-validation",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--consent-flow--authorize-the-customer-at-your-lfi#3",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Consent flow > Authorize the customer at your LFI\n\nOnce the consent has been created, the TPP redirects the customer to your LFI's authorization endpoint — the URL you registered during API Hub onboarding. From there, your LFI runs the standard consent journey: authenticate the customer, retrieve the consent, let the customer approve or reject it, patch the authorized accounts and customer identifier onto the consent, and redirect back to the Hub. The endpoints your LFI implements against the API Hub for this flow are: Endpoint | Direction | Purpose GET /auth | LFI → API Hub | Initiate the authorization interaction GET /consents/{consentId} | LFI → API Hub | Retrieve the full consent details PATCH /consents/{consentId} | LFI → API Hub | Update consent status, customer identifiers, and account IDs POST /auth/{interactionId}/doConfirm | LFI → API Hub | Complete the interaction and redirect back to the TPP successfully POST /auth/{interactionId}/doFail | LFI → API Hub | Complete the interaction and redirect back to the TPP with a failure Full details are in the Consent Journey API Guide.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Authorize the customer at your LFI",
+        "category": "Consent flow",
+        "anchor": "consent-flow",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--consent-flow--authorize-the-customer-at-your-lfi--after-the-consent-is-authorized#4",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Consent flow > Authorize the customer at your LFI > After the consent is authorized\n\nEvery request the TPP makes to the API Hub's resource server — for example, https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/v2.2/accounts — MUST carry an access token bound to the authorized consent. The API Hub then performs the following checks before any traffic reaches your LFI: - Validates the access token - Validates that the consent is in Authorised status - Validates that the consent grants access to the requested resource — e.g. ReadAccountsBasic or ReadAccountsDetail is required to call GET /open-finance/account-information/v2.2/accounts - For endpoints scoped to a specific account, validates that the {accountId} path parameter is one of the accounts the LFI patched onto the consent at authorization. For GET /accounts, the same set is supplied to your Ozone Connect endpoint as the accountIds query parameter - Validates that the TPP holds the role required to call the endpoint (e.g. BDSP for Bank Data Sharing) If all checks pass, the Hub proxies the request to your Ozone Connect base URL, enriching it with the headers listed in Common request headers. The headers most relevant to your LFI are: - o3-consent-id — the authorized consent backing this call - o3-psu-identifier — the opaque reference your LFI patched onto the consent during the Consent flow, identifying the customer inside your systems - o3-api-uri — the parameterised URL the TPP called - o3-ozone-interaction-id — a per-request correlation ID for debugging",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Authorize the customer at your LFI",
+        "category": "Consent flow",
+        "subsection": "After the consent is authorized",
+        "anchor": "consent-flow",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--ozone-connect-data-sharing-responses--shared-conventions-across-every-endpoint#5",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Ozone Connect Data Sharing responses > Shared conventions across every endpoint\n\nThe remainder of this guide covers the LFI-facing Ozone Connect endpoints that serve each TPP request after the consent is authorized — the shared conventions (field population, request headers, error responses, pagination) followed by the per-endpoint request and response shapes.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Shared conventions across every endpoint",
+        "category": "Ozone Connect Data Sharing responses",
+        "anchor": "conventions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--ozone-connect-data-sharing-responses--shared-conventions-across-every-endpoint--field-population#6",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Ozone Connect Data Sharing responses > Shared conventions across every endpoint > Field population\n\nEvery field that exists on the LFI's systems, or is derivable from them, MUST be populated in the response. TPPs rely on this data to serve customer use cases end-to-end — a field the LFI omits is a feature the TPP cannot build. The OpenAPI spec marks the minimum required set, but LFIs MUST populate every optional field they hold. This rule applies to every endpoint in this guide. The endpoint-specific rules in Bank Data Sharing Requirements call out fields that are always required for each endpoint.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Shared conventions across every endpoint",
+        "category": "Ozone Connect Data Sharing responses",
+        "subsection": "Field population",
+        "anchor": "conventions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--ozone-connect-data-sharing-responses--shared-conventions-across-every-endpoint--common-request-headers#7",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Ozone Connect Data Sharing responses > Shared conventions across every endpoint > Common request headers\n\nAll resource endpoints receive the same set of headers from the API Hub. They are listed here and referenced from each endpoint section below. Header | Required | Description o3-provider-id | Yes | Identifier for your LFI registered in the Hub o3-aspsp-id | Yes (deprecated) | Deprecated alias for o3-provider-id. Will be removed in a future version — use o3-provider-id o3-caller-org-id | Yes | Organisation ID of the TPP making the underlying request o3-caller-client-id | Yes | OIDC client ID of the TPP application o3-caller-software-statement-id | Yes | Software statement ID of the TPP application o3-api-uri | Yes | The parameterised URL of the API being called by the TPP o3-api-operation | Yes | The HTTP method of the operation carried out by the TPP (e.g. GET ) o3-consent-id | Yes | The consent ID authorising this call o3-psu-identifier | Yes | Base64-encoded representation of the customer identifier JSON object — the opaque LFI-issued reference patched onto the consent at authorization, linking the consent to the authenticated customer o3-ozone-interaction-id | Yes | Hub-generated interaction ID. Equals o3-caller-interaction-id if the TPP provided one o3-caller-interaction-id | No | Interaction ID passed in by the TPP, if present Token and consent validation have already been performed by the Hub before the request reaches your Ozone Connect endpoint. Your LFI does not re-validate the token or consent — it is trusted to be valid. See Bank Data Sharing Requirements for what your Ozone Connect endpoints must validate.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Shared conventions across every endpoint",
+        "category": "Ozone Connect Data Sharing responses",
+        "subsection": "Common request headers",
+        "anchor": "conventions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--ozone-connect-data-sharing-responses--shared-conventions-across-every-endpoint--common-error-responses#8",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Ozone Connect Data Sharing responses > Shared conventions across every endpoint > Common error responses\n\nEvery /accounts/{accountId}/… endpoint MUST check the account's status before returning data — if the account is not Active, the endpoint MUST respond with 403 instead of returning the resource. GET /accounts is the only exception: it lists every consented account regardless of status, with the Status field populated so the TPP can observe the current state. All error bodies MUST include errorCode and errorMessage.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Shared conventions across every endpoint",
+        "category": "Ozone Connect Data Sharing responses",
+        "subsection": "Common error responses",
+        "anchor": "conventions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--ozone-connect-data-sharing-responses--shared-conventions-across-every-endpoint--403-forbidden#9",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Ozone Connect Data Sharing responses > Shared conventions across every endpoint > 403 — Forbidden\n\nReturn 403 using the Account Status Handling mapping: errorCode | errorMessage | When to use Consent.AccountTemporarilyBlocked | The account is temporarily blocked. | Account status is Suspended Consent.PermanentAccountAccessFailure | The account is permanently inaccessible. | Account status is Closed, Deceased, or Unclaimed GenericError | The account is inaccessible. | {accountId} does not belong to the customer identified by o3-psu-identifier",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Shared conventions across every endpoint",
+        "category": "Ozone Connect Data Sharing responses",
+        "subsection": "403 — Forbidden",
+        "anchor": "conventions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--ozone-connect-data-sharing-responses--shared-conventions-across-every-endpoint--400-bad-request#10",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Ozone Connect Data Sharing responses > Shared conventions across every endpoint > 400 — Bad Request\n\nReturn 400 only for a request that is genuinely malformed — not for a well-formed request that simply matches no data. The API Hub enforces the OpenAPI schema before proxying, so most format errors are rejected upstream and rarely reach your Ozone Connect endpoints. errorCode | errorMessage | When to use Resource.InvalidFormat | A query parameter has an invalid format. | A date-range query parameter cannot be parsed, a contradictory range is supplied ( fromBookingDateTime after toBookingDateTime ), or toBookingDateTime is in the future. The API Hub enforces these checks before proxying, so an LFI does not normally return this itself",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Shared conventions across every endpoint",
+        "category": "Ozone Connect Data Sharing responses",
+        "subsection": "400 — Bad Request",
+        "anchor": "conventions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--ozone-connect-data-sharing-responses--shared-conventions-across-every-endpoint--pagination#11",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Ozone Connect Data Sharing responses > Shared conventions across every endpoint > Pagination\n\nGET /accounts/{accountId}/transactions and GET /accounts/{accountId}/statements MUST support pagination. Other list endpoints ( /beneficiaries, /direct-debits, /scheduled-payments, /standing-orders, /products, /accounts/{accountId}/customer ) MAY support pagination where result sets warrant it. The LFI implements page-based pagination ( page / page-size query params, meta.paginated / meta.totalPages / meta.totalRecords in the response). The API Hub converts this into the Links envelope returned to the TPP. See Pagination for the full behaviour.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "Shared conventions across every endpoint",
+        "category": "Ozone Connect Data Sharing responses",
+        "subsection": "Pagination",
+        "anchor": "conventions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts#12",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts. Returns the accounts matching the accountIds query parameter. Non-CAAP LFIs MUST treat accountIds as mandatory — it is always supplied by the Hub and contains the set of accounts the customer consented to share.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts",
+        "category": "Endpoint",
+        "anchor": "get-accounts",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts--request-headers#13",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-accounts",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts--query-parameters#14",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts > Query parameters\n\nParameter | Required | Default | Description accountIds | Yes | — | Comma-separated list of account IDs to return. Populated by the Hub from the accountIds your LFI patched onto the consent during the Consent flow page | Yes | 1 | Page number for paginated results page-size | Yes | 100 | Number of records per page",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts",
+        "category": "Endpoint",
+        "subsection": "Query parameters",
+        "anchor": "get-accounts",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts--response#15",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts > Response\n\nContent-Type: application/json. Return 200 with a data array containing one record per consented account. See GET /accounts rules for field-level requirements. GET /accounts is exempt from the Common error responses status mapping — return all consented accounts regardless of status. See the GET /accounts API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-accounts",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid#16",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}. Returns the full details of a single account. The response shape is the same CbuaeAccount returned inside the data array of GET /accounts, wrapped as a single object rather than an array. Data returned here MUST be consistent with what is returned by GET /accounts for the same account.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}",
+        "category": "Endpoint",
+        "anchor": "get-accounts-accountid",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid--request-headers#17",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId} > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-accounts-accountid",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid--path-parameters#18",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId} > Path parameters\n\nParameter | Required | Description accountId | Yes | The ID of the account to return. MUST be one of the accounts on the consent",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-accounts-accountid",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid--response#19",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId} > Response\n\nContent-Type: application/json Errors: see Common error responses. See the GET /accounts/{accountId} API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-accounts-accountid",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-balances#20",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/balances\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/balances. Returns the balances for a single account. An account may have more than one balance — return one record per distinct balanceType held. For CurrentAccount and Savings accounts, a record with balanceType: InterimAvailable MUST always be included — this is the real-time available balance. Include creditLines where applicable.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/balances",
+        "category": "Endpoint",
+        "anchor": "get-accounts-balances",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-balances--request-headers#21",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/balances > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/balances",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-accounts-balances",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-balances--path-parameters#22",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/balances > Path parameters\n\nParameter | Required | Description accountId | Yes | The ID of the account whose balances are being returned",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/balances",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-accounts-balances",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-balances--query-parameters#23",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/balances > Query parameters\n\nParameter | Required | Default | Description page | Yes | 1 | Page number page-size | Yes | 100 | Records per page",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/balances",
+        "category": "Endpoint",
+        "subsection": "Query parameters",
+        "anchor": "get-accounts-balances",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-balances--response#24",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/balances > Response\n\nContent-Type: application/json The full set of allowable balanceType values ( ClosingAvailable, ClosingBooked, ClosingCleared, Expected, ForwardAvailable, Information, InterimAvailable, InterimBooked, InterimCleared, OpeningAvailable, OpeningBooked, OpeningCleared, PreviouslyClosedBooked ) is defined in the OpenAPI spec. Errors: see Common error responses. See the GET /accounts/{accountId}/balances API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/balances",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-accounts-balances",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-transactions#25",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/transactions\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/transactions. Returns the transactions for a single account, filtered by booking date-time where provided. Pagination is required for this endpoint — see Pagination.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/transactions",
+        "category": "Endpoint",
+        "anchor": "get-accounts-transactions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-transactions--request-headers#26",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/transactions > Request headers\n\nSee Common request headers. In addition: Header | Required | Description o3-fx-transactions | No | If true, return only FX-related transactions, based on permissions set in the related consent",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/transactions",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-accounts-transactions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-transactions--path-parameters#27",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/transactions > Path parameters\n\nParameter | Required | Description accountId | Yes | The ID of the account whose transactions are being returned",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/transactions",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-accounts-transactions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-transactions--query-parameters#28",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/transactions > Query parameters\n\nParameter | Required | Default | Description fromBookingDateTime | No | — | Return only transactions booked on or after this date-time. Open-ended if omitted. Any timezone offset MUST be ignored toBookingDateTime | No | — | Return only transactions booked on or before this date-time. Open-ended if omitted. Any timezone offset MUST be ignored page | Yes | 1 | Page number page-size | Yes | 100 | Records per page",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/transactions",
+        "category": "Endpoint",
+        "subsection": "Query parameters",
+        "anchor": "get-accounts-transactions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-transactions--response#29",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/transactions > Response\n\nContent-Type: application/json At least two years of transactions MUST be available for retrieval. If no transactions exist within the requested range, return 200 with an empty data array — do not return 404. The two-year rule is a minimum availability guarantee, not a query limit. An LFI MUST NOT reject a request solely because fromBookingDateTime or toBookingDateTime extends beyond two years into the past, or because the range matches no transactions — return 200 with the matching subset, empty where there is none. An LFI MAY return transactions older than two years where it holds them. The API Hub rejects malformed date-range requests before proxying — an unparseable date-time, a contradictory range ( fromBookingDateTime after toBookingDateTime ), or a toBookingDateTime in the future — with 400, so the LFI receives only well-formed ranges. See Common error responses. Errors: see Common error responses. See the GET /accounts/{accountId}/transactions API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/transactions",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-accounts-transactions",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-statements#30",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/statements\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/statements. Returns the statements for a single account, filtered by statement date where provided. Pagination is required for this endpoint — see Pagination.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/statements",
+        "category": "Endpoint",
+        "anchor": "get-accounts-statements",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-statements--request-headers#31",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/statements > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/statements",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-accounts-statements",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-statements--path-parameters#32",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/statements > Path parameters\n\nParameter | Required | Description accountId | Yes | The ID of the account whose statements are being returned",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/statements",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-accounts-statements",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-statements--query-parameters#33",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/statements > Query parameters\n\nParameter | Required | Default | Description fromStatementDate | No | — | Return only statements with a statement date on or after this date. Open-ended if omitted toStatementDate | No | — | Return only statements with a statement date on or before this date. Open-ended if omitted page | Yes | 1 | Page number page-size | Yes | 100 | Records per page",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/statements",
+        "category": "Endpoint",
+        "subsection": "Query parameters",
+        "anchor": "get-accounts-statements",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-statements--response#34",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/statements > Response\n\nContent-Type: application/json At least two years of statements MUST be available for retrieval. If no statements exist in the requested range, return 200 with an empty data array. As with transactions, the two-year rule is a minimum availability guarantee, not a query limit. An LFI MUST NOT reject a request solely because fromStatementDate or toStatementDate extends beyond two years into the past, or because the range matches no statements — return 200 with the matching subset, empty where there is none. An LFI MAY return statements older than two years where it holds them. The API Hub rejects malformed date-range requests before proxying — an unparseable date, a contradictory range ( fromStatementDate after toStatementDate ), or a toStatementDate in the future — with 400, so the LFI receives only well-formed ranges. See Common error responses. Errors: see Common error responses. See the GET /accounts/{accountId}/statements API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/statements",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-accounts-statements",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-beneficiaries#35",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/beneficiaries\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/beneficiaries. Returns the beneficiaries linked to the account. Only supported for CurrentAccount and Savings — not available for CreditCard, Finance, or Mortgage accounts.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/beneficiaries",
+        "category": "Endpoint",
+        "anchor": "get-accounts-beneficiaries",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-beneficiaries--request-headers#36",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/beneficiaries > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/beneficiaries",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-accounts-beneficiaries",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-beneficiaries--path-parameters#37",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/beneficiaries > Path parameters\n\nParameter | Required | Description accountId | Yes | The ID of the account whose beneficiaries are being returned",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/beneficiaries",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-accounts-beneficiaries",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-beneficiaries--query-parameters#38",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/beneficiaries > Query parameters\n\nParameter | Required | Default | Description page | Yes | 1 | Page number page-size | Yes | 100 | Records per page",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/beneficiaries",
+        "category": "Endpoint",
+        "subsection": "Query parameters",
+        "anchor": "get-accounts-beneficiaries",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-beneficiaries--response#39",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/beneficiaries > Response\n\nContent-Type: application/json If the account holds no beneficiaries, return 200 with an empty data array — do not return 404. Errors: see Common error responses. See the GET /accounts/{accountId}/beneficiaries API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/beneficiaries",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-accounts-beneficiaries",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-direct-debits#40",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/direct-debits\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/direct-debits. Returns the direct debits linked to the account. Only supported for CurrentAccount and Savings.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/direct-debits",
+        "category": "Endpoint",
+        "anchor": "get-accounts-direct-debits",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-direct-debits--request-headers#41",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/direct-debits > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/direct-debits",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-accounts-direct-debits",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-direct-debits--path-parameters#42",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/direct-debits > Path parameters\n\nParameter | Required | Description accountId | Yes | The ID of the account whose direct debits are being returned",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/direct-debits",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-accounts-direct-debits",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-direct-debits--query-parameters#43",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/direct-debits > Query parameters\n\nParameter | Required | Default | Description page | Yes | 1 | Page number page-size | Yes | 100 | Records per page",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/direct-debits",
+        "category": "Endpoint",
+        "subsection": "Query parameters",
+        "anchor": "get-accounts-direct-debits",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-direct-debits--response#44",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/direct-debits > Response\n\nContent-Type: application/json If the account holds no direct debits, return 200 with an empty data array. Errors: see Common error responses. See the GET /accounts/{accountId}/direct-debits API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/direct-debits",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-accounts-direct-debits",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-scheduled-payments#45",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/scheduled-payments\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/scheduled-payments. Returns one-off scheduled payments linked to the account. Only supported for CurrentAccount and Savings.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/scheduled-payments",
+        "category": "Endpoint",
+        "anchor": "get-accounts-scheduled-payments",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-scheduled-payments--request-headers#46",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/scheduled-payments > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/scheduled-payments",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-accounts-scheduled-payments",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-scheduled-payments--path-parameters#47",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/scheduled-payments > Path parameters\n\nParameter | Required | Description accountId | Yes | The ID of the account whose scheduled payments are being returned",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/scheduled-payments",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-accounts-scheduled-payments",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-scheduled-payments--query-parameters#48",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/scheduled-payments > Query parameters\n\nParameter | Required | Default | Description page | Yes | 1 | Page number page-size | Yes | 100 | Records per page",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/scheduled-payments",
+        "category": "Endpoint",
+        "subsection": "Query parameters",
+        "anchor": "get-accounts-scheduled-payments",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-scheduled-payments--response#49",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/scheduled-payments > Response\n\nContent-Type: application/json Errors: see Common error responses. See the GET /accounts/{accountId}/scheduled-payments API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/scheduled-payments",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-accounts-scheduled-payments",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-standing-orders#50",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/standing-orders\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/standing-orders. Returns standing orders linked to the account. Only supported for CurrentAccount and Savings.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/standing-orders",
+        "category": "Endpoint",
+        "anchor": "get-accounts-standing-orders",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-standing-orders--request-headers#51",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/standing-orders > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/standing-orders",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-accounts-standing-orders",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-standing-orders--path-parameters#52",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/standing-orders > Path parameters\n\nParameter | Required | Description accountId | Yes | The ID of the account whose standing orders are being returned",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/standing-orders",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-accounts-standing-orders",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-standing-orders--query-parameters#53",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/standing-orders > Query parameters\n\nParameter | Required | Default | Description page | Yes | 1 | Page number page-size | Yes | 100 | Records per page",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/standing-orders",
+        "category": "Endpoint",
+        "subsection": "Query parameters",
+        "anchor": "get-accounts-standing-orders",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-standing-orders--response#54",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/standing-orders > Response\n\nContent-Type: application/json Errors: see Common error responses. See the GET /accounts/{accountId}/standing-orders API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/standing-orders",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-accounts-standing-orders",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-products#55",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/products\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/product (singular on the TPP side). Returns the product data associated with the account — fees, charges, rates, rewards, benefits, and eligibility criteria. FinanceRates may be returned as cleartext JSON or as a JWE compact string — see Encrypted FinanceRates.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/products",
+        "category": "Endpoint",
+        "anchor": "get-accounts-products",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-products--request-headers#56",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/products > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/products",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-accounts-products",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-products--path-parameters#57",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/products > Path parameters\n\nParameter | Required | Description accountId | Yes | The ID of the account whose product data is being returned",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/products",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-accounts-products",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-products--query-parameters#58",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/products > Query parameters\n\nParameter | Required | Default | Description page | Yes | 1 | Page number page-size | Yes | 100 | Records per page",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/products",
+        "category": "Endpoint",
+        "subsection": "Query parameters",
+        "anchor": "get-accounts-products",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-products--response#59",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/products > Response\n\nContent-Type: application/json If no product data exists for the account, return 200 with an empty data array. Errors: see Common error responses. See the GET /accounts/{accountId}/products API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/products",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-accounts-products",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-customer#60",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/customer\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/parties — \"parties\" on the TPP side, \"customer\" on Ozone Connect. Returns the customer records associated with a specific account. Joint accounts return one record per joint holder. The response is based on OpenID Connect for Identity Assurance 1.0 — claims are carried inside a verifiedClaims envelope. See Identity Assurance Claims.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/customer",
+        "category": "Endpoint",
+        "anchor": "get-accounts-customer",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-customer--request-headers#61",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/customer > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/customer",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-accounts-customer",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-customer--path-parameters#62",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/customer > Path parameters\n\nParameter | Required | Description accountId | Yes | The ID of the account whose customers are being returned",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/customer",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-accounts-customer",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-customer--response#63",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/customer > Response\n\nContent-Type: application/json",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/customer",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-accounts-customer",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-accounts-accountid-customer--200-sme-corporate-account#64",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /accounts/{accountId}/customer > 200 — SME / Corporate account\n\nErrors: see Common error responses. See the GET /accounts/{accountId}/customer API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /accounts/{accountId}/customer",
+        "category": "Endpoint",
+        "subsection": "200 — SME / Corporate account",
+        "anchor": "get-accounts-customer",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-customer#65",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /customer\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/parties — \"parties\" on the TPP side, \"customer\" on Ozone Connect. Returns the customer record for the authenticated customer. Unlike /accounts/{accountId}/customer, this endpoint is not scoped to a specific account. The response MUST be derived from the o3-psu-identifier header — not from any account on the consent. At authorization, the LFI patched an opaque customer identifier onto the consent, linking the consent to the authenticated user inside the LFI's own systems. The Hub forwards that identifier here. Your LFI resolves it back to the customer and returns that customer's claims. o3-consent-id is still supplied so the LFI can attribute the call for logging, but it MUST NOT be used to select which customer to return — the customer who authenticated the consent is the only subject of this response. The response is based on OpenID Connect for Identity Assurance 1.0. See Identity Assurance Claims.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /customer",
+        "category": "Endpoint",
+        "anchor": "get-customer",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-customer--request-headers#66",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /customer > Request headers\n\nSee Common request headers. o3-psu-identifier is the operative header for this endpoint.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /customer",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-customer",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--endpoint--get-customer--response#67",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Bank Data Sharing — API Guide > Endpoint > GET /customer > Response\n\nContent-Type: application/json See the GET /customer API Reference for the full schema.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "GET /customer",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-customer",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide#bank-data-sharing-api-guide--customer-data-responses--openid-connect-identity-assurance-envelope#68",
+      "document_id": "tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide",
+      "type": "section",
+      "text": "Bank Data Sharing — API Guide > Customer data responses > OpenID Connect Identity Assurance envelope\n\nThe response format for GET /customer and GET /accounts/{accountId}/customer (and the CoP query response) is based on the OpenID Connect for Identity Assurance 1.0 Specification — claims about a customer are carried inside a verifiedClaims envelope with a verification.trustFramework indicating the framework under which the claims were verified. See Identity Assurance Claims for the shared envelope and how it maps to each endpoint.",
+      "metadata": {
+        "title": "Bank Data Sharing — API Guide",
+        "section": "OpenID Connect Identity Assurance envelope",
+        "category": "Customer data responses",
+        "anchor": "customer-data-responses",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-draft/banking/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    }
+  ]
+}

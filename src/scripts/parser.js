@@ -10,20 +10,31 @@ const YAML = require("yaml")
 // Paths
 // ---------------------------------------------------------
 
-const projectRoot = path.resolve(__dirname, "../..")
+const agentRoot = path.resolve(__dirname, "../..")
+
+const communityRepoRoot = path.resolve(
+  agentRoot,
+  "../community-standards",
+)
 
 const defaultInput = path.resolve(
-  projectRoot,
-  "../community-standards/src/pages/tech/tpp-standards/index.vue",
+  communityRepoRoot,
+  "src/pages/tech/tpp-standards/registration/api-guide.vue"
+
 )
 
 const defaultOutput = path.resolve(
-  projectRoot,
-  "scripts/rag/output/document.json",
+  agentRoot,
+  "output/tpp-standards/tpp-standards-main-app-registration.json",
 )
 
-const inputPath = path.resolve(process.argv[2] || defaultInput)
-const outputPath = path.resolve(process.argv[3] || defaultOutput)
+const inputPath = path.resolve(
+  process.argv[2] || defaultInput,
+)
+
+const outputPath = path.resolve(
+  process.argv[3] || defaultOutput,
+)
 
 // ---------------------------------------------------------
 // Text helpers
@@ -62,7 +73,7 @@ function isMeaningfulText(text) {
     return false
   }
 
-  // Ignore decorative / UI-only symbol content
+  // Ignore decorative symbols
   if (/^[→←↑↓•·›»‹«\-–—]+$/.test(cleaned)) {
     return false
   }
@@ -71,19 +82,27 @@ function isMeaningfulText(text) {
 }
 
 // ---------------------------------------------------------
-// Vue parser
+// Vue SFC parser
 // ---------------------------------------------------------
 
 function parseVueFile(filePath) {
-  const source = fs.readFileSync(filePath, "utf8")
+  const source = fs.readFileSync(
+    filePath,
+    "utf8",
+  )
 
-  const { descriptor, errors } = parseVue(source, {
+  const {
+    descriptor,
+    errors,
+  } = parseVue(source, {
     filename: filePath,
   })
 
   if (errors.length > 0) {
     throw new Error(
-      `Could not parse ${filePath}:\n${errors.map(String).join("\n")}`,
+      `Could not parse ${filePath}:\n${errors
+        .map(String)
+        .join("\n")}`,
     )
   }
 
@@ -95,21 +114,25 @@ function parseVueFile(filePath) {
 // ---------------------------------------------------------
 
 function extractMetadata(descriptor) {
-  const routeBlock = descriptor.customBlocks.find(
-    (block) => block.type === "route",
-  )
+  const routeBlock =
+    descriptor.customBlocks.find(
+      (block) =>
+        block.type === "route",
+    )
 
   if (!routeBlock) {
     return {}
   }
 
-  const route = YAML.parse(routeBlock.content)
+  const route = YAML.parse(
+    routeBlock.content,
+  )
 
   return route?.meta ?? {}
 }
 
 // ---------------------------------------------------------
-// Babel parsing
+// Script setup
 // ---------------------------------------------------------
 
 function parseScriptSetup(descriptor) {
@@ -127,7 +150,7 @@ function parseScriptSetup(descriptor) {
 }
 
 // ---------------------------------------------------------
-// Babel AST -> JS
+// Babel AST -> JS values
 // ---------------------------------------------------------
 
 function astToValue(node) {
@@ -137,11 +160,11 @@ function astToValue(node) {
 
   switch (node.type) {
     case "StringLiteral":
-      return cleanText(node.value)
+      return cleanText(
+        node.value,
+      )
 
     case "NumericLiteral":
-      return node.value
-
     case "BooleanLiteral":
       return node.value
 
@@ -156,34 +179,51 @@ function astToValue(node) {
     case "ObjectExpression": {
       const result = {}
 
-      for (const property of node.properties) {
-        if (property.type !== "ObjectProperty") {
+      for (
+        const property of node.properties
+      ) {
+        if (
+          property.type !==
+          "ObjectProperty"
+        ) {
           continue
         }
 
         let key
 
-        if (property.key.type === "Identifier") {
+        if (
+          property.key.type ===
+          "Identifier"
+        ) {
           key = property.key.name
         } else if (
-          property.key.type === "StringLiteral"
+          property.key.type ===
+          "StringLiteral"
         ) {
           key = property.key.value
         } else {
           continue
         }
 
-        result[key] = astToValue(property.value)
+        result[key] =
+          astToValue(
+            property.value,
+          )
       }
 
       return result
     }
 
     case "TemplateLiteral":
-      return templateLiteralToString(node)
+      return templateLiteralToString(
+        node,
+      )
 
     case "Identifier":
-      if (node.name === "undefined") {
+      if (
+        node.name ===
+        "undefined"
+      ) {
         return undefined
       }
 
@@ -194,34 +234,56 @@ function astToValue(node) {
   }
 }
 
-function templateLiteralToString(node) {
+function templateLiteralToString(
+  node,
+) {
   let result = ""
 
-  for (let i = 0; i < node.quasis.length; i++) {
-    result += node.quasis[i].value.cooked ?? ""
+  for (
+    let i = 0;
+    i < node.quasis.length;
+    i++
+  ) {
+    result +=
+      node.quasis[i]
+        .value.cooked ?? ""
 
-    if (i < node.expressions.length) {
-      result += expressionToString(node.expressions[i])
+    if (
+      i <
+      node.expressions.length
+    ) {
+      result +=
+        expressionToString(
+          node.expressions[i],
+        )
     }
   }
 
   return cleanText(result)
 }
 
-function expressionToString(node) {
-  if (node.type === "MemberExpression") {
+function expressionToString(
+  node,
+) {
+  if (
+    node.type ===
+    "MemberExpression"
+  ) {
     const objectName =
-      node.object.type === "Identifier"
+      node.object.type ===
+      "Identifier"
         ? node.object.name
         : null
 
     const propertyName =
-      node.property.type === "Identifier"
+      node.property.type ===
+      "Identifier"
         ? node.property.name
         : null
 
     if (
-      objectName === "selectedVersion" &&
+      objectName ===
+        "selectedVersion" &&
       propertyName === "value"
     ) {
       return "{version}"
@@ -229,8 +291,10 @@ function expressionToString(node) {
   }
 
   if (
-    node.type === "Identifier" &&
-    node.name === "selectedVersion"
+    node.type ===
+      "Identifier" &&
+    node.name ===
+      "selectedVersion"
   ) {
     return "{version}"
   }
@@ -239,117 +303,184 @@ function expressionToString(node) {
 }
 
 // ---------------------------------------------------------
-// Extract script sections
+// Extract script-defined sections/navigation
 // ---------------------------------------------------------
 
-function extractSections(ast) {
+function extractScriptSections(
+  ast,
+) {
   if (!ast) {
     return []
   }
 
-  for (const node of ast.program.body) {
-    if (node.type !== "VariableDeclaration") {
+  for (
+    const node of ast.program.body
+  ) {
+    if (
+      node.type !==
+      "VariableDeclaration"
+    ) {
       continue
     }
 
-    for (const declaration of node.declarations) {
+    for (
+      const declaration
+      of node.declarations
+    ) {
       if (
-        declaration.id.type !== "Identifier" ||
-        declaration.id.name !== "sections"
+        declaration.id.type !==
+          "Identifier" ||
+        declaration.id.name !==
+          "sections"
       ) {
         continue
       }
 
-      const init = declaration.init
+      const init =
+        declaration.init
 
-      if (!init || init.type !== "CallExpression") {
+      if (
+        !init ||
+        init.type !==
+          "CallExpression"
+      ) {
         continue
       }
 
-      const callback = init.arguments[0]
+      const callback =
+        init.arguments[0]
 
       if (
         !callback ||
-        callback.type !== "ArrowFunctionExpression"
+        callback.type !==
+          "ArrowFunctionExpression"
       ) {
         continue
       }
 
-      let arrayNode = callback.body
+      let arrayNode =
+        callback.body
 
-      if (arrayNode.type === "BlockStatement") {
-        const returnStatement = arrayNode.body.find(
-          (statement) =>
-            statement.type === "ReturnStatement",
-        )
+      if (
+        arrayNode.type ===
+        "BlockStatement"
+      ) {
+        const returnStatement =
+          arrayNode.body.find(
+            (statement) =>
+              statement.type ===
+              "ReturnStatement",
+          )
 
-        arrayNode = returnStatement?.argument
+        arrayNode =
+          returnStatement
+            ?.argument
       }
 
       if (
         !arrayNode ||
-        arrayNode.type !== "ArrayExpression"
+        arrayNode.type !==
+          "ArrayExpression"
       ) {
         return []
       }
 
-      return astToValue(arrayNode) ?? []
+      return (
+        astToValue(
+          arrayNode,
+        ) ?? []
+      )
     }
   }
 
   return []
 }
 
-function cleanSections(sections) {
-  return sections.map((section) => {
-    const result = {}
+function cleanScriptNavigation(
+  sections,
+) {
+  return sections.map(
+    (section) => {
+      const result = {}
 
-    if (section.category) {
-      result.category = cleanText(section.category)
-    }
+      if (
+        section.category
+      ) {
+        result.category =
+          cleanText(
+            section.category,
+          )
+      }
 
-    if (section.title) {
-      result.title = cleanText(section.title)
-    }
+      if (section.title) {
+        result.title =
+          cleanText(
+            section.title,
+          )
+      }
 
-    if (section.url) {
-      result.url = section.url
-    }
+      if (section.url) {
+        result.url =
+          section.url
+      }
 
-    if (section.desc) {
-      result.description = cleanText(section.desc)
-    }
+      if (section.desc) {
+        result.description =
+          cleanText(
+            section.desc,
+          )
+      }
 
-    if (section.tags?.length) {
-      result.tags = section.tags
-        .map(cleanText)
-        .filter(isMeaningfulText)
-    }
+      if (
+        section.tags?.length
+      ) {
+        result.tags =
+          section.tags
+            .map(cleanText)
+            .filter(
+              isMeaningfulText,
+            )
+      }
 
-    if (section.subItems?.length) {
-      result.subItems = section.subItems
-        .map((item) => ({
-          label: cleanText(item.label),
+      if (
+        section
+          .subItems
+          ?.length
+      ) {
+        result.subItems =
+          section.subItems
+            .map((item) => ({
+              label:
+                cleanText(
+                  item.label,
+                ),
 
-          ...(item.hint
-            ? {
-                hint: cleanText(item.hint),
-              }
-            : {}),
+              ...(item.hint
+                ? {
+                    hint:
+                      cleanText(
+                        item.hint,
+                      ),
+                  }
+                : {}),
 
-          url: item.url,
-        }))
-        .filter((item) =>
-          isMeaningfulText(item.label),
-        )
-    }
+              url: item.url,
+            }))
+            .filter(
+              (item) =>
+                isMeaningfulText(
+                  item.label,
+                ),
+            )
+      }
 
-    return result
-  })
+      return result
+    },
+  )
 }
 
 // ---------------------------------------------------------
-// Vue template AST helpers
+// Template AST helpers
 // ---------------------------------------------------------
 
 function getNodeText(node) {
@@ -357,13 +488,11 @@ function getNodeText(node) {
     return ""
   }
 
-  // Text node
   if (node.type === 2) {
     return node.content
   }
 
-  // Interpolation: {{ something }}
-  // Ignore dynamic interpolation for now.
+  // {{ interpolation }}
   if (node.type === 5) {
     return ""
   }
@@ -377,50 +506,83 @@ function getNodeText(node) {
   return ""
 }
 
-function getAttribute(node, name) {
+// Only direct text children.
+// Useful for H1 so "2 min read" isn't included.
+function getDirectNodeText(
+  node,
+) {
+  if (!node?.children) {
+    return ""
+  }
+
+  return node.children
+    .filter(
+      (child) =>
+        child.type === 2,
+    )
+    .map(
+      (child) =>
+        child.content,
+    )
+    .join(" ")
+}
+
+function getAttribute(
+  node,
+  name,
+) {
   if (!node?.props) {
     return undefined
   }
 
-  const prop = node.props.find(
-    (prop) =>
-      prop.type === 6 &&
-      prop.name === name,
-  )
+  const prop =
+    node.props.find(
+      (item) =>
+        item.type === 6 &&
+        item.name === name,
+    )
 
-  return prop?.value?.content
+  return (
+    prop?.value
+      ?.content
+  )
 }
 
-// ---------------------------------------------------------
-// List extraction
-// ---------------------------------------------------------
+function getClassList(node) {
+  const className =
+    getAttribute(
+      node,
+      "class",
+    )
 
-function extractList(node) {
-  const items = []
-
-  for (const child of node.children ?? []) {
-    if (
-      child.type === 1 &&
-      child.tag?.toLowerCase() === "li"
-    ) {
-      const text = cleanText(
-        getNodeText(child),
-      )
-
-      if (isMeaningfulText(text)) {
-        items.push(text)
-      }
-    }
+  if (!className) {
+    return []
   }
 
-  return items
+  return className
+    .split(/\s+/)
+    .filter(Boolean)
+}
+
+function hasClass(
+  node,
+  className,
+) {
+  return getClassList(
+    node,
+  ).includes(
+    className,
+  )
 }
 
 // ---------------------------------------------------------
-// Find descendants
+// Descendant helpers
 // ---------------------------------------------------------
 
-function findDescendantsByTag(node, tagName) {
+function findDescendants(
+  node,
+  predicate,
+) {
   const found = []
 
   function walk(current) {
@@ -429,14 +591,18 @@ function findDescendantsByTag(node, tagName) {
     }
 
     if (
-      current.type === 1 &&
-      current.tag?.toLowerCase() ===
-        tagName.toLowerCase()
+      predicate(current)
     ) {
-      found.push(current)
+      found.push(
+        current,
+      )
     }
 
-    for (const child of current.children ?? []) {
+    for (
+      const child
+      of current.children ??
+        []
+    ) {
       walk(child)
     }
   }
@@ -446,50 +612,105 @@ function findDescendantsByTag(node, tagName) {
   return found
 }
 
+function findFirstDescendant(
+  node,
+  predicate,
+) {
+  return findDescendants(
+    node,
+    predicate,
+  )[0]
+}
+
+function findDescendantsByTag(
+  node,
+  tagName,
+) {
+  const wanted =
+    tagName.toLowerCase()
+
+  return findDescendants(
+    node,
+    (current) =>
+      current.type === 1 &&
+      current.tag
+        ?.toLowerCase() ===
+        wanted,
+  )
+}
+
 // ---------------------------------------------------------
-// Table extraction
+// Lists
+// ---------------------------------------------------------
+
+function extractList(node) {
+  return findDescendantsByTag(
+    node,
+    "li",
+  )
+    .map((item) =>
+      cleanText(
+        getNodeText(item),
+      ),
+    )
+    .filter(
+      isMeaningfulText,
+    )
+}
+
+// ---------------------------------------------------------
+// Tables
 // ---------------------------------------------------------
 
 function extractTable(node) {
-  const headers = []
+  const headers =
+    findDescendantsByTag(
+      node,
+      "th",
+    )
+      .map((header) =>
+        cleanText(
+          getNodeText(
+            header,
+          ),
+        ),
+      )
+      .filter(
+        isMeaningfulText,
+      )
+
   const rows = []
 
-  const headerNodes =
-    findDescendantsByTag(node, "th")
-
-  for (const header of headerNodes) {
-    const text = cleanText(
-      getNodeText(header),
+  for (
+    const row
+    of findDescendantsByTag(
+      node,
+      "tr",
     )
-
-    if (isMeaningfulText(text)) {
-      headers.push(text)
-    }
-  }
-
-  const rowNodes =
-    findDescendantsByTag(node, "tr")
-
-  for (const row of rowNodes) {
-    const cells = []
-
-    for (const child of row.children ?? []) {
-      if (
-        child.type === 1 &&
-        child.tag?.toLowerCase() === "td"
-      ) {
-        const text = cleanText(
-          getNodeText(child),
+  ) {
+    const cells =
+      (row.children ?? [])
+        .filter(
+          (child) =>
+            child.type ===
+              1 &&
+            child.tag
+              ?.toLowerCase() ===
+              "td",
+        )
+        .map((cell) =>
+          cleanText(
+            getNodeText(
+              cell,
+            ),
+          ),
         )
 
-        cells.push(text)
-      }
-    }
-
-    const meaningfulCells =
-      cells.filter(isMeaningfulText)
-
-    if (meaningfulCells.length > 0) {
+    if (
+      cells.some(
+        isMeaningfulText,
+      )
+    ) {
       rows.push(cells)
     }
   }
@@ -502,7 +723,7 @@ function extractTable(node) {
 }
 
 // ---------------------------------------------------------
-// Code extraction
+// Code
 // ---------------------------------------------------------
 
 function extractCode(node) {
@@ -510,7 +731,11 @@ function extractCode(node) {
     getNodeText(node),
   )
 
-  if (!isMeaningfulText(text)) {
+  if (
+    !isMeaningfulText(
+      text,
+    )
+  ) {
     return null
   }
 
@@ -521,45 +746,191 @@ function extractCode(node) {
 }
 
 // ---------------------------------------------------------
-// Block-based template extraction
+// Template navigation cards
 // ---------------------------------------------------------
 
-function extractTemplateStructure(descriptor) {
-  if (!descriptor.template?.content) {
+function extractTemplateNavigation(
+  container,
+) {
+  const cards =
+    findDescendants(
+      container,
+      (node) =>
+        node.type === 1 &&
+        node.tag
+          ?.toLowerCase() ===
+          "a" &&
+        hasClass(
+          node,
+          "ed-link-card",
+        ),
+    )
+
+  return cards
+    .map((card) => {
+      const titleNode =
+        findFirstDescendant(
+          card,
+          (node) =>
+            node.type ===
+              1 &&
+            [
+              "h2",
+              "h3",
+              "h4",
+            ].includes(
+              node.tag
+                ?.toLowerCase(),
+            ),
+        )
+
+      const descriptionNode =
+        findFirstDescendant(
+          card,
+          (node) =>
+            node.type ===
+              1 &&
+            node.tag
+              ?.toLowerCase() ===
+              "p",
+        )
+
+      const categoryNode =
+        findFirstDescendant(
+          card,
+          (node) =>
+            node.type ===
+              1 &&
+            hasClass(
+              node,
+              "ed-link-card__cat",
+            ),
+        )
+
+      const title =
+        cleanText(
+          getNodeText(
+            titleNode,
+          ),
+        )
+
+      if (
+        !isMeaningfulText(
+          title,
+        )
+      ) {
+        return null
+      }
+
+      return {
+        ...(categoryNode
+          ? {
+              category:
+                cleanText(
+                  getNodeText(
+                    categoryNode,
+                  ),
+                ),
+            }
+          : {}),
+
+        title,
+
+        ...(getAttribute(
+          card,
+          "href",
+        )
+          ? {
+              url:
+                getAttribute(
+                  card,
+                  "href",
+                ),
+            }
+          : {}),
+
+        ...(descriptionNode
+          ? {
+              description:
+                cleanText(
+                  getNodeText(
+                    descriptionNode,
+                  ),
+                ),
+            }
+          : {}),
+      }
+    })
+    .filter(Boolean)
+}
+
+// ---------------------------------------------------------
+// Template -> canonical document
+// ---------------------------------------------------------
+
+function extractTemplateStructure(
+  descriptor,
+) {
+  if (
+    !descriptor
+      .template
+      ?.content
+  ) {
     return {
+      title: undefined,
       intro: [],
       sections: [],
+      navigation: [],
     }
   }
 
-  const ast = parseTemplate(
-    descriptor.template.content,
-  )
+  const ast =
+    parseTemplate(
+      descriptor
+        .template
+        .content,
+    )
 
   const document = {
+    title: undefined,
     intro: [],
     sections: [],
+    navigation: [],
   }
 
-  let currentSection = null
-  let currentSubsection = null
+  let currentSection =
+    null
+
+  let currentSubsection =
+    null
 
   function addBlock(block) {
     if (!block) {
       return
     }
 
-    if (currentSubsection) {
-      currentSubsection.blocks.push(block)
+    if (
+      currentSubsection
+    ) {
+      currentSubsection
+        .blocks
+        .push(block)
+
       return
     }
 
-    if (currentSection) {
-      currentSection.blocks.push(block)
+    if (
+      currentSection
+    ) {
+      currentSection
+        .blocks
+        .push(block)
+
       return
     }
 
-    document.intro.push(block)
+    document.intro
+      .push(block)
   }
 
   function walk(node) {
@@ -568,19 +939,140 @@ function extractTemplateStructure(descriptor) {
     }
 
     if (node.type === 1) {
-      const tag = node.tag?.toLowerCase()
+      const tag =
+        node.tag
+          ?.toLowerCase()
+
+      // ---------------------------------------------------
+      // Navigation section
+      // ---------------------------------------------------
+
+      if (
+        tag === "section" &&
+        hasClass(
+          node,
+          "ed-doc__contents",
+        )
+      ) {
+        document.navigation.push(
+          ...extractTemplateNavigation(
+            node,
+          ),
+        )
+
+        return
+      }
+
+      // ---------------------------------------------------
+      // Custom docs section:
+      // <EdSectionBand>
+      // ---------------------------------------------------
+
+      if (
+        tag ===
+        "edsectionband"
+      ) {
+        const previousSection =
+          currentSection
+
+        const previousSubsection =
+          currentSubsection
+
+        const heading =
+          cleanText(
+            getAttribute(
+              node,
+              "title",
+            ) || "",
+          )
+
+        const category =
+          cleanText(
+            getAttribute(
+              node,
+              "eyebrow",
+            ) || "",
+          )
+
+        currentSection = {
+          heading:
+            heading ||
+            category ||
+            "Untitled section",
+
+          level: 2,
+
+          anchor:
+            getAttribute(
+              node,
+              "id",
+            ) ?? null,
+
+          ...(category
+            ? {
+                category,
+              }
+            : {}),
+
+          blocks: [],
+
+          subsections: [],
+        }
+
+        document.sections.push(
+          currentSection,
+        )
+
+        currentSubsection =
+          null
+
+        for (
+          const child
+          of node.children ??
+            []
+        ) {
+          walk(child)
+        }
+
+        currentSection =
+          previousSection
+
+        currentSubsection =
+          previousSubsection
+
+        return
+      }
 
       // ---------------------------------------------------
       // H1
       // ---------------------------------------------------
 
       if (tag === "h1") {
-        const text = cleanText(
-          getNodeText(node),
-        )
+        const directText =
+          cleanText(
+            getDirectNodeText(
+              node,
+            ),
+          )
 
-        if (isMeaningfulText(text)) {
-          document.title = text
+        const fallbackText =
+          cleanText(
+            getNodeText(
+              node,
+            ),
+          )
+
+        const text =
+          directText ||
+          fallbackText
+
+        if (
+          isMeaningfulText(
+            text,
+          )
+        ) {
+          document.title =
+            text
         }
 
         return
@@ -591,18 +1083,30 @@ function extractTemplateStructure(descriptor) {
       // ---------------------------------------------------
 
       if (tag === "h2") {
-        const text = cleanText(
-          getNodeText(node),
-        )
+        const text =
+          cleanText(
+            getNodeText(
+              node,
+            ),
+          )
 
-        if (isMeaningfulText(text)) {
+        if (
+          isMeaningfulText(
+            text,
+          )
+        ) {
           currentSection = {
             heading: text,
             level: 2,
+
             anchor:
-              getAttribute(node, "id") ??
-              null,
+              getAttribute(
+                node,
+                "id",
+              ) ?? null,
+
             blocks: [],
+
             subsections: [],
           }
 
@@ -610,7 +1114,8 @@ function extractTemplateStructure(descriptor) {
             currentSection,
           )
 
-          currentSubsection = null
+          currentSubsection =
+            null
         }
 
         return
@@ -624,43 +1129,68 @@ function extractTemplateStructure(descriptor) {
         tag === "h3" ||
         tag === "h4"
       ) {
-        const text = cleanText(
-          getNodeText(node),
-        )
+        const text =
+          cleanText(
+            getNodeText(
+              node,
+            ),
+          )
 
         if (
-          isMeaningfulText(text) &&
+          isMeaningfulText(
+            text,
+          ) &&
           currentSection
         ) {
           currentSubsection = {
             heading: text,
-            level: Number(tag.slice(1)),
+
+            level:
+              Number(
+                tag.slice(1),
+              ),
+
             anchor:
-              getAttribute(node, "id") ??
-              null,
+              getAttribute(
+                node,
+                "id",
+              ) ?? null,
+
             blocks: [],
           }
 
-          currentSection.subsections.push(
-            currentSubsection,
-          )
+          currentSection
+            .subsections
+            .push(
+              currentSubsection,
+            )
         }
 
         return
       }
 
       // ---------------------------------------------------
-      // Paragraph
+      // EdProse
       // ---------------------------------------------------
 
-      if (tag === "p") {
-        const text = cleanText(
-          getNodeText(node),
-        )
+      if (
+        tag === "edprose"
+      ) {
+        const text =
+          cleanText(
+            getNodeText(
+              node,
+            ),
+          )
 
-        if (isMeaningfulText(text)) {
+        if (
+          isMeaningfulText(
+            text,
+          )
+        ) {
           addBlock({
-            type: "paragraph",
+            type:
+              "paragraph",
             text,
           })
         }
@@ -669,22 +1199,79 @@ function extractTemplateStructure(descriptor) {
       }
 
       // ---------------------------------------------------
-      // UL / OL
+      // EdBullets
+      // ---------------------------------------------------
+
+      if (
+        tag ===
+        "edbullets"
+      ) {
+        const items =
+          extractList(
+            node,
+          )
+
+        if (
+          items.length > 0
+        ) {
+          addBlock({
+            type: "list",
+            items,
+          })
+        }
+
+        return
+      }
+
+      // ---------------------------------------------------
+      // Native paragraph
+      // ---------------------------------------------------
+
+      if (tag === "p") {
+        const text =
+          cleanText(
+            getNodeText(
+              node,
+            ),
+          )
+
+        if (
+          isMeaningfulText(
+            text,
+          )
+        ) {
+          addBlock({
+            type:
+              "paragraph",
+            text,
+          })
+        }
+
+        return
+      }
+
+      // ---------------------------------------------------
+      // Native lists
       // ---------------------------------------------------
 
       if (
         tag === "ul" ||
         tag === "ol"
       ) {
-        const items = extractList(node)
-          .filter(isMeaningfulText)
+        const items =
+          extractList(
+            node,
+          )
 
-        if (items.length > 0) {
+        if (
+          items.length > 0
+        ) {
           addBlock({
             type:
               tag === "ol"
                 ? "ordered_list"
                 : "list",
+
             items,
           })
         }
@@ -696,36 +1283,52 @@ function extractTemplateStructure(descriptor) {
       // Table
       // ---------------------------------------------------
 
-      if (tag === "table") {
-        const table = extractTable(node)
+      if (
+        tag === "table"
+      ) {
+        const table =
+          extractTable(
+            node,
+          )
 
         if (
-          table.headers.length > 0 ||
-          table.rows.length > 0
+          table.headers
+            .length >
+            0 ||
+          table.rows
+            .length >
+            0
         ) {
-          addBlock(table)
+          addBlock(
+            table,
+          )
         }
 
         return
       }
 
       // ---------------------------------------------------
-      // PRE / code block
+      // Code
       // ---------------------------------------------------
 
-      if (tag === "pre") {
-        const code = extractCode(node)
-
-        if (code) {
-          addBlock(code)
-        }
+      if (
+        tag === "pre"
+      ) {
+        addBlock(
+          extractCode(
+            node,
+          ),
+        )
 
         return
       }
     }
 
-    // Walk container children
-    for (const child of node.children ?? []) {
+    for (
+      const child
+      of node.children ??
+        []
+    ) {
       walk(child)
     }
   }
@@ -736,35 +1339,88 @@ function extractTemplateStructure(descriptor) {
 }
 
 // ---------------------------------------------------------
-// Create document ID from file path
+// IDs + relative paths
 // ---------------------------------------------------------
 
-function createDocumentId(filePath) {
-  const normalized = filePath.replace(
-    /\\/g,
-    "/",
-  )
-
-  const marker = "/src/pages/"
-
-  const index =
-    normalized.indexOf(marker)
-
-  if (index === -1) {
-    return path.basename(
+function getRelativeSourcePath(
+  filePath,
+) {
+  return path
+    .relative(
+      communityRepoRoot,
       filePath,
-      ".vue",
     )
+    .replace(
+      /\\/g,
+      "/",
+    )
+}
+
+function createDocumentId(
+  filePath,
+) {
+  let relative =
+    getRelativeSourcePath(
+      filePath,
+    )
+
+  relative =
+    relative.replace(
+      /^src\/pages\//,
+      "",
+    )
+
+  relative =
+    relative.replace(
+      /\/index\.vue$/,
+      "",
+    )
+
+  relative =
+    relative.replace(
+      /\.vue$/,
+      "",
+    )
+
+  return relative
+}
+
+// ---------------------------------------------------------
+// Merge navigation
+// ---------------------------------------------------------
+
+function mergeNavigation(
+  ...groups
+) {
+  const result = []
+  const seen =
+    new Set()
+
+  for (
+    const group
+    of groups
+  ) {
+    for (
+      const item
+      of group ?? []
+    ) {
+      const key =
+        item.url ||
+        `${item.category || ""}:${item.title || ""}`
+
+      if (
+        !key ||
+        seen.has(key)
+      ) {
+        continue
+      }
+
+      seen.add(key)
+      result.push(item)
+    }
   }
 
-  let id = normalized.slice(
-    index + marker.length,
-  )
-
-  id = id.replace(/\/index\.vue$/, "")
-  id = id.replace(/\.vue$/, "")
-
-  return id
+  return result
 }
 
 // ---------------------------------------------------------
@@ -773,45 +1429,85 @@ function createDocumentId(filePath) {
 
 function main() {
   const descriptor =
-    parseVueFile(inputPath)
+    parseVueFile(
+      inputPath,
+    )
 
   const metadata =
-    extractMetadata(descriptor)
+    extractMetadata(
+      descriptor,
+    )
 
   const scriptAst =
-    parseScriptSetup(descriptor)
+    parseScriptSetup(
+      descriptor,
+    )
 
-  const rawScriptSections =
-    extractSections(scriptAst)
-
-  const navigationSections =
-    cleanSections(rawScriptSections)
+  const scriptNavigation =
+    cleanScriptNavigation(
+      extractScriptSections(
+        scriptAst,
+      ),
+    )
 
   const template =
-    extractTemplateStructure(descriptor)
+    extractTemplateStructure(
+      descriptor,
+    )
+
+  const navigation =
+    mergeNavigation(
+      scriptNavigation,
+      template.navigation,
+    )
+
+  const content = {
+    title:
+      metadata.title ||
+      template.title,
+
+    intro:
+      template.intro,
+
+    sections:
+      template.sections,
+  }
 
   const output = {
-    id: createDocumentId(inputPath),
+    id:
+      createDocumentId(
+        inputPath,
+      ),
 
     source: {
-      file: inputPath,
-      parser: "vue-sfc",
+      repo:
+        "community-standards",
+
+      file:
+        getRelativeSourcePath(
+          inputPath,
+        ),
+
+      parser:
+        "vue-sfc",
     },
 
     metadata,
 
-    content: template,
+    content,
 
-    ...(navigationSections.length
+    ...(navigation.length >
+    0
       ? {
-          navigation:
-            navigationSections,
+          navigation,
         }
       : {}),
   }
 
   fs.mkdirSync(
-    path.dirname(outputPath),
+    path.dirname(
+      outputPath,
+    ),
     {
       recursive: true,
     },
@@ -831,7 +1527,11 @@ function main() {
   )
 
   console.log(
-    JSON.stringify(output, null, 2),
+    JSON.stringify(
+      output,
+      null,
+      2,
+    ),
   )
 }
 

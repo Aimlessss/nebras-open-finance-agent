@@ -1,0 +1,109 @@
+{
+  "document_id": "proposals/ofp-007",
+  "chunk_count": 8,
+  "chunks": [
+    {
+      "id": "proposals/ofp-007#ofp-007-show-an-lfi-its-own-api-hub-configuration-in-the-admin-portal#0",
+      "document_id": "proposals/ofp-007",
+      "type": "intro",
+      "text": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal\n\nAn LFI's Ozone Connect Base URL, Authorization Endpoint, application layer authentication method, and API family base paths are spread across an onboarding ticket and every later ticket that changed one of them. Nothing holds the current answer in one place. Surface the effective configuration, read-only, in the Admin Portal. The voting period has ended. The votes cast are shown below. Sign in with the Trust Framework to vote — For, Against, or Abstain — recorded in the open with your reasoning. Your organisation and name come from your directory profile, and each person may vote once. The second question on the form — whether you would want to edit any of this configuration yourself — shapes a separate proposal, so please answer it even if you vote against this one.",
+      "metadata": {
+        "title": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/proposals/ofp-007/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "proposals/ofp-007#ofp-007-show-an-lfi-its-own-api-hub-configuration-in-the-admin-portal--knowable-in-principle-scattered-across-tickets-in-practice#1",
+      "document_id": "proposals/ofp-007",
+      "type": "section",
+      "text": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal > Knowable in principle, scattered across tickets in practice\n\nDuring environment-specific onboarding, an LFI hands Nebras the details that define how the API Hub reaches its backend: the Ozone Connect Base URL, the Authorization Endpoint, and an optional API family base path for each of Data Sharing, Service Initiation, Products, Consent Events & Notifications, and Health Check. Earlier in onboarding it selects an application layer authentication method — mTLS only, API Key, Client Credentials Grant, or JWT Auth — along with its sub-settings, such as the scopes used for Client Credentials or whether JWT Auth headers are also sent on the LFI's own calls to the Consent Manager and Headless Heimdall. All of it is submitted on a Service Desk ticket. That is the documented process and it works: the ticket is raised, the values are exchanged, connectivity is validated in both directions, and the ticket is closed. None of this is hidden from the LFI. The values are in the tickets, the tickets are searchable, and in principle everything can be recovered from them. The difficulty is that it is never one ticket. Onboarding creates the first record, and everything after it arrives as its own ticket, each raised to change one specific thing — a base path added when Products went live, a corrected path, a moved Authorization Endpoint, a switch from mTLS-only to JWT Auth. Each ticket is a delta, not a statement of the whole. So working out what is configured today is not a lookup. It means finding every ticket that has ever touched the field, putting them in order, replaying them, and being confident none was missed — where missing one gives you a wrong answer that looks exactly like a right one. Then doing it again for the other environment, and again for each brand if the LFI runs more than one hub. Meanwhile the API Hub holds the answer as a single current value, because that is what it enforces on every proxied request. There is simply no way for the LFI to ask it. The one place an LFI already signs in to look at its own hub — the Admin Portal — shows TPP activation, consents, logs, reports, outages, and the users who hold access. It does not show a single one of the values above. The cost of this is small each time and constant in aggregate. It lands hardest in the places where accuracy matters most: an incident where a forwarded request is 404ing and nobody can confirm the path the Hub is prepending; a suspected drift between pre-production and production that nobody can rule out; a multi-brand LFI running several hubs whose configurations must be told apart from ticket history; a new engineer joining the team with no way to read the current state of the integration they have inherited.",
+      "metadata": {
+        "title": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal",
+        "section": "Knowable in principle, scattered across tickets in practice",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/proposals/ofp-007/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "proposals/ofp-007#ofp-007-show-an-lfi-its-own-api-hub-configuration-in-the-admin-portal--a-configuration-section-in-the-admin-portal#2",
+      "document_id": "proposals/ofp-007",
+      "type": "section",
+      "text": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal > A Configuration section in the Admin Portal\n\nAdd a read-only Configuration section to the Admin Portal that shows the effective onboarding configuration the API Hub actually holds for that instance and environment. Not a copy of the onboarding form — the live values the Hub enforces at proxy time. The scoping falls out of what already exists. The Admin Portal is provisioned one instance per API Hub, per environment — admin.{lficode}.preprod.apihub.openfinance.ae and admin.{lficode}.apihub.openfinance.ae — so a page inside it is already correctly scoped to one brand and one environment without anything new being built. A multi-brand LFI opens each brand's portal and sees that brand's configuration, which is exactly the distinction that is hardest to hold onto across ticket threads. Access control falls out too. Portal access is already granted via Trust Framework SSO to users holding the relevant roles — PTC, PBC, STC — and revoked by managing those roles in the Trust Framework. This proposal introduces no new identity, credential, or permission model; the audience for the page is the audience the portal already has. Nothing else changes. The Ozone Connect contract, the headers, the schemas, the TPP-facing API, and the onboarding process itself are all untouched. Configuration continues to be submitted and changed exactly as it is today.",
+      "metadata": {
+        "title": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal",
+        "section": "A Configuration section in the Admin Portal",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/proposals/ofp-007/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "proposals/ofp-007#ofp-007-show-an-lfi-its-own-api-hub-configuration-in-the-admin-portal--connectivity-and-authentication-for-this-hub-and-this-environment#3",
+      "document_id": "proposals/ofp-007",
+      "type": "section",
+      "text": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal > Connectivity and authentication, for this hub and this environment\n\nThe scope is the configuration an LFI provides or is allocated for connectivity. Certificates are deliberately excluded — see below. - Ozone Connect Base URL — the base URL the API Hub forwards to for this environment. - Authorization Endpoint — the OIDC authorisation URL the customer is redirected to, or an explicit indication that the LFI has adopted CAAP and therefore provides none. - Application layer authentication method — mTLS only, API Key, Client Credentials Grant, or JWT Auth, together with its configured sub-settings: the scope values agreed for Client Credentials, and whether JWT Auth headers are sent on the LFI's calls to the Consent Manager and Headless Heimdall Auth Server. - Optional API family base paths — one row per family (Data Sharing, Service Initiation, Products, Consent Events & Notifications, Health Check), showing the configured path or an explicit “not set”, and next to it the effective forwarded URL worked through against the base URL, so there is nothing left to infer. - Instance identifiers and allocated values — LFI Code, LFI Organisation ID, the Ozone-allocated domains for the environment, and the API Hub egress IP addresses the LFI must allowlist. - Certificates. The certificate set (S1, S3, C4, Sig2, Sig3, C3, S4, Sig4, Enc1) and its JWKS URLs and KIDs are not included. They are held and managed in the Trust Framework, which is their system of record, and surfacing a second view of them raises questions about which one is authoritative. Keeping this proposal to connectivity and authentication keeps it small enough to be worth building; certificates can be taken up separately if the ecosystem wants them. - Editing. Nothing on the page is changeable. See section 04. One requirement matters more than the rest: the page must be generated from the live configuration the API Hub enforces, not from a stored copy of what was written on the onboarding ticket. A page that can drift from the running configuration is worse than no page, because it would be trusted.",
+      "metadata": {
+        "title": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal",
+        "section": "Connectivity and authentication, for this hub and this environment",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/proposals/ofp-007/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "proposals/ofp-007#ofp-007-show-an-lfi-its-own-api-hub-configuration-in-the-admin-portal--seeing-and-changing-are-different-proposals#4",
+      "document_id": "proposals/ofp-007",
+      "type": "section",
+      "text": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal > Seeing and changing are different proposals\n\nThe obvious next question is whether an LFI should be able to change these values in the portal rather than raising a Service Desk ticket. This proposal deliberately does not ask for that, for three reasons. The risk profiles are not comparable. Displaying a value the Hub already holds cannot break a live integration. Editing the Ozone Connect Base URL, the Authorization Endpoint, or a base path on a production hub can take an LFI's entire Open Finance estate offline in one click, and a wrong application layer authentication method breaks every call in both directions. Nebras's end-to-end connectivity validation exists precisely because these values are not safe to set unverified. Editing needs a change-control model that does not exist yet. The portal today documents no role-differentiated permissions — every user granted access sees the same thing. Before any of this becomes editable there has to be an answer on who may change what, whether approval is required, how a change is validated before it takes effect, how it is audited, and whether production is treated differently from pre-production. That is a substantial piece of design in its own right and it should not ride along on a display change. Read-only is worth having on its own. A meaningful share of the Service Desk traffic these fields generate is not “please change this” but “what is this set to?”. That question disappears entirely with a view, at a fraction of the cost. That said, we want to know whether editing would be valuable to you, so the second question on the vote form asks exactly that — which fields you would want to change yourself, and what change control your institution would need around them. If the answers show real appetite, we will bring it forward as a separate proposal with the permissions and validation model worked through properly. Please answer it whichever way you vote on this one.",
+      "metadata": {
+        "title": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal",
+        "section": "Seeing and changing are different proposals",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/proposals/ofp-007/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "proposals/ofp-007#ofp-007-show-an-lfi-its-own-api-hub-configuration-in-the-admin-portal--what-changes#5",
+      "document_id": "proposals/ofp-007",
+      "type": "section",
+      "text": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal > What changes\n\nA read model, a portal page, and documentation. Nothing on the request path, and nothing that an LFI or TPP must implement. Expose the effective connectivity and application-layer-authentication configuration for an API Hub instance and environment, read from the configuration the Hub enforces rather than from a stored copy of the onboarding submission. Read-only: no write path is introduced. A new section in the portal rendering the values in section 03, using the same field names as the onboarding documentation so the two read as one thing. The API family table resolves each path against the base URL and shows the forwarded URL alongside it. Fields that are not set are shown explicitly as not set, with the resulting default path, rather than being omitted. A new page under Admin Portal describing the section and each field it shows, cross-linked from Environment-Specific Configuration, Ozone Connect Base URL, Authorization Endpoint, and Application Layer Authentication, each stating plainly that the configured value can be viewed in the portal and changed via the Service Desk.",
+      "metadata": {
+        "title": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal",
+        "section": "What changes",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/proposals/ofp-007/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "proposals/ofp-007#ofp-007-show-an-lfi-its-own-api-hub-configuration-in-the-admin-portal--what-the-view-buys#6",
+      "document_id": "proposals/ofp-007",
+      "type": "section",
+      "text": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal > What the view buys\n\n- ✓",
+      "metadata": {
+        "title": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal",
+        "section": "What the view buys",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/proposals/ofp-007/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "proposals/ofp-007#ofp-007-show-an-lfi-its-own-api-hub-configuration-in-the-admin-portal--what-it-costs#7",
+      "document_id": "proposals/ofp-007",
+      "type": "section",
+      "text": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal > What it costs\n\n- ×",
+      "metadata": {
+        "title": "OFP-007 · Show an LFI its own API Hub configuration in the Admin Portal",
+        "section": "What it costs",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/proposals/ofp-007/index.vue",
+        "parser": "vue-sfc"
+      }
+    }
+  ]
+}

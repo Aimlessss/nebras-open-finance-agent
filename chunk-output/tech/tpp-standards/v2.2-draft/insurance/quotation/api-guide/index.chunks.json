@@ -1,0 +1,237 @@
+{
+  "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+  "chunk_count": 15,
+  "chunks": [
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide#0",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "intro",
+      "text": "Insurance Quotation — API Guide\n\nEnd-to-end walkthrough of the Insurance Quotation flow from the TPP perspective. The flow runs on the Client Credentials Grant — no per-customer consent journey. After accepting a quote, you can subscribe to webhook events to receive status updates without polling. This page covers the subscription mechanism and the full event schema; the per-mode pages walk through the specific call sequences.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--two-flow-variants--pick-the-mode-you-re-implementing--the-lfi-hosts-the-customer-through-completion#1",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "subsection",
+      "text": "Insurance Quotation — API Guide > Two flow variants > Pick the mode you're implementing > The LFI hosts the customer through completion\n\nSingle-PATCH accept flow. Your app collects quote inputs, the LFI hosts everything from acceptance through to issuance. You observe progress via webhook events or polling.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "Pick the mode you're implementing",
+        "category": "Two flow variants",
+        "subsection": "The LFI hosts the customer through completion",
+        "anchor": "modes",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--two-flow-variants--pick-the-mode-you-re-implementing--you-collect-kyc-the-lfi-hosts-only-payment#2",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "subsection",
+      "text": "Insurance Quotation — API Guide > Two flow variants > Pick the mode you're implementing > You collect KYC; the LFI hosts only payment\n\nTwo-PATCH flow. You submit KYC, the LFI returns a payment URL via webhook event, you redirect the customer to pay, then deliver documents in your app.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "Pick the mode you're implementing",
+        "category": "Two flow variants",
+        "subsection": "You collect KYC; the LFI hosts only payment",
+        "anchor": "modes",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--webhook-subscription--subscribe-to-events-on-patch-accept-quote#3",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "section",
+      "text": "Insurance Quotation — API Guide > Webhook subscription > Subscribe to events on PATCH Accept Quote\n\nWhen you PATCH a quote to accept it, you can attach a Subscription.Webhook object to register for event notifications. The Hub will POST status events to your registered URL whenever the LFI emits a quote-log update. Subscribing once on accept covers the entire lifecycle — you do not need to re-subscribe for each status. The webhook delivery surface is documented in Insurance Quote Status Event — API Guide, with the OpenAPI schema at Insurance Quote Status Change Event.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "Subscribe to events on PATCH Accept Quote",
+        "category": "Webhook subscription",
+        "anchor": "subscription",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--webhook-subscription--subscribe-to-events-on-patch-accept-quote--subscription-object#4",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "subsection",
+      "text": "Insurance Quotation — API Guide > Webhook subscription > Subscribe to events on PATCH Accept Quote > Subscription object\n\nField | Type | Required | Description Webhook.Url | string (HTTPS URL) | On first registration | Your HTTPS endpoint that will receive event POSTs. Must match ^https://.+. Webhook.IsActive | boolean | Always | true enables delivery; false pauses without removing the URL.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "Subscribe to events on PATCH Accept Quote",
+        "category": "Webhook subscription",
+        "subsection": "Subscription object",
+        "anchor": "subscription",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--webhook-subscription--subscribe-to-events-on-patch-accept-quote--updating-the-subscription-mid-lifecycle#5",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "subsection",
+      "text": "Insurance Quotation — API Guide > Webhook subscription > Subscribe to events on PATCH Accept Quote > Updating the subscription mid-lifecycle\n\nYou can PATCH the quote again at any time with only a Subscription object to update or pause webhook delivery. Omit the Data field; the LFI will not treat this as a re-acceptance. If you do not register a webhook, poll GET /{type}-insurance-quotes/{QuoteId} to retrieve the current status. Do not exceed one request per minute under normal load — the Hub may rate-limit aggressive polling. Webhooks are strongly preferred.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "Subscribe to events on PATCH Accept Quote",
+        "category": "Webhook subscription",
+        "subsection": "Updating the subscription mid-lifecycle",
+        "anchor": "subscription",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--insurance-quote-event-schema--the-three-event-shapes-you-must-handle#6",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "section",
+      "text": "Insurance Quotation — API Guide > Insurance Quote Event Schema > The three event shapes you must handle\n\nEvery event delivered to your webhook conforms to one of three schemas, drawn from the API Hub Consent Manager spec. The QuoteStatus field identifies which schema applies.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "The three event shapes you must handle",
+        "category": "Insurance Quote Event Schema",
+        "anchor": "event-schema",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--insurance-quote-event-schema--the-three-event-shapes-you-must-handle--1-pending-completion-status#7",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "subsection",
+      "text": "Insurance Quotation — API Guide > Insurance Quote Event Schema > The three event shapes you must handle > 1. Pending Completion Status\n\nSent when the quote is making progress but not yet final. QuoteStatus is one of: ApplicationPending, ApplicationApproved, PaymentRequired, PolicyIssued. Field | Required | Notes QuoteStatus | Always | One of the pending-completion enum values above. BrokerInstructions[] | When LFI requires TPP action | Each entry: ActionRequired (text), Reason (text), Url (e.g. payment URL). Documents[] | On PolicyIssued in TPP-Led mode | Base64-encoded policy documents with SHA-256 hashes. See \"Documents\" below.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "The three event shapes you must handle",
+        "category": "Insurance Quote Event Schema",
+        "subsection": "1. Pending Completion Status",
+        "anchor": "event-schema",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--insurance-quote-event-schema--the-three-event-shapes-you-must-handle--2-completed-status#8",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "subsection",
+      "text": "Insurance Quotation — API Guide > Insurance Quote Event Schema > The three event shapes you must handle > 2. Completed Status\n\nFinal event for a successful flow. QuoteStatus: Completed. Carries the finalised premium, policy term, and commission information. No further events follow. Field | Required | Notes QuoteStatus | Always | Always \"Completed\". PolicyTerm | Always | ISO 8601 duration, e.g. P1Y, P2Y3M. Premium | Always | Object with OneYearPremiumExcludingVAT, VATAmount, TotalOneYearPremium, and (optionally) TotalPolicyPremium. CustomerPaidInFull | Always | Boolean indicating full payment was received. PolicyCountrySubDivision | Always | UAE Emirate where the policy was issued. PolicyStartDate / PolicyEndDate | Recommended | ISO 8601 date. CustomerSalary | Required for Health | Under4K or Over4K (AED/month). Commission | When TPP commission applies | CommissionAmount + PaymentMethod ( DirectToTPP or ThroughAPIHub ). Documents[] | Optional | Final policy documents if not already delivered on PolicyIssued.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "The three event shapes you must handle",
+        "category": "Insurance Quote Event Schema",
+        "subsection": "2. Completed Status",
+        "anchor": "event-schema",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--insurance-quote-event-schema--the-three-event-shapes-you-must-handle--3-terminal-status#9",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "subsection",
+      "text": "Insurance Quotation — API Guide > Insurance Quote Event Schema > The three event shapes you must handle > 3. Terminal Status\n\nNegative terminal events. QuoteStatus is one of: Expired, Rejected, CustomerCancelled, LFICancelled. No further events follow. Field | Required | Notes QuoteStatus | Always | One of the four terminal enum values. Reason | Optional | Free-text (1–1000 chars) explaining the termination — surface to the customer where helpful.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "The three event shapes you must handle",
+        "category": "Insurance Quote Event Schema",
+        "subsection": "3. Terminal Status",
+        "anchor": "event-schema",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--document-handling--verifying-and-surfacing-policy-documents#10",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "section",
+      "text": "Insurance Quotation — API Guide > Document handling > Verifying and surfacing policy documents\n\nIn TPP-Led mode, the PolicyIssued event carries every customer-facing document the LFI would normally deliver itself. Your TPP becomes the document delivery channel — the LFI will not email or post the documents.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "Verifying and surfacing policy documents",
+        "category": "Document handling",
+        "anchor": "documents",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--document-handling--verifying-and-surfacing-policy-documents--document-object#11",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "subsection",
+      "text": "Insurance Quotation — API Guide > Document handling > Verifying and surfacing policy documents > Document object\n\nField | Notes Type | Document category (e.g. \"Policy Booklet\", \"Terms & Conditions\", \"IPID\"). Free-text. FileName | Original file name with extension. No path components. ContentType | One of application/pdf, image/jpeg, image/png. Content | Base64-encoded file bytes. HashType | Always SHA256. Hash | SHA-256 of the raw file bytes (decoded Content ). Required for integrity verification. AdditionalInformation | Optional free text (max 1000 chars).",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "Verifying and surfacing policy documents",
+        "category": "Document handling",
+        "subsection": "Document object",
+        "anchor": "documents",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--document-handling--verifying-and-surfacing-policy-documents--verification#12",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "subsection",
+      "text": "Insurance Quotation — API Guide > Document handling > Verifying and surfacing policy documents > Verification\n\nBefore surfacing a document to the customer, decode Content, compute its SHA-256, and compare against Hash. Mismatches indicate corruption or tampering — do not deliver. Log the x-fapi-interaction-id from the event delivery and raise a support ticket including that ID and the QuoteId.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "Verifying and surfacing policy documents",
+        "category": "Document handling",
+        "subsection": "Verification",
+        "anchor": "documents",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--webhook-security--verify-event-signatures-before-acting#13",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "section",
+      "text": "Insurance Quotation — API Guide > Webhook security > Verify event signatures before acting\n\nEvents delivered to your webhook are signed by the Hub. You MUST verify the signature on every event before applying it. See Receiving Event Notifications for the signature scheme. The Hub may redeliver an event after a transient delivery failure. Treat events as idempotent — apply the latest QuoteStatus for the QuoteId, do not count events. Tracking by QuoteId + QuoteStatus + event timestamp is sufficient to dedupe.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "Verify event signatures before acting",
+        "category": "Webhook security",
+        "anchor": "webhook-verification",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide#insurance-quotation-api-guide--per-quote-type-rules--new-renewal-and-switch-differences#14",
+      "document_id": "tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide",
+      "type": "section",
+      "text": "Insurance Quotation — API Guide > Per-quote-type rules > New, Renewal, and Switch differences\n\nThe semantic differences between New, Renewal, and Switch — and the per-type field requirements — are documented in the shared Quote Types explainer. Read it before issuing Renewal or Switch quotes; both require referencing a prior policy retrieved through Insurance Data Sharing under a customer consent.",
+      "metadata": {
+        "title": "Insurance Quotation — API Guide",
+        "section": "New, Renewal, and Switch differences",
+        "category": "Per-quote-type rules",
+        "anchor": "quote-types",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-draft/insurance/quotation/api-guide/index.vue",
+        "parser": "vue-sfc"
+      }
+    }
+  ]
+}

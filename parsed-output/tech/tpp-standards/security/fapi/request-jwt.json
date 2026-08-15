@@ -1,0 +1,236 @@
+{
+  "id": "tech/tpp-standards/security/fapi/request-jwt",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/security/fapi/request-jwt.vue",
+    "parser": "vue-sfc"
+  },
+  "metadata": {
+    "title": "Preparing the Request JWT"
+  },
+  "content": {
+    "title": "Preparing the Request JWT",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "To send a /par request, you must first construct a signed Request JWT (also called a Request Object or JAR — JWT Authorization Request). This JWT is a signed package of all authorization parameters, proving they came from your registered application and haven't been tampered with."
+      },
+      {
+        "type": "paragraph",
+        "text": "For a precise per-claim reference covering aud, exp / nbf lifetime windows, clock skew, and the difference between the Request Object and Client Assertion, see JWT Claim Rules."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "JOSE header — algorithm and signing key",
+        "level": 2,
+        "anchor": "header",
+        "category": "Header",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value",
+              "Description"
+            ],
+            "rows": [
+              [
+                "alg",
+                "PS256",
+                "Signing algorithm — RSA-PSS with SHA-256"
+              ],
+              [
+                "kid",
+                "string",
+                "Key ID of your signing certificate, as registered in the Trust Framework"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Authorization parameters carried inside the signed JWT",
+        "level": 2,
+        "anchor": "payload",
+        "category": "Payload Claims",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Claim",
+              "Type",
+              "Required",
+              "Description",
+              "Example"
+            ],
+            "rows": [
+              [
+                "aud",
+                "string",
+                "✓",
+                "The issuer of the Authorization Server — found via API Discovery",
+                "https://auth1.[LFICode].apihub.openfinance.ae"
+              ],
+              [
+                "iat",
+                "number",
+                "✓",
+                "Issued At Unix timestamp — when the JWT was created",
+                "1713196113"
+              ],
+              [
+                "exp",
+                "number",
+                "✓",
+                "Expiry as a Unix timestamp. Must be shortly after nbf — maximum 5 minutes",
+                "1713196423"
+              ],
+              [
+                "iss",
+                "string",
+                "✓",
+                "Your application's Client ID from the Trust Framework",
+                "your-client-id"
+              ],
+              [
+                "client_id",
+                "string",
+                "✓",
+                "Your application's Client ID (same as iss )",
+                "your-client-id"
+              ],
+              [
+                "redirect_uri",
+                "string",
+                "✓",
+                "The callback URI registered in your Trust Framework application",
+                "https://yourapp.com/callback"
+              ],
+              [
+                "scope",
+                "string",
+                "✓",
+                "Space-separated OAuth 2.0 scopes",
+                "accounts openid"
+              ],
+              [
+                "nonce",
+                "string",
+                "✓",
+                "Random UUID — prevents replay attacks by binding the ID token to this request",
+                "a1b2c3d4-..."
+              ],
+              [
+                "state",
+                "string",
+                "✓",
+                "Random UUID — returned in the redirect; prevents CSRF attacks",
+                "e5f6g7h8-..."
+              ],
+              [
+                "nbf",
+                "number",
+                "✓",
+                "Not Before Unix timestamp. Set slightly before iat (e.g. iat - 10 ) to allow for clock skew",
+                "1713196103"
+              ],
+              [
+                "response_type",
+                "string",
+                "✓",
+                "Must be code",
+                "code"
+              ],
+              [
+                "code_challenge_method",
+                "string",
+                "✓",
+                "PKCE method — only S256 is supported",
+                "S256"
+              ],
+              [
+                "code_challenge",
+                "string",
+                "✓",
+                "Base64url-encoded SHA-256 hash of your code_verifier",
+                "E9Melhoa2Ow..."
+              ],
+              [
+                "max_age",
+                "number",
+                "",
+                "Maximum age (seconds) of the user's existing authentication session. Capped at 3600",
+                "3600"
+              ],
+              [
+                "authorization_details",
+                "array",
+                "✓",
+                "Describes what the user is consenting to — see Consent",
+                "[{...}]"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Generating a PKCE code challenge",
+        "level": 2,
+        "anchor": "pkce",
+        "category": "PKCE",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before building the JWT, generate a code_verifier and derive the code_challenge from it:"
+          },
+          {
+            "type": "paragraph",
+            "text": "Store the code_verifier securely — you'll need it when exchanging the authorization code for tokens."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Assemble and sign the JWT in code",
+        "level": 2,
+        "anchor": "build",
+        "category": "Building the Request JWT",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end PAR submission and redirect",
+        "level": 2,
+        "anchor": "full-example",
+        "category": "Full Example",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Store codeVerifier in your session — you'll need it at the /token endpoint to exchange the authorization code for access tokens."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The pii field inside payment consents is itself a JWE",
+        "level": 2,
+        "anchor": "encrypting-pii",
+        "category": "Encrypting Payment PII",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "For payment consents, the consent's PII payload (creditor and debtor names, account numbers, and related personal data) must be encrypted with the LFI's public encryption key and carried as a JWE in the consent's pii field — nested inside authorization_details within this Request JWT. The Request JWT itself is signed (JWS) but is not wrapped in a JWE; only the pii field is."
+          },
+          {
+            "type": "paragraph",
+            "text": "This keeps the PII end-to-end encrypted: the API Hub routes the consent without being able to read the personal data, and only the LFI — holder of the private key — can decrypt and validate it. See Message Encryption for how to produce the JWE, and Payment PII Encryption for the rationale and validation responsibilities."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

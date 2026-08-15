@@ -1,0 +1,125 @@
+{
+  "document_id": "tech/tpp-standards/security/fapi/message-encryption",
+  "chunk_count": 8,
+  "chunks": [
+    {
+      "id": "tech/tpp-standards/security/fapi/message-encryption#message-encryption-jwe#0",
+      "document_id": "tech/tpp-standards/security/fapi/message-encryption",
+      "type": "intro",
+      "text": "Message Encryption (JWE)\n\nA JWE (JSON Web Encryption — RFC 7516 ) is the cryptographic mechanism that encrypts a payload so that only the intended recipient can read it. In UAE Open Finance, JWE is used specifically for payment consents — to encrypt the consent's PII payload (creditor and debtor names, account numbers, risk indicators) end-to-end with the LFI's public key. The encrypted blob is carried in the consent's pii field, nested inside the Request JWT 's authorization_details. The Request JWT itself is signed (JWS) but is not wrapped in a JWE; only the pii field is. See Payment PII Encryption for the data privacy rationale and the LFI/TPP validation responsibilities that flow from this design.",
+      "metadata": {
+        "title": "Message Encryption (JWE)",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/message-encryption.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/security/fapi/message-encryption#message-encryption-jwe--structure-of-an-encrypted-payload--five-base64url-parts-joined-by-dots#1",
+      "document_id": "tech/tpp-standards/security/fapi/message-encryption",
+      "type": "section",
+      "text": "Message Encryption (JWE) > Structure of an Encrypted Payload > Five base64url parts joined by dots\n\nA compact-serialised JWE consists of five base64url-encoded parts joined by.:",
+      "metadata": {
+        "title": "Message Encryption (JWE)",
+        "section": "Five base64url parts joined by dots",
+        "category": "Structure of an Encrypted Payload",
+        "anchor": "structure",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/message-encryption.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/security/fapi/message-encryption#message-encryption-jwe--jose-header--key-wrap-content-encryption-and-the-lfi-s-key-id#2",
+      "document_id": "tech/tpp-standards/security/fapi/message-encryption",
+      "type": "section",
+      "text": "Message Encryption (JWE) > JOSE Header > Key wrap, content encryption, and the LFI's key ID\n\nField | Value | Description alg | RSA-OAEP-256 | Key-wrapping algorithm — encrypts the content encryption key using the LFI's RSA public key enc | A256GCM | Content encryption algorithm — encrypts the actual payload using AES-256-GCM kid | string | Key ID of the LFI's encryption key, taken from their JWKS",
+      "metadata": {
+        "title": "Message Encryption (JWE)",
+        "section": "Key wrap, content encryption, and the LFI's key ID",
+        "category": "JOSE Header",
+        "anchor": "header",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/message-encryption.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/security/fapi/message-encryption#message-encryption-jwe--discover-the-lfi-s-encryption-key--jwks-uri-and-key-selection--step-1-discover-the-jwks-uri#3",
+      "document_id": "tech/tpp-standards/security/fapi/message-encryption",
+      "type": "subsection",
+      "text": "Message Encryption (JWE) > Discover the LFI's encryption key > JWKS URI and key selection > Step 1 — Discover the JWKS URI\n\nEach LFI publishes its public keys at a JWKS URI. You can find this URI by performing API Discovery via the.well-known endpoint. The JWKS URI follows this format:",
+      "metadata": {
+        "title": "Message Encryption (JWE)",
+        "section": "JWKS URI and key selection",
+        "category": "Discover the LFI's encryption key",
+        "subsection": "Step 1 — Discover the JWKS URI",
+        "anchor": "discover",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/message-encryption.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/security/fapi/message-encryption#message-encryption-jwe--discover-the-lfi-s-encryption-key--jwks-uri-and-key-selection--step-2-select-the-encryption-key#4",
+      "document_id": "tech/tpp-standards/security/fapi/message-encryption",
+      "type": "subsection",
+      "text": "Message Encryption (JWE) > Discover the LFI's encryption key > JWKS URI and key selection > Step 2 — Select the encryption key\n\nFetch the JWKS and find a key where \"use\": \"enc\". This is the LFI's public key intended for encryption. Example encryption key from a JWKS: If the JWKS contains multiple keys, always select the one where \"use\": \"enc\". Do not use a signing key ( \"use\": \"sig\" ) for encryption — the operations are not interchangeable.",
+      "metadata": {
+        "title": "Message Encryption (JWE)",
+        "section": "JWKS URI and key selection",
+        "category": "Discover the LFI's encryption key",
+        "subsection": "Step 2 — Select the encryption key",
+        "anchor": "discover",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/message-encryption.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/security/fapi/message-encryption#message-encryption-jwe--encrypt-the-pii-payload--produce-a-compact-jwe-from-the-pii-json#5",
+      "document_id": "tech/tpp-standards/security/fapi/message-encryption",
+      "type": "section",
+      "text": "Message Encryption (JWE) > Encrypt the PII Payload > Produce a compact JWE from the PII JSON\n\nThe plaintext to encrypt is the PII JSON object — the Initiation and RiskIndicators structures defined by the consent schema. Encrypt it as a compact JWE before placing the result in the consent's pii field. The sandbox provides an O3 Utility endpoint that accepts your PII payload and the LFI's JWKS URL and returns a ready-made encrypted PII token — useful for validating your payload structure before writing your own encryption code. See O3 Sandbox Utilities.",
+      "metadata": {
+        "title": "Message Encryption (JWE)",
+        "section": "Produce a compact JWE from the PII JSON",
+        "category": "Encrypt the PII Payload",
+        "anchor": "encrypt",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/message-encryption.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/security/fapi/message-encryption#message-encryption-jwe--embed-the-jwe-in-the-consent--the-jwe-goes-in-the-consent-s-pii-field-then-the-request-jwt-is-signed-around-it#6",
+      "document_id": "tech/tpp-standards/security/fapi/message-encryption",
+      "type": "section",
+      "text": "Message Encryption (JWE) > Embed the JWE in the Consent > The JWE goes in the consent's pii field, then the Request JWT is signed around it\n\nOnce you have the JWE string, place it in the pii field of the consent inside the Request JWT's authorization_details. The surrounding Request JWT is signed (JWS) as usual — only the pii field is encrypted. Each encryption is fresh: a new payload is produced and encrypted at consent creation, and a fresh payload is produced and encrypted again at each POST /payments. The two payloads are independently validated by the LFI after decryption.",
+      "metadata": {
+        "title": "Message Encryption (JWE)",
+        "section": "The JWE goes in the consent's pii field, then the Request JWT is signed around it",
+        "category": "Embed the JWE in the Consent",
+        "anchor": "embed",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/message-encryption.vue",
+        "parser": "vue-sfc"
+      }
+    },
+    {
+      "id": "tech/tpp-standards/security/fapi/message-encryption#message-encryption-jwe--receiving-a-jwe--inbound-encrypted-webhooks-from-the-api-hub#7",
+      "document_id": "tech/tpp-standards/security/fapi/message-encryption",
+      "type": "section",
+      "text": "Message Encryption (JWE) > Receiving a JWE > Inbound encrypted webhooks from the API Hub\n\nFor guidance on receiving and decrypting inbound JWEs from the API Hub — including key selection by kid, signature verification, and FAPI-required security checks — see Receiving Event Notifications.",
+      "metadata": {
+        "title": "Message Encryption (JWE)",
+        "section": "Inbound encrypted webhooks from the API Hub",
+        "category": "Receiving a JWE",
+        "anchor": "receiving",
+        "source_repo": "community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/message-encryption.vue",
+        "parser": "vue-sfc"
+      }
+    }
+  ]
+}
