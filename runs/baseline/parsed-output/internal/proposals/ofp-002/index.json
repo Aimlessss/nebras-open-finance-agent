@@ -1,0 +1,184 @@
+{
+  "id": "internal/proposals/ofp-002",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/internal/proposals/ofp-002/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "2",
+    "commit": "91543902e5e820b804871252cc94e5e6c161b534",
+    "hash": "4e4e6f0690b94ce2695555493a8b3a50671ccb1c2893c143da48599656cf679d",
+    "dependencies": [
+      "@/components/proposals/PvProposalTabs.vue",
+      "@/components/proposals/PvStatusPill.vue",
+      "@/components/proposals/PvVotePanel.vue",
+      "@/composables/useProposals",
+      "@/data/proposals",
+      "@unhead/vue",
+      "vue"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "layout": "internal",
+    "title": "OFP-002 · Split the payment schema into Domestic and International definitions",
+    "url": "https://nebras-open-finance.com/internal/proposals/ofp-002",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "OFP-002 · Split the payment schema into Domestic and International definitions",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "PAR and POST /payments carry both domestic and international payments through one shared schema, where international is only signalled implicitly. Split them at the top into a Domestic definition (today’s shape, minus the FX object) and an International definition that can be modelled to cross-border reality."
+      },
+      {
+        "type": "paragraph",
+        "text": "The voting period has ended. The votes cast are shown below."
+      },
+      {
+        "type": "paragraph",
+        "text": "Sign in with the Trust Framework to vote — For, Against, or Abstain — recorded in the open with your reasoning. Your organisation and name come from your directory profile, and each person may vote once."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "One schema asked to be two",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "PAR ( POST /par ) and POST /payments were designed to carry both domestic and international payments through a single payment schema. Nothing at the top of the request says which one is being made. The distinction is signalled only indirectly: by whether the optional CurrencyRequest (FX) object is present, and by which shape — domestic or international — happens to sit inside the encrypted PersonalIdentifiableInformation blob, expressed as an anyOf rather than an explicit choice."
+          },
+          {
+            "type": "paragraph",
+            "text": "In practice the two have diverged sharply. Domestic payments have made real headway; international payments have not been delivered. Multiple LFIs have raised issues and asked for clarifications because the international fields have not mapped naturally to how a cross-border payment actually works — the international creditor shape is thin (a creditor account plus a single creditor agent), with none of the structure a SWIFT / ISO 20022 payment needs."
+          },
+          {
+            "type": "paragraph",
+            "text": "Because the international schema was not what it needed to be, LFIs have moved the fields they actually require out of the standard and into their own Open Finance international consent and authorization journeys. If the API is adopted as it stands, that leads to a varying customer experience across the ecosystem — the opposite of what a shared standard is meant to deliver."
+          },
+          {
+            "type": "paragraph",
+            "text": "The split is cheap to make now and expensive to defer. With little to no live international integration to migrate, separating the two definitions keeps the domestic schema free of international-only complexity and gives international its own home to be modelled properly."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Make the split explicit at the top",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Replace the single shared payment schema with an explicit choice between a Domestic definition and an International definition, made at the top of both the PAR consent and POST /payments — in place of today’s implicit signalling through an anyOf PII and an optional CurrencyRequest."
+          },
+          {
+            "type": "paragraph",
+            "text": "The Domestic definition is today’s schema, unchanged, with one removal: the CurrencyRequest object goes. A domestic payment is always a same-currency (AED → AED) transfer, so FX never applies; the domestic creditor (IBAN-only, with Confirmation of Payee) stays exactly as it is."
+          },
+          {
+            "type": "paragraph",
+            "text": "The International definition gets its own schema. As a first step it carries today’s international PII plus the CurrencyRequest object — moved across and made a required, first-class part of the definition rather than an optional add-on. From there we realign its fields, field by field and with the LFIs, to cross-border SWIFT / ISO 20022 (pacs.008) practice. International is limited to two payment types: Single Instant Payment and Fixed Periodic Schedule."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What changes in the spec",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "One structural change — an explicit top-level split — and what each definition then looks like."
+          },
+          {
+            "type": "paragraph",
+            "text": "Introduce an explicit Domestic / International choice at the top of the consent and the payment-creation request, replacing the anyOf over the two PersonalIdentifiableInformation shapes and the “is CurrencyRequest present?” heuristic. The payment context is stated, not inferred."
+          },
+          {
+            "type": "paragraph",
+            "text": "Remove the CurrencyRequest object — FX never applies to a same-currency domestic transfer. Everything else (the IBAN-only domestic creditor, Confirmation of Payee, the full payment-type taxonomy, references, billing) is unchanged."
+          },
+          {
+            "type": "paragraph",
+            "text": "The old CurrencyRequest object is unpacked onto the request. Amount becomes an explicit choice: InstructedAmount (the external / target amount the creditor receives, in the currency of transfer) or EquivalentAmount (the internal / source amount debited in the debtor’s currency, plus the currency it converts into) — both reusing the domestic { Amount, Currency } shape. Purpose splits into an external PaymentPurposeCode (ISO 20022 ExternalPurpose1Code; the domestic Aani 3-letter list no longer applies) and a simple internal ProprietaryPurposeCode, alongside the free-text ExtendedPurpose. ExchangeRateInformation, ChargeBearer, InstructionPriority and DestinationCountryCode stay; EndToEndIdentification is added; and the exchange-house FxQuoteId is removed (FX quoting is the separate FX Service Initiation spec). Payment types are restricted to SingleInstantPayment and FixedPeriodicSchedule."
+          },
+          {
+            "type": "paragraph",
+            "text": "The encrypted creditor block is unchanged in this draft. The cross-border additions LFIs need — intermediary agents, ultimate creditor / debtor, regulatory reporting, and structured remittance information, on top of the structured creditor address the schema already carries — are recommended as the next step and called out in the asks below, rather than modelled here yet."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The split, written out",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Working drafts attached to this proposal — open each to read it in the same rendered view as the published API specs. Schemas the proposal changes are defined in full; schemas unchanged from the published spec are shown as stubs marked “unchanged”. The International draft restructures the cleartext request body (the instructed / equivalent amount choice, split purpose codes, EndToEndIdentification ) while leaving today’s encrypted creditor block unchanged — the cross-border creditor fields are the next step."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "domestic-payment-schema.yaml",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Today’s shape, with the CurrencyRequest object removed."
+              }
+            ]
+          },
+          {
+            "heading": "international-payment-schema.yaml",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Banking cross-border request body, two payment types."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "What the split buys",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "✓"
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What the split costs",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "×"
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,188 @@
+{
+  "id": "proposals/ofp-009",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/proposals/ofp-009/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "2",
+    "commit": "91543902e5e820b804871252cc94e5e6c161b534",
+    "hash": "58b680001e1b87899ca72b9b5fbd4d8b0a5753d5113cd8f82b0ddf52871b91d3",
+    "dependencies": [
+      "@/components/proposals/PvProposalTabs.vue",
+      "@/components/proposals/PvStatusPill.vue",
+      "@/components/proposals/PvVotePanel.vue",
+      "@/composables/useProposals",
+      "@/data/proposals",
+      "@unhead/vue",
+      "vue"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "OFP-009 · Define validation patterns for the Leads API personal-data fields",
+    "url": "https://nebras-open-finance.com/proposals/ofp-009",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "OFP-009 · Define validation patterns for the Leads API personal-data fields",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Constrain the free-text PII on POST /leads — names, Emirates ID, and address lines — to defined, ISO-grounded patterns, reusing the validation the ecosystem already applies elsewhere, so every LFI receives predictable, well-formed lead data."
+      },
+      {
+        "type": "paragraph",
+        "text": "The voting period has ended. The votes cast are shown below."
+      },
+      {
+        "type": "paragraph",
+        "text": "Sign in with the Trust Framework to vote — For, Against, or Abstain — recorded in the open with your reasoning. Your organisation and name come from your directory profile, and each person may vote once."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Lead data arrives unvalidated",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "POST /leads lets a TPP hand an LFI a prospective customer — a name, an Emirates ID, a residential address, and the product categories they are interested in. Unlike a payment, this data is written into the LFI: it is stored, matched against existing records, and used to make contact. What the LFI can do with it depends entirely on it arriving in a shape the LFI can store and reconcile."
+          },
+          {
+            "type": "paragraph",
+            "text": "Today most of those fields carry no validation beyond a length limit. GivenName, LastName, FullName, BusinessName and each AddressLine are free-text strings with no pattern. And EmiratesId — the single most important identifier on the request — is a plain string with no pattern and no length at all: any value is accepted and passed straight through to the LFI."
+          },
+          {
+            "type": "paragraph",
+            "text": "This sits oddly next to the two fields in the same schema that are already validated to a standard: PhoneNumber is constrained to E.164 ( ^\\+[1-9]\\d{1,14}$ ) and Country to the ISO 3166-1 alpha-2 code ( ^[A-Z]{2}$ ). The discipline is already here — it simply has not been extended to the personal-data fields around them."
+          },
+          {
+            "type": "paragraph",
+            "text": "The most important of these has also already been solved elsewhere: the insurance specifications validate an Emirates ID with ^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$. Yet the same EmiratesId is left unchecked in Account Information, Account Opening, FX, and here in Leads. The ask is to close the gap on the Leads fields by reusing what the ecosystem has already agreed where a pattern exists, and defining a purpose-built one where it does not."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Reuse the patterns we already have, per field",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Add a pattern to each Leads personal-data field, purpose-built for what that field actually holds, and — wherever a validation already exists in the ecosystem — reuse it verbatim. Lengths and field shapes do not change."
+          },
+          {
+            "type": "paragraph",
+            "text": "Emirates ID — adopt the existing insurance-spec pattern. The leading 784 is the ISO 3166-1 numeric country code for the UAE; the final digit is a checksum (which a regex validates in shape but not in value):"
+          },
+          {
+            "type": "paragraph",
+            "text": "^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$"
+          },
+          {
+            "type": "paragraph",
+            "text": "Names — a tight, Latin-only character set. Person names ( GivenName, LastName, FullName ) allow letters, space, apostrophe, period, and hyphen — enough for “Al-Maktoum”, “O’Brien”, “Mohd.” — but no digits. BusinessName additionally allows digits and business punctuation:"
+          },
+          {
+            "type": "paragraph",
+            "text": "person ^[A-Za-z '.\\-]+$ business ^[A-Za-z0-9 &'.,\\-()/]+$"
+          },
+          {
+            "type": "paragraph",
+            "text": "Address lines — the field already cites ISO 20022 PostalAddress27. Reuse the OFP-003 approved “x” set — the ISO 20022 / SWIFT set of Latin letters, digits, space and / -?: ( )., ' +:"
+          },
+          {
+            "type": "paragraph",
+            "text": "^[A-Za-z0-9 /?:().,'+\\-]+$"
+          },
+          {
+            "type": "paragraph",
+            "text": "The baseline is deliberately Latin-only. OFP-003 originally proposed the Arabic block ( U+0600–U+06FF ) and it was removed on approval, because Arabic cannot be carried end-to-end over SWIFT/UAEFTS and is transliterated to Latin before submission. Whether that reasoning should hold for stored lead PII — names and addresses that never touch the rails — is a genuine question, and is put to the ecosystem below rather than assumed here. As in OFP-003, length is counted in Unicode characters, the API Hub normalises to Unicode NFC before validating, and validation is enforced centrally at the API Hub so a malformed lead is rejected before it reaches the LFI."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What changes in the spec",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Additive pattern constraints on the existing Leads schemas — lengths and shapes unchanged."
+          },
+          {
+            "type": "paragraph",
+            "text": "Add the person-name pattern to GivenName / LastName ( AEPersonalAccountName ) and FullName ( AEPersonalAccountFullName ), and the business-name pattern to BusinessName ( AEBusinessAccountName )."
+          },
+          {
+            "type": "paragraph",
+            "text": "On Data.EmiratesId, add the 784 pattern. The same change applies to the Lead response object, which echoes the field."
+          },
+          {
+            "type": "paragraph",
+            "text": "Add the “x”-set pattern to the AddressLine items in AEResidentialAddress. minItems 1, maxItems 7, and the per-item maxLength 70 are unchanged."
+          },
+          {
+            "type": "paragraph",
+            "text": "AEUserName and AEResidentialAddress are shared by the TPP product specification and the Ozone Connect products-data specification, so the same patterns apply identically to both — a lead that validates at the API Hub will not be rejected downstream."
+          },
+          {
+            "type": "paragraph",
+            "text": "A field that does not match its pattern fails schema validation at the API Hub and is rejected before the request reaches the LFI — returned as a standard request-validation error, not silently sanitised on the TPP’s behalf."
+          },
+          {
+            "type": "paragraph",
+            "text": "Length is enforced separately — a value over its maxLength fails on length, not on the pattern."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What validating the Leads fields buys",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "✓"
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What it costs",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "×"
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What we’re asking the ecosystem",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Two points the baseline deliberately leaves open — settle these and they fold into the change."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

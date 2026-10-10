@@ -1,0 +1,250 @@
+{
+  "document_id": "proposals/ofp-009",
+  "chunk_count": 7,
+  "chunks": [
+    {
+      "id": "8e7ed9bd-b527-5926-ba73-686fa00c8c3a",
+      "document_id": "proposals/ofp-009",
+      "type": "intro",
+      "text": "OFP-009 · Define validation patterns for the Leads API personal-data fields\n\nConstrain the free-text PII on POST /leads — names, Emirates ID, and address lines — to defined, ISO-grounded patterns, reusing the validation the ecosystem already applies elsewhere, so every LFI receives predictable, well-formed lead data.\n\nThe voting period has ended. The votes cast are shown below.\n\nSign in with the Trust Framework to vote — For, Against, or Abstain — recorded in the open with your reasoning. Your organisation and name come from your directory profile, and each person may vote once.",
+      "metadata": {
+        "title": "OFP-009 · Define validation patterns for the Leads API personal-data fields",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/proposals/ofp-009/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "58b680001e1b87899ca72b9b5fbd4d8b0a5753d5113cd8f82b0ddf52871b91d3",
+        "url": "https://nebras-open-finance.com/proposals/ofp-009",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "e67042acb881e0ffa68983f12b781fd648bbde183775bdedfd81103b5fac8858",
+      "schema_version": 2
+    },
+    {
+      "id": "a2c227f3-5d92-5f0c-82c9-72d641a47d12",
+      "document_id": "proposals/ofp-009",
+      "type": "section",
+      "text": "OFP-009 · Define validation patterns for the Leads API personal-data fields > Lead data arrives unvalidated\n\nPOST /leads lets a TPP hand an LFI a prospective customer — a name, an Emirates ID, a residential address, and the product categories they are interested in. Unlike a payment, this data is written into the LFI: it is stored, matched against existing records, and used to make contact. What the LFI can do with it depends entirely on it arriving in a shape the LFI can store and reconcile.\n\nToday most of those fields carry no validation beyond a length limit. GivenName, LastName, FullName, BusinessName and each AddressLine are free-text strings with no pattern. And EmiratesId — the single most important identifier on the request — is a plain string with no pattern and no length at all: any value is accepted and passed straight through to the LFI.\n\nThis sits oddly next to the two fields in the same schema that are already validated to a standard: PhoneNumber is constrained to E.164 ( ^\\+[1-9]\\d{1,14}$ ) and Country to the ISO 3166-1 alpha-2 code ( ^[A-Z]{2}$ ). The discipline is already here — it simply has not been extended to the personal-data fields around them.\n\nThe most important of these has also already been solved elsewhere: the insurance specifications validate an Emirates ID with ^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$. Yet the same EmiratesId is left unchecked in Account Information, Account Opening, FX, and here in Leads. The ask is to close the gap on the Leads fields by reusing what the ecosystem has already agreed where a pattern exists, and defining a purpose-built one where it does not.",
+      "metadata": {
+        "title": "OFP-009 · Define validation patterns for the Leads API personal-data fields",
+        "section": "Lead data arrives unvalidated",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/proposals/ofp-009/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "58b680001e1b87899ca72b9b5fbd4d8b0a5753d5113cd8f82b0ddf52871b91d3",
+        "url": "https://nebras-open-finance.com/proposals/ofp-009",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"Lead data arrives unvalidated\"],\"\"]:0",
+      "content_hash": "9ee851d613ef7cf4bfbe93cd2f9203958626266f6d7c0876ee34d8b18aea1051",
+      "schema_version": 2
+    },
+    {
+      "id": "4a3491ee-19c9-5e2f-9b96-c6d16837b5ce",
+      "document_id": "proposals/ofp-009",
+      "type": "section",
+      "text": "OFP-009 · Define validation patterns for the Leads API personal-data fields > Reuse the patterns we already have, per field\n\nAdd a pattern to each Leads personal-data field, purpose-built for what that field actually holds, and — wherever a validation already exists in the ecosystem — reuse it verbatim. Lengths and field shapes do not change.\n\nEmirates ID — adopt the existing insurance-spec pattern. The leading 784 is the ISO 3166-1 numeric country code for the UAE; the final digit is a checksum (which a regex validates in shape but not in value):\n\n^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$\n\nNames — a tight, Latin-only character set. Person names ( GivenName, LastName, FullName ) allow letters, space, apostrophe, period, and hyphen — enough for “Al-Maktoum”, “O’Brien”, “Mohd.” — but no digits. BusinessName additionally allows digits and business punctuation:\n\nperson ^[A-Za-z '.\\-]+$ business ^[A-Za-z0-9 &'.,\\-()/]+$\n\nAddress lines — the field already cites ISO 20022 PostalAddress27. Reuse the OFP-003 approved “x” set — the ISO 20022 / SWIFT set of Latin letters, digits, space and / -?: ( )., ' +:\n\n^[A-Za-z0-9 /?:().,'+\\-]+$\n\nThe baseline is deliberately Latin-only. OFP-003 originally proposed the Arabic block ( U+0600–U+06FF ) and it was removed on approval, because Arabic cannot be carried end-to-end over SWIFT/UAEFTS and is transliterated to Latin before submission. Whether that reasoning should hold for stored lead PII — names and addresses that never touch the rails — is a genuine question, and is put to the ecosystem below rather than assumed here. As in OFP-003, length is counted in Unicode characters, the API Hub normalises to Unicode NFC before validating, and validation is enforced centrally at the API Hub so a malformed lead is rejected before it reaches the LFI.",
+      "metadata": {
+        "title": "OFP-009 · Define validation patterns for the Leads API personal-data fields",
+        "section": "Reuse the patterns we already have, per field",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/proposals/ofp-009/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "58b680001e1b87899ca72b9b5fbd4d8b0a5753d5113cd8f82b0ddf52871b91d3",
+        "url": "https://nebras-open-finance.com/proposals/ofp-009",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"Reuse the patterns we already have, per field\"],\"\"]:0",
+      "content_hash": "6b61d9d2b111d4c2480d143db36976900ebc4fc990e2e4e256cd2d07363a7edf",
+      "schema_version": 2
+    },
+    {
+      "id": "901b8090-6330-51cd-a6ed-ff01691a76c8",
+      "document_id": "proposals/ofp-009",
+      "type": "section",
+      "text": "OFP-009 · Define validation patterns for the Leads API personal-data fields > What changes in the spec\n\nAdditive pattern constraints on the existing Leads schemas — lengths and shapes unchanged.\n\nAdd the person-name pattern to GivenName / LastName ( AEPersonalAccountName ) and FullName ( AEPersonalAccountFullName ), and the business-name pattern to BusinessName ( AEBusinessAccountName ).\n\nOn Data.EmiratesId, add the 784 pattern. The same change applies to the Lead response object, which echoes the field.\n\nAdd the “x”-set pattern to the AddressLine items in AEResidentialAddress. minItems 1, maxItems 7, and the per-item maxLength 70 are unchanged.\n\nAEUserName and AEResidentialAddress are shared by the TPP product specification and the Ozone Connect products-data specification, so the same patterns apply identically to both — a lead that validates at the API Hub will not be rejected downstream.\n\nA field that does not match its pattern fails schema validation at the API Hub and is rejected before the request reaches the LFI — returned as a standard request-validation error, not silently sanitised on the TPP’s behalf.\n\nLength is enforced separately — a value over its maxLength fails on length, not on the pattern.",
+      "metadata": {
+        "title": "OFP-009 · Define validation patterns for the Leads API personal-data fields",
+        "section": "What changes in the spec",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/proposals/ofp-009/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "58b680001e1b87899ca72b9b5fbd4d8b0a5753d5113cd8f82b0ddf52871b91d3",
+        "url": "https://nebras-open-finance.com/proposals/ofp-009",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"What changes in the spec\"],\"\"]:0",
+      "content_hash": "541bd71366b84886557049ebafd666527a9d38cced94f70766c33c089d4667fb",
+      "schema_version": 2
+    },
+    {
+      "id": "18f1d6c7-1f8c-5784-9de2-b2f07d427e56",
+      "document_id": "proposals/ofp-009",
+      "type": "section",
+      "text": "OFP-009 · Define validation patterns for the Leads API personal-data fields > What validating the Leads fields buys\n\n- ✓",
+      "metadata": {
+        "title": "OFP-009 · Define validation patterns for the Leads API personal-data fields",
+        "section": "What validating the Leads fields buys",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/proposals/ofp-009/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "58b680001e1b87899ca72b9b5fbd4d8b0a5753d5113cd8f82b0ddf52871b91d3",
+        "url": "https://nebras-open-finance.com/proposals/ofp-009",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"What validating the Leads fields buys\"],\"\"]:0",
+      "content_hash": "203632aa39a416915e53479023c8579c5512fcb50a6acf83204d6962eab3e1b1",
+      "schema_version": 2
+    },
+    {
+      "id": "5a3f1d0f-d770-551c-a13d-5752cb2889b4",
+      "document_id": "proposals/ofp-009",
+      "type": "section",
+      "text": "OFP-009 · Define validation patterns for the Leads API personal-data fields > What it costs\n\n- ×",
+      "metadata": {
+        "title": "OFP-009 · Define validation patterns for the Leads API personal-data fields",
+        "section": "What it costs",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/proposals/ofp-009/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "58b680001e1b87899ca72b9b5fbd4d8b0a5753d5113cd8f82b0ddf52871b91d3",
+        "url": "https://nebras-open-finance.com/proposals/ofp-009",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"What it costs\"],\"\"]:0",
+      "content_hash": "b9a6c8e60b5de230d8b1de1d5a81efa8c3fe75a92e1cf53a7b8faa68e4a1cafe",
+      "schema_version": 2
+    },
+    {
+      "id": "8fdad73b-1549-519e-a020-d1f28ac9d5ee",
+      "document_id": "proposals/ofp-009",
+      "type": "section",
+      "text": "OFP-009 · Define validation patterns for the Leads API personal-data fields > What we’re asking the ecosystem\n\nTwo points the baseline deliberately leaves open — settle these and they fold into the change.",
+      "metadata": {
+        "title": "OFP-009 · Define validation patterns for the Leads API personal-data fields",
+        "section": "What we’re asking the ecosystem",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/proposals/ofp-009/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "58b680001e1b87899ca72b9b5fbd4d8b0a5753d5113cd8f82b0ddf52871b91d3",
+        "url": "https://nebras-open-finance.com/proposals/ofp-009",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"What we’re asking the ecosystem\"],\"\"]:0",
+      "content_hash": "9bddcc14fc9c43fce36a31c9665b7a1b5fb97800be99d29ca7c8ec1f66c42c35",
+      "schema_version": 2
+    }
+  ]
+}

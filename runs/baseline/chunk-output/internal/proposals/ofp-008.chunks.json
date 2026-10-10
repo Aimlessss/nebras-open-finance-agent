@@ -1,0 +1,285 @@
+{
+  "document_id": "internal/proposals/ofp-008",
+  "chunk_count": 8,
+  "chunks": [
+    {
+      "id": "ee9d7415-c1f2-54ed-84e6-04a1ccfec33c",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "intro",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element\n\nRetire the encrypted-JWE protection for FinanceRates. Instead of handing the TPP an encrypted rate to decrypt on the device, the LFI returns a reference to a surface it renders itself, which the TPP embeds as a cross-origin element — 3DS-style — so the rate is never received by the TPP at all.\n\nThe voting period has ended. The votes cast are shown below.\n\nSign in with the Trust Framework to vote — For, Against, or Abstain — recorded in the open with your reasoning. Your organisation and name come from your directory profile, and each person may vote once. This changes how a protected rate reaches the customer for every LFI and TPP, so the reasoning you record carries as much weight as the tally itself.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "94ebb1cae518531fb4c557ca0e63a880223f6b279f9a67e3454884716bbd6b56",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-008",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "f76db01297ce93f2c89b5ee0c6fc3d4c5830b078ad65a741f7a2a292269d391a",
+      "schema_version": 2
+    },
+    {
+      "id": "1da3a818-b84a-5248-9507-7fabbdc15084",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > The encrypted-rate design is heavy to build and thin on protection\n\nWhen a TPP holds ReadProductFinanceRates and calls GET /accounts/{AccountId}/product, the LFI MAY return the FinanceRates field as a compact JWE rather than a cleartext object. The TPP forwards that JWE to the customer’s browser and decrypts it locally, using a one-time code the LFI sends the customer out of band. The Encrypted FinanceRates guide documents the full flow.\n\nLFI feedback has surfaced two structural problems. First, it is heavy to implement for thin protection. The LFI must generate a per-call JWE (PBES2-HS512+A256KW / A256GCM), mint and deliver a one-time code on a channel it controls, and operate OTP-spam rate limits — a significant build. Yet once the browser decrypts the JWE, the cleartext rate exists in a context the TPP controls; whether it is stored or leaves the device rests on trusting the TPP to behave as it demonstrated at certification.\n\nSecond, that certification is a point-in-time check, and it is not technically required. The optional certification attests, once, that the TPP decrypts and displays locally and does not persist the rate — it cannot bind the TPP’s runtime behaviour thereafter. Separately, nothing in the API Hub currently prevents an uncertified TPP from requesting ReadProductFinanceRates when it creates a consent; the dependency is documented but not enforced.\n\nThe net effect is real engineering cost on the LFI side buying protection that still rests on trust, with an enforcement gap on top.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "The encrypted-rate design is heavy to build and thin on protection",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "94ebb1cae518531fb4c557ca0e63a880223f6b279f9a67e3454884716bbd6b56",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-008",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"The encrypted-rate design is heavy to build and thin on protection\"],\"\"]:0",
+      "content_hash": "97157fbda690235fb3d11c5384f263b7ac57b13ddc157362c1ca5c3f33fcaf89",
+      "schema_version": 2
+    },
+    {
+      "id": "2ff95f85-03af-5045-af43-b64a18646392",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > Have the LFI show the rate itself, inside the TPP’s screen\n\nOn GET /accounts/{AccountId}/product, an LFI protecting a rate returns — in place of the rate value — a short-lived reference to an LFI-hosted display surface. The TPP embeds that surface as a cross-origin element (a plain iframe, or an LFI-provided web component) within its own screen. The customer sees the rate in the flow of the TPP application; it is rendered by LFI-origin content that the TPP’s code cannot read, script into, or capture.\n\nThis mirrors 3-D Secure: the LFI is the issuer, the TPP is the merchant, and the sensitive interaction happens in an issuer-controlled frame the merchant hosts but cannot see into. LFIs that already run 3DS challenge infrastructure can reuse that tooling to authenticate the customer inside the surface, replacing the out-of-band OTP entirely.\n\nThe customer’s browser or app loads the LFI surface directly from the LFI origin, exactly as it already reaches the LFI when the customer authenticates during consent authorisation. Strict mediation is preserved — the invariant governs API and data traffic, and the rate value is never proxied to the TPP; only a reference is.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "Have the LFI show the rate itself, inside the TPP’s screen",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "94ebb1cae518531fb4c557ca0e63a880223f6b279f9a67e3454884716bbd6b56",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-008",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"Have the LFI show the rate itself, inside the TPP’s screen\"],\"\"]:0",
+      "content_hash": "a9bb663bdcef56f74cf493a586a8c85cef4ecafd9b785dbbe5f1ff7213325bbb",
+      "schema_version": 2
+    },
+    {
+      "id": "51e6d28e-74ad-5393-b751-aefe7bf6cf74",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > What the reference means, precisely\n\nThe reference and the surface behind it become something TPPs and LFIs build against, so the shape and the controls have to be pinned down rather than left to implementation.\n\n- FinanceRates becomes anyOf a cleartext AEProductFinanceRates object or a new AERateDisplayRef. The AEJwe shape is removed from this field.\n- AERateDisplayRef carries a DisplayUrl on the LFI’s customer-facing display origin — itself carrying a signed, single-use request token bound to the consent, AccountId, ProductId, and the TPP’s client identity — and an ExpiresAt.\n- Confidentiality comes from cross-origin isolation. Because the frame is cross-origin, the TPP page cannot read the rate from the DOM, script into the frame, or capture its content. This holds regardless of any allowlist.\n- Access comes from the token. A valid DisplayUrl only ever reaches the legitimate TPP, because obtaining one requires an authenticated, consented call through the API Hub. The LFI validates the token before rendering anything.\n- Expiry is enforced by the LFI, server-side. After ExpiresAt the surface stops rendering the rate — it is no longer a TPP obligation to honour a display window.\n- No per-TPP embedding-origin registration. We deliberately avoid a frame-ancestors allowlist; it would only add clickjacking defence for a display-only surface showing the customer their own rate, at the cost of a new registration artifact and LFI upkeep, and it does not map cleanly onto native / webview.\n- ReadProductFinanceRates is unchanged. It still gates whether the LFI surfaces the rate at all; if the permission is absent, FinanceRates is omitted from the Product record, exactly as today.\n\nThe baseline embedding is a plain cross-origin iframe — the lowest common denominator and the closest reuse of 3DS browser flows — with an optional LFI-provided web-component or mobile-SDK profile defined for richer embedding, and for native contexts where an iframe is not the host.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "What the reference means, precisely",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "94ebb1cae518531fb4c557ca0e63a880223f6b279f9a67e3454884716bbd6b56",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-008",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"What the reference means, precisely\"],\"\"]:0",
+      "content_hash": "e02869a48cafd88f5f15cd086bc285ea92bd13c722616399f8f0e430576a0c9e",
+      "schema_version": 2
+    },
+    {
+      "id": "bc37e3dd-629e-5456-be5a-855fd63af95d",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > What changes\n\nOne schema change, a display surface on the LFI side, a repurposed certification the API Hub can enforce, and documentation. The consent, audit, and billing semantics are untouched.\n\nIn the account-information specification, change FinanceRates to anyOf [ AEProductFinanceRates, AERateDisplayRef ], add the AERateDisplayRef schema, and remove AEJwe from this field. Targets V2.2. Because no LFI has a live JWE implementation, the removal affects no one and needs no deprecation window.\n\nA protecting LFI stands up (or reuses) a tokenised, customer-facing display surface that validates the request token, authenticates the customer where it chooses to — reusing existing 3DS / challenge infrastructure — renders the rate, and enforces ExpiresAt server-side. In return it retires the JWE generation, the one-time-code minting and delivery, and the OTP-spam rate limits. No per-TPP allowlist is maintained.\n\nRename the optional Access Encrypted Resource Data certification — a misnomer once there is no encryption — to Rate Display Embedding, and repurpose it: the TPP demonstrates it can correctly embed and operate the LFI element and does not attempt to defeat its isolation. The API Hub SHOULD then reject a consent requesting ReadProductFinanceRates from a TPP that does not hold the certification, using the trust-framework record it already holds — closing today’s enforcement gap.\n\nRewrite the two Encrypted FinanceRates guides (TPP and LFI) and the Data Sharing requirements tables around the embedded surface, update the certification page under its new name, and record the change as an errata. No new registration field is introduced.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "What changes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "94ebb1cae518531fb4c557ca0e63a880223f6b279f9a67e3454884716bbd6b56",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-008",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"What changes\"],\"\"]:0",
+      "content_hash": "69be23be66eea9ff8c91bfd26ea44808d6c42bed07ced28aca28ec6fccee9bec",
+      "schema_version": 2
+    },
+    {
+      "id": "0030974c-6363-55a6-a641-45a9c3df9c58",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > A different shape of work, not obviously less of it\n\nThis proposal trades one build for another. It retires the JWE crypto, the one-time-code delivery, and the OTP rate limiting — genuinely the heaviest parts of today’s LFI work — but in their place a protecting LFI has to expose a customer-facing display surface with token validation and, if it wants friction control, a challenge step. For an LFI that already runs 3DS this is largely reuse; for one that does not, it is new front-end responsibility.\n\nThe change is meaningful for TPPs too: they move from forwarding a JWE and decrypting in-browser to embedding and operating a cross-origin element they cannot style. And it is a breaking schema change to FinanceRates, taken at V2.2. The one thing that makes it cheap right now is that no LFI has shipped the JWE path, so nothing has to be migrated — this is close to a clean start rather than a transition.\n\nA vote in favour is a statement that your institution would build to this — an LFI that it would host the surface, a TPP that it would embed it — not merely that it reads as more secure. If the ecosystem would rather keep the encrypted-rate design, or would not use the protected path at all, that is a perfectly good outcome and the work will not be scheduled.",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "A different shape of work, not obviously less of it",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "94ebb1cae518531fb4c557ca0e63a880223f6b279f9a67e3454884716bbd6b56",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-008",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"A different shape of work, not obviously less of it\"],\"\"]:0",
+      "content_hash": "b2beebccc5067f4049bbe91c53ddb55ad4bace5cbd562dcda2ba7a7e13ed5993",
+      "schema_version": 2
+    },
+    {
+      "id": "aa9d38be-3084-56f9-8f8a-307ae956c245",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > What the display surface buys\n\n- ✓",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "What the display surface buys",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "94ebb1cae518531fb4c557ca0e63a880223f6b279f9a67e3454884716bbd6b56",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-008",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"What the display surface buys\"],\"\"]:0",
+      "content_hash": "ca320139b2ab34a90a16c6531303a7884e5597e5999b52e39c91017fd1f03ae1",
+      "schema_version": 2
+    },
+    {
+      "id": "bae702f3-8664-5df6-b8dc-821de6e08eae",
+      "document_id": "internal/proposals/ofp-008",
+      "type": "section",
+      "text": "OFP-008 · Protect FinanceRates with an LFI-hosted display element > What it costs\n\n- ×",
+      "metadata": {
+        "title": "OFP-008 · Protect FinanceRates with an LFI-hosted display element",
+        "section": "What it costs",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-008.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "94ebb1cae518531fb4c557ca0e63a880223f6b279f9a67e3454884716bbd6b56",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-008",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"What it costs\"],\"\"]:0",
+      "content_hash": "05ad9edffb59d259ec6fda9e35ca293a48e3df1f887eb9e78ce18ee9ed4776df",
+      "schema_version": 2
+    }
+  ]
+}

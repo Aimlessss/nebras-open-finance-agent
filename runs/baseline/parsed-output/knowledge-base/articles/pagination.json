@@ -1,0 +1,223 @@
+{
+  "id": "knowledge-base/articles/pagination",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/knowledge-base/articles/pagination.vue",
+    "parser": "vue-sfc",
+    "parser_version": "2",
+    "commit": "91543902e5e820b804871252cc94e5e6c161b534",
+    "hash": "fb668a94a509b7972a8f5b2388df6645541157f80fdc55805c8e2f0cfa0dfb86",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Pagination — LFI `meta` to TPP `Links`",
+    "description": "How page-based pagination flows from the LFI's Ozone Connect response through the API Hub, converted into the Links envelope consumed by the TPP.",
+    "category": "Integration",
+    "readTime": "7 min",
+    "updated": "2026-04-21",
+    "tags": [
+      "Pagination",
+      "Ozone Connect",
+      "Data Sharing"
+    ],
+    "url": "https://nebras-open-finance.com/knowledge-base/articles/pagination",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Pagination — LFI `meta` to TPP `Links`",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "This article uses GET /accounts/{accountId}/transactions as the worked example. The same behaviour applies to GET /accounts/{accountId}/statements — and to any other endpoint where the LFI chooses to paginate."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Page-based requests, meta responses",
+        "level": 2,
+        "anchor": "lfi",
+        "category": "LFI side",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Request from the Hub",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The Hub issues one page-based request per TPP call:"
+              },
+              {
+                "type": "paragraph",
+                "text": "page is 1-indexed; page-size defaults to 100. Filtering parameters ( fromBookingDateTime, toBookingDateTime ) are applied before pagination — totalRecords and totalPages reflect the filtered result set, not the whole table."
+              }
+            ]
+          },
+          {
+            "heading": "Response to the Hub",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The LFI returns the slice for the requested page, plus a meta block describing the full filtered result set:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Meaning"
+                ],
+                "rows": [
+                  [
+                    "meta.paginated",
+                    "true if the response is a page of a larger result set. false or omitted if the LFI returned the full result set in a single response"
+                  ],
+                  [
+                    "meta.totalPages",
+                    "ceil(totalRecords / page-size) — the last page number the Hub may request"
+                  ],
+                  [
+                    "meta.totalRecords",
+                    "The total number of records in the filtered result set across all pages"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "The LFI MUST return records in a deterministic order so pagination is stable across successive page requests."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Links envelope to TPP",
+        "level": 2,
+        "anchor": "hub",
+        "category": "Hub side",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Request from the TPP",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The TPP does not send page or page-size. Pagination is expressed through the Hub's URL parameters on the Links returned in the previous response."
+              }
+            ]
+          },
+          {
+            "heading": "Response to the TPP",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The Hub converts the LFI's meta into Meta and Links:"
+              },
+              {
+                "type": "paragraph",
+                "text": "The Hub derives each link from the LFI's meta.totalPages and the current page:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "TPP field",
+                  "Derived from"
+                ],
+                "rows": [
+                  [
+                    "Links.Self",
+                    "The URL that produced this response"
+                  ],
+                  [
+                    "Links.First",
+                    "Current URL with page=1"
+                  ],
+                  [
+                    "Links.Prev",
+                    "Current URL with page = currentPage - 1. Omitted on the first page"
+                  ],
+                  [
+                    "Links.Next",
+                    "Current URL with page = currentPage + 1. Omitted on the last page"
+                  ],
+                  [
+                    "Links.Last",
+                    "Current URL with page = meta.totalPages"
+                  ],
+                  [
+                    "Meta.TotalPages",
+                    "meta.totalPages from the LFI"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "When the LFI returns an unpaginated response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If the LFI returns meta.paginated: false (or omits paginated ), the full result set is in a single response. The Hub emits Meta.TotalPages: 1, a Links.Self, and no First / Prev / Next / Last."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "A filtered query that yields nothing",
+        "level": 2,
+        "anchor": "empty",
+        "category": "Empty results",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Hub propagates this as an empty Data array with Meta.TotalPages: 0. 404 MUST NOT be returned."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Forward-compatibility on the TPP side, simplicity on the LFI side",
+        "level": 2,
+        "anchor": "why",
+        "category": "Why two models",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The TPP standards follow UK Open Banking conventions — opaque Links let the Hub evolve its pagination strategy (cursor-based, time-sliced, etc.) without breaking TPP clients. The LFI side is deliberately simpler: page/page-size is the lowest-common-denominator interface that every core banking system can serve cheaply. The Hub absorbs the translation."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The same pattern applies",
+        "level": 2,
+        "anchor": "others",
+        "category": "Other endpoints",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "GET /accounts/{accountId}/statements works identically: the LFI paginates by page / page-size and returns meta.totalPages / meta.totalRecords; the Hub emits Links and Meta.TotalPages on the TPP side."
+          },
+          {
+            "type": "paragraph",
+            "text": "Other list endpoints ( /beneficiaries, /direct-debits, /scheduled-payments, /standing-orders, /products, /accounts/{accountId}/customer ) may pursue the same model if the LFI chooses to paginate them, but the expectation is that the full result set is returned in a single response."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

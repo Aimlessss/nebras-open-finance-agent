@@ -1,0 +1,94 @@
+{
+  "id": "pricing/lfi-rates",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/pricing/lfi-rates/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "2",
+    "commit": "91543902e5e820b804871252cc94e5e6c161b534",
+    "hash": "d6e2a9d01cbf49f9d8d8e6aaeb41da977e78a3cd2ff4ec4bcfd5f268d3dde1af",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Data-sharing overage rates by LFI",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/pricing/lfi-rates",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Data-sharing overage rates by LFI",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Above the free per‑customer, per‑day threshold each LFI sets its own per‑call rate for continued data‑sharing requests. The rates below are read live from the Open Finance directory ( ApiMetadata.OverLimitFees ). LFIs that have not published a rate charge nothing above the threshold."
+      },
+      {
+        "type": "paragraph",
+        "text": "← Back to pricing"
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Reading overage rates from the directory",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The rates above come from ApiMetadata.OverLimitFees on each LFI’s account-information API resource, returned by the directory’s /participants endpoint. One call gives you the rate for every LFI."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Endpoint",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Production GET https://data.directory.openfinance.ae/participants",
+                  "Sandbox GET https://data.sandbox.directory.openfinance.ae/participants"
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Where the value lives",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "code",
+                "text": "participants[].AuthorisationServers[].ApiResources[] // ApiFamilyType === \"account-information\".ApiMetadata.OverLimitFees // string in AED, e.g. \"0.50\" // missing or empty → 0 (free above threshold)"
+              }
+            ]
+          },
+          {
+            "heading": "Reading the rate",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "code",
+                "text": "const res = await fetch('https://data.directory.openfinance.ae/participants') const participants = await res.json() const rates = [] for (const org of participants) { for (const server of org.AuthorisationServers || []) { const ds = (server.ApiResources || []).find(r => r.ApiFamilyType === 'account-information') if (!ds) continue const raw = ds.ApiMetadata?.OverLimitFees const aedPerCall = raw && String(raw).trim()!== ''? Number(raw): 0 rates.push({ server: server.CustomerFriendlyName || org.OrganisationName, aedPerCall, }) } }"
+              },
+              {
+                "type": "code",
+                "text": "import requests resp = requests.get('https://data.directory.openfinance.ae/participants') participants = resp.json() rates = [] for org in participants: for server in org.get('AuthorisationServers') or []: ds = next( (r for r in (server.get('ApiResources') or []) if r.get('ApiFamilyType') == 'account-information'), None, ) if not ds: continue raw = (ds.get('ApiMetadata') or {}).get('OverLimitFees') aed_per_call = float(raw) if raw and str(raw).strip()!= '' else 0 rates.append({ 'server': server.get('CustomerFriendlyName') or org.get('OrganisationName'), 'aed_per_call': aed_per_call, })"
+              },
+              {
+                "type": "paragraph",
+                "text": "Cache the response. The directory is the source of truth, but rates change rarely — refreshing daily is plenty."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
