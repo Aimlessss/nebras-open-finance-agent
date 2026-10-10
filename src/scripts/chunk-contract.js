@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto')
 const SCHEMA_VERSION = 2
-const PARSER_VERSION = '2'
-const CHUNKER_VERSION = '2'
+const PARSER_VERSION = '3'
+const CHUNKER_VERSION = '4'
 const hashText = text => createHash('sha256').update(text, 'utf8').digest('hex')
 
 // Fixed UUIDv5 namespace for this ingestion contract. Never change after indexing.
@@ -15,10 +15,28 @@ function pointId(repo, documentId, chunkKey) {
   return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`
 }
 function pageUrl(documentId) {
+  if (documentId === "index") return "https://nebras-open-finance.com/"
   if (!documentId || /[\[\]?#]/.test(documentId) || documentId.split('/').some(p => p === '..' || p === '_shared')) return null
   return new URL(documentId.split('/').map(encodeURIComponent).join('/'), 'https://nebras-open-finance.com/').href
 }
+function splitChunks(chunks, limit = 6000) {
+  return chunks.flatMap(chunk => {
+    if (chunk.text.length <= limit) return [chunk]
+    const firstBreak = chunk.text.indexOf('\n\n')
+    const prefix = firstBreak >= 0 ? chunk.text.slice(0, firstBreak) : ''
+    let body = firstBreak >= 0 ? chunk.text.slice(firstBreak + 2) : chunk.text
+    const pieces = [], budget = Math.max(1000, limit - Math.min(prefix.length,1000) - 2)
+    while (body.length) {
+      let end = Math.min(budget, body.length)
+      const newline = body.lastIndexOf('\n', end)
+      if (end < body.length && newline > end / 2 && newline + 1 <= budget) end = newline + 1
+      pieces.push(body.slice(0,end));body = body.slice(end)
+    }
+    return pieces.map((text,index) => ({...chunk,text:[prefix.slice(0,1000),text].filter(Boolean).join('\n\n'),part_index:index,part_count:pieces.length}))
+  })
+}
 function finalizeChunks(document, chunks) {
+  chunks = splitChunks(chunks)
   const seen = new Map()
   return chunks.map(chunk => {
     const m = chunk.metadata
@@ -26,8 +44,9 @@ function finalizeChunks(document, chunks) {
       chunk.type === 'navigation' ? ['navigation', m.url || m.navigation_title] :
       [chunk.type, m.anchor || [m.category || '', m.section || ''], m.subsection || ''])
     const occurrence = seen.get(base) || 0
-    seen.set(base, occurrence + 1)
-    const key = `${base}:${occurrence}`
+    if (!chunk.part_count || chunk.part_index === chunk.part_count - 1) seen.set(base, occurrence + 1)
+    const identity = `${base}:${occurrence}`
+    const key = chunk.part_count ? `${identity}:part:${chunk.part_index}` : identity
     const repo = document.source.repo.includes('/') ? document.source.repo : `Nebras-Open-Finance/${document.source.repo}`
     return {
       ...chunk,

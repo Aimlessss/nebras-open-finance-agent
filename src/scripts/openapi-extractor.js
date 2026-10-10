@@ -3,9 +3,14 @@ const path = require('node:path')
 const YAML = require('yaml')
 const { parse } = require('@vue/compiler-dom')
 const { hashText } = require('./chunk-contract')
+const { scriptValues } = require('./source-data')
+
+const specCache = new Map()
 
 // Extract the schema data behind static RedocWrapper pages without running Vue.
-function extractOpenApi(template, root) {
+function extractOpenApi(template, root, script = "") {
+  let bindings
+  const evaluate = expression => { bindings ||= scriptValues(script, root); return bindings.evaluate(expression) }
   const sections = [], dependencies = [], assets = []
   function attr(node, name) {
     const p = node.props.find(p => (p.type === 6 && p.name === name) || (p.type === 7 && p.name === 'bind' && p.arg?.content === name))
@@ -13,7 +18,7 @@ function extractOpenApi(template, root) {
     if (p.type === 6) return p.value?.content || ''
     const expression = p.exp?.content || ''
     if (/^(['"]).*\1$/.test(expression)) return expression.slice(1, -1)
-    throw new Error(`RedocWrapper ${name} is dynamic; resolve it through the website route registry before ingestion.`)
+    return evaluate(expression)
   }
   function collectReferences(spec, value) {
     const found = new Map()
@@ -36,17 +41,24 @@ function extractOpenApi(template, root) {
   }
   function walk(node) {
     if (node.type === 1 && node.tag.toLowerCase() === 'redocwrapper') {
-      if (node.props.some(p => (p.type === 6 && ['patchSchemas', 'specText', 'overrideServers'].includes(p.name)) || (p.type === 7 && ['patchSchemas', 'specText', 'overrideServers'].includes(p.arg?.content)))) {
-        // Literal server arrays are handled below; schema patches/raw documents need explicit resolution.
-        if (node.props.some(p => ['patchSchemas', 'specText'].includes(p.name === 'bind' ? p.arg?.content : p.name))) throw new Error('RedocWrapper schema patches/specText require explicit resolution before ingestion.')
-      }
+      if (node.props.some(p => p.arg?.content === 'specText' || p.name === 'specText')) throw new Error('Raw specText imports require explicit resolution before ingestion.')
       const specPath = attr(node, 'spec')
       if (!specPath || !specPath.startsWith('/openapi/') || specPath.includes('..') || /[?#]/.test(specPath)) throw new Error('RedocWrapper requires a local /openapi/ asset; dynamic routes need explicit resolution.')
       const publicRoot = path.resolve(root, 'public')
       const file = fs.realpathSync(path.join(publicRoot, specPath))
       if (!file.startsWith(publicRoot + path.sep)) throw new Error('OpenAPI asset escapes public directory.')
       const raw = fs.readFileSync(file, 'utf8')
-      const spec = YAML.parse(raw)
+      const hash = hashText(raw)
+      if (!specCache.has(hash)) specCache.set(hash, YAML.parse(raw))
+      let spec = specCache.get(hash)
+      const patches = attr(node, 'patchSchemas')
+      if (patches) {
+        spec = structuredClone(spec)
+        for (const [name, value] of Object.entries(patches)) {
+          if (!spec.components?.schemas?.[name]) throw new Error('Schema patch target is missing: ' + name)
+          spec.components.schemas[name] = value
+        }
+      }
       if (!spec?.openapi || !spec.paths) throw new Error(`Invalid OpenAPI document: ${specPath}`)
       dependencies.push('public' + specPath)
       assets.push({ file: 'public' + specPath, hash: hashText(raw) })
@@ -66,18 +78,7 @@ function extractOpenApi(template, root) {
       let servers = spec.servers
       if (overrides) {
         // Only literal data accepted; never execute the expression.
-        const parser = require('@babel/parser')
-        const ast = parser.parseExpression(overrides.exp.content, { plugins: ['typescript'] })
-        function literal(n) {
-          if (n.type === 'StringLiteral') return n.value
-          if (n.type === 'ArrayExpression') return n.elements.map(literal)
-          if (n.type === 'ObjectExpression') return Object.fromEntries(n.properties.map(p => {
-            if (p.type !== 'ObjectProperty' || p.computed) throw new Error('Dynamic overrideServers is unsupported.')
-            return [p.key.name || p.key.value, literal(p.value)]
-          }))
-          throw new Error('Dynamic overrideServers is unsupported.')
-        }
-        servers = literal(ast)
+        servers = evaluate(overrides.exp.content)
       }
       const blocks = [{ type: 'code', text: JSON.stringify({ info: spec.info, servers, source_path: filter, display_path: display, ...(schema ? { schema: copy } : { operations: copy }), ...(!hideSecurity && spec.security ? { security: spec.security, securitySchemes: spec.components?.securitySchemes } : {}) }, null, 2) }]
       sections.push({ heading, blocks, subsections: [] })
@@ -86,6 +87,7 @@ function extractOpenApi(template, root) {
     for (const child of node.children || []) walk(child)
   }
   walk(parse(template || ''))
+  if (bindings) { dependencies.push(...bindings.assets.keys()); assets.push(...bindings.assets.values()) }
   return { sections, dependencies, assets }
 }
 module.exports = { extractOpenApi }
