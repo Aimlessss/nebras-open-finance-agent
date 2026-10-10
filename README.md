@@ -45,10 +45,12 @@ Upload each chunk as `{ id: chunk.id, vector, payload: chunk }`. Also persist th
 
 After a successful website deployment, compare source commits and process only changed pages plus pages affected by shared dependencies. Reuse identical text embeddings, embed changed/new text, and remove obsolete point IDs only after successful preparation and writes. Handle deleted/renamed source files explicitly from Git's old and new paths. Save the successful ingestion checkpoint in the engine, after Qdrant reconciliation.
 
-`manifest.json` records preparation results and chunk hashes. A missing file, failed parse, missing URL or zero-chunk output must not be interpreted automatically as a deletion. Only a complete, reviewed manifest should enter an initial ingestion run. Its status is not a Qdrant ingestion checkpoint.
+`manifest.json` records preparation results and chunk hashes. A missing file, failed parse, missing URL or zero-chunk output now fails preparation and must not be interpreted automatically as a deletion. Only a complete, reviewed manifest should enter an initial ingestion run. Its status is not a Qdrant ingestion checkpoint.
 
 ## Extraction limits
 
-The parser extracts static Vue content. Import specifiers are recorded for later dependency resolution; they are not a resolved or transitive file-to-page map. Imported components, dynamic content, generated API schemas, field mappings and Markdown pages still need extraction work. Review warnings and zero-chunk outputs before the baseline embedding. This change supplies update metadata; it does not close those coverage gaps.
+Static `RedocWrapper` pages now load their local `public/openapi/` YAML, extract the selected endpoint or schema and its referenced definitions, and record asset hashes. Prepare the same OpenAPI assets used by the website build before running ingestion (see the website repository's `scripts/fetch-openapi-specs.mjs`). Missing assets, dynamic spec expressions, raw spec imports and schema patches fail preparation rather than emitting empty results. Literal server overrides are retained.
+
+The parser otherwise extracts static Vue content. Import specifiers are recorded for later dependency resolution; they are not a resolved or transitive file-to-page map. Imported components, dynamic content, generated API schemas, field mappings and Markdown pages still need extraction work. Review warnings and zero-chunk outputs before the baseline embedding. This change supplies update metadata; it does not close those coverage gaps.
 
 `injection.js` is a legacy parser and is not used by this pipeline.

@@ -1,6 +1,7 @@
 const fs = require("node:fs")
 const path = require("node:path")
 const { execFileSync } = require("node:child_process")
+const { extractOpenApi } = require("./openapi-extractor")
 const { PARSER_VERSION, hashText, pageUrl } = require("./chunk-contract")
 
 const { parse: parseVue } = require("@vue/compiler-sfc")
@@ -1475,12 +1476,14 @@ function main() {
       template.sections,
   }
 
+  const extractedApi = extractOpenApi(descriptor.template?.content, communityRepoRoot)
+  content.sections.push(...extractedApi.sections)
   const sourceText = fs.readFileSync(inputPath, "utf8")
   let commit = process.env.SOURCE_COMMIT || null
   if (!commit) {
     try { commit = execFileSync("git", ["-C", communityRepoRoot, "rev-parse", "HEAD"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() } catch {}
   }
-  const dependencies = []
+  const dependencies = [...extractedApi.dependencies]
   const warnings = []
   // Record import specifiers; resolution/transitive dependency tracking belongs to the engine.
   for (const match of sourceText.matchAll(/(?:from\s*|import\s*\()(['"])([^'"]+)\1/g)) dependencies.push(match[2])
@@ -1508,6 +1511,7 @@ function main() {
       commit,
       hash: hashText(sourceText),
       dependencies: [...new Set(dependencies)].sort(),
+      assets: extractedApi.assets,
       extraction_warnings: warnings,
     },
 

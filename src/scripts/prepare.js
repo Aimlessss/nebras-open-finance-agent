@@ -52,13 +52,15 @@ function main() {
       }
       const document = JSON.parse(fs.readFileSync(parsed, 'utf8'))
       const data = JSON.parse(fs.readFileSync(chunked, 'utf8'))
+      if (!data.chunks.length) throw new Error("No chunks extracted. Resolve the page content or explicitly exclude this file from the ingestion scope.")
+      if (!document.metadata.url) throw new Error("Unresolved generated route URL. Resolve this route before ingestion.")
       for (const c of data.chunks) {
         if (pointIds.has(c.id)) throw new Error('Duplicate point ID across documents: ' + c.id)
       }
       for (const c of data.chunks) pointIds.add(c.id)
       manifest.documents.push({
         document_id: document.id, source_file: file, source_hash: document.source.hash,
-        url: document.metadata.url, dependencies: document.source.dependencies,
+        url: document.metadata.url, dependencies: document.source.dependencies, assets: document.source.assets,
         warnings: [...document.source.extraction_warnings, ...(data.chunks.length ? [] : ['No chunks extracted; review before any deletion.'])],
         chunk_file: path.relative(output, chunked),
         chunks: data.chunks.map(c => ({ id: c.id, chunk_key: c.chunk_key, content_hash: c.content_hash })),

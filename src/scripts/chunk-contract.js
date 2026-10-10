@@ -46,6 +46,7 @@ function finalizeChunks(document, chunks) {
         parser_version: document.source.parser_version || 'legacy',
         chunker_version: CHUNKER_VERSION,
         dependencies: document.source.dependencies || [],
+        assets: document.source.assets || [],
         extraction_warnings: document.source.extraction_warnings || [],
       },
     }

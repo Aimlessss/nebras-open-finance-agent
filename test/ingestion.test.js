@@ -70,3 +70,44 @@ test('actual parser/chunker runner: manifests, targeted runs, failures and stabl
     assert.equal(failed.manifest.failures.length, 1)
   } finally { fs.rmSync(tmp, { recursive: true, force: true }) }
 })
+
+test('RedocWrapper extracts endpoint definitions and refuses missing/dynamic assets', () => {
+  const { extractOpenApi } = require('../src/scripts/openapi-extractor')
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'nebras-openapi-'))
+  try {
+    fs.mkdirSync(path.join(tmp, 'public/openapi'), { recursive: true })
+    fs.writeFileSync(path.join(tmp, 'public/openapi/trust-framework.yaml'), `openapi: 3.0.3
+info: {title: Trust Framework, version: '1'}
+paths:
+  /organisations/export/open-data:
+    get:
+      summary: Participants
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Participant'}
+  /unrelated:
+    get: {summary: Unrelated}
+components:
+  schemas:
+    Participant:
+      type: object
+      properties:
+        name: {type: string, description: Participant name}
+`)
+    const template = `<EndpointPage title="Participants"><RedocWrapper spec="/openapi/trust-framework.yaml" filterPath="/organisations/export/open-data" displayPath="/participants" :overrideServers="[{ url: 'https://data.directory.openfinance.ae' }]" :hideSecurity="true" /></EndpointPage>`
+    const extracted = extractOpenApi(template, tmp)
+    assert.equal(extracted.sections.length, 2)
+    const text = JSON.stringify(extracted.sections)
+    assert.match(text, /Participant name/)
+    assert.match(text, /data.directory.openfinance.ae/)
+    assert.doesNotMatch(text, /Unrelated/)
+    assert.deepEqual(extracted.dependencies, ['public/openapi/trust-framework.yaml'])
+    assert.match(extracted.assets[0].hash, /^[a-f0-9]{64}$/)
+    assert.throws(() => extractOpenApi(template.replace('trust-framework.yaml', 'missing.yaml'), tmp))
+    assert.throws(() => extractOpenApi(`<RedocWrapper :spec="specUrl" />`, tmp), /dynamic/)
+    assert.throws(() => extractOpenApi(template.replace('/organisations/export/open-data', '/missing'), tmp), /selection does not exist/)
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }) }
+})
