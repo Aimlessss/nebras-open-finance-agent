@@ -7,6 +7,7 @@ const execute = promisify(execFile)
 const {loadRun} = require('./embed-upload')
 const {reusableDocument,copyDocument} = require('./reuse-document')
 const { generatedApiDocs } = require('./generated-docs')
+const { POLICY_VERSION, exclusionReason } = require('./ingestion-policy')
 const { SCHEMA_VERSION, PARSER_VERSION, CHUNKER_VERSION } = require('./chunk-contract')
 
 async function main() {
@@ -50,10 +51,18 @@ async function main() {
     if (scope === 'public-docs') files = files.filter(f => /src\/pages\/(tech|knowledge-base)\//.test(f) && !/[\[\]]/.test(f) && !/\/submission(?:\/|\.)/.test(f))
     excluded = discovered.filter(f => !files.includes(f)).map(source_file => ({source_file,reason: /\/submission(?:\/|\.)/.test(source_file) ? 'Interactive submission form' : /[\[\]]/.test(source_file) ? 'Dynamic route: API endpoints expanded via registry; release registries require separate extraction' : 'Outside public technical docs and knowledge-base scope'}))
   }
+  // Apply the same policy to full discovery and explicitly selected files, before reuse.
+  if (scope === 'public-docs') {
+    files = files.filter(source_file => {
+      const reason = exclusionReason(source_file)
+      if (reason) excluded.push({source_file, reason})
+      return !reason
+    })
+  }
   const manifest = {
     schema_version: SCHEMA_VERSION, parser_version: PARSER_VERSION, chunker_version: CHUNKER_VERSION,
     source_repo: 'Nebras-Open-Finance/community-standards', source_commit: commit,
-    mode: selected ? 'selected' : 'full', scope, excluded, notes_version: 1, status: 'running', documents: [], failures: [],
+    mode: selected ? 'selected' : 'full', scope, policy_version: scope === 'public-docs' ? POLICY_VERSION : 'audit-all', excluded, notes_version: 1, status: 'running', documents: [], failures: [],
     notes: ['Static Vue extraction only. Warnings and zero-chunk outputs require review. Missing files are failures, never deletion instructions. This is preparation state, not an ingestion checkpoint.'],
   }
   const pointIds = new Set()
@@ -103,6 +112,11 @@ async function main() {
     let generatedEntries = []
     try { generatedEntries = generatedApiDocs(root, commit) } catch (error) { manifest.failures.push({source_file:'src/data/endpoints/index.ts',error:error.message}) }
     for (const generated of generatedEntries) {
+      const reason = scope === 'public-docs' && exclusionReason(generated.id, generated.endpoint.version)
+      if (reason) {
+        manifest.excluded.push({document_id: generated.id, source_file: 'src/pages/tech/api-specs/[...slug].vue', reason})
+        continue
+      }
       try {
         const { doc, chunks } = generated.build()
         if (!chunks.length) throw new Error('Generated API endpoint has no chunks')
