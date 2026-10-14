@@ -1,0 +1,137 @@
+{
+  "id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/consents-consentId-action-revoke",
+  "source": {
+    "repo": "Nebras-Open-Finance/community-standards",
+    "file": "src/pages/tech/api-specs/[...slug].vue",
+    "hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "parser": "api-registry",
+    "parser_version": "4",
+    "dependencies": [
+      "src/data/endpoints/index.ts",
+      "src/data/versions.ts",
+      "src/data/endpoints/standards.ts",
+      "src/data/endpoints/api-hub.ts",
+      "src/data/endpoints/ozone-connect.ts",
+      "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+    ],
+    "assets": [
+      {
+        "file": "src/data/endpoints/index.ts",
+        "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+      },
+      {
+        "file": "src/data/versions.ts",
+        "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+      },
+      {
+        "file": "src/data/endpoints/standards.ts",
+        "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+      },
+      {
+        "file": "src/data/endpoints/api-hub.ts",
+        "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+      },
+      {
+        "file": "src/data/endpoints/ozone-connect.ts",
+        "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+      },
+      {
+        "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+        "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+      }
+    ],
+    "extraction_warnings": []
+  },
+  "metadata": {
+    "title": "Revoke Consent",
+    "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/api-hub/consent-manager/open-api/consents-consentId-action-revoke",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Revoke Consent",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "API /consents/{consentId}/action/revoke",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"info\": {\n    \"title\": \"Consent Manager API\",\n    \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor the Consent Manager API.\\n\\nThese APIs are implemented by Ozone and should be called by the financial institution to find, modify and delete consents.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.1.10\\n* Added a character-set `pattern` (`^[A-Za-z0-9 \\\\/?:().,'+-]+$`, the ISO 20022 / SWIFT \\\"x\\\" set) to the\\n  current (free-text, 35-char) branch of the Creditor and Debtor references\\n  (`AEServiceInitiationCreditorReference` / `AEServiceInitiationDebtorReference`), so every LFI knows\\n  exactly which characters it must accept and store. The deprecated structured (120-char) branch is\\n  unchanged. Per OFP-003.\\n\\n### v2.1.9\\n* Restructured the international Creditor PII (`PersonalIdentifiableInformation.Initiation.Creditor`) for\\n  SWIFT SR2026: the Creditor party is now a `oneOf` of Individual and Organization variants, discriminated\\n  by `IdentityType`.\\n\\n\\n* The Individual variant carries object-valued `FirstName` / `MiddleName` / `LastName` (`en` / `ar` / `ls`),\\n  `RelationshipToSender`, `DateOfBirth`, `Occupation`, `Nationality`, `Gender`, `CountryOfBirth`,\\n  `SourceOfIncome`, `SourceOfFunds`, and `Evidence`. The Organization variant carries `AnyBIC`, `LEI`, and\\n  `Identification` + `SchemeName`. Both variants share `MobileNumber` / `Email` and an object-valued `Name`\\n  (`en` / `ar` / `ls`).\\n\\n\\n* Added SWIFT SR2026 fields to the international `PostalAddress` (`PostCode`, `Room`, `Department`,\\n  `SubDepartment`, `TownLocationName`, and now-mandatory `TownName`). It is now a single\\n  `AEInternationalAddress` schema shared by both the Creditor and the Creditor Agent (the Creditor Agent\\n  previously used the legacy `AEAddress`).\\n\\n\\n* Added a `CreditorAgent.Branch` object and `CreditorAccount.AccountType` (Savings / Current / Checking /\\n  Prepaid). Domestic Creditor schemas are unchanged.\\n\\n\\n### v2.1.8\\n* Aligned `AEBankServiceInitiationRichAuthorizationRequests.AECreditorIndicators.AccountType` enum with Standards (Retail / SME / Corporate), replacing the previous product-category enum (CurrentAccount / Savings / CreditCard / Mortgage / Finance) that diverged from the Standards PAR + Payments specs.\\n\\n* Aligned the `Risk` object with Standards: tightened `AERisk` and its descendants on the payment-initiation side with `additionalProperties: false` throughout, carved out the three `SupplementaryData` blocks on the RAR-shape (`AEBankServiceInitiationRichAuthorizationRequests.AE*Indicators.SupplementaryData`) to be open extension points (no `additionalProperties: false`), and added `minLength: 1` / `maxLength: 70` to `AddressLine` items inside the legacy `AEAddress` variant.\\n\\n* Added `ReadStatements` and `ReadProductFinanceRates` to `AEAccountAccessConsentPermissionCodes`, which were present in the v2.1 Standards Bank Data Sharing permission set but missing from the Consent Manager. The Consent Manager must accept every permission code from all supported Standards versions.\\n\\n* Closed the three `ConsentManager.AE*ConsentUpdateProperties` schemas with `additionalProperties: false`. The `PATCH /consents/{consentId}` request body is an `anyOf` of one schema per consent type (Bank Data Sharing, Bank Service Initiation, Insurance Data Sharing); without this, unknown properties were silently accepted, so a field belonging to one consent type could be patched onto another. The schemas now enforce the per-type field separation they describe.\\n\\n* Reverted the payment-log reject reason code to match the v2.0.x Consent Manager: the top-level property is `rejectReasonCode` (not `RejectReasonCode`) on the `GET /payment-log` response and `PATCH /payment-log/{id}` request body, and the `code` / `message` fields inside `CbuaePaymentLogRejectReasonCode` items are lower-case again (not `Code` / `Message`). The PascalCase variants were introduced in error and broke LFIs built against the v2.0.x payment-log contract.\\n\\n### v2.1.7\\n* Added `SME` to `AEExternalAccountTypeCode`.\\n\\n* Changed the `Amount` schema `pattern` regex, which was over-escaped in YAML and failed to validate decimal \\n  monetary values.\\n\\n\\n* Removed the unused `AEBankServiceInitiationRichAuthorizationRequests.AERiskExternalAccountIdentificationCode` \\n  schema, which duplicated `AERiskExternalAccountIdentificationCode` and was never referenced.\\n\\n\\n### v2.1.6\\n* Added revised PII properties compatible with version 2.1.\\n\\n* Changed DebtorReference and CreditorReference to reflect v2.0 properties.\\n\\n* Changed Rich Authorization Request `type` values to reflect exactly the consent type they are describing.\\n\\n* Removed changelog before v2.1.4 to reduce bloat of API description.\\n### v2.1.5\\n* Changed Account Opening Statuses to provide correct status codes for `patch /account-opening-log/{logId}`.\\n### v2.1.4\\n* Added `FromDate` and `ToDate` in Bank Data Sharing Consents.\\n* Changed `TransactionFromDateTime` and `TransactionToDateTime` to `deprecated` in Bank Data Sharing Consents in\\n  line with changes in v2.1 Pushed Authorization Requests.\\n\",\n    \"version\": \"v2.1.10\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://cm.[LFICODE].apihub.openfinance.ae\"\n    },\n    {\n      \"url\": \"https://cm.[LFICODE].preprod.apihub.openfinance.ae\"\n    }\n  ],\n  \"source_path\": \"/consents/{consentId}/action/revoke\",\n  \"operations\": {\n    \"post\": {\n      \"tags\": [\n        \"actions\"\n      ],\n      \"summary\": \"Revoke a consent by its id\",\n      \"description\": \"Revokes a consent by its id along with any associated access and refresh tokens.\\nThis API is used by ozone internally to revoke consents.\\nThe API should be used by a financial institution to revoke consents (rather than simply patching the consent) to also revoke the tokens associated with the consent\",\n      \"operationId\": \"revokeConsentsByConsentId\",\n      \"parameters\": [\n        {\n          \"$ref\": \"#/components/parameters/consentId\"\n        }\n      ],\n      \"requestBody\": {\n        \"description\": \"An end-point for revoking a consent.\\n\",\n        \"required\": true,\n        \"content\": {\n          \"application/json\": {\n            \"schema\": {\n              \"$ref\": \"#/components/schemas/RevokeConsent\"\n            }\n          }\n        }\n      },\n      \"responses\": {\n        \"204\": {\n          \"description\": \"Indicates a successful operation.\\nThe response does not have a body.\\n\"\n        },\n        \"400\": {\n          \"description\": \"Indicates a failure to revoke the consent\\n\",\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/error400Response\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"security\": [\n    {},\n    {\n      \"OzoneConnectJwtAuth\": []\n    }\n  ],\n  \"securitySchemes\": {\n    \"OzoneConnectJwtAuth\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Ozone-Connect-JWT-Auth\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/consentId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"consentId\",\n  \"in\": \"path\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"Identifies the consent by an id\\n\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/RevokeConsent",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"revokedBy\"\n  ],\n  \"properties\": {\n    \"revokedBy\": {\n      \"$ref\": \"#/components/schemas/AERevokedBy\"\n    },\n    \"revokedByPsu\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"userId\": {\n          \"type\": \"string\"\n        }\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AERevokedBy",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Denotes the Identifier of the revocation.\\n\\n| Identifier| Description|\\n|-----------|------------|\\n| LFI | Revoked by LFI without User initiation|\\n| TPP | Revoked by TPP without User initiation|\\n| LFI.InitiatedByUser | Initiated by User via the LFI|\\n| TPP.InitiatedByUser | Initiated by User via the TPP|\\n\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"LFI\",\n    \"TPP\",\n    \"LFI.InitiatedByUser\",\n    \"TPP.InitiatedByUser\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/error400Response",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"$ref\": \"#/components/schemas/errorReasonCodes\"\n    },\n    \"errorMessage\": {\n      \"type\": \"string\",\n      \"description\": \"Message describing what problem has occurred\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/errorReasonCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed error code(s), a  code that observes the namespaced pattern, or a custom error codes specific to the API Hub.\",\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/standardErrorCodes\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/standardErrorCodePattern\"\n    },\n    {\n      \"type\": \"string\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/standardErrorCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Standardized error codes used across open finance components\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"AccessToken.InvalidScope\",\n    \"Body.InvalidFormat\",\n    \"Consent.AccountTemporarilyBlocked\",\n    \"Consent.BusinessRuleViolation\",\n    \"Consent.FailsControlParameters\",\n    \"Consent.Invalid\",\n    \"Consent.InvalidUserIdentifier\",\n    \"Consent.PermanentAccountAccessFailure\",\n    \"Consent.TransientAccountAccessFailure\",\n    \"Event.UnexpectedEvent\",\n    \"JWE.DecryptionError\",\n    \"JWE.InvalidHeader\",\n    \"JWS.InvalidClaim\",\n    \"JWS.InvalidHeader\",\n    \"JWS.InvalidSignature\",\n    \"JWS.Malformed\",\n    \"Resource.InvalidFormat\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/standardErrorCodePattern",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Namespaced error codes, indicating the source of the error code prior to the period, and the error code itself after the period e.g. `AANI.AM04` indicates insufficient funds.\",\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

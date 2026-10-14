@@ -1,0 +1,202 @@
+{
+  "id": "knowledge-base/articles/certificate-rotation",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/knowledge-base/articles/certificate-rotation.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "eda5643e45b23d21432b7891eab2422d9fb1420296b724114214054ca1ab14c5",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Certificate Rotation — A Best-Practice Guide for LFIs and TPPs",
+    "description": "How to rotate your Trust Framework certificates before they expire. You rotate only the certificates whose private key you hold; Nebras rotates the rest. All certificates expire after 13 months except the server encryption key, and the Trust Framework emails expiry reminders starting two months out.",
+    "category": "Security",
+    "readTime": "7 min",
+    "updated": "2026-06-03",
+    "tags": [
+      "Certificates",
+      "Trust Framework",
+      "mTLS"
+    ],
+    "url": "https://nebras-open-finance.com/knowledge-base/articles/certificate-rotation",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Certificate Rotation — A Best-Practice Guide for LFIs and TPPs",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "A certificate that reaches its expiry date stops being trusted. An expired transport certificate fails the mTLS handshake; an expired signing certificate makes every JWT you sign unverifiable. In both cases the affected service stops working until a valid certificate is in place. Always complete rotation before the expiry date."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "You rotate only the certificates whose private key you hold",
+        "level": 2,
+        "anchor": "principle",
+        "category": "The golden rule",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Not every certificate that appears under your organisation is yours to manage. The rule is simple:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "You hold the private key → the certificate is yours to rotate. You generated the key and CSR yourself, so only you can produce a replacement.",
+              "Nebras holds the private key → Nebras rotates it. Any certificate where Ozone supplied the CSR, or where the key material lives on the API Hub, is rotated by Nebras with no action required from you. From your perspective these certificates appear under your organisation but require no operational involvement."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The canonical illustration is the server transport pair described in the Certificate Walkthroughs: S1 (Ozone holds the private key — Nebras rotates it) versus S4 (the LFI holds the private key — the LFI rotates it). The same split applies to every certificate on your organisation."
+          },
+          {
+            "type": "paragraph",
+            "text": "Because who-holds-the-key decides who rotates, make it impossible to get wrong: state the holder in the certificate's description field when you create it. The walkthroughs already follow this convention — e.g. S1 - Ozone holds Private Key - TPP-APIHub and S4 - I hold Private Key - APIHub-OzoneConnect. A glance at the description then tells any operator whether a given certificate is theirs to renew or Nebras's."
+          },
+          {
+            "type": "paragraph",
+            "text": "TPPs hold the private key for all of their application certificates — transport, signing, and (where used) encryption — so a TPP rotates all of them itself. LFIs rotate the certificates they generated (such as S4 and their client transport and signing certificates) and leave the Ozone-held certificates to Nebras."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "13 months, with email reminders from two months out",
+        "level": 2,
+        "anchor": "expiry",
+        "category": "Lifetimes and reminders",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "With one exception, every certificate in the Trust Framework expires 13 months after it is issued:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Transport, signing, and application encryption certificates — valid for 13 months, then must be rotated.",
+              "The server encryption key (SERVER ENCKEY) — does not expire, and therefore does not require periodic rotation."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "You do not have to track expiry dates by hand. The Trust Framework (directory) sends email notifications about upcoming certificate expiry, issued regularly and starting two months before the expiry date. Treat the first reminder as your cue to plan the rotation — it leaves ample time to generate, deploy, and validate the replacement before the deadline."
+          },
+          {
+            "type": "paragraph",
+            "text": "Make sure the email recipients on your organisation are correct and monitored, so these reminders reach the team that owns rotation. See Contacts for managing notification recipients."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Overlap, cut over, then retire",
+        "level": 2,
+        "anchor": "how",
+        "category": "The mechanism",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Rotation is not a single in-place swap — it is a controlled overlap. A new certificate is issued and published alongside the old one, so both are trusted at the same time. You then move your service onto the new key, confirm it works, and only afterwards retire the old certificate. Nothing breaks because there is never a moment when no valid certificate exists."
+          },
+          {
+            "type": "ordered_list",
+            "items": [
+              "Generate a new key and CSR. Produce a fresh 2048-bit RSA private key and a SHA-256 CSR with the same subject fields as the certificate you are replacing. In production this MUST happen inside your HSM or equivalent secure key management infrastructure.",
+              "Upload the CSR and issue the new certificate. Upload it in the Trust Framework exactly as you did when the certificate was first created. The new certificate receives its own Key ID ( kid ), and the Trust Framework publishes it to your organisation's JWKS automatically.",
+              "Both keys are now live. During the overlap, the old and new kid s are both resolvable from your JWKS. Any party that verifies your certificates against the JWKS will accept either one, which is what makes a zero-downtime cutover possible.",
+              "Cut over to the new key. Switch your service to present (transport) or sign with (signing) the new certificate. See the type-specific guidance below.",
+              "Verify, then retire the old certificate. Confirm the new key is in use and working, then revoke or remove the old certificate per your key-destruction policy. See Secure Management."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Steps 1–2 are identical to first-time certificate creation. If you have generated a certificate before — see Keys & Certificates (LFI) or Keys & Certificates (TPP) — you already know the mechanics. Rotation adds only the overlap-and-cutover discipline around them."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Rotating the certificate used for mTLS",
+        "level": 2,
+        "anchor": "transport",
+        "category": "Transport certificates",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "A transport certificate authenticates your client during the mTLS handshake. To rotate it:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Issue the new transport certificate (overlap steps 1–2 above).",
+              "Deploy the new certificate and its private key to the infrastructure that terminates mTLS — for an LFI-held server transport certificate (S4), that is your Ozone Connect server; for a TPP, that is wherever your client establishes outbound mTLS connections.",
+              "Re-run connectivity validation. After transport certificates are rotated, the Hub re-verifies connectivity using the Health Check endpoints ( /hello-mtls, /echo-cert ). Confirm these pass on the new certificate before retiring the old one.",
+              "Remove the old certificate from your infrastructure once the new one is confirmed working."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Where the Hub authenticates your transport certificate by pinning the OU (your Organisation ID) rather than a specific certificate, a rotation that keeps the same subject fields needs no configuration change on the verifying side — the new certificate matches the same pin. This is why keeping the CSR subject identical to the previous certificate matters."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Rotating the certificate used to sign JWTs",
+        "level": 2,
+        "anchor": "signing",
+        "category": "Signing certificates",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "A signing certificate proves the integrity and authenticity of the JWTs you send — client assertions, request objects, and similar. The key detail when rotating is the kid:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Issue the new signing certificate (overlap steps 1–2 above) and note its new kid.",
+              "During the overlap, both the old and new kid are published to your signing JWKS, so JWTs signed with either key continue to verify.",
+              "Cut over by signing new JWTs with the new private key and setting the kid header to the new certificate's Key ID. The verifying party resolves that kid from your JWKS and validates the signature. See Message Signing for how the kid is used in the JWT header.",
+              "Once you have fully switched to signing with the new key, retire the old signing certificate."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The most common rotation mistake is updating the certificate but continuing to send the old kid in the JWT header, or vice versa. The kid you put in the header MUST correspond to the private key that produced the signature. Verify the two match after every rotation."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Before you mark a rotation complete",
+        "level": 2,
+        "anchor": "checklist",
+        "category": "Checklist",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "The certificate being rotated is one whose private key you hold (otherwise Nebras rotates it).",
+              "The new certificate was issued before the old one's expiry date.",
+              "The new key and CSR were generated inside your HSM / secure key management for production.",
+              "The new kid is published to your JWKS and resolvable.",
+              "Transport: Health Check connectivity validation passes on the new certificate.",
+              "Signing: new JWTs are signed with the new key and carry the matching kid.",
+              "The old certificate is retired and the old private key destroyed per your key-management policy.",
+              "The certificate description records who holds the private key."
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

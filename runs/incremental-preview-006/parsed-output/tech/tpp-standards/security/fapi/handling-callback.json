@@ -1,0 +1,182 @@
+{
+  "id": "tech/tpp-standards/security/fapi/handling-callback",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/security/fapi/handling-callback.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "38071ac62bfacdc057ab8c955169da0b0058b10143489efc8155e6ae1c026f19",
+    "dependencies": [
+      "./client-assertion"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Handling Authorization Callbacks",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/handling-callback",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Handling Authorization Callbacks",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "After the user approves (or declines) consent at the LFI, the Authorization Server redirects them back to your registered redirect_uri. How you handle this callback is security-critical — mistakes here can allow CSRF attacks, token theft, and authorization code replay."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What the Authorization Server sends back",
+        "level": 2,
+        "anchor": "callback-url",
+        "category": "Callback URL Format",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The callback URL will be of the form:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Parameter",
+              "Description"
+            ],
+            "rows": [
+              [
+                "code",
+                "The authorization code to exchange at /token. Single-use and short-lived"
+              ],
+              [
+                "state",
+                "The value you sent in the Request JWT — must match what you stored before redirecting"
+              ],
+              [
+                "iss",
+                "The issuer of the Authorization Server that issued the code"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Always confirm the state value matches",
+        "level": 2,
+        "anchor": "validate-state",
+        "category": "Validate state",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Confirm that the state value returned in the callback matches the one you set in your Request JWT. This protects against CSRF (Cross-Site Request Forgery) attacks where a malicious page triggers an unintended authorization."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Confirm the response came from the expected Authorization Server",
+        "level": 2,
+        "anchor": "verify-issuer",
+        "category": "Verify the iss (Issuer)",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Check that the iss parameter matches the Authorization Server you sent the /par request to. This ensures the response comes from the expected LFI and not a confused deputy or misconfigured redirect."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Authorization codes are single-use and short-lived",
+        "level": 2,
+        "anchor": "time-limit",
+        "category": "Time-Limit Callback Validity",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Authorization codes are single-use and short-lived — typically valid for only a few minutes. Exchange the code immediately upon receipt."
+          },
+          {
+            "type": "list",
+            "items": [
+              "Exchange the code at /token within seconds of receiving it — do not queue or defer",
+              "Do not accept callbacks that arrive long after the authorization request was initiated",
+              "Once a code has been exchanged successfully, treat it as consumed and reject any attempt to use it again"
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Store a timestamp when you send the user to /par. In your callback handler, reject any callback where too much time has elapsed since that timestamp (e.g. more than 10 minutes), even if state is otherwise valid."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Do only what's required, then redirect",
+        "level": 2,
+        "anchor": "minimal-logic",
+        "category": "Keep Callback Logic Minimal",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When handling the callback, execute only the minimum necessary logic:"
+          },
+          {
+            "type": "ordered_list",
+            "items": [
+              "Validate state and iss",
+              "Exchange the code for tokens at /token",
+              "Store tokens securely",
+              "Redirect the user to the next step in your application flow"
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Avoid running complex business logic, sending external requests (other than /token ), or initiating sensitive operations at this stage. A failed or slow callback should not leave the user in an inconsistent state."
+          },
+          {
+            "type": "paragraph",
+            "text": "If validation fails or the code exchange returns an error, show the user a clean error message and discard all parameters from the callback. Do not log authorization codes or tokens."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end example combining every check",
+        "level": 2,
+        "anchor": "full-example",
+        "category": "Complete Callback Handler",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "The token response carries the current consent state",
+        "level": 2,
+        "anchor": "consent-status",
+        "category": "Consent status in /token responses",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "On a successful POST /token (HTTP 200), the Authorization Server returns not only the access_token and refresh_token but also the Consent object, including its current Status. See the token endpoint reference for details: CreateAccessTokenRequestV21 (OpenAPI: docs/public/openapi/v2.1/standards/uae-authorization-endpoints-openapi.yaml, schema AEAuthorizationEndpointsV21.AEAuthorizationCodeGrantTokenResponseProperties )."
+          },
+          {
+            "type": "paragraph",
+            "text": "Example response:"
+          },
+          {
+            "type": "paragraph",
+            "text": "Because access to resources requires both a valid access token and an authorized consent, the TPP can determine from this response whether resource access is permitted."
+          },
+          {
+            "type": "paragraph",
+            "text": "In most flows the consent status will be Authorized. However, for payment (Bank Service Initiation) consents that support and require multi-authorization, the consent status may instead be AwaitingAuthorization, indicating the first authorizer has approved but additional authorizers are still required before a payment can be made."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

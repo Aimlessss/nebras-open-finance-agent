@@ -1,0 +1,1492 @@
+{
+  "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+  "chunk_count": 26,
+  "chunks": [
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > API /payment-consents/{consentId}/refund\n\n{\n  \"info\": {\n    \"title\": \"Ozone Connect - Bank Service Initiation APIs\",\n    \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor Bank Service Initiation APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a Financial Institution so that Ozone can deliver Service Initiation capabilities to TPPs\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards\\n* Changed every date-time field to reference the shared `AEDateTime` Schema Object. `AEDateTime` states that a\\n  date-time value identifies an instant, that the offset is part of the value and must be applied by the\\n  recipient, and that two encodings of the same instant are equivalent and must behave identically. It carries\\n  a `pattern` requiring an offset and forbidding `-00:00`; all other offsets remain conformant. Each field\\n  description now states only what is specific to that field. Per OFP-014.\\n\\n### v2.1.8\\n\\n* Added a character-set `pattern` (`^[A-Za-z0-9 \\\\/?:().,'+-]+$`, the ISO 20022 / SWIFT \\\"x\\\" set) to the\\n  free-text Creditor and Debtor references (`AECreditorReference` / `AEDebtorReference`), so every LFI\\n  knows exactly which characters it must accept and store. Length (`minLength 1` / `maxLength 35`) is\\n  unchanged. Per OFP-003.\\n\\n\\n### v2.1.7\\n\\n* Restructured the international Creditor PII (`PersonalIdentifiableInformation.Initiation.Creditor`) for\\n  SWIFT SR2026: the Creditor party is now a `oneOf` of Individual and Organization variants, discriminated\\n  by `IdentityType`.\\n\\n\\n* The Individual variant carries object-valued `FirstName` / `MiddleName` / `LastName` (`en` / `ar` / `ls`),\\n  `RelationshipToSender`, `DateOfBirth`, `Occupation`, `Nationality`, `Gender`, `CountryOfBirth`,\\n  `SourceOfIncome`, `SourceOfFunds`, and `Evidence`. The Organization variant carries `AnyBIC`, `LEI`, and\\n  `Identification` + `SchemeName`. Both variants share `MobileNumber` / `Email` and an object-valued `Name`\\n  (`en` / `ar` / `ls`).\\n\\n\\n* Added SWIFT SR2026 fields to the international `PostalAddress` (`PostCode`, `Room`, `Department`,\\n  `SubDepartment`, `TownLocationName`, and now-mandatory `TownName`). It is now a single\\n  `AEInternationalAddress` schema shared by both the Creditor and the Creditor Agent (the Creditor Agent\\n  previously used the legacy `AEAddress`).\\n\\n\\n* Added a `CreditorAgent.Branch` object and `CreditorAccount.AccountType` (Savings / Current / Checking /\\n  Prepaid). Domestic Creditor schemas are unchanged.\\n\\n\\n### v2.1.6\\n\\n* Aligned the `Risk` object with Standards: tightened `AERisk` and its descendants with `additionalProperties: false` throughout, matching the strictness on the Standards PAR side. `SupplementaryData` blocks remain open extension points and `AEAccountTypeCode` already carried `Retail / SME / Corporate`.\\n\\n### v2.1.5\\n\\n* Changed the `UAEAccountInformationAPI.AEActiveCurrencyAndAmount_SimpleType` `pattern` regex, which was\\n  over-escaped in YAML and failed to validate decimal monetary values.\\n\\n\\n### v2.1.4\\n\\n* Changed PII Schema Objects to align with split domestic and international payment PII introduced to v2.1.\\n\\n### v2.1.3\\n\\n* Added `AccountId` to Account Opening operation responses\\n\\n### v2.1.2\\n\\n* Removed AccountNumber from `get /payment-consents/{ConsentId}/refund` SchemeName values.\\n\\n### v2.1.1\\n\\n* Added `emirates_id` to `DocumentEvidenceDetails`\\n\\n* Changed loan to finance for all Schema Objects names and object descriptions.\\n\\n* Changed CreditorReference and DebtorReference objects to remove pattern.\\n\\n* Changed CreditorReference, DebtorReference, and Reference objects to reduce maximum length to 35 characters.\\n\",\n    \"version\": \"v2.2.1\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://[Ozone_Connect_API]\"\n    }\n  ],\n  \"source_path\": \"/payment-consents/{consentId}/refund\",\n  \"operations\": {\n    \"get\": {\n      \"tags\": [\n        \"Payments\"\n      ],\n      \"summary\": \"Retrieve Refund Account Details for a Payment Consent\",\n      \"description\": \"Ozone can call this API from Financial Institutions to retrieve payment information.\\n\",\n      \"operationId\": \"getRefund\",\n      \"parameters\": [\n        {\n          \"$ref\": \"#/components/parameters/providerId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/aspspId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerOrgId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerClientId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerSoftwareStatementId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/apiUri\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/apiOperation\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/consentId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerInteractionId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/ozoneInteractionId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/psuIdentifier\"\n        },\n        {\n          \"name\": \"consentId\",\n          \"in\": \"path\",\n          \"schema\": {\n            \"type\": \"string\"\n          },\n          \"required\": true,\n          \"description\": \"Identifies the consent by an id\\n\"\n        }\n      ],\n      \"responses\": {\n        \"200\": {\n",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "API /payment-consents/{consentId}/refund",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "id": "cebfa52d-8598-5edc-a22b-f974c329d494",
+      "chunk_key": "[\"section\",[\"\",\"API /payment-consents/{consentId}/refund\"],\"\"]:0:part:0",
+      "content_hash": "929dd9dac4471f8b04cc81c17d94f07cf97c6e36315bc7777f455d471a880c41",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > API /payment-consents/{consentId}/refund\n\n          \"description\": \"successful operation\",\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/RefundGetResponse\"\n              }\n            }\n          }\n        },\n        \"400\": {\n          \"$ref\": \"#/components/responses/error400Response\"\n        },\n        \"403\": {\n          \"$ref\": \"#/components/responses/error403Response\"\n        },\n        \"500\": {\n          \"$ref\": \"#/components/responses/error500Response\"\n        },\n        \"default\": {\n          \"$ref\": \"#/components/responses/errorResponse\"\n        }\n      }\n    }\n  },\n  \"security\": [\n    {},\n    {\n      \"OzoneConnectApiKey\": []\n    },\n    {\n      \"OzoneConnectClientCredentials\": [\n        \"placeholder\"\n      ]\n    },\n    {\n      \"OzoneConnectJwtAuth\": []\n    }\n  ],\n  \"securitySchemes\": {\n    \"OzoneConnectApiKey\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n      \"type\": \"apiKey\",\n      \"in\": \"header\",\n      \"name\": \"Authorization\"\n    },\n    \"OzoneConnectClientCredentials\": {\n      \"type\": \"oauth2\",\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n      \"flows\": {\n        \"clientCredentials\": {\n          \"tokenUrl\": \"https://example.lfi.ae/token\",\n          \"scopes\": {\n            \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n          }\n        }\n      }\n    },\n    \"OzoneConnectJwtAuth\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Ozone-Connect-JWT-Auth\"\n    },\n    \"OzoneConnectServiceInitiationToken\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Bearer\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "API /payment-consents/{consentId}/refund",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "id": "00afd515-a33e-5c38-91bf-1d09f69ee403",
+      "chunk_key": "[\"section\",[\"\",\"API /payment-consents/{consentId}/refund\"],\"\"]:0:part:1",
+      "content_hash": "662596eb5953b4028f92e9613c887067a73557dc3933ab6498a5cf841a75c61e",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/parameters/providerId\n\n{\n  \"name\": \"o3-provider-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"Identifier for the Financial Institution that the request is targeted to\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/parameters/providerId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "19291a79-0564-5b7f-986d-378af60c5bbc",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/providerId\"],\"\"]:0",
+      "content_hash": "bc9e885eb4bb71770e7137bf2f8722423f4478769514473c783f1c509dcd8532",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/parameters/aspspId\n\n{\n  \"name\": \"o3-aspsp-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"deprecated\": true,\n  \"description\": \"Identifier for the financial institution that the request is targeted to. This header is deprecated and will be removed in a future version of Ozone Connect. Use `o3-provider-id` instead.\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/parameters/aspspId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "b6f9bd02-bf63-5844-b88e-75197db48deb",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/aspspId\"],\"\"]:0",
+      "content_hash": "5625f836f286d4c363a7f18100e9a393c385dde51f2d21110038190829862963",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/parameters/callerOrgId\n\n{\n  \"name\": \"o3-caller-org-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the organization calling the API\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/parameters/callerOrgId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "283bf74b-c1aa-5ea4-996c-156c61abafc7",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerOrgId\"],\"\"]:0",
+      "content_hash": "b06a68ab93cc9bc2fb21b42d7684255bafd1d6a6b17d1e8174615dd55ded0ea3",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/parameters/callerClientId\n\n{\n  \"name\": \"o3-caller-client-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the OIDC clientId calling the API\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/parameters/callerClientId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "42255015-76bf-58b2-a6ba-73d1ae1ff7f5",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerClientId\"],\"\"]:0",
+      "content_hash": "7562bffaf9dd0e0a13b226e955ab2cbc61ae917ee226910fa75c96a2e267d6a0",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/parameters/callerSoftwareStatementId\n\n{\n  \"name\": \"o3-caller-software-statement-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the software statement calling the API\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/parameters/callerSoftwareStatementId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "09c3619c-c713-544c-bcc5-1f637d5c9048",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "678865bb3a6e3b3238aa74959563653cfdc4a028078d36eb6f937a8943ab9144",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/parameters/apiUri\n\n{\n  \"name\": \"o3-api-uri\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The parameterised URL of the API being called by the caller\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/parameters/apiUri",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "f5123457-59fd-5251-8966-d1723f0bf6da",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiUri\"],\"\"]:0",
+      "content_hash": "e979e9c491778bf9ad1fd49f68a6615e32b1e0599ce450472cca828439a49403",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/parameters/apiOperation\n\n{\n  \"name\": \"o3-api-operation\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/parameters/apiOperation",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "8f1d162b-9076-5cec-97dc-1fac377832c0",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiOperation\"],\"\"]:0",
+      "content_hash": "54018e95cb51888075106521016cb74cdfae1aa0b9cbdf55b5a8513e346b8f5f",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/parameters/consentId\n\n{\n  \"name\": \"o3-consent-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The consentId for which this call is being made\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/parameters/consentId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "9343cbed-ac66-5fc7-b4b5-fdef401cc138",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/consentId\"],\"\"]:0",
+      "content_hash": "4ad530443838a5e41c10372191ada4080f95debe11aee9bb12a3c5eea28a748d",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/parameters/callerInteractionId\n\n{\n  \"name\": \"o3-caller-interaction-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": false,\n  \"description\": \"The interaction ID passed in by the caller, if any\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/parameters/callerInteractionId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "2962fac2-b528-54b5-8573-15c3cd22605e",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerInteractionId\"],\"\"]:0",
+      "content_hash": "d7cf68edf8679d214bcd151f20a8c14673f9e39c56ac3a2dfdbdb32c14dfb6a4",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/parameters/ozoneInteractionId\n\n{\n  \"name\": \"o3-ozone-interaction-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/parameters/ozoneInteractionId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "854795ef-0e57-5265-a311-5f1237851a1f",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "0e608aee6e50730c71240a26f04d8bd97e6074c5807867b1c658bf98fd23b103",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/parameters/psuIdentifier\n\n{\n  \"name\": \"o3-psu-identifier\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"A Base64 encoded representation of the psuIdentifier JSON object.\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/parameters/psuIdentifier",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "e3f6c4ee-0afb-5483-8176-e7b64652283e",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/psuIdentifier\"],\"\"]:0",
+      "content_hash": "54650008e2dfab8d7b52f7e27d47a76f948bd86466ddf69e8ea4cf5335e86707",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/schemas/RefundGetResponse\n\n{\n  \"description\": \"Response to a request to the Debtor details for a given payment, in order to initiate a refund. Requires the consent of the Debtor to be retrieved, enforced at the API Hub.\",\n  \"type\": \"object\",\n  \"properties\": {\n    \"data\": {\n      \"$ref\": \"#/components/schemas/RefundGetResponseBody\"\n    },\n    \"meta\": {\n      \"$ref\": \"#/components/schemas/Meta\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/schemas/RefundGetResponse",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "6879ad3e-1f76-5a1a-b60e-0c19ab751729",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/RefundGetResponse\"],\"\"]:0",
+      "content_hash": "e4e5d3d13caa750d6a83499700358b9a81f909aec07280e7fbcd73038b791123",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/schemas/RefundGetResponseBody\n\n{\n  \"description\": \"Primary data for the response\",\n  \"type\": \"object\",\n  \"required\": [\n    \"refundAccount\"\n  ],\n  \"properties\": {\n    \"consentId\": {\n      \"description\": \"Unique identification assigned by the TPP to identify the consent resource.\\n\",\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 128\n    },\n    \"refundAccount\": {\n      \"$ref\": \"#/components/schemas/AEDebtorAccount\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/schemas/RefundGetResponseBody",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "5fdf7803-84e0-5397-adb5-9e7058cfd4e1",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/RefundGetResponseBody\"],\"\"]:0",
+      "content_hash": "2ad32d332e3a51339899d1e4e53c4ae05e86c66990f5395b5108f23a6a5d3e80",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/schemas/AEDebtorAccount\n\n{\n  \"description\": \"Unambiguous identification of the account of the debtor to which a debit entry will be made.\",\n  \"type\": \"object\",\n  \"required\": [\n    \"schemeName\",\n    \"identification\",\n    \"name\"\n  ],\n  \"properties\": {\n    \"schemeName\": {\n      \"description\": \"Name of the identification scheme, in a coded form as published in an external list.\",\n      \"type\": \"string\",\n      \"enum\": [\n        \"IBAN\"\n      ]\n    },\n    \"identification\": {\n      \"description\": \"Identification for the account assigned by the LFI based on the Account Scheme Name.\\nThis identification is known by the User account owner.\\n\",\n      \"type\": \"string\",\n      \"minLength\": 1\n    },\n    \"name\": {\n      \"$ref\": \"#/components/schemas/AEName\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/schemas/AEDebtorAccount",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "63dba000-2e27-5faa-9129-fbd4310202ca",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDebtorAccount\"],\"\"]:0",
+      "content_hash": "8da05273d557055a2fe571a8e81790770095619aba7386f0f21da68d56ef9ab2",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/schemas/AEName\n\n{\n  \"type\": \"object\",\n  \"description\": \"The Account Holder Name is the name or names of the Account owner(s) represented at the account level\\n\",\n  \"properties\": {\n    \"en\": {\n      \"type\": \"string\",\n      \"description\": \"English value of the string\",\n      \"maxLength\": 70\n    },\n    \"ar\": {\n      \"type\": \"string\",\n      \"description\": \"Arabic value of the string\",\n      \"maxLength\": 70\n    }\n  },\n  \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/schemas/AEName",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "2e03315e-e723-589a-9570-7cfe8862f301",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEName\"],\"\"]:0",
+      "content_hash": "1e80a29f76f7f8fdc5200e2c3ccbd0b368fc311bce7d464f265c1ff9b06d6065",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/schemas/Meta\n\n{\n  \"description\": \"Metadata relevant to the resource.\",\n  \"type\": \"object\",\n  \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/schemas/Meta",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "38a35ddb-2f44-56d4-b20d-f63cc5e0f0d9",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Meta\"],\"\"]:0",
+      "content_hash": "39d09e272185a761955de7e86d796535ab53797d0e9183bcceecb98f6995044d",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/responses/error400Response\n\n{\n  \"description\": \"Operation failed due to a invalid request parameter\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error400\"\n      }\n    }\n  }\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/responses/error400Response",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "2dddab2e-811f-5f2e-94bb-5ad908fd3e20",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error400Response\"],\"\"]:0",
+      "content_hash": "30a5511b2285edd169967162e3b87a4c942f108cbda1fa67894ec16da07b4cb9",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/schemas/Error400\n\n{\n  \"description\": \"Default error response payload structure for Ozone Connect\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"Consent.Invalid\",\n            \"Consent.BusinessRuleViolation\",\n            \"Consent.FailsControlParameters\",\n            \"Consent.InvalidUserIdentifier\",\n            \"JWS.InvalidSignature\",\n            \"JWS.Malformed\",\n            \"JWS.InvalidClaim\",\n            \"JWS.InvalidHeader\",\n            \"JWE.DecryptionError\",\n            \"JWE.InvalidHeader\",\n            \"GenericRecoverableError\",\n            \"GenericError\",\n            \"Event.UnexpectedEvent\",\n            \"Body.InvalidFormat\",\n            \"Resource.InvalidFormat\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/schemas/Error400",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "bb8e0bed-ef55-5939-a17e-4f735ba8f0fd",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error400\"],\"\"]:0",
+      "content_hash": "0e6a09b0792cfd93bc6dd7d1b39619b15a8730a7ea140e3abc1566ff05bf35f3",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/schemas/ErrorMessage\n\n{\n  \"description\": \"Message describing what problem has occurred\",\n  \"type\": \"string\"\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/schemas/ErrorMessage",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "71607777-8add-5bb4-92bd-36414b49e4ae",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ErrorMessage\"],\"\"]:0",
+      "content_hash": "f6c890d5c1fadc060d0090d5f52b944d1e2376fb40c9bd9e392af62835579d33",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/responses/error403Response\n\n{\n  \"description\": \"Operation failed as access to the requested resource is forbidden\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error403\"\n      }\n    }\n  }\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/responses/error403Response",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "7eacd3eb-752e-5bb7-9c3b-7329fb08256e",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error403Response\"],\"\"]:0",
+      "content_hash": "1f279003583aa2bd8d757f68579d081236dc55e3225ad937b0fbed564d3776b4",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/schemas/Error403\n\n{\n  \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"AccessToken.InvalidScope\",\n            \"Consent.TransientAccountAccessFailure\",\n            \"Consent.AccountTemporarilyBlocked\",\n            \"Consent.PermanentAccountAccessFailure\",\n            \"GenericRecoverableError\",\n            \"GenericError\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/schemas/Error403",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "5df56651-4e65-5990-9af0-2ea2518cc4ac",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error403\"],\"\"]:0",
+      "content_hash": "dd17e7512dba4c7f7b922a5f2c8ce332f2a17245f496549e84393d2ab96c5954",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/responses/error500Response\n\n{\n  \"description\": \"Operation failed due to an internal server error\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error500\"\n      }\n    }\n  }\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/responses/error500Response",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "167fd1c0-8f4f-50f6-985b-5c5a5bb898f9",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error500Response\"],\"\"]:0",
+      "content_hash": "8b863f6c213d51d22087e208a1621525491719a86525aa7e50b791e9307e29f6",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/schemas/Error500\n\n{\n  \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"GenericRecoverableError\",\n            \"GenericError\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/schemas/Error500",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "e00a2927-59df-5403-81ee-1436171a75d3",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error500\"],\"\"]:0",
+      "content_hash": "bf79dee15f174a8ef67d292654d5ba944c0b59bf3764dfb177f0a7e6930324ed",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+      "type": "section",
+      "text": "Retrieve Account Details for a Refund > OpenAPI definition #/components/responses/errorResponse\n\n{\n  \"description\": \"Default error response\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"errorCode\": {\n            \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n            \"type\": \"string\"\n          },\n          \"errorMessage\": {\n            \"$ref\": \"#/components/schemas/ErrorMessage\"\n          }\n        }\n      }\n    }\n  }\n}",
+      "metadata": {
+        "title": "Retrieve Account Details for a Refund",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/ozone-connect/service-initiation/payment-consents-ConsentId-refund",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "39c20dcc-489c-5a17-9f05-cf191f28c4bc",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "155ebb1694180c7766c96bbe2583c4646481fcad17377daaf60a6439235cbdf5",
+      "schema_version": 2
+    }
+  ]
+}

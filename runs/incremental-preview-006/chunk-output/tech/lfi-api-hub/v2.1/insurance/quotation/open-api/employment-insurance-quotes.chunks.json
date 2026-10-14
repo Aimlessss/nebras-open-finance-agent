@@ -1,0 +1,2491 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+  "chunk_count": 73,
+  "chunks": [
+    {
+      "id": "a9cd9464-9b0e-5ace-8d5a-4cec3d3cd31d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "intro",
+      "text": "Create a Employment Insurance Quote\n\nLFI · Insurance · Quotation",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "ff9e2079f3542720be1ce44d772e168ecd7ce883f68e85d852aefc5dbbb02d14",
+      "schema_version": 2
+    },
+    {
+      "id": "f22a9743-aa51-5721-9f57-c053484828f9",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > API /employment-insurance-quotes\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - UAE Insurance API Description\",\n \"description\": \"## Ozone Connect - UAE Insurance API Description\\n\\nThis document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html) for Insurance APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a financial institution to facilitate integration with the API Hub.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where: \\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n\\n### v2.1.4\\n\\n* Removed the CAAP-specific header `o3-is-caap-consent-operation` from the `get /{insurance-type}-insurance-policies`\\n operations, the CAAP-conditional `ProductName`, `BodyType`, and `PlateNumber` properties from the insurance\\n policy schemas, and related CAAP-conditional language. CAAP variants of these endpoints have been moved to the\\n CAAP Operations OpenAPI description. `PolicyEndDate` is retained on the insurance policy schemas but is no longer\\n CAAP-conditional: it is now an ordinary optional property, returnable for all consent types, matching the\\n `get /{insurance-type}-insurance-policies` response in the UAE Insurance API description.\\n\\n\\n* Removed the `maximum` of 100 from `AEInsuranceServiceRatingRateOrRatio`, which is referenced by the\\n `ServiceRating` properties `SolvencyRatio`, `ClaimsPaymentCapacityRatio`, `AverageClaimSettlementTime`, and\\n `CustomerComplaintRate`. None of these is a 0-100 percentage: both ratios routinely exceed 100% for a solvent\\n insurer, and the other two are measured in calendar days and in complaints per 1,000 active policies\\n respectively. The two genuine percentages, `ClaimSettlementRatio` and `ClaimRejectionRate`, now reference a new\\n `AEInsuranceServiceRatingPercentage` schema, which retains `maximum: 100` and adds `minimum: 0`.\\n\\n\\n* Changed the `get /{industryType}-insurance-policies/{InsurancePolicyId}` operation to return an optional\\n `CreditDebitIndicator` within `Premium.Adjustments`, indicating whether a premium adjustment is a credit,\\n reducing the premium payable, or a debit, increasing the premium payable. `AdjustmentAmount` is unsigned and\\n carries no direction of its own. Where `CreditDebitIndicator` is absent, the adjustment must be treated as a\\n `Debit`, which is the reading that matches existing v2.1 behaviour.\\n\\n\\n* Removed `format: uuid` from `AEInsurance.AEInsuranceResourceIdentifierType`, the schema behind the\\n `InsurancePolicyId` and `QuoteId` path parameters and the `QuoteId`, `InsurancePolicyId` and related identifier\\n properties. A uuid v4 remains recommended for consistency but is no longer mandatory, so LFIs may use their own\\n identifier scheme within the existing 1-128 character bounds. This matches UAE standards v2.1-errata3.\\n\\n\\n### v2.1.3\\n\\n\\n* Changed the `get /{insurance-type}-insurance-quotes/{QuoteId}` operation to return the correct type for `Pending`\\n `QuoteStatus` responses.\\n\\n\\n### v2.1.2\\n\\n\\n* Changed the `insurancePolicyIds` parameter from optional to mandatory for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n* Changed the guidance for `insurancePolicyIds` parameter for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n### v2.1.1\\n\\n\\n* Initial version that delivers v2.1 requirements (see separate, detailed changelog for changes from last v2.1.x version).\\n\\n\",\n \"version\": \"v2.1.4\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/employment-insurance-quotes\",\n \"operations\": {\n \"post\": {\n \"operationId\": \"CreateEmploymentInsuranceQuoteOperation\",\n \"summary\": \"Create an employment insurance quote\",\n \"description\": \"Create an employment insurance quote.\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.ozoneInteractionId\"\n }\n ],\n \"responses\": {\n \"201\": {\n \"description\": \"The request has succeeded and a new resource has been created as a result.\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCreateQuoteResponseProperties\"\n },\n \"minItems\": 1,\n \"description\": \"One-or-more quotes. If no quotes are provided the LFI should respond with the `204` response code and an empty payload\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n },\n \"204\": {\n \"description\": \"The LFI did not respond with a quote as the request policy requirements could not be fulfilled.\"\n },\n \"400\": {\n \"$ref\": \"#/components/responses/error400Response\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/error403Response\"\n },\n \"409\": {\n \"$ref\": \"#/components/responses/error409Response\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/error500Response\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n },\n \"tags\": [\n \"Employment Insurance\"\n ],\n \"requestBody\": {\n \"required\": true,\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "API /employment-insurance-quotes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /employment-insurance-quotes\"],\"\"]:0:part:0",
+      "content_hash": "5830105775767ea8887e07f291c98cc765e9c86bdc2d69f353f7fc82f97b7d10",
+      "schema_version": 2
+    },
+    {
+      "id": "aaf35c92-02ed-5544-acd4-fe1b1f43c4ce",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > API /employment-insurance-quotes\n\n \"$ref\": \"#/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteRequestProperties\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n },\n \"OzoneConnectServiceInitiationToken\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Bearer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "API /employment-insurance-quotes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /employment-insurance-quotes\"],\"\"]:0:part:1",
+      "content_hash": "e93956f6f9283b6787fdf8237f4c839ccd58c0d5b87b181839df6eafff09399d",
+      "schema_version": 2
+    },
+    {
+      "id": "8a4478a6-f52a-5754-a4bd-7d4708bc540f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targeted to\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.providerId\"],\"\"]:0",
+      "content_hash": "d061c3703e623f4da1e35f3f93cb341a53d09aa29c7eefccd97c4132d2ded5fe",
+      "schema_version": 2
+    },
+    {
+      "id": "3a7c76c4-5f30-5afa-b480-a91e28be9595",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\"],\"\"]:0",
+      "content_hash": "49e0aa523cfec6ac955ed1739ccac43fa3dbf0f2a78db764df27c7f5128b701c",
+      "schema_version": 2
+    },
+    {
+      "id": "1a5b2e75-496d-5139-b110-1ec8e0bf3a6d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\"],\"\"]:0",
+      "content_hash": "bf40dc8c49862d6f194061faeadfaa748e384b4f484e762a7590bf8f2eec846a",
+      "schema_version": 2
+    },
+    {
+      "id": "5467e53b-00d1-5785-a967-b178f0677fa9",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "2d1eeb2a7d84b8349c0e4967baa187a97bc9767446ce0764413af615b05e7e43",
+      "schema_version": 2
+    },
+    {
+      "id": "84bac328-1881-5ad4-97fe-7e904baf3f13",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The URL of the API being called by the caller\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiUri\"],\"\"]:0",
+      "content_hash": "a74ad1c560970e73dea0b322b9162a2e6860b5996a705f91b383a8e5da36155b",
+      "schema_version": 2
+    },
+    {
+      "id": "2b1d6517-7093-5905-b4c7-cbed18db8c7e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\"],\"\"]:0",
+      "content_hash": "647abafbc97100f0fcd45285a46097f5689744968b2d9afac87c4608ce504cf3",
+      "schema_version": 2
+    },
+    {
+      "id": "1d88943d-4f1a-5828-94d7-5a068949cecb",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\"],\"\"]:0",
+      "content_hash": "fc094cbaa9a94df652e304cd7851f912323bba20106448834ccc56c9ab72793a",
+      "schema_version": 2
+    },
+    {
+      "id": "e2a971e6-eb3b-54d0-956f-852c9af48e81",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "6eda2952bb398b5c6a5f1110969f084e9bf6204f08b936967d0a42764e3bd9bb",
+      "schema_version": 2
+    },
+    {
+      "id": "fef96c9a-80b5-588a-80ec-a2ceb05a21f8",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCreateQuoteResponseProperties\n\n{\n \"oneOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteResponsePendingProperties\"\n },\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteResponseAvailableProperties\"\n }\n ],\n \"discriminator\": {\n \"propertyName\": \"QuoteStatus\",\n \"mapping\": {\n \"Pending\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteResponsePendingProperties\",\n \"Available\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteResponseAvailableProperties\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCreateQuoteResponseProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCreateQuoteResponseProperties\"],\"\"]:0",
+      "content_hash": "2527a095eecead97ee03d68bacccca0360fab2094c91c3b516a3ccd463742646",
+      "schema_version": 2
+    },
+    {
+      "id": "e03a451b-b02a-5b3a-94e0-8e11dd556e71",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteResponsePendingProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"QuoteStatus\",\n \"QuoteId\",\n \"QuoteReference\"\n ],\n \"properties\": {\n \"QuoteStatus\": {\n \"type\": \"string\",\n \"enum\": [\n \"Pending\"\n ],\n \"description\": \"The current status of the quote\"\n },\n \"QuoteId\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteIdType\"\n },\n \"QuoteReference\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"\n },\n \"PremiumTargetDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"description\": \"The target date and time at which the insurer will generate a quote premium. Maximum allowed time is 24 hours from quote resource creation.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteResponsePendingProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteResponsePendingProperties\"],\"\"]:0",
+      "content_hash": "b0505b315e1c99088dbbc9af4492983a5d3046b3d1f19dde852a4fe47fa8b37c",
+      "schema_version": 2
+    },
+    {
+      "id": "bb4ec1ca-7edd-5672-b33e-b06fcfc2b968",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteIdType\n\n{\n \"type\": \"string\",\n \"description\": \"A unique identifier assigned to the generated insurance quote by the LFI\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteIdType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteIdType\"],\"\"]:0",
+      "content_hash": "fc83e974497b12a8812ad2ba0c86cc28258baf2edb8f3e5292e04fd7954f2877",
+      "schema_version": 2
+    },
+    {
+      "id": "36d33e5d-895b-59f8-b040-3d029dca9521",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\n\n{\n \"type\": \"string\",\n \"description\": \"The unique quote reference number generated by the TPP for tracking the quote\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"],\"\"]:0",
+      "content_hash": "7f1cb563409867d1b66e00031366c1f6c861562a88d7bbd02db628a59cacd6e4",
+      "schema_version": 2
+    },
+    {
+      "id": "997edb0d-a8e5-5877-93cd-ac3305b527ac",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteResponseAvailableProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"QuoteStatus\",\n \"QuoteId\",\n \"QuoteReference\",\n \"CreationDateTime\",\n \"ServiceRating\",\n \"PolicyIssuanceAllowed\"\n ],\n \"properties\": {\n \"QuoteStatus\": {\n \"type\": \"string\",\n \"enum\": [\n \"Available\"\n ],\n \"description\": \"The current status of the quote\"\n },\n \"QuoteId\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteIdType\"\n },\n \"QuoteReference\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"\n },\n \"CreationDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"description\": \"The date and time at which the quote was created.\"\n },\n \"ExpirationDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"description\": \"The expiration date of the quote, after which it is no longer valid. If no date is provided the quote will be valid for up to 30 days as per the Standards.\"\n },\n \"PlanName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The specific name of the insurance plan.\"\n },\n \"LevelOfCover\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The level of insurance Cover offered in the quote\"\n },\n \"Commission\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCommission\"\n }\n ],\n \"description\": \"An object containing details of the commission amount that would be payable to the TPP if the User proceeded with the insurance application and purchased the policy based on the provided information\"\n },\n \"PolicyCover\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuotePolicyCover\"\n },\n \"minItems\": 1,\n \"description\": \"An array containing options for policy cover, which contain information about the cover and benefits included in the quoted policies.\"\n },\n \"PolicyDocumentsUris\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteUri\"\n },\n \"minItems\": 1,\n \"description\": \"A list of URLs linking to policy-related documents, such as terms and conditions, policy wording, or product disclosures\"\n },\n \"AvailableAddOns\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"CoverName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Name of the insurance cover add-on\"\n },\n \"Description\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Description of the insurance cover add-on\"\n },\n \"Amount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"Premium value of the insurance cover add-on\"\n },\n \"CoverLimit\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"When applicable, the benefit coverage limit that could be paid if a claim was made.\"\n },\n \"CoverInclusionAndExclusionDescriptions\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"string\"\n },\n \"minItems\": 1,\n \"description\": \"Included inclusions and exclusions for cover type.\"\n },\n \"PolicyExcess\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"When applicable, the amount that would be deductible from any claim.\"\n }\n },\n \"required\": [\n \"CoverName\",\n \"Description\"\n ]\n },\n \"minItems\": 1,\n \"description\": \"An object containing details of optional add-ons available for the quoted policy\"\n },\n \"RequiredDocuments\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceDocumentRequirement\"\n },\n \"minItems\": 1,\n \"description\": \"A list of documents required that must be provided by the User to the LFI to proceed with the policy purchase\"\n },\n \"DiscountOffers\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePremiumDiscountOffers\"\n },\n \"minItems\": 1,\n \"description\": \"An object containing details of any discounts or offers applied to the quote\"\n },\n \"ServiceRating\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceServiceRating\"\n }\n ],\n \"description\": \"An object containing ratings or reviews of the insurer's service quality\"\n },\n \"SpecialConditionsApplicable\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceSpecialConditions\"\n },\n \"description\": \"Provides special conditions or clauses applicable to the policy specified by the LFI, which must be displayed to the User if provided.\"\n },\n \"PolicyIssuanceAllowed\": {\n \"type\": \"object\",\n \"properties\": {\n \"CustomerVerification\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to complete capture of customer verification information and documents for this quote.\"\n },\n \"Payment\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to host payment checkout.\"\n },\n \"PolicyDocuments\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to provide policy documents to customer.\"\n }\n },\n \"required\": [\n \"CustomerVerification\",\n \"Payment\",\n \"PolicyDocuments\"\n ],\n \"description\": \"Broker requests to handle following steps of policy issuance process.\"\n },\n \"Takaful\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the policy is Sharia compliant.\"\n },\n \"AlternativeBrandName\": {\n \"type\": \"string\",\n \"description\": \"Provides and alternative brand name where the product is Sharia compliant\"\n },\n \"Premium\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePremiumProperties\"\n }\n ],\n \"minProperties\": 1,\n \"description\": \"An object containing details of the quoted insurance premium.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteResponseAvailableProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteResponseAvailableProperties\"],\"\"]:0",
+      "content_hash": "4733095d5a0e00047cfabfc268087a66d1f58b25d4d9d4b3a6e6d4132e831e73",
+      "schema_version": 2
+    },
+    {
+      "id": "fe59219c-8f1d-54a6-9302-359efd781191",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCommission\n\n{\n \"type\": \"object\",\n \"required\": [\n \"CommissionAmount\",\n \"CommissionPercentage\"\n ],\n \"properties\": {\n \"CommissionAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total monetary value of the commission paid to the TPP if the User proceeds with the quote application and purchases the policy based on the quote information provided.\"\n },\n \"CommissionPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePercentageValue\"\n }\n ],\n \"description\": \"The percentage of the policy premium allocated as commission to the TPP\"\n },\n \"PaymentMethod\": {\n \"type\": \"string\",\n \"enum\": [\n \"DirectToTPP\",\n \"ThroughAPIHub\"\n ],\n \"description\": \"The method to be used to pay the commission to the TPP if the User elects to proceed with the application and successfully purchases the policy.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCommission",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCommission\"],\"\"]:0",
+      "content_hash": "d20c67de0802facb957800700d69562188051d3a4f4118716e8baee2788c8ed8",
+      "schema_version": 2
+    },
+    {
+      "id": "e833671f-41bd-5fcb-8dbe-f13b38d7a1d8",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Currency\",\n \"Amount\"\n ],\n \"properties\": {\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n },\n \"Amount\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n }\n },\n \"description\": \"The Currency and Amount relating to the Payment, Refund or Request to Pay\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\"],\"\"]:0",
+      "content_hash": "7f03ac52b32db40c4773a639bb67c1de48a6c866c04b9d027837063d234d47e3",
+      "schema_version": 2
+    },
+    {
+      "id": "10e1d054-9828-5312-b093-8c996ac8f6fb",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n \"example\": \"AED\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"],\"\"]:0",
+      "content_hash": "8881c1850b4d54eeb1be564cfd6ac665cc64060820dc3748dd3103a5697ebe5f",
+      "schema_version": 2
+    },
+    {
+      "id": "c1f5d3d5-ac0c-5514-9759-37b6dab2ed6f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\n\n{\n \"type\": \"string\",\n \"pattern\": \"^\\\\d{1,16}\\\\.\\\\d{2}$\",\n \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n \"example\": \"100.00\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"],\"\"]:0",
+      "content_hash": "35d75522e801b391725f84a43efb3d516b9d1257feb5b29eaf08894dd4d2acf1",
+      "schema_version": 2
+    },
+    {
+      "id": "98590a10-5571-5f54-a404-92d81a6ea1f9",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue\n\n{\n \"type\": \"number\",\n \"format\": \"decimal\",\n \"minimum\": 0,\n \"maximum\": 100\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue\"],\"\"]:0",
+      "content_hash": "61b322ca812425f0f971732df5feee091e4a541c7f6e52cd2ad97c4e729ab4b7",
+      "schema_version": 2
+    },
+    {
+      "id": "ce67e3b8-606a-58e6-9ac7-b3dee322164f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuotePolicyCover\n\n{\n \"type\": \"object\",\n \"required\": [\n \"CoverType\",\n \"Description\",\n \"CoverIncludedByDefaultIndicator\"\n ],\n \"properties\": {\n \"CoverId\": {\n \"type\": \"string\",\n \"description\": \"Insurers internal unique ID for specific cover\"\n },\n \"CoverType\": {\n \"type\": \"string\",\n \"description\": \"The category of Cover provided under the insurance policy\"\n },\n \"Description\": {\n \"type\": \"string\",\n \"description\": \"A description of the cover type\"\n },\n \"CoverIncludedByDefaultIndicator\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether this Cover is included in the policy by default\"\n },\n \"CoverLimitAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"Required if PolicyCoverIncluded is true (Yes) to provide confirmation of the maximum financial amount the insurer will cover for this specific Cover.\"\n },\n \"PolicyFeatures\": {\n \"type\": \"string\",\n \"description\": \"The benefits or additional details related to the specific policy cover.\"\n },\n \"PolicyExcess\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"Required if PolicyCoverIncluded is true (Yes) to confirm the deductible or out-of-pocket (excess) amount the policyholder must pay before the insurer covers the remaining claim.\"\n },\n \"CoverInclusionAndExclusionDescriptions\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"string\"\n },\n \"minItems\": 1,\n \"description\": \"Included inclusions and exclusions for cover type.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuotePolicyCover",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuotePolicyCover\"],\"\"]:0",
+      "content_hash": "b90297d02e2acd4a9a41b3d81d4ecdc194017d27c04d6a8b2caae649c52ead01",
+      "schema_version": 2
+    },
+    {
+      "id": "d20fe342-16bd-5350-a40c-c1747541dd08",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteUri\n\n{\n \"type\": \"string\",\n \"format\": \"uri\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteUri\"],\"\"]:0",
+      "content_hash": "c56d854bb01dee53e4dbb74a01ca38c94abbe3d426e77c38cad936a06c827b01",
+      "schema_version": 2
+    },
+    {
+      "id": "6a3f7327-a0ce-536d-9a6f-05973cff2cba",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceDocumentRequirement\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 500\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceDocumentRequirement",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceDocumentRequirement\"],\"\"]:0",
+      "content_hash": "6ce2a6d3ee7374e517b07ba4109778a98f681b14e5eecf0dda6b12cda1ad1e49",
+      "schema_version": 2
+    },
+    {
+      "id": "27d7403b-61af-5207-b0de-67613d2f904a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountOffers\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"Type\": {\n \"type\": \"string\",\n \"description\": \"The category or type of discount offer available\"\n },\n \"Name\": {\n \"type\": \"string\",\n \"description\": \"The name of the specific discount offer applied or available.\"\n },\n \"Description\": {\n \"type\": \"string\",\n \"description\": \"A brief description of the discount offer, including key details and eligibility requirements.\"\n },\n \"Criteria\": {\n \"type\": \"string\",\n \"description\": \"The conditions that must be met to qualify for the discount offer\"\n },\n \"OfferAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total monetary value of the discount offer.\"\n },\n \"DiscountPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePercentageValue\"\n }\n ],\n \"description\": \"The percentage reduction applied to the insurance premium as part of the discount.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountOffers",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountOffers\"],\"\"]:0",
+      "content_hash": "4fe9f772f6d779aa9f12160a5da38cf005e485c14aaa6e6734c709d0e7565a5b",
+      "schema_version": 2
+    },
+    {
+      "id": "9bef2dab-1f66-5856-9142-4a9744358054",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceServiceRating\n\n{\n \"type\": \"object\",\n \"required\": [\n \"FinancialStrength\",\n \"ClaimsServicePerformance\",\n \"CustomerServiceComplaintHandling\",\n \"PolicyDigitalConvenience\"\n ],\n \"properties\": {\n \"FinancialStrength\": {\n \"type\": \"object\",\n \"properties\": {\n \"SolvencyRatio\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceServiceRatingRateOrRatio\"\n }\n ],\n \"description\": \"The Solvency Capital Requirement (SCR) is a measure used to determine the minimum amount of capital that insurance companies must hold to ensure they can meet their obligations even under extreme financial stress.\"\n },\n \"YearsInBusiness\": {\n \"type\": \"integer\",\n \"description\": \"The length of time the insurer LFI has been licensed in the UAE market to provide the type of insurance requested in the quote\"\n }\n },\n \"required\": [\n \"SolvencyRatio\",\n \"YearsInBusiness\"\n ],\n \"description\": \"Key indicators to assess the financial strength and stability of the insurer LFI in terms of their ability to meet obligations to policyholders.\"\n },\n \"ClaimsServicePerformance\": {\n \"type\": \"object\",\n \"properties\": {\n \"AverageClaimSettlementTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceServiceRatingRateOrRatio\"\n }\n ],\n \"description\": \"Represents the average number of calendar days taken by the insurer to settle (pay) a claim, measured from the date the claim was filed, for the specific type of insurance coverage requested in this quote.\"\n },\n \"ClaimSettlementRatio\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceServiceRatingPercentage\"\n }\n ],\n \"description\": \"Indicates the percentage of claims successfully paid by the insurer (LFI) out of the total number of claims filed for the type of insurance coverage requested in this quote.\"\n },\n \"ClaimRejectionRate\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceServiceRatingPercentage\"\n }\n ],\n \"description\": \"Represents the percentage of claims that were rejected or denied by the insurer (LFI) relative to the total number of claims received for the type of insurance coverage requested in this quote.\"\n },\n \"ClaimsPaymentCapacityRatio\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceServiceRatingRateOrRatio\"\n }\n ],\n \"description\": \"Indicates the insurer’s short-term ability to meet claims obligations using its liquid assets. The calculation is: Liquid assets divided by total claims payable.\"\n }\n },\n \"required\": [\n \"AverageClaimSettlementTime\",\n \"ClaimSettlementRatio\",\n \"ClaimRejectionRate\",\n \"ClaimsPaymentCapacityRatio\"\n ],\n \"description\": \"Provides performance metrics related to the insurer’s claims handling process for the specified insurance type.\"\n },\n \"CustomerServiceComplaintHandling\": {\n \"type\": \"object\",\n \"properties\": {\n \"CustomerComplaintRate\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceServiceRatingRateOrRatio\"\n }\n ],\n \"description\": \"Indicates the number of customer complaints received per 1,000 active policies for the type of insurance requested in this quote.\"\n },\n \"ComplaintResolutionTime\": {\n \"type\": \"integer\",\n \"description\": \"Represents the average number of calendar days taken to resolve a customer complaint, measured from the date it was lodged, for the type of insurance requested in this quote.\"\n },\n \"NetPromoterScore\": {\n \"type\": \"integer\",\n \"minimum\": -100,\n \"maximum\": 100,\n \"description\": \"A customer satisfaction metric that reflects how likely customers are to recommend the insurer (LFI) to others for the type of insurance requested in this quote. Scores range from -100 to +100.\"\n }\n },\n \"required\": [\n \"CustomerComplaintRate\",\n \"ComplaintResolutionTime\",\n \"NetPromoterScore\"\n ],\n \"description\": \"Represents key customer service metrics and complaint handling indicators for the specific type of insurance requested in the quote. These measures reflect the insurers responsiveness, resolution efficiency, and customer sentiment.\"\n },\n \"PolicyDigitalConvenience\": {\n \"type\": \"object\",\n \"properties\": {\n \"InstantDigitalPolicyIssuance\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the insurer supports instant or fully digital policy issuance for the specific type of insurance requested in the quote. A value of true means the policy can be issued immediately online upon purchase.\"\n },\n \"DigitalClaimsFiling\": {\n \"type\": \"boolean\",\n \"description\": \"Specifies whether customers can file claims digitally at any time (24/7) for the insurance type associated with the quote. A value of true indicates full-time online claim filing availability.\"\n },\n \"SelfServiceOptions\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"string\",\n \"enum\": [\n \"MobileApp\",\n \"WebPortal\",\n \"Other\"\n ]\n },\n \"minItems\": 1,\n \"description\": \"Confirms whether customers have access to digital self-service tools (e.g., mobile app or web portal) to manage the policy for the insurance type quoted. This includes functions like viewing, updating, or renewing the policy. \"\n },\n \"CustomerSupportAvailability\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"string\",\n \"enum\": [\n \"LiveChat\",\n \"CallCenter\",\n \"InPerson\",\n \"MobileAppChat\",\n \"Email\",\n \"WhatsApp\",\n \"Chatbot\",\n \"MessagingApp\",\n \"Other\"\n ]\n },\n \"minItems\": 1,\n \"description\": \"Indicates the customer support channels available to the User.\"\n }\n },\n \"required\": [\n \"InstantDigitalPolicyIssuance\",\n \"DigitalClaimsFiling\",\n \"SelfServiceOptions\",\n \"CustomerSupportAvailability\"\n ],\n \"description\": \"Contains indicators related to the insurer’s digital capabilities and customer convenience features for the specific type of insurance requested in the quote.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceServiceRating",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceServiceRating\"],\"\"]:0",
+      "content_hash": "9144f4c05c406370f21691dfcc03292f746f70a5b2eeacf72d028c71acc6d8da",
+      "schema_version": 2
+    },
+    {
+      "id": "1811636a-3c3e-5643-a91b-ccec3a255254",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceServiceRatingRateOrRatio\n\n{\n \"type\": \"number\",\n \"multipleOf\": 0.1,\n \"description\": \"Provides a rate or ratio as decimal, to one decimal place.\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceServiceRatingRateOrRatio",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceServiceRatingRateOrRatio\"],\"\"]:0",
+      "content_hash": "febf76e76993c6efa6615e0e825b785ad80a8dd561dcbfe1bd08b4554f830674",
+      "schema_version": 2
+    },
+    {
+      "id": "3dacd5cb-3a02-56c5-adb8-5ca90b73dad3",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceServiceRatingPercentage\n\n{\n \"type\": \"number\",\n \"minimum\": 0,\n \"maximum\": 100,\n \"multipleOf\": 0.1,\n \"description\": \"Provides a percentage as decimal, to one decimal place.\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceServiceRatingPercentage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceServiceRatingPercentage\"],\"\"]:0",
+      "content_hash": "e2b17cf049be04ad8fa9e77b72389f1388c23822b0fea2eadcefb4b414b930d0",
+      "schema_version": 2
+    },
+    {
+      "id": "45499c58-56ae-5b9f-ad50-52f6919bc5e5",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSpecialConditions\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 500\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSpecialConditions",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSpecialConditions\"],\"\"]:0",
+      "content_hash": "4d2925e70d49d733ed785b63398ff061b35380fc78a7c26abc39f058ac394022",
+      "schema_version": 2
+    },
+    {
+      "id": "b5cb9b21-8a93-5286-a86c-23e86aeb3db2",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"PremiumAmountExcludingVAT\",\n \"VATAmount\",\n \"TotalPremiumAmount\",\n \"PaymentFrequency\"\n ],\n \"properties\": {\n \"Status\": {\n \"type\": \"string\",\n \"enum\": [\n \"Initial\",\n \"StartingFrom\",\n \"Final\"\n ],\n \"description\": \"Confirmation whether the premium quoted is an initial premium, starting from, or final.\"\n },\n \"TotalDiscountAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total discount amount applied to the final premium amount\"\n },\n \"DiscountApplied\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\"\n },\n \"minItems\": 1,\n \"description\": \"Details of the discounts applied\"\n },\n \"PremiumAmountExcludingVAT\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The Premium Amount excluding any VAT amount\"\n },\n \"VATAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The Premium VAT amount.\"\n },\n \"VATPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceVATPercentage\"\n }\n ],\n \"description\": \"The VAT percentage rate charged to the premium.\"\n },\n \"TotalPremiumAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total Premium amount including VAT\"\n },\n \"PaymentFrequency\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"\n }\n ],\n \"description\": \"The payment frequency the calculated Premium has been based on.\"\n },\n \"InstallmentOptions\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"\n },\n \"minItems\": 1,\n \"description\": \"The possible Premium instalment frequency options available to the customer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties\"],\"\"]:0",
+      "content_hash": "64a47f078627b2345020e2fe22053f0d1f5f0f05852c9f952830080d59bc4994",
+      "schema_version": 2
+    },
+    {
+      "id": "354a2e41-1853-552e-a6c2-0f89d371cf93",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\n\n{\n \"type\": \"object\",\n \"required\": [\n \"DiscountName\",\n \"DiscountAmount\"\n ],\n \"properties\": {\n \"DiscountName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the discount applied to the insurance premium\"\n },\n \"DiscountPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePercentageValue\"\n }\n ],\n \"description\": \"The percentage reduction applied to the insurance premium as part of the discount.\"\n },\n \"DiscountAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The monetary value of the discount applied to the insurance premium\"\n }\n },\n \"description\": \"Details of discounts applied to the insurance premium\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\"],\"\"]:0",
+      "content_hash": "beb1b048ad5749d1ad2d284dcf3dedc8ca4e7dc4536f8e90fcfa93e0a50a5127",
+      "schema_version": 2
+    },
+    {
+      "id": "ffc95001-278c-5444-b528-db580af6da70",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage\n\n{\n \"type\": \"number\",\n \"format\": \"decimal\",\n \"minimum\": 0,\n \"maximum\": 100\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage\"],\"\"]:0",
+      "content_hash": "fe64604d1064a51513ed6f9d566bd520a9cf7d43906818eb4a50a2a56d0abce6",
+      "schema_version": 2
+    },
+    {
+      "id": "bee6ef53-60cf-58e0-b207-11945d19c5b7",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Annually\",\n \"OneTime\",\n \"Monthly\",\n \"Quarterly\",\n \"BiAnnual\",\n \"Other\",\n \"Limited\"\n ],\n \"description\": \"Frequencies\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"],\"\"]:0",
+      "content_hash": "34b040909fea4cc8f4dac72b4e01396e83d31add99d269955cc92a443dc5e1e8",
+      "schema_version": 2
+    },
+    {
+      "id": "659ce7f8-0a57-5634-b8c0-0e46fa699c47",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/responses/error400Response\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error400Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error400Response\"],\"\"]:0",
+      "content_hash": "6a1e44575b7a3ada09414929b77d7b8571eec232471dadd2d18209c5b6469664",
+      "schema_version": 2
+    },
+    {
+      "id": "696fb330-f1da-54da-97ea-5b2b63baa197",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error400\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError400Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Default error response payload structure for Ozone Connect\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error400\"],\"\"]:0",
+      "content_hash": "156b52614c663adcfe7fe52a26b7028d77177c86167f6444fc26e95e4188b0e8",
+      "schema_version": 2
+    },
+    {
+      "id": "e92e2e67-c64d-5c33-8ca9-28cc999667ba",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEError400Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWS.InvalidPayload\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError400Codes\"],\"\"]:0",
+      "content_hash": "3163a17b5b0f31e174e767ac0430fa28cfd1e5a5110a51368ed2ee76fdc952b9",
+      "schema_version": 2
+    },
+    {
+      "id": "465eb1cf-4407-53ba-8e3f-56790f264816",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AECustomErrorCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECustomErrorCode\"],\"\"]:0",
+      "content_hash": "be29e1ff56232b063312e1366b3feb771d072dae8d047f739f9bc8d0a6142507",
+      "schema_version": 2
+    },
+    {
+      "id": "71afef82-9acf-5a0e-a23d-6cfb45fc317b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\n\n{\n \"type\": \"string\",\n \"description\": \"Custom error code without prefix, retained for compatibility with version 1.2.\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\"],\"\"]:0",
+      "content_hash": "59fcd3329d85d150b117287303a93c1c49e9b083a07656a060686ec903aa9394",
+      "schema_version": 2
+    },
+    {
+      "id": "2a552657-8cc6-5726-b4e4-4fcb7930d2c7",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/responses/error403Response\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error403Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error403Response\"],\"\"]:0",
+      "content_hash": "b9f571af4e04a6acd288c232fc99e6a29740a3074ae2e8b626de830780f96287",
+      "schema_version": 2
+    },
+    {
+      "id": "4afced72-d545-5563-8ce9-61bd16589cbe",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error403\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError403Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n \\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error403\"],\"\"]:0",
+      "content_hash": "f2962d6fd8cca8378cc579c3b68a1ad566374fca316288db9df85efcfe0c6bc4",
+      "schema_version": 2
+    },
+    {
+      "id": "3aca0a8d-c19e-5c65-9ff6-84ce394ab04e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEError403Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError403Codes\"],\"\"]:0",
+      "content_hash": "01dd31f13b2a047138bec623264dd5d92ca99ae2933a3bb6dd729c0f0db8c975",
+      "schema_version": 2
+    },
+    {
+      "id": "39988328-c052-54fc-b880-6b42fdb06959",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/responses/error409Response\n\n{\n \"description\": \"Operation failed due to a conflict\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error409\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error409Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error409Response\"],\"\"]:0",
+      "content_hash": "aeb0d11e2cba73b00c77a0e52d8ce08bc7cfb2ae087d37d22b86cbb413d90ff6",
+      "schema_version": 2
+    },
+    {
+      "id": "37f75ec9-2e5b-5f0e-9e77-13f441193bd5",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error409\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error409",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error409\"],\"\"]:0",
+      "content_hash": "9d358605708714104f9f2749c76270f1c5affa1efdef9b42d4cf0ea446502de8",
+      "schema_version": 2
+    },
+    {
+      "id": "65eab068-7037-51e3-97c3-149c75436d7e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEErrorGenericCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEErrorGenericCodes\"],\"\"]:0",
+      "content_hash": "501e210f3086ff062ccadbcfc408ee013326e7f60473009a7cf79536e70873d2",
+      "schema_version": 2
+    },
+    {
+      "id": "f0805222-0406-53ea-aa96-7b95f3087e89",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/responses/error500Response\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error500Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error500Response\"],\"\"]:0",
+      "content_hash": "88bf049750b9b90343eeba1ef8e792564f2d666f6f7802fa2c35c25bc304beb6",
+      "schema_version": 2
+    },
+    {
+      "id": "6f5e5655-b5c9-5082-bf88-dcd3e7020493",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error500\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error500\"],\"\"]:0",
+      "content_hash": "9ab1a5382954ae4517d4d14b661d3904acc71a051af5df7a37ed879bd8fef74a",
+      "schema_version": 2
+    },
+    {
+      "id": "7aa41f14-4bb3-584b-beb1-6b60f4bf86b3",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/responses/errorResponse\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.DefaultError\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "78fcbf729d50e9c979dfabe6f087d8db91bbf427ae635e0b8dd10061bdd5645b",
+      "schema_version": 2
+    },
+    {
+      "id": "61939c2f-873f-5b0b-bf6f-1085cc5c24ce",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Generic error code set by the LFI. Non-namespaced error codes are allowed for compatibility versions prior to v2.0.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.DefaultError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\"],\"\"]:0",
+      "content_hash": "668b9876fad4ad6f50394724ab0942f007d634d5374866732d7c6c2e8d7cf6d9",
+      "schema_version": 2
+    },
+    {
+      "id": "2d65cd34-a0c7-5808-87c8-7425a8a0b53e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteRequestProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"CustomerId\",\n \"QuoteReference\",\n \"QuoteType\",\n \"PolicyIssuanceRequest\",\n \"Policy\",\n \"Employment\"\n ],\n \"properties\": {\n \"CustomerId\": {\n \"type\": \"string\",\n \"description\": \"Identifier that uniquely and consistently identifies the existing policy customer or Broker unique Id for customer during policy purchase process.\"\n },\n \"QuoteReference\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"\n },\n \"QuoteType\": {\n \"type\": \"string\",\n \"enum\": [\n \"New\",\n \"Switch\",\n \"Renewal\"\n ],\n \"description\": \"Identification of quote type.\\n\\nThe following quote type values are supported:\\n\\n * New: New Policy Quote\\n\\n * Switch: Customer would like to switch policies or brokers\\n\\n * Renewal: Customer would like renewal quote\"\n },\n \"PolicyIssuanceRequest\": {\n \"type\": \"object\",\n \"properties\": {\n \"CustomerVerification\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to complete capture of customer verification information and documents for this quote.\"\n },\n \"Payment\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to host payment checkout.\"\n },\n \"PolicyDocuments\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to provide policy documents to customer.\"\n }\n },\n \"required\": [\n \"CustomerVerification\",\n \"Payment\",\n \"PolicyDocuments\"\n ],\n \"description\": \"Broker requests to handle following steps of policy issuance process.\"\n },\n \"Policy\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEEmploymentInsuranceQuotePolicyProperties\"\n },\n \"PolicyHolder\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEEmploymentInsuranceQuotePolicyHolderProperties\"\n },\n \"Identity\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceIdentityTypes\"\n }\n ],\n \"description\": \"Identification details of the policyholder.\"\n },\n \"Employment\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteEmploymentProperties\"\n },\n \"ExistingInsurance\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceExistingInsuranceProperties\"\n },\n \"minItems\": 1,\n \"description\": \"One-or-more existing insurance policies, omitted if none are held.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteRequestProperties\"],\"\"]:0",
+      "content_hash": "89a6214ea2cc7005fdf8a6e751f5bcc19f34d91e13341e9e17548545c9762fc0",
+      "schema_version": 2
+    },
+    {
+      "id": "a393ee14-696d-5da7-ace1-fac6f5bc2511",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuotePolicyProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"PolicyStartDate\",\n \"SchemeCategory\",\n \"Sector\",\n \"PremiumFrequency\"\n ],\n \"properties\": {\n \"PolicyStartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy start date\"\n },\n \"PolicyEndDate\": {\n \"type\": \"string\",\n \"description\": \"The date on which cover ends.\"\n },\n \"SchemeCategory\": {\n \"type\": \"string\",\n \"enum\": [\n \"CategoryA\",\n \"CategoryB\"\n ],\n \"description\": \"For Involuntary Loss of Employment Insurance (ILOE) confirmation of the customer's Salary Category.\\n\\nCategories are defined as follows:\\n\\n* Category A - Salary of AED16,000 or less\\n* Category B - Salary Exceeding AED16,000\"\n },\n \"Sector\": {\n \"type\": \"string\",\n \"enum\": [\n \"Private\",\n \"FederalGovernment\"\n ],\n \"description\": \"For Involuntary Loss of Employment Insurance (ILOE) confirmation of the customer's employment Sector\"\n },\n \"PolicyTerm\": {\n \"type\": \"string\",\n \"pattern\": \"^P(\\\\d+Y)?(\\\\d+M)?$\",\n \"format\": \"duration\",\n \"description\": \"The insurance policy term in years and months, using ISO 8601 compatible duration format\",\n \"example\": \"P2Y3M\"\n },\n \"PremiumFrequency\": {\n \"type\": \"string\",\n \"enum\": [\n \"Annually\",\n \"OneTime\",\n \"Monthly\",\n \"Quarterly\",\n \"BiAnnual\",\n \"Limited\",\n \"Other\"\n ],\n \"description\": \"The payment frequency the calculated Premium has been based on.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuotePolicyProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuotePolicyProperties\"],\"\"]:0",
+      "content_hash": "5865a35e30e2be30275321f5d926df1d2dea6af2f384c1ef765c8707067da662",
+      "schema_version": 2
+    },
+    {
+      "id": "ff088564-12c7-5277-b76e-f67dce50b1f3",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuotePolicyHolderProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"FirstName\",\n \"LastName\",\n \"Gender\"\n ],\n \"properties\": {\n \"Salutation\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceSalutationCodes\"\n }\n ],\n \"description\": \"The salutation of the individual or customer.\"\n },\n \"FirstName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"First Name of the individual.\"\n },\n \"MiddleName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Middle Name of the individual.\"\n },\n \"LastName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Last Name (Surname) of the individual.\"\n },\n \"Gender\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceGender\"\n }\n ],\n \"description\": \"The gender of the customer\"\n },\n \"DateOfBirth\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date of birth of the individual.\"\n },\n \"MaritalStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceMaritalStatus\"\n }\n ],\n \"description\": \"The marital status of the individual.\"\n },\n \"ResidentialLocation\": {\n \"type\": \"string\",\n \"description\": \"Residential Location of the individual.\"\n },\n \"LandlineNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"\n }\n ],\n \"pattern\": \"^\\\\+?[1-9]\\\\d{1,14}$\",\n \"description\": \"The landline telephone number of the individual.\"\n },\n \"Nationality\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3}$\",\n \"description\": \"The nationality of the individual based on the ISO 3166-1 alpha-3 codes\"\n },\n \"PrimaryLanguage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AECustomerPrimaryLanguage\"\n }\n ],\n \"description\": \"Primary language spoken by the insurance policy customer\"\n },\n \"MobileNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"\n }\n ],\n \"description\": \"The mobile telephone number of the individual.\"\n },\n \"EmailAddress\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmailAddressType\"\n }\n ],\n \"description\": \"Email address of the individual.\"\n },\n \"Address\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddress\"\n },\n \"minItems\": 1,\n \"description\": \"Customer's address details\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuotePolicyHolderProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuotePolicyHolderProperties\"],\"\"]:0",
+      "content_hash": "bc4b0c3c99653eb21036d31e156f8841f74cebe615a7b394beb8e181399991a8",
+      "schema_version": 2
+    },
+    {
+      "id": "ffb43095-73ac-5f77-b4bf-9860a2e09048",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Mr\",\n \"Mrs\",\n \"Ms\",\n \"Miss\",\n \"Dr\",\n \"Prof\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes\"],\"\"]:0",
+      "content_hash": "3a6764c856a6d7f3c301d8460678ff7eb499419812e21475f17ef8eeff320eb6",
+      "schema_version": 2
+    },
+    {
+      "id": "342f982e-bc65-5891-86cd-f04c063bbd83",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Male\",\n \"Female\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender\"],\"\"]:0",
+      "content_hash": "51ae8e2dc31f3be1fdb58a3508bd18ab6740ee0ae0285d3e4d82608ab594cdda",
+      "schema_version": 2
+    },
+    {
+      "id": "9dc30175-be59-5b7e-87fe-5d9a84bcfef0",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Single\",\n \"Married\",\n \"Divorced\",\n \"Widowed\",\n \"Separated\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus\"],\"\"]:0",
+      "content_hash": "550814d2fed00be8e5f4649981018a20a8d2790368e0eb92d792685e60ee5b1b",
+      "schema_version": 2
+    },
+    {
+      "id": "894d64b6-e432-53da-980b-7166d1cec594",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType\n\n{\n \"type\": \"string\",\n \"pattern\": \"^\\\\+?[1-9]\\\\d{1,14}$\",\n \"example\": \"+971501234567\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"],\"\"]:0",
+      "content_hash": "0a5c8038f470b91ca0dfff946a293bf589fb4bd115559abd41bb454563177994",
+      "schema_version": 2
+    },
+    {
+      "id": "a1fa27dd-67b4-5ab3-babf-ddb931acfde1",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"English\",\n \"Arabic\",\n \"Other\"\n ],\n \"description\": \"Primary language spoken by the insurance policy customer\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage\"],\"\"]:0",
+      "content_hash": "021c6323d95a396ea4d0a196281c2aa3ad3f8f2f7383fb1d4c161d259c5e212d",
+      "schema_version": 2
+    },
+    {
+      "id": "65a86d80-3d1b-5f73-85b1-0037d3fbea3d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\",\n \"example\": \"ali.hamad@example.openfinanceplatform.ae\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType\"],\"\"]:0",
+      "content_hash": "82f01a79c280ff18af5bb63f1da13f939e329dd355a1010c4322f469c50c76ac",
+      "schema_version": 2
+    },
+    {
+      "id": "313bff68-2b96-5c28-967e-cf2560801481",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddress\n\n{\n \"type\": \"object\",\n \"required\": [\n \"AddressLine\",\n \"Country\"\n ],\n \"properties\": {\n \"AddressType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Billing\",\n \"Business\",\n \"Correspondence\",\n \"DeliveryTo\",\n \"MailTo\",\n \"POBox\",\n \"Postal\",\n \"Permanent\",\n \"Residential\",\n \"Statement\",\n \"Other\"\n ],\n \"description\": \"The type of address.\"\n },\n \"AddressLine\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddressLine\"\n },\n \"minItems\": 1,\n \"maxItems\": 7,\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\\n\\nThis value should be used where the address is provided or stored as a single string.\"\n },\n \"BuildingNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The unit, apartment, or villa number within a building or community\"\n },\n \"BuildingName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of the building or house.\"\n },\n \"Floor\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Floor or storey within a building.\"\n },\n \"StreetName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the street or road where the property is located\"\n },\n \"DistrictName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The district, community, or neighbourhood where the property is located\"\n },\n \"PostBox\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery\"\n },\n \"TownName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of a built-up area, such as a town or city\"\n },\n \"CountrySubDivision\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Country subdivision, such as state or province. This is the Emirate where the address is registered.\"\n },\n \"Country\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCountryCode\"\n }\n ],\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddress",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddress\"],\"\"]:0",
+      "content_hash": "9e2faa0a830fa662534d62eaf7608720b142ffd71a9ce9085947ef1023cfce94",
+      "schema_version": 2
+    },
+    {
+      "id": "1f178815-2336-5924-b693-cd7a80da8cff",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine\"],\"\"]:0",
+      "content_hash": "0df9e487076d58c6ddaa188827aac5f722c6314c534f88534228cf104a4c934a",
+      "schema_version": 2
+    },
+    {
+      "id": "5731a247-e30c-5492-ac12-a1ee51e345f0",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AbuDhabi\",\n \"Ajman\",\n \"Dubai\",\n \"Fujairah\",\n \"RasAlKhaimah\",\n \"Sharjah\",\n \"UmmAlQuwain\"\n ]\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\"],\"\"]:0",
+      "content_hash": "ce71cd41cf796049b1b8cc6067be79713b452c5cf6393605f17583eab25457b5",
+      "schema_version": 2
+    },
+    {
+      "id": "c8d417ea-d63e-5b7b-b4bc-5e4721f1f892",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"[A-Z]{2}\",\n \"description\": \"Country code that conforms with ISO 3166, 3 character alpha code\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode\"],\"\"]:0",
+      "content_hash": "ee0f6c9602f0d2122a954afbbb306b2965d4d17f3d74341d300efcf6607ec514",
+      "schema_version": 2
+    },
+    {
+      "id": "271078ce-70ab-52e6-947b-b1fcbc108a4c",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceIdentityTypes\n\n{\n \"oneOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceIdentityEmiratesIdOptionalVisa\"\n },\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePassportOptionalVisa\"\n },\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmiratesIdPassportOptionalVisa\"\n }\n ]\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceIdentityTypes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceIdentityTypes\"],\"\"]:0",
+      "content_hash": "3a4e1a000d5450e84ddae76fcedf8c09abf5d57a4a8f227304f7f9cc56b297a2",
+      "schema_version": 2
+    },
+    {
+      "id": "b0ec8bbc-3227-5dcc-80db-6e46912035fd",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceIdentityEmiratesIdOptionalVisa\n\n{\n \"type\": \"object\",\n \"required\": [\n \"EmiratesId\"\n ],\n \"properties\": {\n \"EmiratesId\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceNationalIdentifierProperties\"\n }\n ],\n \"description\": \"Details of the Emirates ID held by the policyholder or insured person.\"\n },\n \"Visa\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceVisaProperties\"\n }\n ],\n \"description\": \"Details of visa issued to insured person. Omitted if not required or information not held.\"\n }\n },\n \"description\": \"Details of the Emirates ID held by the policyholder or insured person.\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceIdentityEmiratesIdOptionalVisa",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceIdentityEmiratesIdOptionalVisa\"],\"\"]:0",
+      "content_hash": "3fdf085cde52ecd490d18e5cf836856d6935376c486f37cff4d0739211466be4",
+      "schema_version": 2
+    },
+    {
+      "id": "f9441a93-4f19-55b7-a36e-0c62ea3525c6",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceNationalIdentifierProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"EmiratesIdNumber\"\n ],\n \"properties\": {\n \"EmiratesIdNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$\",\n \"description\": \"Emirates identification number\"\n },\n \"EmiratesIdExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Emirates ID expiry date\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceNationalIdentifierProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceNationalIdentifierProperties\"],\"\"]:0",
+      "content_hash": "0d1046dd631fd0e9fc22dd9b685f400cfcb2c3d6b5851b9e320f4420774b7eb0",
+      "schema_version": 2
+    },
+    {
+      "id": "eaadf00f-247e-5248-8185-a426be1594fa",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVisaProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"VisaType\",\n \"VisaNumber\"\n ],\n \"properties\": {\n \"VisaType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Employment\",\n \"Residence\",\n \"Business\",\n \"Investor\",\n \"Freelance\",\n \"VirtualWork\",\n \"Retirement\",\n \"Student\",\n \"Family\",\n \"Green\",\n \"Golden\",\n \"Blue\"\n ],\n \"description\": \"The type of visa issues, based on an available code list\"\n },\n \"VisaNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^[0-9]+$\",\n \"description\": \"Visa number\"\n },\n \"IssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The visa issue date\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The visa expiry date\"\n },\n \"IssuingEmirate\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Emirate that issued the visa\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVisaProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVisaProperties\"],\"\"]:0",
+      "content_hash": "a640d66b2e092491f5ea034613f2a1e9c0c1cf372f8b8960a33ac0d3a55c5e02",
+      "schema_version": 2
+    },
+    {
+      "id": "6fd5f884-c228-5fe5-8d3d-d0ce95050c11",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePassportOptionalVisa\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Passport\"\n ],\n \"properties\": {\n \"Passport\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePassportProperties\"\n }\n ],\n \"description\": \"Details of passport held by policyholder or insured person.\"\n },\n \"Visa\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceVisaProperties\"\n }\n ],\n \"description\": \"Details of visa issued to insured person. Omitted if not required or information not held.\"\n }\n },\n \"description\": \"Details of passport held by policyholder or insured person.\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePassportOptionalVisa",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePassportOptionalVisa\"],\"\"]:0",
+      "content_hash": "d79b055e48d90899c61b01c0fcdde8222ff6ad4a7768dd7001627ab04704f1cf",
+      "schema_version": 2
+    },
+    {
+      "id": "453dc415-670f-5527-8079-e1562cfe7984",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePassportProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"PassportNumber\"\n ],\n \"properties\": {\n \"PassportNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z0-9]+$\",\n \"description\": \"Passport number\"\n },\n \"IssuingCountry\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"The country the passport is issued by.\"\n },\n \"NameOnPassport\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The applicant, policyholder or insured person name as detailed on their passport\"\n },\n \"IssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The passport issue date\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The passport expiry date\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePassportProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePassportProperties\"],\"\"]:0",
+      "content_hash": "42d23f6d46d5de6dcbcfc06384690c294fa918be4e14fa2b1f78b634b35d87d1",
+      "schema_version": 2
+    },
+    {
+      "id": "a2507b02-0f11-5ce8-b41f-473002a475d9",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmiratesIdPassportOptionalVisa\n\n{\n \"type\": \"object\",\n \"required\": [\n \"EmiratesId\",\n \"Passport\"\n ],\n \"properties\": {\n \"EmiratesId\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceNationalIdentifierProperties\"\n }\n ],\n \"description\": \"Details of the Emirates ID held by the policyholder or insured person.\"\n },\n \"Passport\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePassportProperties\"\n }\n ],\n \"description\": \"Details of passport held by policyholder or insured person.\"\n },\n \"Visa\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceVisaProperties\"\n }\n ],\n \"description\": \"Details of visa issued to insured person. Omitted if not required or information not held.\"\n }\n },\n \"description\": \"Details of the Emirates ID and passport held by the policyholder or insured person.\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmiratesIdPassportOptionalVisa",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmiratesIdPassportOptionalVisa\"],\"\"]:0",
+      "content_hash": "b235a8e44eb5500b68e490c749a86b3ce9601d12cc285a1d38b4d8cd81cc743c",
+      "schema_version": 2
+    },
+    {
+      "id": "c88b0cd9-0fe8-5c1a-ab11-c66b31713c8d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteEmploymentProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"EmployerName\",\n \"EmploymentStatus\",\n \"MonthlyIncomeAmount\"\n ],\n \"properties\": {\n \"Profession\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"The individuals profession.\"\n },\n \"ProfessionDescription\": {\n \"type\": \"string\",\n \"description\": \"A description of the individual's Profession\"\n },\n \"JobTitle\": {\n \"type\": \"string\",\n \"description\": \"Individual's job title\"\n },\n \"Designation\": {\n \"type\": \"string\",\n \"description\": \"An individual's professional qualifications, special licenses and certifications\"\n },\n \"NatureOfEmployerBusiness\": {\n \"type\": \"string\",\n \"description\": \"Nature of employer business\"\n },\n \"EmployerName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Employer name.\"\n },\n \"EmployerAddress\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddressProperties\"\n }\n ],\n \"description\": \"The address details of the individual's employer\"\n },\n \"EmploymentStatus\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmploymentStatus\"\n },\n \"StartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Individual's employment start date\"\n },\n \"SourceOfIncome\": {\n \"type\": \"string\",\n \"description\": \"Source of the individual's income as a free form description\"\n },\n \"MonthlyIncomeAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"Monthly income amount and currency\"\n },\n \"AnnualIncomeAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"Annual income amount and currency\"\n },\n \"AdditionalCompensation\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAdditionalCompensationProperties\"\n },\n \"minItems\": 1,\n \"description\": \"Provided when the individual has additional income.\"\n }\n },\n \"description\": \"Details of the employment to be insured.\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteEmploymentProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteEmploymentProperties\"],\"\"]:0",
+      "content_hash": "d30fba75196a9c0d9ef0c8178a628a93b2f4bcbc6f6f912c297ef82bcb943a54",
+      "schema_version": 2
+    },
+    {
+      "id": "c34d60ca-e59f-58d8-86aa-3922a9455c9b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"AddressLine\",\n \"Country\"\n ],\n \"properties\": {\n \"AddressLine\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddressLine\"\n },\n \"minItems\": 1,\n \"maxItems\": 7,\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\\n\\nThis value should be used where the address is provided or stored as a single string.\"\n },\n \"BuildingNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The unit, apartment, or villa number within a building or community\"\n },\n \"BuildingName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of the building or house.\"\n },\n \"Floor\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Floor or storey within a building.\"\n },\n \"StreetName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the street or road where the property is located\"\n },\n \"DistrictName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The district, community, or neighbourhood where the property is located\"\n },\n \"PostBox\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery\"\n },\n \"TownName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of a built-up area, such as a town or city\"\n },\n \"CountrySubDivision\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Country subdivision, such as state or province. This is the Emirate where the address is registered.\"\n },\n \"Country\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCountryCode\"\n }\n ],\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressProperties\"],\"\"]:0",
+      "content_hash": "ece973cc3e2fea7cf55cc09e703f7ca10d4d00f2143468a65acf88d9fc75774d",
+      "schema_version": 2
+    },
+    {
+      "id": "fcdc7fb5-56e9-5e0a-ab0e-001b23afd64d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmploymentStatus\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Employed\",\n \"SelfEmployed\",\n \"BusinessOwner\",\n \"Unemployed\",\n \"Dependent\",\n \"Retired\",\n \"Student\",\n \"DomesticWorker\",\n \"Other\"\n ],\n \"description\": \"The applicant or policyholder employment status\"\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmploymentStatus",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmploymentStatus\"],\"\"]:0",
+      "content_hash": "f96a5a42b5030b3eae3a3475285d303c26ea1a9f41cce9cdb0e8eab04fef555c",
+      "schema_version": 2
+    },
+    {
+      "id": "bf566c40-52c3-5e92-b596-7bb3011d53ff",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAdditionalCompensationProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Description\",\n \"CompensationAmount\"\n ],\n \"properties\": {\n \"Description\": {\n \"type\": \"string\",\n \"description\": \"Free form description of the additional compensation\"\n },\n \"CompensationAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The amount of the additional compensation\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAdditionalCompensationProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAdditionalCompensationProperties\"],\"\"]:0",
+      "content_hash": "b348106a9516875a80aa55c5a02678319315972b5d26758155faa49adffe263b",
+      "schema_version": 2
+    },
+    {
+      "id": "09aa3964-5fe4-5a12-a083-d8c72266a2a8",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+      "type": "section",
+      "text": "Create a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceExistingInsuranceProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"InsurerName\",\n \"ExistingPolicyNumber\",\n \"PolicyStartDate\",\n \"PolicyEndDate\"\n ],\n \"properties\": {\n \"InsurerName\": {\n \"type\": \"string\",\n \"description\": \"The Insurance Company Name when an existing cover is held.\"\n },\n \"ExistingPolicyNumber\": {\n \"type\": \"string\",\n \"description\": \"The Insurance Policy Number when an existing cover is held.\"\n },\n \"PolicyStartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy start date\"\n },\n \"PolicyEndDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy end date\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceExistingInsuranceProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "3bb7fd40b0707f6ef9bac17cad1d01f75351c47f1ab35549827823b75449f391",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/employment-insurance-quotes",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceExistingInsuranceProperties\"],\"\"]:0",
+      "content_hash": "e233dde7d625417d3c9704bb629c83e79d9bd9c9475335212d970ff15b27f248",
+      "schema_version": 2
+    }
+  ]
+}

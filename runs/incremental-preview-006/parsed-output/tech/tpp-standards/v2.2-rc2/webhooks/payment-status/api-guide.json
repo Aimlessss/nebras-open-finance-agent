@@ -1,0 +1,230 @@
+{
+  "id": "tech/tpp-standards/v2.2-rc2/webhooks/payment-status/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.2-rc2/webhooks/payment-status/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "bce39ce874a869ba4065bcc304441d34b370ccee29e0a5b77c00519e07fe7401",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Payment Status Event — API Guide",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/webhooks/payment-status/api-guide",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Payment Status Event — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "When a payment consent is created with subscription.Webhook.IsActive: true, the API Hub monitors that consent for payment status changes. Each time the LFI processes the payment and updates its status — by PATCHing the API Hub — the Hub delivers a Payment Status Event to your registered Webhook.Url as a JWE-encrypted POST."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before events can be delivered",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before receiving a Payment Status Event, ensure the following requirements are met:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Registered Application — the application must be created within the Trust Framework and assigned the BDSP role as defined in Roles.",
+              "Valid Encryption Certificate — an active encryption certificate must be issued and registered in the Trust Framework to receive the event as an encrypted JWE."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Push delivery on every payment status update",
+        "level": 2,
+        "anchor": "how-it-works",
+        "category": "How It Works",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When a payment consent is created with subscription.Webhook.IsActive: true, the API Hub monitors that consent for payment status changes. Each time the LFI processes the payment and updates its status — by PATCHing the API Hub — the Hub delivers a Payment Status Event to your registered Webhook.Url as a JWE-encrypted POST request."
+          },
+          {
+            "type": "paragraph",
+            "text": "The JWE is encrypted using your public Encryption Certificate registered in the Trust Framework. You must respond with 202 Accepted immediately and decrypt the event payload asynchronously."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end payment status update example",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Enable the subscription on your payment consent",
+        "level": 2,
+        "anchor": "step-1",
+        "category": "Step 1",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Set subscription.Webhook.IsActive to true and provide your webhook URL when creating the payment consent PII. The URL must be registered and accessible from the API Hub."
+          },
+          {
+            "type": "paragraph",
+            "text": "The Webhook.Url must be the URL of your registered webhook endpoint — the API Hub will POST events directly to this address."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Receive the event",
+        "level": 2,
+        "anchor": "step-2",
+        "category": "Step 2",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Hub delivers the event as an HTTP POST to your Webhook.Url. The request body is a JWE compact serialisation string and the Content-Type is application/jwe."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers you will receive",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Header",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "Content-Type",
+                    "application/jwe"
+                  ],
+                  [
+                    "x-fapi-interaction-id",
+                    "RFC4122 UUID used as a correlation ID for this event delivery"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Respond with 202 Accepted before processing",
+        "level": 2,
+        "anchor": "step-3",
+        "category": "Step 3",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "You must respond with 202 Accepted and an empty body before performing any processing. The Hub expects an immediate acknowledgement — do not wait for decryption or business logic before responding."
+          },
+          {
+            "type": "paragraph",
+            "text": "Failure to respond with 202 promptly may cause the Hub to retry delivery. Process the event payload asynchronously after acknowledging receipt."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Decrypt the JWE and verify the inner JWS",
+        "level": 2,
+        "anchor": "step-4",
+        "category": "Step 4",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The event is a JWE compact serialisation encrypted with your public Encryption Certificate. The JWE header contains a kid that identifies which of your registered encryption keys was used — decode the header first to select the correct private key, then decrypt."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Receiving Event Notifications for the full FAPI-aligned guidance, including key selection by kid, JWS signature verification, and required security checks."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Envelope metadata about the event itself",
+        "level": 2,
+        "anchor": "payload-meta",
+        "category": "Event Payload — Meta",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The decrypted and decoded event payload contains the following structure under the message claim."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Type",
+              "Description"
+            ],
+            "rows": [
+              [
+                "EventDateTime",
+                "string (date-time)",
+                "When the event was generated"
+              ],
+              [
+                "EventResource",
+                "string",
+                "The resource URI that triggered the event"
+              ],
+              [
+                "EventType",
+                "string",
+                "One of: Resource.Created, Resource.Updated, Resource.Deleted"
+              ],
+              [
+                "ConsentId",
+                "string",
+                "The consent identifier associated with the event"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "A replica of the payment at the time of the change",
+        "level": 2,
+        "anchor": "payload-data",
+        "category": "Event Payload — Data",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "A replica of the payment resource at the time of the status change, with Status and StatusUpdateDateTime updated to reflect the new state. Where the payment was rejected, RejectReasonCode will be populated. Where the payment has been processed by the underlying rails, PaymentTransactionId will be present."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Decrypted event payload",
+        "level": 2,
+        "anchor": "example-payload",
+        "category": "Example",
+        "blocks": [],
+        "subsections": []
+      }
+    ]
+  }
+}

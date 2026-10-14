@@ -1,0 +1,396 @@
+{
+  "id": "tech/tpp-standards/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "9d53117ff7b31d563c76b38dc56c559419a2bdb62a48a2b04d5ac87faf756bc6",
+    "dependencies": [
+      "./pkce",
+      "./request-jwt",
+      "jose",
+      "node:crypto"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Delegated SCA — API Guide",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Delegated SCA — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "A Delegated SCA consent authorises a TPP to initiate multiple payments at variable amounts over the lifetime of the consent. The user authorises the consent once. Unlike other multi-payments a Delegated SCA consent does not contain predefined control parameters. Instead, the TPP is responsible for performing Strong Customer Authentication (SCA) on the user before each payment request (POST /payments)."
+      },
+      {
+        "type": "paragraph",
+        "text": "Common use cases include digital wallet experiences where the TPP authenticates the user within its own app, as well as usage-based services such as taxi rides, EV charging sessions, and other metered services where the final charge is presented to the user after the service is completed."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before initiating a Delegated SCA payment",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before initiating a Delegated SCA payment, ensure the following requirements are met:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Registered Application — the application must be created within the Trust Framework and assigned the BSIP role as defined in Roles.",
+              "Valid Transport Certificate — an active transport certificate must be issued and registered in the Trust Framework to establish secure mTLS communication.",
+              "Valid Signing Certificate — an active signing certificate must be issued and registered in the Trust Framework. This certificate is used to sign request objects and client assertions.",
+              "Registration with the relevant API Hub (Authorisation Server) — the application must be registered with the API Hub (Server) of the LFI with which you intend to initiate payments.",
+              "Understanding of the FAPI Security Profile and Tokens & Assertions — you should understand how request object signing, client authentication, and access token validation underpin secure API interactions.",
+              "Understanding of Message Encryption — PII (creditor name and account details) must be encrypted as a JWE before being embedded in the consent. You will need the LFI's public encryption key from their JWKS."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end Delegated SCA",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Sign and encrypt the consent PII",
+        "level": 2,
+        "anchor": "step-1-encrypt-pii",
+        "category": "POST /par · Step 1 — Encrypting PII",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Unlike standard payment flows, Delegated SCA MUST prove the SCA already performed at the TPP. At minimum, Risk.DebtorIndicators.Authentication must demonstrate MFA with two distinct factors, and the wider Risk block must be fully populated with everything derivable from your system."
+          },
+          {
+            "type": "paragraph",
+            "text": "See the Delegated SCA Payment example for a fully-populated version and the Risk reference for the field-by-field schema."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Build the consent payload",
+        "level": 2,
+        "anchor": "step-2-authorization-details",
+        "category": "POST /par · Step 2 — Constructing Authorization Details",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "With the encrypted PII ready, construct the authorization_details of type urn:openfinanceuae:service-initiation-consent:v2.2. For Delegated SCA you must set ControlParameters.IsDelegatedAuthentication to true and leave ConsentSchedule empty, indicating that the TPP will perform SCA on the user before each POST /payments request."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "authorization_details",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description",
+                  "Example"
+                ],
+                "rows": [
+                  [
+                    "type *",
+                    "enum",
+                    "Must be urn:openfinanceuae:service-initiation-consent:v2.2",
+                    "urn:openfinanceuae:service-initiation-consent:v2.2"
+                  ],
+                  [
+                    "consent *",
+                    "object",
+                    "Consent properties agreed by the User with the TPP. Described below.",
+                    "—"
+                  ],
+                  [
+                    "subscription",
+                    "object",
+                    "Optional subscription to Event Notifications via Webhook. Described below.",
+                    "—"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "consent (Required) | authorization_details.consent",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description",
+                  "Example"
+                ],
+                "rows": [
+                  [
+                    "ConsentId *",
+                    "string (uuid)",
+                    "Unique ID assigned by the TPP (1–128 chars)",
+                    "b8f42378-10ac-46a1-8d20-4e020484216d"
+                  ],
+                  [
+                    "IsSingleAuthorization *",
+                    "boolean",
+                    "Whether the payment requires only one authorizing party",
+                    "true"
+                  ],
+                  [
+                    "ExpirationDateTime *",
+                    "date-time",
+                    "Consent expiry (ISO 8601 with timezone, max 1 year)",
+                    "2027-03-02T00:00:00+00:00"
+                  ],
+                  [
+                    "AuthorizationExpirationDateTime",
+                    "date-time",
+                    "Deadline by which the consent must reach Authorized. Applies whether IsSingleAuthorization is true or false: SHOULD be set when false, so a consent cannot sit part-authorized; MAY be set when true to cap how long the single authorizer has. MUST NOT be in the past or after ExpirationDateTime.",
+                    "2026-03-03T10:00:00+00:00"
+                  ],
+                  [
+                    "BaseConsentId",
+                    "string (uuid)",
+                    "Links to prior consent if renewing — see Base Consent ID",
+                    "—"
+                  ],
+                  [
+                    "Permissions",
+                    "array<enum>",
+                    "Optional access permissions granted alongside the payment consent",
+                    "ReadAccountsBasic, ReadBalances"
+                  ],
+                  [
+                    "ControlParameters *",
+                    "object",
+                    "Must include IsDelegatedAuthentication: true and an empty ConsentSchedule",
+                    "—"
+                  ],
+                  [
+                    "PersonalIdentifiableInformation *",
+                    "string (JWE)",
+                    "Encrypted creditor and risk data — the encryptedPII string from Step 1",
+                    "eyJhbGci..."
+                  ],
+                  [
+                    "PaymentPurposeCode *",
+                    "string (3 chars)",
+                    "AANI payment purpose code",
+                    "ACM"
+                  ],
+                  [
+                    "DebtorReference",
+                    "string",
+                    "Reference shown on the debtor's statement",
+                    "Subscription"
+                  ],
+                  [
+                    "CreditorReference",
+                    "string",
+                    "Reference shown on the creditor's statement",
+                    "Subscription"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "ControlParameters — Delegated SCA",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "For Delegated SCA consents, the LFI defers payment-level controls to the TPP. Declare delegation and keep the schedule empty:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Required",
+                  "Description",
+                  "Example"
+                ],
+                "rows": [
+                  [
+                    "IsDelegatedAuthentication",
+                    "Yes",
+                    "Must be true to indicate the TPP will perform SCA before every payment request",
+                    "true"
+                  ],
+                  [
+                    "ConsentSchedule",
+                    "Yes",
+                    "Leave empty {} — no bank-enforced caps or schedules are defined on the consent",
+                    "{}"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Any spend, frequency are enforced by the TPP and Strong Customer Authentication must be done before each Payment."
+              }
+            ]
+          },
+          {
+            "heading": "Example request",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          }
+        ]
+      },
+      {
+        "heading": "Bind PKCE and authorization details into a signed JWT",
+        "level": 2,
+        "anchor": "step-3-request-jwt",
+        "category": "POST /par · Step 3 — Constructing the Request JWT",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Save codeVerifier in your server-side session or an httpOnly cookie — you will need it in Step 8 to exchange the authorization code for tokens."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Preparing the Request JWT for the full JWT claim reference and PKCE helpers."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Prove the application's identity to the API Hub",
+        "level": 2,
+        "anchor": "step-4-client-assertion",
+        "category": "POST /par · Step 4 — Creating a Client Assertion",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Push the request to the API Hub",
+        "level": 2,
+        "anchor": "step-5-par-request",
+        "category": "POST /par · Step 5 — Sending the /par Request",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Send the user to the LFI to authenticate",
+        "level": 2,
+        "anchor": "step-6-authorization-url",
+        "category": "Redirecting the User · Step 6 — Building the Authorization URL",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The authorization_endpoint is found in the LFI's.well-known/openid-configuration — not constructed from the issuer URL directly."
+          },
+          {
+            "type": "paragraph",
+            "text": "After redirecting, the user will see the bank's authorization screen showing:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "The TPP name and purpose.",
+              "That payments will be authenticated by the TPP (Delegated SCA).",
+              "The consent expiry date."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "See User Experience for screen mockups of the Delegated SCA Consent and Authorization pages the user sees at the bank."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Validate state and issuer on the redirect",
+        "level": 2,
+        "anchor": "step-7-callback",
+        "category": "Handling the Callback · Step 7 — Extracting the Authorization Code",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Swap the auth code for an access and refresh token",
+        "level": 2,
+        "anchor": "step-8-post-token-authorization-code",
+        "category": "Exchanging the Code for Tokens · Step 8 — POST /token (Authorization Code)",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Re-encrypt the creditor PII for each payment",
+        "level": 2,
+        "anchor": "payment-encrypt-pii",
+        "category": "Initiating Payments On-Demand · Encrypt PII for Payment Initiation",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Submit each payment after performing SCA on the user",
+        "level": 2,
+        "anchor": "step-9-post-payments",
+        "category": "Initiating Payments On-Demand · Step 9 — POST /payments",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Include x-fapi-interaction-id and x-idempotency-key. As the customer must always have been present and authenticated for the TPP to instruct a delegated SCA payment, also send x-fapi-customer-ip-address, x-customer-user-agent and x-fapi-auth-date. See Request Headers."
+          },
+          {
+            "type": "paragraph",
+            "text": "Unlike Single Instant Payment, this step can be called multiple times under the same consent. Each call specifies the actual amount for that payment. There are no consent-time caps — make sure you have just performed SCA on the user in your own channel before sending the payment request."
+          },
+          {
+            "type": "paragraph",
+            "text": "Unlike Single Instant Payment, multi-payment consents do not require PaymentPurposeCode, DebtorReference, CreditorReference, or OpenFinanceBilling to match the consent exactly. Only ConsentId must match the authorized consent. Instruction.Amount must be within the parameters the consent allows for this payment type."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Use the refresh_token to keep the session alive",
+        "level": 2,
+        "anchor": "token-refresh",
+        "category": "Token refresh for subsequent payments",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "201 Created — signed JWT response",
+        "level": 2,
+        "anchor": "payment-response",
+        "category": "A successful POST /payments",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "After each successful payment, the consent remains in the Authorized state until it expires or is revoked. You do not need to re-initiate the authorization flow."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,225 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/consent-events",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/consent-events/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "ed5b957958a4867c14ffb6d00d8596c8e057505c04f7bd373f3a7a343512d41a",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Consent Events & Actions",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/consent-events",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Consent Events & Actions",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Consent Events & Actions API is implemented by your LFI. Unlike the other APIs in the Ozone Connect specification where the API Hub calls your endpoints to retrieve data or execute payments, these endpoints allow the API Hub to notify you of consent lifecycle changes and request your input during consent creation."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "API Hub → LFI, but informing rather than requesting data",
+        "level": 2,
+        "anchor": "direction",
+        "category": "Direction of communication",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "All other Ozone Connect APIs follow the pattern: API Hub → LFI (the Hub requests data or actions from you). The Consent Events & Actions API follows the same direction — API Hub → LFI — but the purpose is reversed: the Hub is informing you or asking you, rather than requesting business data."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "One action and two events",
+        "level": 2,
+        "anchor": "endpoints",
+        "category": "Endpoints",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Endpoint",
+              "Type",
+              "When the Hub calls it",
+              "Recommendation"
+            ],
+            "rows": [
+              [
+                "POST /consent/action/validate",
+                "Action",
+                "During consent creation — before the consent is stored. The Hub sends the consent the TPP is requesting and asks your LFI to confirm it is supported.",
+                "Highly recommended for all LFIs"
+              ],
+              [
+                "POST /consent/event/post",
+                "Event",
+                "After a consent is successfully created",
+                "Recommended for LFIs that store consents locally"
+              ],
+              [
+                "POST /consent/event/patch",
+                "Event",
+                "Every time a consent changes — e.g. status transitions to Authorized, Rejected, Expired, or Revoked",
+                "Recommended for LFIs that store consents locally"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "LFI input gates consent creation",
+        "level": 2,
+        "anchor": "validate",
+        "category": "POST /consent/action/validate",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The validate endpoint is called when a TPP submits a POST /par request to the API Hub to create a new consent. Before the consent is stored, the Hub forwards the full consent payload to your LFI and waits for a response."
+          },
+          {
+            "type": "paragraph",
+            "text": "Your LFI inspects the consent and determines whether it can be supported — for example:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Does the consent version match what your LFI supports?",
+              "Are the requested permissions within the scope of what your LFI offers?"
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Each consent type defines its own specific validation rules in its Requirements page (e.g. Bank Data Sharing — Requirements ). Refer to the Requirements page for each consent type your LFI supports."
+          },
+          {
+            "type": "paragraph",
+            "text": "Your LFI responds with a data.status of either valid or invalid:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Response",
+              "Effect"
+            ],
+            "rows": [
+              [
+                "valid",
+                "The consent is created in the API Hub and the authorization journey proceeds"
+              ],
+              [
+                "invalid",
+                "The consent is not created. The API Hub returns an error to the TPP"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "We highly recommend all LFIs implement the validate endpoint. It gives your institution early control over which consents enter the authorization journey, preventing unsupported consents from reaching your end users."
+          },
+          {
+            "type": "paragraph",
+            "text": "If your LFI has not configured the validate endpoint, the API Hub assumes all consents are valid and creates them immediately without LFI input."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Consent lifecycle notifications",
+        "level": 2,
+        "anchor": "event-op",
+        "category": "POST /consent/event/{operation}",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The consent event endpoint is called by the Hub to notify your LFI of consent lifecycle changes. The {operation} path parameter indicates the type of change:"
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "POST /consent/event/post — Consent created",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Called immediately after a consent is successfully created (i.e. after validation passes, if configured). The request body contains the full consent object as stored in the API Hub's Consent Manager."
+              }
+            ]
+          },
+          {
+            "heading": "POST /consent/event/patch — Consent updated",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Called every time a consent's state changes. This includes transitions such as:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "AwaitingAuthorisation → Authorized (end user approved the consent)",
+                  "AwaitingAuthorisation → Rejected (end user declined the consent)",
+                  "Authorized → Revoked (consent revoked by TPP, LFI, or end user)",
+                  "Authorized → Expired (consent reached its expiration date)"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "The request body contains the full, updated consent object."
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "For both operations, your LFI MUST return 204 No Content to acknowledge receipt. The Hub does not retry failed notifications, and consent state changes are not rolled back if your endpoint returns an error."
+              },
+              {
+                "type": "paragraph",
+                "text": "If your LFI maintains a local copy of consents — for example, to power a Consent Management Interface or to support internal business logic — we recommend implementing the consent event endpoints. This ensures your local consent state stays aligned with the API Hub, which is the single source of truth for all consent data."
+              },
+              {
+                "type": "paragraph",
+                "text": "Without these events, your local consent records may drift out of sync with the Hub, requiring you to poll the Consent Manager API to detect changes."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Full request and response schemas",
+        "level": 2,
+        "anchor": "api-reference",
+        "category": "API Reference",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "POST /consent/action/validate — Full request and response schema",
+              "POST /consent/event/{operation} — Full request and response schema"
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,169 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/payment-log-id",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/payment-log-id.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "18b151f9cf6b0c044514ea11e9ad7a1c94c0fc78680c220fa1e6e87b718ca4c5",
+    "dependencies": [
+      "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+    ],
+    "assets": [
+      {
+        "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+        "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Update Payment Log Entry",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/payment-log-id",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Update Payment Log Entry",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "LFI · API Hub · Consent Manager"
+      }
+    ],
+    "sections": [
+      {
+        "heading": "API /payment-log/{id}",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"info\": {\n    \"title\": \"Consent Manager API\",\n    \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor the Consent Manager API.\\n\\nThese APIs are implemented by Ozone and should be called by the financial institution to find, modify and delete consents.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.2.2\\n* Changed the `status` query parameter on `get /psu/{userId}/consents` to a comma-separated list of\\n  `AEConsentStatus` values (`style: form`, `explode: false`), evaluated as a union — for example\\n  `?status=Authorized,Suspended`. The parameter is now typed, so an unrecognised value is rejected with `400`\\n  rather than returning an empty array. The operation no longer references the shared\\n  `#/components/parameters/status` component, which is deliberately unchanged: `get /consents`,\\n  `get /consent-groups/{consentGroupId}/consents` and `get /accounts/{accountId}/consents` continue to take a\\n  single untyped value.\\n\\n* Added `paymentResponse.paymentRail` to `patch /payment-log/{id}` and `get /payment-log`, recording the rail\\n  over which the LFI settled the payment — `AANI`, `FTS`, or `LFI` for a payment settled internally.\\n\\n* Changed the `patch /payment-log/{id}` request body to a `oneOf` selected by `paymentResponse.paymentRail`, which\\n  is now required on every patch and stated first. Each rail carries its own contract:\\n\\n  * `AANI` — statuses `AcceptedSettlementCompleted`, `AcceptedWithoutPosting` and `Rejected`, where\\n    `AcceptedSettlementCompleted` is **not terminal** and records the payment having been passed to AANI; the LFI\\n    patches again to `AcceptedWithoutPosting` once AANI confirms it. `paymentResponse.paymentTransactionId`\\n    carries the AANI-issued identifier. `paymentResponse.OpenFinanceBilling` is not available on this rail, and\\n    reject reason codes are `AANI.*` only.\\n\\n  * `LFI` — statuses `AcceptedCreditSettlementCompleted` and `Rejected`, both terminal.\\n    `paymentResponse.paymentTransactionId` is not available, since nothing outside the LFI issues an identifier.\\n    `paymentResponse.OpenFinanceBilling` is not available on this rail, and reject reason codes are `LFI.*` only.\\n\\n  * `FTS` — statuses `AcceptedSettlementCompleted`, `AcceptedCreditSettlementCompleted` and `Rejected`, where\\n    `AcceptedSettlementCompleted` is **not terminal** and records the payment having been passed to UAEFTS; the LFI\\n    patches again to `AcceptedCreditSettlementCompleted` once UAEFTS confirms it.\\n    `paymentResponse.paymentTransactionId` carries the UAEFTS-issued identifier.\\n    `paymentResponse.OpenFinanceBilling` is not available on this rail, and reject reason codes are `FTS.*` only.\\n\\n  `Pending` is no longer a patchable status on any rail, and `paymentResponse.OpenFinanceBilling` is no longer\\n  patchable through this operation on any rail.\\n\\n* Changed the `paymentResponse` returned by `get /payment-log` to the matching `oneOf`, so a payment reads back in\\n  the shape it was patched in. The previously inline object is now `CbuaePaymentLogPaymentResponse`, with one member\\n  per rail plus `CbuaePaymentLogPaymentResponseUnrouted` for a payment the LFI has not routed yet, which carries no\\n  `paymentRail` and is `Pending` or `Rejected`. `paymentTransactionId` is now returned on the `AANI` and `FTS`\\n  members, having been absent from this operation's response since v2.1 although the patch operation set it.\\n\\n* Changed `get /payment-log` to be paginated, taking the shared `page` and `pageSize` parameters already used by\\n  the consent list operations and returning `paginationMetadata` in place of the empty `meta` object. Callers\\n  written against v2.1 received every payment for the consent in one response and MUST now follow `page` to\\n  retrieve the rest.\\n\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards.\\n* Changed `patch /insurance-quote-log/{logId}` to add `InsurancePolicyId` when `QuoteStatus` is `PolicyIssued`.\\n* Changed `DebtorReference` and `CreditorReferences` to implement Aani-compatible pattern.\\n\",\n    \"version\": \"v2.2.2\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://cm.[LFICODE].apihub.openfinance.ae\"\n    },\n    {\n      \"url\": \"https://cm.[LFICODE].preprod.apihub.openfinance.ae\"\n    }\n  ],\n  \"source_path\": \"/payment-log/{id}\",\n  \"operations\": {\n    \"patch\": {\n      \"tags\": [\n        \"payments\"\n      ],\n      \"summary\": \"Patches one or more fields in a payment-log based on id .\",\n      \"description\": \"This operation allows an  modify fields within a payment's `paymentResponse`.\\nThis is used by the financial institutions to update the status of a payment\\n\",\n      \"operationId\": \"patchPymentlog\",\n      \"parameters\": [\n        {\n          \"$ref\": \"#/components/parameters/id\"\n        }\n      ],\n      \"requestBody\": {\n        \"required\": true,\n        \"content\": {\n          \"application/json\": {\n            \"schema\": {\n              \"$ref\": \"#/components/schemas/CbuaePatchPaymentRecordBody\"\n            }\n          }\n        }\n      },\n      \"responses\": {\n        \"204\": {\n          \"description\": \"Indicates a successful operation.\\nThe response does not have a body.\\n\"\n        },\n        \"400\": {\n          \"description\": \"The request patch operation failed due to an error at the Consent Manager API.\",\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/error400Response\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"security\": [\n    {},\n    {\n      \"OzoneConnectJwtAuth\": []\n    }\n  ],\n  \"securitySchemes\": {\n    \"OzoneConnectJwtAuth\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Ozone-Connect-JWT-Auth\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/id",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"id\",\n  \"in\": \"path\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"Identifies the payment by an id\\n\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/CbuaePatchPaymentRecordBody",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Describes the fields to be patched and their corresponding values.\\n`paymentResponse.paymentRail` selects the body. The LFI MUST send it on every patch, and the rail it names determines which statuses the payment can move to, which of the remaining fields the LFI may send, and which reject reason code namespace applies. Each rail is described in its own Schema Object.\\nThe rail records how the payment was **executed**, not how it was requested. Where an LFI's routing rules settle an instant payment on another rail, the value reports the rail actually used.\\n* `AANI`: Settled over AANI, the UAE instant payment platform.\\n* `FTS`: Settled over UAEFTS, the CBUAE funds transfer system.\\n* `LFI`: Settled internally by the LFI. The debtor and creditor accounts are both held at the LFI, so the payment was booked on the LFI's own ledger and did not reach an external rail.\\nEvery reject reason code sent with a payment is namespaced to the rail named on it: `AANI.*` with `AANI`, `FTS.*` with `FTS`, and `LFI.*` with `LFI`. A payment rejected at the LFI before it reached AANI or UAEFTS is still reported against the rail it was routed to, and carries that rail's reason codes.\\nWhere the rail issues an end to end transaction identifier, `paymentResponse.paymentTransactionId` carries it. A payment booked on the LFI's own ledger has no such identifier.\\nA payment settles over exactly one rail. This holds for file payments as well as single payments — a file payment is settled in its entirety over one rail, so a single value describes the whole record.\\n\",\n  \"oneOf\": [\n    {\n      \"$ref\": \"#/components/schemas/CbuaePatchPaymentRecordBodyAani\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/CbuaePatchPaymentRecordBodyFts\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/CbuaePatchPaymentRecordBodyLfi\"\n    }\n  ],\n  \"discriminator\": {\n    \"propertyName\": \"paymentResponse.paymentRail\",\n    \"mapping\": {\n      \"AANI\": \"#/components/schemas/CbuaePatchPaymentRecordBodyAani\",\n      \"FTS\": \"#/components/schemas/CbuaePatchPaymentRecordBodyFts\",\n      \"LFI\": \"#/components/schemas/CbuaePatchPaymentRecordBodyLfi\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/CbuaePatchPaymentRecordBodyAani",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A patch to a payment the LFI has routed to AANI, the UAE instant payment platform.\\n\",\n  \"type\": \"object\",\n  \"required\": [\n    \"paymentResponse.paymentRail\",\n    \"paymentResponse.status\"\n  ],\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"paymentResponse.paymentRail\": {\n      \"description\": \"Identifies AANI as the rail the payment was routed to.\\n\",\n      \"type\": \"string\",\n      \"enum\": [\n        \"AANI\"\n      ],\n      \"example\": \"AANI\"\n    },\n    \"paymentResponse.status\": {\n      \"description\": \"The current status of the payment, mapped to the payment state model defined in the Open Finance Framework standards.\\n* `AcceptedSettlementCompleted`: **not terminal.** The LFI has passed the payment to AANI and is awaiting\\n  confirmation. Once AANI confirms the payment the LFI MUST patch the record again, to\\n  `AcceptedWithoutPosting`.\\n\\n* `AcceptedWithoutPosting`: terminal. AANI has confirmed the payment.\\n* `Rejected`: terminal. The payment will not be settled, and `paymentResponse.rejectReasonCode` MUST be\\n  sent with it.\\n\",\n      \"type\": \"string\",\n      \"enum\": [\n        \"AcceptedSettlementCompleted\",\n        \"AcceptedWithoutPosting\",\n        \"Rejected\"\n      ]\n    },\n    \"paymentResponse.paymentTransactionId\": {\n      \"description\": \"The AANI-generated end to end transaction identifier, as issued to the Originating LFI. This is not the\\nsame value as the `transactionId` in the Bank Data Sharing API.\\n\\nThe LFI MUST populate this field once AANI has issued it — that is, alongside\\n`AcceptedSettlementCompleted` and `AcceptedWithoutPosting`. It is omitted where the payment was rejected\\nbefore AANI issued an identifier.\\n\",\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 40\n    },\n    \"paymentResponse.rejectReasonCode\": {\n      \"$ref\": \"#/components/schemas/CbuaePaymentLogRejectReasonCodeAani\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/CbuaePaymentLogRejectReasonCodeAani",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A list of reject reason codes provided by the LFI for a payment routed to AANI.\\nWhere this list is patched repeatedly the LFI **MUST** append to the existing list **BEFORE** calling the patch operation, to ensure all values are maintained, unless the reject reason was patched in error and the existing value is being replaced.\\n\",\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"items\": {\n    \"description\": \"The reason for rejection of a given payment request as detected by the LFI. The `Code` and `Message` properties are transposed EXACTLY in event notifications sent to the TPP, so the `Message` value MUST be sanitized accordingly.\",\n    \"type\": \"object\",\n    \"required\": [\n      \"code\",\n      \"message\"\n    ],\n    \"properties\": {\n      \"code\": {\n        \"description\": \"AANI reason code, namespaced to the rail. AANI reason codes are the standard set for this rail and carry every rejection reported against it, including a rejection raised at the LFI before the payment was submitted to AANI.\",\n        \"type\": \"string\",\n        \"pattern\": \"^AANI\\\\.[A-Za-z0-9]+$\",\n        \"example\": \"AANI.AM04\"\n      },\n      \"message\": {\n        \"description\": \"Error message describing the rejection reason\",\n        \"type\": \"string\",\n        \"minLength\": 1,\n        \"maxLength\": 500,\n        \"example\": \"Payment request cannot be executed as insufficient funds at debtor account.\"\n      }\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/CbuaePatchPaymentRecordBodyFts",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A patch to a payment the LFI has routed to UAEFTS, the CBUAE funds transfer system.\\n\",\n  \"type\": \"object\",\n  \"required\": [\n    \"paymentResponse.paymentRail\",\n    \"paymentResponse.status\"\n  ],\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"paymentResponse.paymentRail\": {\n      \"description\": \"Identifies UAEFTS as the rail the payment was routed to.\\n\",\n      \"type\": \"string\",\n      \"enum\": [\n        \"FTS\"\n      ],\n      \"example\": \"FTS\"\n    },\n    \"paymentResponse.status\": {\n      \"description\": \"The current status of the payment, mapped to the payment state model defined in the Open Finance Framework standards.\\n* `AcceptedSettlementCompleted`: **not terminal.** The LFI has passed the payment to UAEFTS and is awaiting\\n  confirmation. Once UAEFTS confirms the payment the LFI MUST patch the record again, to\\n  `AcceptedCreditSettlementCompleted`.\\n\\n* `AcceptedCreditSettlementCompleted`: terminal. UAEFTS has confirmed the payment.\\n* `Rejected`: terminal. The payment will not be settled, and `paymentResponse.rejectReasonCode` MUST be\\n  sent with it.\\n\",\n      \"type\": \"string\",\n      \"enum\": [\n        \"AcceptedSettlementCompleted\",\n        \"AcceptedCreditSettlementCompleted\",\n        \"Rejected\"\n      ]\n    },\n    \"paymentResponse.paymentTransactionId\": {\n      \"description\": \"The UAEFTS-generated end to end transaction identifier, as issued to the Originating LFI. This is not the\\nsame value as the `transactionId` in the Bank Data Sharing API.\\n\\nThe LFI MUST populate this field once UAEFTS has issued it — that is, alongside\\n`AcceptedSettlementCompleted` and `AcceptedCreditSettlementCompleted`. It is omitted where the payment was\\nrejected before UAEFTS issued an identifier.\\n\",\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 40\n    },\n    \"paymentResponse.rejectReasonCode\": {\n      \"$ref\": \"#/components/schemas/CbuaePaymentLogRejectReasonCodeFts\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/CbuaePaymentLogRejectReasonCodeFts",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A list of reject reason codes provided by the LFI for a payment routed to UAEFTS.\\nWhere this list is patched repeatedly the LFI **MUST** append to the existing list **BEFORE** calling the patch operation, to ensure all values are maintained, unless the reject reason was patched in error and the existing value is being replaced.\\n\",\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"items\": {\n    \"description\": \"The reason for rejection of a given payment request as detected by the LFI. The `Code` and `Message` properties are transposed EXACTLY in event notifications sent to the TPP, so the `Message` value MUST be sanitized accordingly.\",\n    \"type\": \"object\",\n    \"required\": [\n      \"code\",\n      \"message\"\n    ],\n    \"properties\": {\n      \"code\": {\n        \"description\": \"UAEFTS reason code, namespaced to the rail. UAEFTS reason codes are the standard set for this rail and carry every rejection reported against it, including a rejection raised at the LFI before the payment was submitted to UAEFTS.\",\n        \"type\": \"string\",\n        \"pattern\": \"^FTS\\\\.[A-Za-z0-9]+$\",\n        \"example\": \"FTS.AM04\"\n      },\n      \"message\": {\n        \"description\": \"Error message describing the rejection reason\",\n        \"type\": \"string\",\n        \"minLength\": 1,\n        \"maxLength\": 500,\n        \"example\": \"Payment request cannot be executed as insufficient funds at debtor account.\"\n      }\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/CbuaePatchPaymentRecordBodyLfi",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A patch to a payment the LFI settled on its own ledger. The debtor and creditor accounts are both held at the LFI, so the payment did not reach an external rail.\\n\",\n  \"type\": \"object\",\n  \"required\": [\n    \"paymentResponse.paymentRail\",\n    \"paymentResponse.status\"\n  ],\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"paymentResponse.paymentRail\": {\n      \"description\": \"Identifies the LFI's own ledger as where the payment was settled.\\n\",\n      \"type\": \"string\",\n      \"enum\": [\n        \"LFI\"\n      ],\n      \"example\": \"LFI\"\n    },\n    \"paymentResponse.status\": {\n      \"description\": \"The current status of the payment, mapped to the payment state model defined in the Open Finance Framework standards.\\n* `AcceptedCreditSettlementCompleted`: terminal. The LFI has booked the payment on its own ledger and the\\n  funds are available to the creditor.\\n\\n* `Rejected`: terminal. The payment will not be settled, and `paymentResponse.rejectReasonCode` MUST be\\n  sent with it.\\n\\nBoth statuses are terminal. Settlement is internal to the LFI, so there is no hand-off to an external rail to report as an intermediate step.\\n\",\n      \"type\": \"string\",\n      \"enum\": [\n        \"AcceptedCreditSettlementCompleted\",\n        \"Rejected\"\n      ]\n    },\n    \"paymentResponse.rejectReasonCode\": {\n      \"$ref\": \"#/components/schemas/CbuaePaymentLogRejectReasonCodeLfi\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/CbuaePaymentLogRejectReasonCodeLfi",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A list of reject reason codes provided by the LFI for a payment settled on the LFI's own ledger.\\nWhere this list is patched repeatedly the LFI **MUST** append to the existing list **BEFORE** calling the patch operation, to ensure all values are maintained, unless the reject reason was patched in error and the existing value is being replaced.\\n\",\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"items\": {\n    \"description\": \"The reason for rejection of a given payment request as detected by the LFI. The `Code` and `Message` properties are transposed EXACTLY in event notifications sent to the TPP, so the `Message` value MUST be sanitized accordingly.\",\n    \"type\": \"object\",\n    \"required\": [\n      \"code\",\n      \"message\"\n    ],\n    \"properties\": {\n      \"code\": {\n        \"description\": \"LFI reason code, namespaced to the rail. The payment never left the LFI, so every rejection reported against it is the LFI's own.\",\n        \"type\": \"string\",\n        \"pattern\": \"^LFI\\\\.[A-Za-z0-9]+$\",\n        \"example\": \"LFI.AM04\"\n      },\n      \"message\": {\n        \"description\": \"Error message describing the rejection reason\",\n        \"type\": \"string\",\n        \"minLength\": 1,\n        \"maxLength\": 500,\n        \"example\": \"Payment request cannot be executed as insufficient funds at debtor account.\"\n      }\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/error400Response",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"$ref\": \"#/components/schemas/errorReasonCodes\"\n    },\n    \"errorMessage\": {\n      \"type\": \"string\",\n      \"description\": \"Message describing what problem has occurred\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/errorReasonCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed error code(s), a  code that observes the namespaced pattern, or a custom error codes specific to the API Hub.\",\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/standardErrorCodes\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/standardErrorCodePattern\"\n    },\n    {\n      \"type\": \"string\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/standardErrorCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Standardized error codes used across open finance components\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"AccessToken.InvalidScope\",\n    \"Body.InvalidFormat\",\n    \"Consent.AccountTemporarilyBlocked\",\n    \"Consent.BusinessRuleViolation\",\n    \"Consent.FailsControlParameters\",\n    \"Consent.Invalid\",\n    \"Consent.InvalidUserIdentifier\",\n    \"Consent.PermanentAccountAccessFailure\",\n    \"Consent.TransientAccountAccessFailure\",\n    \"Event.UnexpectedEvent\",\n    \"JWE.DecryptionError\",\n    \"JWE.InvalidHeader\",\n    \"JWS.InvalidClaim\",\n    \"JWS.InvalidHeader\",\n    \"JWS.InvalidSignature\",\n    \"JWS.Malformed\",\n    \"Resource.InvalidFormat\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/standardErrorCodePattern",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Namespaced error codes, indicating the source of the error code prior to the period, and the error code itself after the period e.g. `AANI.AM04` indicates insufficient funds.\",\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

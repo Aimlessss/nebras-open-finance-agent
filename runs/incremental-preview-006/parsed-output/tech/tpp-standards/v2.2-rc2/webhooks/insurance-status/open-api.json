@@ -1,0 +1,459 @@
+{
+  "id": "tech/tpp-standards/v2.2-rc2/webhooks/insurance-status/open-api",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.2-rc2/webhooks/insurance-status/open-api.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "1d3969917f509f3ae1157a01c719a3595c64facef36c263e18c710193bc24224",
+    "dependencies": [
+      "public/openapi/v2.2-rc2/standards/uae-webhook-template-openapi.yaml"
+    ],
+    "assets": [
+      {
+        "file": "public/openapi/v2.2-rc2/standards/uae-webhook-template-openapi.yaml",
+        "hash": "b8434ea0d8a91c369515682994fb4112cbfea5b574198b4e3750ba75eec37315"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Insurance Quote Status Change Event",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/webhooks/insurance-status/open-api",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Insurance Quote Status Change Event",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "TPP · Webhooks · Insurance Quote Status"
+      }
+    ],
+    "sections": [
+      {
+        "heading": "API operations",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"info\": {\n    \"title\": \"UAE Webhook Template\",\n    \"description\": \"OpenAPI description provided **as a template** for guidance in implementing Webhooks under the UAE Open Finance Programme.\",\n    \"version\": \"v2.2-rc2\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://[subscription.Webhook.Url]\"\n    }\n  ],\n  \"operations\": {\n    \"/\": {\n      \"post\": {\n        \"operationId\": \"UnsignedEventNotificationPayload_SignedEventNotificationPayload\",\n        \"parameters\": [],\n        \"description\": \"This endpoint provides a template for the implementation of Webhooks at a TPP.\\n\\nA 202 or 204 HTTP return code with an empty payload is expected in acknowledgement of receipt.\\n\\nTPPs should observe the standardized error payloads as defined by the Open Finance Framework and provided in this API\\ndescription.\",\n        \"summary\": \"Event Notification Template\",\n        \"responses\": {\n          \"202\": {\n            \"description\": \"Accepted\",\n            \"headers\": {\n              \"x-fapi-interaction-id\": {\n                \"required\": false,\n                \"description\": \"An RFC4122 UID used as a correlation ID.\",\n                \"schema\": {\n                  \"type\": \"string\"\n                }\n              }\n            }\n          },\n          \"204\": {\n            \"description\": \"No content\",\n            \"headers\": {\n              \"x-fapi-interaction-id\": {\n                \"required\": false,\n                \"description\": \"An RFC4122 UID used as a correlation ID.\",\n                \"schema\": {\n                  \"type\": \"string\"\n                }\n              }\n            }\n          },\n          \"400\": {\n            \"$ref\": \"#/components/responses/400Error\"\n          },\n          \"401\": {\n            \"$ref\": \"#/components/responses/401Error\"\n          },\n          \"403\": {\n            \"$ref\": \"#/components/responses/403Error\"\n          },\n          \"404\": {\n            \"$ref\": \"#/components/responses/404Error\"\n          },\n          \"405\": {\n            \"$ref\": \"#/components/responses/405Error\"\n          },\n          \"406\": {\n            \"$ref\": \"#/components/responses/406Error\"\n          },\n          \"415\": {\n            \"$ref\": \"#/components/responses/415Error\"\n          },\n          \"429\": {\n            \"$ref\": \"#/components/responses/429Error\"\n          },\n          \"500\": {\n            \"$ref\": \"#/components/responses/500Error\"\n          }\n        },\n        \"tags\": [\n          \"Webhook Template\"\n        ],\n        \"requestBody\": {\n          \"required\": true,\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/AEWebhookEventSigned\"\n              }\n            },\n            \"application/jwt\": {\n              \"schema\": {\n                \"type\": \"string\",\n                \"description\": \"The Event Notification as it arrives on the wire: a JWE, in JWE Compact Serialization (five base64url-encoded parts separated by dots), whose plaintext is a JWS carrying the JSON payload.\"\n              }\n            }\n          },\n          \"description\": \"**The Content Type is `application/jwt`, but the event is a JWE.**\\n\\n`application/jwe` is not a registered media type, so the Content Type header carries the registered `application/jwt` value (RFC 7519) for every Event Notification delivered to a Webhook. That value describes the container, not the encryption: the event is a *nested* JWT — a JWS, signed by the sender, encrypted inside a JWE addressed to the recipient — and it is the JWE that is transmitted. Do not infer from the `application/jwt` Content Type that the payload can be parsed as a bare signed JWT; it cannot, because it is encrypted.\\n\\nA recipient must therefore, in order:\\n\\n1. read the request body as a string — it is a JWE in Compact Serialization, five dot-separated parts, not the three of a bare JWS;\\n2. decrypt the JWE to recover the enclosed JWS;\\n3. verify the JWS signature;\\n4. parse the resulting JSON payload, which is the Event Notification.\\n\\nThe `application/json` Content Type above is never sent on the wire. It is present only so that the Schema Object can document the shape of the payload recovered at step 4, so TPPs can see the message definition they must parse.\\n\\nPlease refer to the Open Finance Framework documentation for guidelines on decrypting and verifying the JWTs received at Webhooks.\"\n        }\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/400Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Bad request\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"content\": {\n    \"application/jwt\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/AEError400ResponseBodySigned\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError400ResponseBodySigned",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"iss\",\n    \"exp\",\n    \"nbf\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"iss\": {\n      \"type\": \"string\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1)\"\n    },\n    \"exp\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4)\"\n    },\n    \"nbf\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5)\"\n    },\n    \"aud\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3)\"\n    },\n    \"iat\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6)\"\n    },\n    \"message\": {\n      \"$ref\": \"#/components/schemas/AEError400ResponseBody\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError400ResponseBody",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Errors\"\n  ],\n  \"properties\": {\n    \"Errors\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"Code\": {\n            \"$ref\": \"#/components/schemas/AEError400\"\n          },\n          \"Message\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"A description of the error that occurred. e.g., 'A mandatory field isn't supplied' or 'RequestedExecutionDateTime must be in future'\\nUAEOF doesn't standardise this field\"\n          },\n          \"Path\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"Recommended but optional reference to the JSON Path of the field with error, e.g., $.Data.Initiation.InstructedAmount.Currency\"\n          },\n          \"Url\": {\n            \"type\": \"string\",\n            \"description\": \"URL to help remediate the problem, or provide more information, or to API Reference, or help etc\"\n          }\n        },\n        \"required\": [\n          \"Code\",\n          \"Message\"\n        ]\n      },\n      \"minItems\": 1\n    }\n  },\n  \"description\": \"An array of detail error codes, and messages, and URLs to documentation to help remediation.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError400",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/AEError400Codes\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"Consent.Invalid\",\n    \"Consent.BusinessRuleViolation\",\n    \"Consent.FailsControlParameters\",\n    \"Consent.InvalidUserIdentifier\",\n    \"JWS.InvalidSignature\",\n    \"JWS.Malformed\",\n    \"JWS.InvalidClaim\",\n    \"JWS.InvalidHeader\",\n    \"JWS.InvalidPayload\",\n    \"JWE.DecryptionError\",\n    \"JWE.InvalidHeader\",\n    \"GenericRecoverableError\",\n    \"GenericError\",\n    \"Event.UnexpectedEvent\",\n    \"Body.InvalidFormat\",\n    \"Resource.InvalidFormat\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/401Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Unauthorized\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/403Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Forbidden\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"content\": {\n    \"application/jwt\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/AEError403ResponseBodySigned\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError403ResponseBodySigned",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"iss\",\n    \"exp\",\n    \"nbf\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"iss\": {\n      \"type\": \"string\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1)\"\n    },\n    \"exp\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4)\"\n    },\n    \"nbf\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5)\"\n    },\n    \"aud\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3)\"\n    },\n    \"iat\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6)\"\n    },\n    \"message\": {\n      \"$ref\": \"#/components/schemas/AEError403ResponseBody\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError403ResponseBody",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Errors\"\n  ],\n  \"properties\": {\n    \"Errors\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"Code\": {\n            \"$ref\": \"#/components/schemas/AEError403\"\n          },\n          \"Message\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"A description of the error that occurred. e.g., 'A mandatory field isn't supplied' or 'RequestedExecutionDateTime must be in future'\\nUAEOF doesn't standardise this field\"\n          },\n          \"Path\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"Recommended but optional reference to the JSON Path of the field with error, e.g., $.Data.Initiation.InstructedAmount.Currency\"\n          },\n          \"Url\": {\n            \"type\": \"string\",\n            \"description\": \"URL to help remediate the problem, or provide more information, or to API Reference, or help etc\"\n          }\n        },\n        \"required\": [\n          \"Code\",\n          \"Message\"\n        ]\n      },\n      \"minItems\": 1\n    }\n  },\n  \"description\": \"An array of detail error codes, and messages, and URLs to documentation to help remediation.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError403",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/AEError403Codes\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"AccessToken.InvalidScope\",\n    \"Consent.TransientAccountAccessFailure\",\n    \"Consent.AccountTemporarilyBlocked\",\n    \"Consent.PermanentAccountAccessFailure\",\n    \"GenericRecoverableError\",\n    \"GenericError\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/404Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Not found\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/405Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Method Not Allowed\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/406Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Not Acceptable\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/415Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Unsupported Media Type\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/429Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Too Many Requests\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    },\n    \"retry-after\": {\n      \"required\": true,\n      \"description\": \"Number in seconds to wait\",\n      \"schema\": {\n        \"type\": \"integer\",\n        \"format\": \"int64\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/500Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Internal Server Error\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"content\": {\n    \"application/jwt\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/AEError500ResponseBodySigned\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError500ResponseBodySigned",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"iss\",\n    \"exp\",\n    \"nbf\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"iss\": {\n      \"type\": \"string\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1)\"\n    },\n    \"exp\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4)\"\n    },\n    \"nbf\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5)\"\n    },\n    \"aud\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3)\"\n    },\n    \"iat\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6)\"\n    },\n    \"message\": {\n      \"$ref\": \"#/components/schemas/AEError500ResponseBody\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError500ResponseBody",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Errors\"\n  ],\n  \"properties\": {\n    \"Errors\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"Code\": {\n            \"$ref\": \"#/components/schemas/AEError500\"\n          },\n          \"Message\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"A description of the error that occurred. e.g., 'A mandatory field isn't supplied' or 'RequestedExecutionDateTime must be in future'\\nUAEOF doesn't standardise this field\"\n          },\n          \"Path\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"Recommended but optional reference to the JSON Path of the field with error, e.g., $.Data.Initiation.InstructedAmount.Currency\"\n          },\n          \"Url\": {\n            \"type\": \"string\",\n            \"description\": \"URL to help remediate the problem, or provide more information, or to API Reference, or help etc\"\n          }\n        },\n        \"required\": [\n          \"Code\",\n          \"Message\"\n        ]\n      },\n      \"minItems\": 1\n    }\n  },\n  \"description\": \"An array of detail error codes, and messages, and URLs to documentation to help remediation.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError500",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"GenericRecoverableError\",\n    \"GenericError\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEWebhookEventSigned",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"iss\",\n    \"exp\",\n    \"nbf\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"iss\": {\n      \"type\": \"string\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1)\"\n    },\n    \"exp\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4)\"\n    },\n    \"nbf\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5)\"\n    },\n    \"aud\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3)\"\n    },\n    \"iat\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6)\"\n    },\n    \"message\": {\n      \"$ref\": \"#/components/schemas/AEWebhookEventTypes\"\n    }\n  },\n  \"description\": \"Webhook Event Signed Schema\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEWebhookEventTypes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"$ref\": \"#/components/schemas/AEWebhookInsuranceEventProperties\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEWebhookInsuranceEventProperties",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Data\",\n    \"Meta\"\n  ],\n  \"properties\": {\n    \"Data\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEvent\"\n        }\n      ],\n      \"description\": \"Insurance Quote Event Data. This Data Object will contain the same API resource and Schema that has triggered the Event.\"\n    },\n    \"Meta\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"EventDateTime\": {\n          \"$ref\": \"#/components/schemas/AEDateTime\"\n        },\n        \"EventResource\": {\n          \"type\": \"string\"\n        },\n        \"EventType\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"Resource.Created\",\n            \"Resource.Updated\",\n            \"Resource.Deleted\"\n          ]\n        },\n        \"QuoteId\": {\n          \"allOf\": [\n            {\n              \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n            }\n          ],\n          \"description\": \"Unique identifier for a quote created by an LFI\",\n          \"example\": \"47409fec-4b04-4356-b3a1-6f5508524a5a\"\n        }\n      },\n      \"required\": [\n        \"EventDateTime\",\n        \"EventResource\",\n        \"EventType\",\n        \"QuoteId\"\n      ],\n      \"description\": \"Event Metadata.\"\n    }\n  },\n  \"title\": \"Insurance Quote Event\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEvent",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventAvailableStatus1Properties\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventTerminalStatus\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventPendingCompletionStatus\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventCompletedStatus\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventAvailableStatus1Properties",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"QuoteId\",\n    \"QuoteStatus\"\n  ],\n  \"properties\": {\n    \"QuoteId\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n        }\n      ],\n      \"description\": \"Unique identifier for a quote created by an LFI\",\n      \"example\": \"47409fec-4b04-4356-b3a1-6f5508524a5a\"\n    },\n    \"QuoteStatus\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Available\"\n      ],\n      \"description\": \"Available quote status.\"\n    }\n  },\n  \"description\": \"Quote status updates indicating a pending state, with optional instructions for TPPs.\",\n  \"title\": \"Available Event\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 128,\n  \"description\": \"Unique identifier for a given insurance policy. \\n\\nA uuid v4 is recommended for consistency but not mandatory.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventTerminalStatus",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"QuoteId\",\n    \"QuoteStatus\"\n  ],\n  \"properties\": {\n    \"QuoteId\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n        }\n      ],\n      \"description\": \"Unique identifier for a quote created by an LFI\",\n      \"example\": \"47409fec-4b04-4356-b3a1-6f5508524a5a\"\n    },\n    \"QuoteStatus\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteNegativeTerminalStatusCodes\"\n        }\n      ],\n      \"description\": \"Terminal quote status.\"\n    },\n    \"Reason\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteStatusUpdateReason\"\n        }\n      ],\n      \"description\": \"Optional explanation for the unsuccessful completion of the quote.\"\n    }\n  },\n  \"description\": \"Quote status updates indicating a terminal state.\",\n  \"title\": \"Terminal Event\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteNegativeTerminalStatusCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"Expired\",\n    \"Rejected\",\n    \"CustomerCancelled\",\n    \"LFICancelled\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteStatusUpdateReason",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 1000\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventPendingCompletionStatus",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"QuoteId\",\n    \"QuoteStatus\"\n  ],\n  \"properties\": {\n    \"QuoteId\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n        }\n      ],\n      \"description\": \"Unique identifier for a quote created by an LFI\",\n      \"example\": \"47409fec-4b04-4356-b3a1-6f5508524a5a\"\n    },\n    \"QuoteStatus\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEventCompletionPendingStatusCodes\"\n        }\n      ],\n      \"description\": \"Pending completion quote status.\"\n    },\n    \"BrokerInstructions\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventBrokerInstructions\"\n      },\n      \"minItems\": 1,\n      \"description\": \"Instructions and actions required by the Broker to allow the application to proceed.\"\n    },\n    \"Documents\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n      },\n      \"minItems\": 1,\n      \"description\": \"Policy documents to be issued to the Customer via the TPP.\"\n    }\n  },\n  \"description\": \"Quote status updates indicating a pending state, with optional instructions for TPPs.\",\n  \"title\": \"Pending Event\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEventCompletionPendingStatusCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"ApplicationPending\",\n    \"ApplicationApproved\",\n    \"PaymentRequired\",\n    \"PolicyIssued\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventBrokerInstructions",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"ActionRequired\": {\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 1000,\n      \"description\": \"Free-text description that provides confirmation of the action required by the Broker.\"\n    },\n    \"Reason\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteStatusUpdateReason\"\n        }\n      ],\n      \"description\": \"Free-text explanation of why the action must be performed by the Broker.\"\n    },\n    \"Url\": {\n      \"type\": \"string\",\n      \"format\": \"uri\",\n      \"description\": \"URL provided by the LFI for the Broker to collect a one-off premium payment or set up recurring premium payments.\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Type\",\n    \"FileName\",\n    \"ContentType\",\n    \"Content\",\n    \"HashType\",\n    \"Hash\"\n  ],\n  \"properties\": {\n    \"Type\": {\n      \"type\": \"string\",\n      \"description\": \"The type of document that has been provided.  For example, Policy Booklet, Terms & Conditions\"\n    },\n    \"FileName\": {\n      \"type\": \"string\",\n      \"description\": \"Original file name for operator reference (no paths). Should include  a suitable extension (e.g., policy.pdf, terms.pdf).\"\n    },\n    \"ContentType\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"application/pdf\",\n        \"image/jpeg\",\n        \"image/png\"\n      ],\n      \"description\": \"Content (MIME) type of the document, using IANA-registered media types, and based on types supported in the Open Finance Framework.\"\n    },\n    \"Content\": {\n      \"type\": \"string\",\n      \"format\": \"base64\",\n      \"description\": \"Base64-encoded representation of the document content.  The encoded string must be generated from the raw file bytes and decoded by the LFI to restore the original file.\"\n    },\n    \"HashType\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"SHA256\"\n      ],\n      \"description\": \"Approach used to create checksum or hash of the file. SHA256 is supported.\"\n    },\n    \"Hash\": {\n      \"type\": \"string\",\n      \"description\": \"Checksum of the original file bytes created using the method indicated by `HashType`. Required to enable integrity verification by comparing with the hash or checksum calculated on the decoded file.\"\n    },\n    \"AdditionalInformation\": {\n      \"type\": \"string\",\n      \"maxLength\": 1000,\n      \"description\": \"Optional free text notes providing context on the document.\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventCompletedStatus",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"QuoteId\",\n    \"QuoteStatus\",\n    \"PolicyTerm\",\n    \"Premium\",\n    \"CustomerPaidInFull\",\n    \"PolicyCountrySubDivision\"\n  ],\n  \"properties\": {\n    \"QuoteId\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n        }\n      ],\n      \"description\": \"Unique identifier for a quote created by an LFI\",\n      \"example\": \"47409fec-4b04-4356-b3a1-6f5508524a5a\"\n    },\n    \"QuoteStatus\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Completed\"\n      ],\n      \"description\": \"Completed status.\"\n    },\n    \"PolicyStartDate\": {\n      \"type\": \"string\",\n      \"format\": \"date\",\n      \"description\": \"Policy start date\"\n    },\n    \"PolicyEndDate\": {\n      \"type\": \"string\",\n      \"format\": \"date\",\n      \"description\": \"Policy end date\"\n    },\n    \"PolicyTerm\": {\n      \"type\": \"string\",\n      \"pattern\": \"^P(\\\\d+Y)?(\\\\d+M)?$\",\n      \"format\": \"duration\",\n      \"description\": \"The insurance policy term in years and months, using ISO 8601 compatible duration format\",\n      \"example\": \"P2Y3M\"\n    },\n    \"Premium\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"OneYearPremiumExcludingVAT\": {\n          \"allOf\": [\n            {\n              \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n            }\n          ],\n          \"description\": \"The details of the final insurance premium, reflecting the total value of premiums excluding VAT payable either annually or over the life of the policy when the coverage period is less than one year.\"\n        },\n        \"VATAmount\": {\n          \"allOf\": [\n            {\n              \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n            }\n          ],\n          \"description\": \"The Premium VAT amount.\"\n        },\n        \"TotalOneYearPremium\": {\n          \"allOf\": [\n            {\n              \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n            }\n          ],\n          \"description\": \"The details of the final insurance premium, reflecting the total value of premiums including VAT payable either annually or over the life of the policy when the coverage period is less than one year.\"\n        },\n        \"TotalPolicyPremium\": {\n          \"allOf\": [\n            {\n              \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n            }\n          ],\n          \"description\": \"The total value of premiums, including VAT, payable over the life of the policy.\"\n        }\n      },\n      \"required\": [\n        \"OneYearPremiumExcludingVAT\",\n        \"VATAmount\",\n        \"TotalOneYearPremium\"\n      ],\n      \"description\": \"Details for the policy premium.\"\n    },\n    \"CustomerSalary\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Under4K\",\n        \"Over4K\"\n      ],\n      \"description\": \"Confirmation whether the customer monthly salary is less than or greater than AED 4,000 each month. Required for Health Insurance.\"\n    },\n    \"Commission\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"CommissionAmount\": {\n          \"allOf\": [\n            {\n              \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n            }\n          ],\n          \"description\": \"The total monetary value of the commission paid to the TPP if the User proceeds with the quote application and purchases the policy based on the quote information provided.\"\n        },\n        \"PaymentMethod\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"DirectToTPP\",\n            \"ThroughAPIHub\"\n          ],\n          \"description\": \"The method to be used to pay the commission to the TPP if the User elects to proceed with the application and successfully purchases the policy.\"\n        }\n      },\n      \"required\": [\n        \"PaymentMethod\"\n      ],\n      \"description\": \"Commission amount, where the LFI is responsible for calculating the value.\"\n    },\n    \"Documents\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n      },\n      \"minItems\": 1,\n      \"description\": \"Policy documents to be issued to the Customer via the TPP.\"\n    },\n    \"CustomerPaidInFull\": {\n      \"type\": \"boolean\",\n      \"description\": \"Indicates the Customer has paid for the policy in full.\"\n    },\n    \"PolicyCountrySubDivision\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n        }\n      ],\n      \"description\": \"The Emirate state where the policy was issued.\"\n    }\n  },\n  \"description\": \"Quote has been Completed.\",\n  \"title\": \"Completed Event\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Currency\",\n    \"Amount\"\n  ],\n  \"properties\": {\n    \"Currency\": {\n      \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n    },\n    \"Amount\": {\n      \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n    }\n  },\n  \"description\": \"The Currency and Amount relating to the Payment, Refund or Request to Pay\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Z]{3,3}$\",\n  \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n  \"example\": \"AED\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"pattern\": \"^\\\\d{1,16}\\\\.\\\\d{2}$\",\n  \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n  \"example\": \"100.00\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"AbuDhabi\",\n    \"Ajman\",\n    \"Dubai\",\n    \"Fujairah\",\n    \"RasAlKhaimah\",\n    \"Sharjah\",\n    \"UmmAlQuwain\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEDateTime",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"title\": \"AEDateTime\",\n  \"description\": \"An instant in time, per ISO 8601 / RFC 3339, with a mandatory offset. Recipients MUST apply the offset, and\\nMUST NOT read the date and time components as local time. Encodings of the same instant are equivalent and MUST\\nbehave identically: `2027-07-22T00:00:00Z` and `2027-07-22T04:00:00+04:00` identify the same moment.\\n\\nIssuers SHOULD emit UTC, using `Z` or `+00:00`. The negative zero offset `-00:00` MUST NOT be used. Fractional\\nseconds are optional and carry no specified precision; implementations MUST accept both their presence and\\ntheir absence.\\n\",\n  \"type\": \"string\",\n  \"format\": \"date-time\",\n  \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}(\\\\.\\\\d+)?(Z|\\\\+\\\\d{2}:\\\\d{2}|-(?:0[1-9]|1[0-2]):\\\\d{2})$\",\n  \"example\": \"2027-07-22T00:00:00Z\"\n}"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

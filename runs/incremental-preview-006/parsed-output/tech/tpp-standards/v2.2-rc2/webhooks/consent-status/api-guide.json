@@ -1,0 +1,309 @@
+{
+  "id": "tech/tpp-standards/v2.2-rc2/webhooks/consent-status/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.2-rc2/webhooks/consent-status/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "36821316881e4fb390aa77bf95f554f61dacbc5a7e4e97fc08154e4b94ab3a50",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Consent Status Event — API Guide",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/webhooks/consent-status/api-guide",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Consent Status Event — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "When a consent's status changes — for example, when a User revokes it or it expires — the API Hub delivers a Consent Status Event to your registered webhook URL as a JWE-encrypted POST. Events fire for both Bank Data Sharing and Bank Service Initiation consents, and the Data object mirrors the full consent resource at the time of the change."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before events can be delivered",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before receiving a Consent Status Event, ensure the following requirements are met:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Registered Application — the application must be created within the Trust Framework and assigned the appropriate role as defined in Roles.",
+              "Valid Encryption Certificate — an active encryption certificate must be issued and registered in the Trust Framework to receive the event as an encrypted JWE."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Push-based delivery on every status change",
+        "level": 2,
+        "anchor": "how-it-works",
+        "category": "How It Works",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "On every consent status change — for example, when a User revokes the consent or it expires — the API Hub delivers a Consent Status Event to your registered webhook URL as a JWE-encrypted POST request. No per-consent subscription flag is required; events are delivered based on your webhook registration in the Trust Framework."
+          },
+          {
+            "type": "paragraph",
+            "text": "Events are sent for both Bank Data Sharing and Bank Service Initiation consents. The Data object mirrors the full consent resource at the time of the status change."
+          },
+          {
+            "type": "paragraph",
+            "text": "The JWE is encrypted using your public Encryption Certificate registered in the Trust Framework. You must respond with 202 Accepted immediately and decrypt the event payload asynchronously."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end consent revocation example",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Receive the event",
+        "level": 2,
+        "anchor": "step-1",
+        "category": "Step 1",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Hub delivers the event as an HTTP POST to your registered webhook URL. The request body is a JWE compact serialisation string and the Content-Type is application/jwe."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers you will receive",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Header",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "Content-Type",
+                    "application/jwe"
+                  ],
+                  [
+                    "x-fapi-interaction-id",
+                    "RFC4122 UUID used as a correlation ID for this event delivery"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Respond with 202 Accepted before processing",
+        "level": 2,
+        "anchor": "step-2",
+        "category": "Step 2",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "You must respond with 202 Accepted and an empty body before performing any processing. The Hub expects an immediate acknowledgement — do not wait for decryption or business logic before responding."
+          },
+          {
+            "type": "paragraph",
+            "text": "Failure to respond with 202 promptly may cause the Hub to retry delivery. Process the event payload asynchronously after acknowledging receipt."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Decrypt the JWE and verify the inner JWS",
+        "level": 2,
+        "anchor": "step-3",
+        "category": "Step 3",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The event is a JWE compact serialisation encrypted with your public Encryption Certificate. The JWE header contains a kid that identifies which of your registered encryption keys was used — decode the header first to select the correct private key, then decrypt."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Receiving Event Notifications for the full FAPI-aligned guidance, including key selection by kid, JWS signature verification, and required security checks."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Envelope metadata about the event itself",
+        "level": 2,
+        "anchor": "payload-meta",
+        "category": "Event Payload — Meta",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The decrypted and decoded event payload contains the following structure under the message claim."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Type",
+              "Description"
+            ],
+            "rows": [
+              [
+                "EventDateTime",
+                "string (date-time)",
+                "When the event was generated"
+              ],
+              [
+                "EventResource",
+                "string",
+                "The resource URI that triggered the event"
+              ],
+              [
+                "EventType",
+                "string",
+                "One of: Resource.Created, Resource.Updated, Resource.Deleted"
+              ],
+              [
+                "ConsentId",
+                "string",
+                "The consent identifier associated with the event"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "A replica of the consent at the time of the change",
+        "level": 2,
+        "anchor": "payload-data",
+        "category": "Event Payload — Data",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "A replica of the consent resource at the time of the status change, with Status and StatusUpdateDateTime updated to reflect the new state. Where the consent was revoked, RevokedBy will indicate who initiated the revocation."
+          },
+          {
+            "type": "paragraph",
+            "text": "The shape of Data depends on the consent type:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Bank Data Sharing Consent — includes Permissions, AccountType, AccountSubType, and ExpirationDateTime",
+              "Bank Service Initiation Consent — includes ControlParameters, PaymentPurposeCode, and optionally PaymentConsumption tracking cumulative payment usage"
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Consent Status values",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Status",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "AwaitingAuthorization",
+                    "The consent is awaiting User authorization"
+                  ],
+                  [
+                    "Authorized",
+                    "The consent has been successfully authorized by the User"
+                  ],
+                  [
+                    "Rejected",
+                    "The unauthorized consent was rejected at the LFI"
+                  ],
+                  [
+                    "Revoked",
+                    "The consent has been revoked — check RevokedBy for who initiated it"
+                  ],
+                  [
+                    "Expired",
+                    "The consent has passed its ExpirationDateTime"
+                  ],
+                  [
+                    "Consumed",
+                    "The consented action(s) have been completed (payment consents)"
+                  ],
+                  [
+                    "Suspended",
+                    "The consent has been suspended pending further enquiry"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "RevokedBy values",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Present when Status is Revoked:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Value",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "LFI",
+                    "Revoked by the LFI without User initiation"
+                  ],
+                  [
+                    "TPP",
+                    "Revoked by the TPP without User initiation"
+                  ],
+                  [
+                    "LFI.InitiatedByUser",
+                    "User initiated revocation via the LFI"
+                  ],
+                  [
+                    "TPP.InitiatedByUser",
+                    "User initiated revocation via the TPP"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Decrypted event payload",
+        "level": 2,
+        "anchor": "example-payload",
+        "category": "Example",
+        "blocks": [],
+        "subsections": []
+      }
+    ]
+  }
+}

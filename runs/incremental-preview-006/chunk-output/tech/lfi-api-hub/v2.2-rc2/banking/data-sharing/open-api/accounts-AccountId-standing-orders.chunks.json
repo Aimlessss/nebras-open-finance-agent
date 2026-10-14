@@ -1,0 +1,1403 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+  "chunk_count": 41,
+  "chunks": [
+    {
+      "id": "032b1685-af85-50e0-82ca-97f7c68f6b1a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "intro",
+      "text": "Get Standing Orders for an Account\n\nLFI · Banking · Data Sharing",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "ce786368e25c6bdcb4c11768fb4313b48fb3e93f721b71aa1fa8035832bc1876",
+      "schema_version": 2
+    },
+    {
+      "id": "e5777c2c-62fa-50ff-a6ad-d3abf980b7fa",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > API /accounts/{accountId}/standing-orders\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - Bank Data Sharing APIs\",\n \"contact\": {\n \"name\": \"Ozone Financial Technology Limited\"\n },\n \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor Bank Data Sharing APIs for Ozone Connect.\\n\\nThese APIs should be implemented by an financial institution so that Ozone\\ncan expose these end-points to TPPs.\\n\\n#### Implementer Notes\\n\\nImplementers should note that this API prescribes a positive response for correctly executed\\noperations including those where no data is returned. This is consistent with the general principles\\nof REST.\\nFor example, if the operation \\n`get /accounts/{accountId}/products` is invoked and no product data is found for the account\\nassociated with the value of `accountId` then the correct response is to return a `200` and an empty\\narray: `{ \\\"data\\\": [] }`.\\n\\nPlease refer to the API Hub documentation for details of test cases that are \\navailable for this API using the Ozone Connect test suite.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n**Please adhere to the deprecated flags in your implementation. Do not implement deprecated properties when** **implementing new functionality.**\\n\\n### v2.2.3\\n* Changed `emiratesId` on `CustomerPersonClaims` to carry\\n `pattern: ^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$`, so the Emirates ID returned by `get /customer` and\\n `get /accounts/{accountId}/customer` is well-formed. This is the pattern already used by the Insurance API\\n description and, from v2.2, by `post /leads` in the Bank Products Data API description. Per OFP-009.\\n\\n* Changed `fullName`, `givenName`, `familyName`, `middleName` and `nickname` on `CustomerPersonClaims` to accept\\n Latin letters, space, apostrophe, period and hyphen only, and `businessName` on `CustomerCorporateClaims` to\\n accept those plus digits, ampersand, comma, parentheses and forward slash. Field lengths are unchanged.\\n Per OFP-009.\\n\\n### v2.2.2\\n* Changed `transactionInformation` on `CbuaeTransaction` to be required, so every transaction returned by\\n `get /accounts/{accountId}/transactions` carries a narrative by which the customer can recognise the entry.\\n The field also gains `minLength: 1` and `maxLength: 500`, matching the bounds the TPP-facing\\n `TransactionInformation` schema has carried since v2.1. The same requirement is applied to `AETransaction` in\\n the Standards Account Information API description, since the API Hub can only return a narrative the LFI\\n supplied.\\n\\n* Changed the `post /customers/action/cop-query` request to carry the account IBAN only. `data.account.name` is\\n removed, along with the `PersonName` and `BusinessName` Schema Objects it referenced. The LFI performs no\\n matching, so the name submitted by the TPP is no longer sent to it.\\n\\n* Changed the `post /customers/action/cop-query` response to carry the account holder's name directly. Each\\n entry in `data` is now an `id` and a `name`, which is either a `CbuaeCopPersonName` (`fullName` required) or a\\n `CbuaeCopBusinessName` (`businessName` required). The `verifiedClaims` / `verification` identity-assurance\\n envelope is removed from this operation, along with the `CbuaeVerifiedCopClaim` and\\n `ConfirmationOfPayeePersonClaims` Schema Objects and the wider customer data the latter carried — none of it\\n is needed to compare two names, and Confirmation of Payee runs without a consent. `number` is dropped for the\\n same reason; `id` is retained as the handle for investigating a disputed result. Structured name fields\\n (`firstName`, `middleName`, `lastName`, `fullNameAr`, `alsoKnownAs`, `businessNameAr`) are retained as\\n optional members so the matching algorithm can be improved without a further change to this contract.\\n `get /accounts/{accountId}/customer` is unaffected: it has its own `CbuaeCustomer` / `CbuaeVerifiedClaim`\\n Schema Objects.\\n\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards.\\n* Changed `get /accounts/{accountId}/products` to return `ExpectedProfitRates`, providing one-or-more deposit\\n rates for Sharia-compliant products. Each rate carries `RateType` (`FixedProfit` or `VariableProfit`),\\n `DepositRateType` (`ExpectedProfitRate` or `IndicativeProfitRate`), `ProfitSharingRatio`,\\n `ProfitDistributionMethod`, `ProfitDistributionFrequency`, an optional `Description`, and `RateDetails`.\\n\\n* Changed `get /accounts/{accountId}/products` to return `ShariaFinanceRates`, providing one-or-more finance\\n rates for Sharia-compliant products. As with `FinanceRates`, this can be provided in cleartext or as a JWE\\n based on the preference of the LFI for sharing this information. Each cleartext rate is discriminated on\\n `RateType` as a fixed profit rate, a variable profit rate or a hybrid profit rate, and carries\\n `ProfitCalculationMethod` with the values `PrincipalBalance`, `OutstandingBalance`,\\n `InitialDrawdownAmount`, `UnusedCreditLine` or `UtilizedLimit`.\\n\\n* Changed `get /accounts/{accountId}/products` to return `TakafulRequired`, indicating whether Takaful\\n coverage is required for the product, and `TakafulDescription`, describing the type and purpose of the\\n required coverage.\\n\\n* Changed `get /accounts/{accountId}/products` to return `ProfitCalculationMethod` on charge components, for\\n use in place of `InterestCalculationMethod` where the product uses Islamic calc",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "API /accounts/{accountId}/standing-orders",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /accounts/{accountId}/standing-orders\"],\"\"]:0:part:0",
+      "content_hash": "cf1ded757602d8e417a3d7ce4d3dff19908f1ff2a790231ceae2f451ddaf59bf",
+      "schema_version": 2
+    },
+    {
+      "id": "de78eabb-6b5b-5764-be1b-a2752256d8ba",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > API /accounts/{accountId}/standing-orders\n\nulation methods.\\n\\n* Changed `InterestCalculationMethod` on charge components returned by\\n `get /accounts/{accountId}/products` to apply to interest only. Islamic calculation methods are now\\n described by `ProfitCalculationMethod`.\\n\\n* Changed `RateDetails` on the deposit rates returned by `get /accounts/{accountId}/products` to reference a\\n shared Schema Object, so that the same rate structure is used by both `DepositRates` and\\n `ExpectedProfitRates`. No change to the properties returned.\\n\\n* Changed `get /accounts/{accountId}/balances`, `get /accounts/{accountId}/transactions` and\\n `get /accounts/{accountId}/statements` to return `BalanceDescription`, allowing a description of the\\n balance to be provided identifying the specific Shari'ah compliant charges, payments and rewards made\\n which can affect the balance.\\n\",\n \"version\": \"v2.2.3\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/accounts/{accountId}/standing-orders\",\n \"operations\": {\n \"get\": {\n \"tags\": [\n \"standing-orders\"\n ],\n \"summary\": \"Fetch the standing orders specified by the account id\",\n \"description\": \"Return the standing orders for the account specified by the accountId\",\n \"operationId\": \"findStandingOrderByAccountId\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/aspspId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/consentId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/ozoneInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/psuIdentifier\"\n },\n {\n \"name\": \"accountId\",\n \"in\": \"path\",\n \"description\": \"Id of the account to be queried\",\n \"required\": true,\n \"schema\": {\n \"type\": \"string\"\n }\n },\n {\n \"$ref\": \"#/components/parameters/page\"\n },\n {\n \"$ref\": \"#/components/parameters/page-size\"\n }\n ],\n \"responses\": {\n \"200\": {\n \"description\": \"successful operation\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/StandingOrdersResponse\"\n }\n }\n }\n },\n \"400\": {\n \"$ref\": \"#/components/responses/BadRequestError\"\n },\n \"401\": {\n \"$ref\": \"#/components/responses/UnauthorizedError\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/ForbiddenError\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/InternalServerError\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/Error\"\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "API /accounts/{accountId}/standing-orders",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /accounts/{accountId}/standing-orders\"],\"\"]:0:part:1",
+      "content_hash": "183d29a82bbb36dbd1420961e872870ce5ac91880046d924a1591dd3fffd651c",
+      "schema_version": 2
+    },
+    {
+      "id": "be73a561-ef82-5e84-9579-f9d59ebd1d7d",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targetted to\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/providerId\"],\"\"]:0",
+      "content_hash": "2be80341ea3323f9709dfc78114a6e946c655fe5e8424099f9bd60521262768b",
+      "schema_version": 2
+    },
+    {
+      "id": "eb9c9d29-22da-59d8-90cf-4e4cb99d9731",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/aspspId\n\n{\n \"name\": \"o3-aspsp-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"deprecated\": true,\n \"description\": \"Identifier for the financial institution that the request is targetted to. This header is deprecated and will be removed in a future version of Ozone Connect. Use `o3-provider-id` instead.\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/aspspId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/aspspId\"],\"\"]:0",
+      "content_hash": "b7982245786f4fe89b4afa9329c0a62ff49d020ae16b8718ecad853f5dc4176f",
+      "schema_version": 2
+    },
+    {
+      "id": "047014ad-8cc4-5f7a-903f-d5dc4683d3c9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerOrgId\"],\"\"]:0",
+      "content_hash": "f889142f5b807e04d36500a1aaf1a258fbf0fd5301c817c4027a111de59de54c",
+      "schema_version": 2
+    },
+    {
+      "id": "6c3b622e-883b-590b-9dcb-4930906a5b71",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerClientId\"],\"\"]:0",
+      "content_hash": "51afd279c8260ef4f74981624f6590aff7762f96bbaf8647eab099bc5fa1188f",
+      "schema_version": 2
+    },
+    {
+      "id": "49dedddc-5d93-5d1c-86d7-e0d5415719c0",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "2c3145ffc6b2efe7c33aa3e0ecf967266ea2dec62c05af02525703fc5b84f1ea",
+      "schema_version": 2
+    },
+    {
+      "id": "4513be0b-6a77-534f-a7f6-67276e80a57b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The parameterised URL of the API being called by the caller\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiUri\"],\"\"]:0",
+      "content_hash": "96ce2051fc0d2c3d157b3e727a316fbcaa04f2190f9913948dff8d54dc80a05b",
+      "schema_version": 2
+    },
+    {
+      "id": "ed8292a2-1d35-5047-bb3e-058bb571f9fc",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiOperation\"],\"\"]:0",
+      "content_hash": "9fc6a96d5c0e5fbe284d13eeca025309a98f4033bbc0faa7b4549b4dd57d3908",
+      "schema_version": 2
+    },
+    {
+      "id": "1bc3deb8-7fe0-5878-84b7-e51c9535df40",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/consentId\n\n{\n \"name\": \"o3-consent-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The consentId for which this call is being made\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/consentId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/consentId\"],\"\"]:0",
+      "content_hash": "7e411de6553783afbaa2a5a04f89d9d6067edaf03ddbd89ebb784b7edeb45661",
+      "schema_version": 2
+    },
+    {
+      "id": "a38f67ce-22f2-55ab-bf4d-141b7175cb6d",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerInteractionId\"],\"\"]:0",
+      "content_hash": "933cd26817380a626b27950007ac144ed18b319ceac390b3c16f3aa50a88b39f",
+      "schema_version": 2
+    },
+    {
+      "id": "4e05e1e6-52ed-5869-b83d-9d0e6ea4a3e7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "2158ded0f7cf93ddfab8056cb242fe845076e771c26243a193d9b96806c0db22",
+      "schema_version": 2
+    },
+    {
+      "id": "1c54ed56-0dc2-5c80-adbb-273f59867467",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/psuIdentifier\n\n{\n \"name\": \"o3-psu-identifier\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"A Base64 encoded representation of the psuIdentifier JSON object.\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/psuIdentifier",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/psuIdentifier\"],\"\"]:0",
+      "content_hash": "494aa9477a47b0095f8ca8bd3fe5ab453c51660fc84c6a8b8faf83b6d41269af",
+      "schema_version": 2
+    },
+    {
+      "id": "7bd87014-ba25-57c3-a723-ff7f5ffbe3d6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/page\n\n{\n \"name\": \"page\",\n \"in\": \"query\",\n \"description\": \"Page of results to request (standard pagination)\",\n \"required\": true,\n \"schema\": {\n \"default\": 1,\n \"type\": \"integer\"\n },\n \"style\": \"form\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/page",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/page\"],\"\"]:0",
+      "content_hash": "7378b3aa9e03d3b37e615c73048be1581615d9f243ebb9cd4f16658ac2708a04",
+      "schema_version": 2
+    },
+    {
+      "id": "f3e7e9ff-bcd6-587d-ac97-3a840c921287",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/parameters/page-size\n\n{\n \"name\": \"page-size\",\n \"in\": \"query\",\n \"description\": \"Page size to request. Default is 100 to comply with the Operating Guidelines for the Open Finance Framework.\",\n \"required\": true,\n \"schema\": {\n \"default\": 100,\n \"type\": \"integer\"\n },\n \"style\": \"form\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/parameters/page-size",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/page-size\"],\"\"]:0",
+      "content_hash": "b670809f1e6a9a4b3a428b7cf43b217885a03508812aab1abda11ecc602196ff",
+      "schema_version": 2
+    },
+    {
+      "id": "9d1ed951-e0b1-5d1a-8cd8-301684692079",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/StandingOrdersResponse\n\n{\n \"type\": \"object\",\n \"description\": \"A descriptor for StandingOrder.\\n\",\n \"properties\": {\n \"data\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/CbuaeStandingOrder\"\n },\n \"description\": \"Primary data for the resource.\"\n },\n \"meta\": {\n \"$ref\": \"#/components/schemas/Meta\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/StandingOrdersResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/StandingOrdersResponse\"],\"\"]:0",
+      "content_hash": "a181dfc82f326b88ffcb6e343e28653dcffddaf87df4da66ece37bc1e6970dfa",
+      "schema_version": 2
+    },
+    {
+      "id": "5f82170c-d616-528e-985e-0fe4779c3e29",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/CbuaeStandingOrder\n\n{\n \"type\": \"object\",\n \"required\": [\n \"accountId\",\n \"standingOrderId\",\n \"frequency\",\n \"firstPaymentDateTime\",\n \"standingOrderStatusCode\",\n \"firstPaymentAmount\"\n ],\n \"properties\": {\n \"accountId\": {\n \"type\": \"string\",\n \"description\": \"The account identifer for the account from which the standing order is instructed.\"\n },\n \"standingOrderId\": {\n \"type\": \"string\",\n \"description\": \"Unique identifier for the standing order.\"\n },\n \"accountHolderName\": {\n \"$ref\": \"#/components/schemas/AccountHolderName\"\n },\n \"accountHolderShortName\": {\n \"$ref\": \"#/components/schemas/AccountHolderShortName\"\n },\n \"standingOrderType\": {\n \"description\": \"The type of Standing Order.\",\n \"type\": \"string\",\n \"enum\": [\n \"BetweenMyAccounts\",\n \"SameBankTransfer\",\n \"LocalBankTransfer\",\n \"InternationalTransfer\",\n \"Charity\"\n ]\n },\n \"frequency\": {\n \"type\": \"string\",\n \"description\": \"The frequency that the Standing Order payments are executed from the account. Encoded with allowable values as follows:\\n\\n#### Individual Definitions:\\n\\n* NotKnown - SO frequency is not known (i.e. not provided)\\n\\n* EveryDay - SO frequency is Every day\\n\\n* EveryWorkingDay - SO frequency is every working day\\n\\n* IntervalDay - SO frequency is an interval specified in number of calendar days (2 to 31)\\n\\n* IntervalWeekDay - SO frequency is an interval specified in weeks (1 to 51), and the day within the week (1 to 7)\\n\\n* WeekInMonthDay - SO frequency is a monthly interval, specifying the week of the month (1 to 5) and day within the week (1 to 7)\\n\\n* IntervalMonthDay - SO frequency is an interval specified in months (between 1 to 6, 12, 24), specifying the day within the month (-5 to -1, 1 to 31)\\n\\n* QuarterDay - SO frequency is quarterly RECEIVED\\n\\n* BiAnnual - SO frequency is every 6 months\\n\\n* Annual - SO frequency is every year\\n\\n* RECEIVED = Paid on the 20th March, 19th June, 24th September and 20th December.\\n\\n#### Individual Patterns:\\n\\n* NotKnown (ScheduleCode)\\n\\n* EveryDay (ScheduleCode)\\n\\n* EveryWorkingDay (ScheduleCode)\\n\\n* IntervalDay:NoOfDay (ScheduleCode + NoOfDay)\\n\\n* IntervalWeekDay:IntervalInWeeks:DayInWeek (ScheduleCode + IntervalInWeeks + DayInWeek)\\n\\n* WeekInMonthDay:WeekInMonth:DayInWeek (ScheduleCode + WeekInMonth + DayInWeek)\\n\\n* IntervalMonthDay:IntervalInMonths:DayInMonth (ScheduleCode + IntervalInMonths + DayInMonth)\\n\\n* QuarterDay: + either (RECEIVED) ScheduleCode + QuarterDay\\n\\nThe regular expression for this element combines five smaller versions for each permitted pattern. To aid legibility - the components are presented individually here:\\n\\n* NotKnown\\n\\n* EveryDay\\n\\n* EveryWorkingDay\\n\\n* IntervalDay:(([2-9])|([1-2][0-9])|3[0-1])\\n\\n* IntervalWeekDay:[1-51]:[1-7]\\n\\n* WeekInMonthDay:[1-5]:[1-7]\\n\\n* IntervalMonthDay:([1-6]|12|24):(-[1-5]|[1-9]|[12][0-9]|3[01])\\n\\n* QuarterDay:(RECEIVED)\\n\\n#### Full Regular Expression:\\n\\n* ^(NotKnown)$|^(EveryDay)$|^(EveryWorkingDay)$|^(IntervalDay:(([2-9])|([1-2][0-9])|3[0-1]))$|^(IntervalWeekDay:[1-51]:[1-7])$|^(WeekInMonthDay:[1-5]:[1-7])$|^(IntervalMonthDay:([1-6]|12|24):(-[1-5]|[1-9]|[12][0-9]|3[01]))$|^(QuarterDay:(RECEIVED))$\\\"\\n\"\n },\n \"creditorReference\": {\n \"type\": \"string\",\n \"description\": \"Unique reference in the context of the creditor, provided by the creditor to the User (Debtor), to unambiguously refer to the payment transaction. Usage: If available, the initiating party (i.e. Debtor) provides this reference in the structured remittance information, to enable reconciliation by the Creditor upon receipt of the amount of money. This field is populated by the User 1 (who is the initiating party of the payment e.g. the Debtor). Field is free format text.\"\n },\n \"purpose\": {\n \"$ref\": \"#/components/schemas/PurposeSO\"\n },\n \"firstPaymentDateTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"The date on which the first payment for a Standing Order schedule will be made.\"\n }\n ]\n },\n \"nextPaymentDateTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"The date on which the next payment for a Standing Order schedule will be made.\"\n }\n ]\n },\n \"lastPaymentDateTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"The date on which the last (most recent) payment for a Standing Order schedule was made.\"\n }\n ]\n },\n \"finalPaymentDateTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"The date on which the final payment for a Standing Order schedule will be made.\"\n }\n ]\n },\n \"numberOfPayments\": {\n \"type\": \"string\",\n \"description\": \"Number of the payments that will be made in completing this frequency sequence including any executed since the sequence start date.\"\n },\n \"standingOrderStatusCode\": {\n \"description\": \"Specifies the status of the standing order in code form.\",\n \"type\": \"string\",\n \"enum\": [\n \"Active\",\n \"Inactive\"\n ]\n },\n \"firstPaymentAmount\": {\n \"$ref\": \"#/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\"\n },\n \"nextPaymentAmount\": {\n \"$ref\": \"#/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\"\n },\n \"lastPaymentAmount\": {\n \"$ref\": \"#/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\"\n },\n \"finalPaymentAmount\": {\n \"$ref\": \"#/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\"\n },\n \"creditorAgent\": {\n \"$ref\": \"#/components/schemas/AEBranchAndFinancialInstitutionIdentification5_1\"\n },\n \"creditorAccount\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AECashAccount5_0\"\n },\n \"description\": \"List of Creditor Accounts for the standing order instruction.\"\n },\n \"supplementaryData\": {\n \"type\": \"object\",\n \"description\": \"Any additional data stored with the standing order that is displayed to the user or available in the statement.\"\n }\n },\n \"description\": \"Standing Orders for a specific AccountId\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/CbuaeStandingOrder",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaeStandingOrder\"],\"\"]:0",
+      "content_hash": "c1fa0263162c558e731a3af4bb42e55bead4c317eeec2403e55938198a888f35",
+      "schema_version": 2
+    },
+    {
+      "id": "4a7a0f63-d6af-5caf-9b02-4ab0ed1981ed",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/AccountHolderName\n\n{\n \"type\": \"string\",\n \"description\": \"The Account Holder Name is the name or names of the Beneficiary account owner(s) represented at the account level, as displayed by the Creditor Agent's online channels and as provided by the Beneficiary to the customer when adding the Beneficiary in the Beneficiary list.\\nNote, the Account Holder Name is not the product name or the nickname of the account.d\\n\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/AccountHolderName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AccountHolderName\"],\"\"]:0",
+      "content_hash": "df94c519a05f01a55f78d311af024f81f9d1eba9329e007577350ee481cdefb0",
+      "schema_version": 2
+    },
+    {
+      "id": "aedc256a-cd8f-510f-b214-0dfdf102aa7e",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/AccountHolderShortName\n\n{\n \"type\": \"string\",\n \"description\": \"The Beneficiary account holder nick name\\n\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/AccountHolderShortName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AccountHolderShortName\"],\"\"]:0",
+      "content_hash": "b57f723184d679198bfd2782115085c64ef8ae59d39e88c884a0fee05efdd886",
+      "schema_version": 2
+    },
+    {
+      "id": "2960c3b0-a4b1-5c5e-81b6-ac692836b895",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/PurposeSO\n\n{\n \"description\": \"The purpose of the Standing Order payment.\\nA free format string in the form of transaction categorisation.\\nExample: \\\"Bills and expenses\\\", \\\"Government payment\\\", \\\"Personal Expenses\\\".\\n\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 50\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/PurposeSO",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/PurposeSO\"],\"\"]:0",
+      "content_hash": "1bb70ca72b03cfff7b422f4d74d5c4c7ef6a3e7b250d87f22df854b27231a89f",
+      "schema_version": 2
+    },
+    {
+      "id": "81d37e35-5f30-569b-95cc-75c63ebdb189",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/AEDateTime\n\n{\n \"title\": \"AEDateTime\",\n \"description\": \"An instant in time, per ISO 8601 / RFC 3339, with a mandatory offset. Recipients MUST apply the offset, and\\nMUST NOT read the date and time components as local time. Encodings of the same instant are equivalent and MUST\\nbehave identically: `2027-07-22T00:00:00Z` and `2027-07-22T04:00:00+04:00` identify the same moment.\\n\\nIssuers SHOULD emit UTC, using `Z` or `+00:00`. The negative zero offset `-00:00` MUST NOT be used. Fractional\\nseconds are optional and carry no specified precision; implementations MUST accept both their presence and\\ntheir absence.\\n\",\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}(\\\\.\\\\d+)?(Z|\\\\+\\\\d{2}:\\\\d{2}|-(?:0[1-9]|1[0-2]):\\\\d{2})$\",\n \"example\": \"2027-07-22T00:00:00Z\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEDateTime",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDateTime\"],\"\"]:0",
+      "content_hash": "fe718ad19ea400b6a1d33afbac56e87f1dca90d3105139ca79f4ade0bce25410",
+      "schema_version": 2
+    },
+    {
+      "id": "de3d14d8-6edd-5a4f-8d21-0ba32d6a9014",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\n\n{\n \"type\": \"object\",\n \"required\": [\n \"amount\",\n \"currency\"\n ],\n \"properties\": {\n \"amount\": {\n \"$ref\": \"#/components/schemas/AEActiveCurrencyAndAmount_SimpleType\"\n },\n \"currency\": {\n \"$ref\": \"#/components/schemas/ActiveOrHistoricCurrencyCode_1\"\n }\n },\n \"description\": \"The amount and currency code for a given payment or transaction.\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\"],\"\"]:0",
+      "content_hash": "4f9b82bdfde51cebbe5797cd23915100ca09e026ec7bb15b9ac076e0e05436da",
+      "schema_version": 2
+    },
+    {
+      "id": "fe4f690b-6f0f-53e9-8b99-04d00f002bd4",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/AEActiveCurrencyAndAmount_SimpleType\n\n{\n \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n \"type\": \"string\",\n \"pattern\": \"^\\\\d{1,13}$|^\\\\d{1,13}\\\\.\\\\d{1,5}$\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEActiveCurrencyAndAmount_SimpleType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEActiveCurrencyAndAmount_SimpleType\"],\"\"]:0",
+      "content_hash": "dc4cf4f1f0c16021f64b04b76c1c050888db84059c4c1e86dcdedd0eb881ac04",
+      "schema_version": 2
+    },
+    {
+      "id": "6e8b0668-704a-5efc-a0cc-6aff7ea76344",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/ActiveOrHistoricCurrencyCode_1\n\n{\n \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"example\": \"SAR\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/ActiveOrHistoricCurrencyCode_1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ActiveOrHistoricCurrencyCode_1\"],\"\"]:0",
+      "content_hash": "d6f3a17d64c6e6f7ea2ee3bab6c40b4ec80425690be57d75857fc86562114233",
+      "schema_version": 2
+    },
+    {
+      "id": "6384ca9a-382a-5618-964a-f6f179cdc865",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/AEBranchAndFinancialInstitutionIdentification5_1\n\n{\n \"type\": \"object\",\n \"required\": [\n \"schemeName\",\n \"identification\"\n ],\n \"description\": \"Creditor Agent refers to the Financial Institution that manages the account on behalf of the scheduled payment beneficiary party, managing registration, booking of entries on the account, calculating balances on the account and providing information about the account. This is the servicing Financial Institution of the Beneficiary account.\\n\",\n \"properties\": {\n \"schemeName\": {\n \"$ref\": \"#/components/schemas/AEExternalFinancialInstitutionIdentificationCode\"\n },\n \"identification\": {\n \"$ref\": \"#/components/schemas/Identification_1\"\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEBranchAndFinancialInstitutionIdentification5_1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBranchAndFinancialInstitutionIdentification5_1\"],\"\"]:0",
+      "content_hash": "49e2e70862a6c65dd3e6238db4f9f854898bda689e66266a9c0e8a1021bcae87",
+      "schema_version": 2
+    },
+    {
+      "id": "39df797f-d02e-5c2a-96d9-ee589ed1fda5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/AEExternalFinancialInstitutionIdentificationCode\n\n{\n \"description\": \"* /accounts resource\\nThe name of the identification scheme for the financial institution as the account services provider. Encoded with allowable value as published in an external list.\\n\\n* /beneficiaries resource\\nRefers to the Financial Institution that manages the account on behalf of the Beneficiary party, managing registration, booking of entries on the account, calculating balances on the account and providing information about the account. This is the servicing Financial Institution of the Beneficiary account.\\n\\n* /scheduled-payments resource\\nRefers to the identification scheme for uniquely identifying the Creditor Agent.\\n\\n* /standing-orders resource\\nRefers to the identification scheme for uniquely identifying the Creditor Agent.\\n\\n* /transactions resource\\nRefers to the identification scheme for uniquely identifying the Creditor Agent.\\n\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"BICFI\",\n \"Other\"\n ]\n },\n {\n \"deprecated\": true,\n \"type\": \"string\",\n \"enum\": [\n \"BICFI\",\n \"OTHER\"\n ]\n }\n ]\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEExternalFinancialInstitutionIdentificationCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEExternalFinancialInstitutionIdentificationCode\"],\"\"]:0",
+      "content_hash": "e0d57c308b181e51c67004317ad7acf121fba9c9c6fbe66ceaf0b0823275207e",
+      "schema_version": 2
+    },
+    {
+      "id": "8a193230-1e97-5db2-9222-f88287a1c951",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/Identification_1\n\n{\n \"description\": \"* /accounts resource\\nUnique and unambiguous identification of the financial institution as the account servicing institution for the Open Finance services.\\n\\n* /beneficiaries resource\\nUnique and unambiguous identification of the Creditor Agency as the servicing institution of the Beneficiary.\\n\\n* /scheduled-payments resource\\nUnique and unambiguous identification of the financial institution as the account servicing institution for the Open Finance services.\\n\\n* /standing-orders resource\\nUnique and unambiguous identification of the financial institution as the account servicing institution for the Open Finance services.\\n\\n* /transactions resource\\n Unique and unambiguous identification of the financial institution as the account servicing institution for the Open Finance services.\\n\\n* Notes:\\nBased on the value of the field **IdentificationType**, this entry may be :\\n* BICFI: The BIC/SWIFT Code\\n* Other: Identification code that is not a BIC/SWIFT code and allows a financial institution to be identified.\\n\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/Identification_1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Identification_1\"],\"\"]:0",
+      "content_hash": "9c6b25a79a1211c35ad231d3d1ff66392db7e87fff694d66d4e5efbcf749fde9",
+      "schema_version": 2
+    },
+    {
+      "id": "e8fadf75-6e3b-5de2-9462-1acfee47a789",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/AECashAccount5_0\n\n{\n \"type\": \"object\",\n \"required\": [\n \"schemeName\",\n \"identification\"\n ],\n \"description\": \"Provides the details to identify the beneficiary account.\",\n \"properties\": {\n \"schemeName\": {\n \"$ref\": \"#/components/schemas/AEExternalAccountIdentificationCode1\"\n },\n \"identification\": {\n \"$ref\": \"#/components/schemas/Identification_0\"\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/AECashAccount5_0",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECashAccount5_0\"],\"\"]:0",
+      "content_hash": "1258fe644f1798495f74b9838b9ae7f4cac25b8c3893e3647cb2c380d9d49fa7",
+      "schema_version": 2
+    },
+    {
+      "id": "382659e8-2fe3-5409-ad40-7e98f31a158f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/AEExternalAccountIdentificationCode1\n\n{\n \"description\": \"Name of the identification scheme for the account. Encoded with allowable values published in an external list.\",\n \"type\": \"string\",\n \"enum\": [\n \"IBAN\",\n \"AccountNumber\",\n \"MaskedPAN\",\n \"MobileNumber\",\n \"UtilityName\",\n \"EWallet\"\n ]\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEExternalAccountIdentificationCode1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEExternalAccountIdentificationCode1\"],\"\"]:0",
+      "content_hash": "1568396dd81cc7c89f428ad3420570fa71e3a9833fedea6edea13af982d147e7",
+      "schema_version": 2
+    },
+    {
+      "id": "f560db70-1d11-5979-b0f4-814327f87d31",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/Identification_0\n\n{\n \"description\": \"Identification for the account assigned by the financial institution based on the Account Scheme Name. This identification is known by the User 1 account owner. For IBAN, refer to the ISO Standard 13616.\\n\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 400\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/Identification_0",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Identification_0\"],\"\"]:0",
+      "content_hash": "6d553ace28256a89b471e188dd7cd98845d50c3ca094a557b0a8dc0eea2bab60",
+      "schema_version": 2
+    },
+    {
+      "id": "ae67dd0b-1c5b-54da-9933-b272ef6bf8b2",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/Meta\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"totalPages\": {\n \"type\": \"number\",\n \"description\": \"The number of expected pages for the query.\\n\"\n },\n \"totalRecords\": {\n \"type\": \"number\",\n \"description\": \"The total number of records in the full set.\\n\"\n }\n },\n \"description\": \"Metadata relevant to the resource.\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/Meta",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Meta\"],\"\"]:0",
+      "content_hash": "353fbed65c13b5ddc3edff3ccaf0d278f057a70f4bae2121fac017662523c9ec",
+      "schema_version": 2
+    },
+    {
+      "id": "64e42071-f3ab-5438-9d00-12959b733780",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/responses/BadRequestError\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/responses/BadRequestError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/BadRequestError\"],\"\"]:0",
+      "content_hash": "5fe42f67cab1f02034f74b7723b0e5577a66dc6191aca4eb48094be94865703c",
+      "schema_version": 2
+    },
+    {
+      "id": "7d02136a-0059-5e46-93dc-3267bff7b14b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/Error400\n\n{\n \"description\": \"Default error response payload structure for Ozone Connect\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error400\"],\"\"]:0",
+      "content_hash": "8bde5be1b0c3c6ff46076cb924c46cabbbd0fac4307be1056d5e352654aa3c18",
+      "schema_version": 2
+    },
+    {
+      "id": "da8213bc-837e-5296-b077-37cf2762ae67",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/ErrorMessage\n\n{\n \"description\": \"Message describing the problem that has occurred.\",\n \"type\": \"string\"\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/ErrorMessage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ErrorMessage\"],\"\"]:0",
+      "content_hash": "66daba28e2515d97a68f3440e3f8622c1f93c058a7d4ad67498f39909fa6f64a",
+      "schema_version": 2
+    },
+    {
+      "id": "22cc60e2-ed09-59b2-976d-0d4134752abf",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/responses/UnauthorizedError\n\n{\n \"description\": \"Operation failed due to an invalid credential or missing token\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n \"type\": \"string\"\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/responses/UnauthorizedError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/UnauthorizedError\"],\"\"]:0",
+      "content_hash": "0b679d1cb6a1af5e49e2e61339657209215e2c9b3e74cc764422eff386ccc7f7",
+      "schema_version": 2
+    },
+    {
+      "id": "267db297-9714-546e-926f-a26173f98fd8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/responses/ForbiddenError\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/responses/ForbiddenError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/ForbiddenError\"],\"\"]:0",
+      "content_hash": "99c45cdc3204aa039ab102bda1382ceb93a55941a70e6670b6335c7afd53b7f3",
+      "schema_version": 2
+    },
+    {
+      "id": "d5ad6fba-5c2a-5e29-afdf-aa2c896a1b4a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/Error403\n\n{\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error403\"],\"\"]:0",
+      "content_hash": "3a316d54f82dda88425432af1c8d12850d6ac16901483ca2ac73a514bdc93db6",
+      "schema_version": 2
+    },
+    {
+      "id": "cef28f78-3092-533b-8e9a-d386761910d7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/responses/InternalServerError\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/responses/InternalServerError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/InternalServerError\"],\"\"]:0",
+      "content_hash": "088ed1147e134e570e6f0456be02dd09ee47d7ec56c88dcd7cee13720872c4ba",
+      "schema_version": 2
+    },
+    {
+      "id": "efc63e55-c690-5206-b4a4-0081751c9012",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/schemas/Error500\n\n{\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/schemas/Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error500\"],\"\"]:0",
+      "content_hash": "7515b836e263ac228af221f3810a809e0c157a032a40a2a7af686165e6d03ebe",
+      "schema_version": 2
+    },
+    {
+      "id": "a0750984-7330-57c6-bba2-9e06560cfcbe",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+      "type": "section",
+      "text": "Get Standing Orders for an Account > OpenAPI definition #/components/responses/Error\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n \"type\": \"string\"\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Standing Orders for an Account",
+        "section": "OpenAPI definition #/components/responses/Error",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "ea992692bacdce7491e16e7ab92aca75bbb34d031fdc63cba2eeee962dfb6899",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-standing-orders",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/Error\"],\"\"]:0",
+      "content_hash": "7e978b564e5cb2b02903ac48e667319cbea4be99d152b235c28b3d277961f02b",
+      "schema_version": 2
+    }
+  ]
+}

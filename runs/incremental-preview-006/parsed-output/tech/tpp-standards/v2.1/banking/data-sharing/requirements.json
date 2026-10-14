@@ -1,0 +1,986 @@
+{
+  "id": "tech/tpp-standards/v2.1/banking/data-sharing/requirements",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/requirements.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "38fa7428a96086b5413c8e1d96078cf36909f587c7ba7f1c31b161894b7fd492",
+    "dependencies": [
+      "@/data/requirements/banking-data-sharing-tpp",
+      "src/data/requirements/banking-data-sharing-tpp.ts"
+    ],
+    "assets": [
+      {
+        "file": "src/data/requirements/banking-data-sharing-tpp.ts",
+        "hash": "3296bd17739aab75fb80ec429e435c169639f6d9b0f41ea89ad4ccb241e572d7"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Bank Data Sharing — Requirements",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/requirements",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Bank Data Sharing — Requirements",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The validation rules that apply to Bank Data Sharing. The Validated by\n column on each table indicates where each rule is enforced. Read alongside the Consent requirements\n and the User Journeys\n."
+      },
+      {
+        "type": "paragraph",
+        "text": "All requests require an active Trust Framework application\n with the BDSP\n role, a valid transport certificate\n presented on every request via mTLS, and an active signing key\n for JWT signing."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Consent Creation",
+        "anchor": "post-par",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Request JWT",
+                "Must conform to the Request JWT requirements\n — correct aud\n, signing algorithm (PS256\n), and expiry window.",
+                "API Hub"
+              ],
+              [
+                "client_assertion",
+                "Must be included in the POST body (client_assertion_type\n: urn:ietf:params:oauth:client-assertion-type:jwt-bearer\n). Authenticates the TPP application — see Client Assertion\n.",
+                "API Hub"
+              ],
+              [
+                "scope\n (in Request JWT)",
+                "Must be accounts openid\n.",
+                "API Hub"
+              ],
+              [
+                "authorization_details[0].type\n (in Request JWT)",
+                "Must be urn:openfinanceuae:account-access-consent:v2.1\n.",
+                "API Hub"
+              ],
+              [
+                "API version supported",
+                "The consent version in authorization_details[0].type\n (e.g. urn:openfinanceuae:account-access-consent:v2.1\n) restricts the version of the Account Information endpoints the consent can be used to call (specified in the path, e.g. /open-finance/v2.1/accounts\n). It MUST resolve to an ApiVersion\n the LFI has published in the Trust Framework\n for the Account Information API family.",
+                "LFI (/consent/action/validate)"
+              ],
+              [
+                "OpenAPI schema",
+                "The request must conform exactly to the POST /par\n OpenAPI schema\n. No additional or undocumented parameters are permitted.",
+                "API Hub"
+              ],
+              [
+                "consent.AccountType",
+                "Must be a value supported by the LFI. Supported account types are discoverable via the AccountTypes\n flag on the LFI's authorisation server entry in the Trust Framework\n.",
+                "LFI (/consent/action/validate)"
+              ],
+              [
+                "consent.AccountSubType",
+                "If provided, each value must be a sub-type supported by the LFI. Supported sub-types are discoverable via the AccountSubTypes\n metadata on the LFI's authorisation server entry in the Trust Framework\n.",
+                "LFI (/consent/action/validate)"
+              ],
+              [
+                "consent.Permissions",
+                "If any of ReadBalances\n, ReadBeneficiariesBasic\n, ReadBeneficiariesDetail\n, ReadTransactionsBasic\n, ReadTransactionsDetail\n, ReadProduct\n, ReadScheduledPaymentsBasic\n, ReadScheduledPaymentsDetail\n, ReadDirectDebits\n, ReadStandingOrdersBasic\n, ReadStandingOrdersDetail\n, ReadStatements\n, or ReadProductFinanceRates\n are included, at least one of ReadAccountsBasic\n or ReadAccountsDetail\n must also be present.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions\n — ReadProductFinanceRates",
+                "ReadProductFinanceRates\n MUST only be requested by TPPs that hold the Access Encrypted Resource Data\n optional certification with Nebras. An uncertified TPP MUST NOT include this permission in authorization_details\n; if it does, the API Hub rejects the consent. Only certified TPPs are permitted to receive product finance rates, whether the LFI returns them in cleartext or as an encrypted JWE.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions\n (unsupported)",
+                "If the provided Permissions include permissions not supported by the LFI (e.g. the LFI does not have the endpoint /accounts/{AccountId}/standing-orders\n published to the Trust Framework yet the consent request includes ReadStandingOrdersBasic\n or ReadStandingOrdersDetail\n), the consent validation will fail.",
+                "LFI (/consent/action/validate)"
+              ],
+              [
+                "consent.BaseConsentId",
+                "If provided, must reference a previous consent belonging to the same end user\n. If the original consent in the chain already had a BaseConsentId\n, the TPP must reuse that same BaseConsentId\n rather than the immediate prior ConsentId\n.",
+                "LFI (/consent/action/validate)"
+              ],
+              [
+                "consent.ExpirationDateTime",
+                "Must not be in the past. Must be less than one year in the future.",
+                "API Hub"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be included. Should be a valid UUID (RFC 4122). An invalid value will not cause a failure but tracing will not be possible.",
+                "N/A"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Authorization — Account Selection",
+        "anchor": "authorization",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Eligible accounts",
+                "If the authenticated customer does not hold any accounts matching the requested consent parameters (e.g. AccountType\n, AccountSubType\n, or the permissions requested), the consent will be set to Rejected\n with error\n: invalid_request\n and error_description\n: user_lacks_eligible_accounts\n.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "List Accounts",
+        "anchor": "get-accounts",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token issued with the accounts openid\n scope. The consent bound to the token must be in Authorized\n status and the ExpirationDateTime\n of the Consent must be in the future.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "The version in the request URL path (e.g. v2.1\n in /open-finance/account-information/v2.1/accounts\n) must match the version in the consent's authorization_details[0].type\n (urn:openfinanceuae:account-access-consent:v2.1\n).",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadAccountsBasic\n or ReadAccountsDetail\n.",
+                "API Hub"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be included. Should be a valid UUID (RFC 4122). An invalid value will not cause a failure but tracing will not be possible.",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call. Must be a valid HTTP-date (RFC 7231), e.g. Tue, 11 Sep 2012 19:43:31 UTC\n.",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call. Must be a valid IPv4 or IPv6 address.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present. Should reflect the user-agent of the customer's browser or device.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, Mortgage\n.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get Account",
+        "anchor": "get-accountid",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token issued with the accounts openid\n scope. The consent bound to the token must be in Authorized\n status and the ExpirationDateTime\n of the Consent must be in the future.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "The version in the request URL path must match the version in the consent's authorization_details[0].type\n.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadAccountsBasic\n or ReadAccountsDetail\n.",
+                "API Hub"
+              ],
+              [
+                "AccountId",
+                "Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account.",
+                "LFI"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be included. Should be a valid UUID (RFC 4122). An invalid value will not cause a failure but tracing will not be possible.",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call. Must be a valid HTTP-date (RFC 7231).",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call. Must be a valid IPv4 or IPv6 address.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present. Should reflect the user-agent of the customer's browser or device.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, Mortgage\n.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get Balances",
+        "anchor": "get-balances",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token issued with the accounts openid\n scope. The consent bound to the token must be in Authorized\n status and not expired.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "The version in the request URL path must match the consent version.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadBalances\n.",
+                "API Hub"
+              ],
+              [
+                "AccountId",
+                "Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account.",
+                "LFI"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be included. Should be a valid UUID (RFC 4122).",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, Mortgage\n.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get Beneficiaries",
+        "anchor": "get-beneficiaries",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token bound to an Authorized\n consent.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "Must match the consent version.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadBeneficiariesBasic\n or ReadBeneficiariesDetail\n.",
+                "API Hub"
+              ],
+              [
+                "AccountId",
+                "Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account.",
+                "LFI"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be a valid UUID (RFC 4122).",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Only supported for CurrentAccount\n and Savings\n accounts. Not available for CreditCard\n, Finance\n, or Mortgage\n accounts.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get Direct Debits",
+        "anchor": "get-direct-debits",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token bound to an Authorized\n consent.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "Must match the consent version.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadDirectDebits\n.",
+                "API Hub"
+              ],
+              [
+                "AccountId",
+                "Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account.",
+                "LFI"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be a valid UUID (RFC 4122).",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Only supported for CurrentAccount\n and Savings\n accounts.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get Product",
+        "anchor": "get-product",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token bound to an Authorized\n consent.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "Must match the consent version.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadProduct\n. ReadProductFinanceRates\n is required for finance rate data to be included in the response, and is only available to TPPs holding the Access Encrypted Resource Data\n certification — see Consent Creation\n.",
+                "API Hub"
+              ],
+              [
+                "AccountId",
+                "Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account.",
+                "LFI"
+              ],
+              [
+                "Customer-present session",
+                "When the consent includes ReadProductFinanceRates\n, the TPP MUST only call this endpoint from an active customer-facing session — the customer must be using the TPP application at the time of the call. Background or scheduled calls are not permitted on a consent that carries ReadProductFinanceRates\n, because the encrypted-rate flow requires the customer to receive and enter the one-time code in real time. Consequently x-fapi-customer-ip-address\n and x-fapi-auth-date\n MUST be set on every such call.",
+                "TPP"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be a valid UUID (RFC 4122).",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call. MUST be sent on every call when the consent carries ReadProductFinanceRates\n, because such calls are always customer-present.",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call. MUST be sent on every call when the consent carries ReadProductFinanceRates\n, because such calls are always customer-present.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Supported for all account subtypes.",
+                "LFI"
+              ],
+              [
+                "FinanceRates\n — key request",
+                "If FinanceRates\n is returned as a JWE, the TPP must prompt the User to enter the encryption key delivered to them by the LFI (e.g. via SMS or push notification) before decryption can proceed.",
+                "TPP"
+              ],
+              [
+                "FinanceRates\n — local decryption",
+                "Decryption of the JWE must be performed locally on the User's device. The decrypted data must not be transmitted to the TPP's servers or persisted in any storage accessible to the TPP's application.",
+                "TPP"
+              ],
+              [
+                "FinanceRates\n — data usage",
+                "The decrypted data must only be used to display the rates to the User within the active session. The TPP must not store, transmit, or otherwise process the unencrypted data.",
+                "TPP"
+              ],
+              [
+                "FinanceRates\n — expiry",
+                "The TPP must observe the exp\n value in the JWE header and discard any decrypted data once the expiry threshold has passed. If the data is still required, the TPP must repeat the API operation to retrieve a fresh response — the original consent must still be valid for this to succeed.",
+                "TPP"
+              ],
+              [
+                "FinanceRates\n — session discard",
+                "The TPP must discard all decrypted data from memory when the User closes their session, regardless of whether exp\n has been reached.",
+                "TPP"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get Scheduled Payments",
+        "anchor": "get-scheduled-payments",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token bound to an Authorized\n consent.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "Must match the consent version.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadScheduledPaymentsBasic\n or ReadScheduledPaymentsDetail\n.",
+                "API Hub"
+              ],
+              [
+                "AccountId",
+                "Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account.",
+                "LFI"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be a valid UUID (RFC 4122).",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Only supported for CurrentAccount\n and Savings\n accounts.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get Standing Orders",
+        "anchor": "get-standing-orders",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token bound to an Authorized\n consent.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "Must match the consent version.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadStandingOrdersBasic\n or ReadStandingOrdersDetail\n.",
+                "API Hub"
+              ],
+              [
+                "AccountId",
+                "Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account.",
+                "LFI"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be a valid UUID (RFC 4122).",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Only supported for CurrentAccount\n and Savings\n accounts.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get Transactions",
+        "anchor": "get-transactions",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token bound to an Authorized\n consent.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "Must match the consent version.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadTransactionsBasic\n or ReadTransactionsDetail\n. ReadFXTransactionsBasic\n, ReadFXTransactionsDetail\n, or ReadFXRemittanceCharges\n are required for FX transaction data to be included.",
+                "API Hub"
+              ],
+              [
+                "AccountId",
+                "Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account.",
+                "LFI"
+              ],
+              [
+                "fromBookingDateTime",
+                "If provided, must be a valid ISO 8601 date-time (time component optional, defaults to 00:00:00\n) and must not be after toBookingDateTime\n. A contradictory range is rejected with 400\n Resource.InvalidFormat\n. Any timezone offset is ignored when filtering.",
+                "API Hub"
+              ],
+              [
+                "toBookingDateTime",
+                "If provided, must be a valid ISO 8601 date-time (time component optional, defaults to 00:00:00\n) and must not be in the future. A future toBookingDateTime\n is rejected with 400\n Resource.InvalidFormat\n. Any timezone offset is ignored when filtering.",
+                "API Hub"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be a valid UUID (RFC 4122).",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Supported for all account subtypes.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get Statements",
+        "anchor": "get-statements",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token bound to an Authorized\n consent.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "Must match the consent version.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadStatements\n.",
+                "API Hub"
+              ],
+              [
+                "AccountId",
+                "Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account.",
+                "LFI"
+              ],
+              [
+                "fromStatementDate",
+                "If provided, must be a valid ISO 8601 date and must not be after toStatementDate\n. A contradictory range is rejected with 400\n Resource.InvalidFormat\n. Filtering is open-ended if not provided.",
+                "API Hub"
+              ],
+              [
+                "toStatementDate",
+                "If provided, must be a valid ISO 8601 date and must not be in the future. A future toStatementDate\n is rejected with 400\n Resource.InvalidFormat\n. Filtering is open-ended if not provided.",
+                "API Hub"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be a valid UUID (RFC 4122).",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Supported for all account subtypes.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get Account Parties",
+        "anchor": "get-account-parties",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token bound to an Authorized\n consent.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "Must match the consent version.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadParty\n, ReadPartyUser\n, or ReadPartyUserIdentity\n.",
+                "API Hub"
+              ],
+              [
+                "AccountId",
+                "Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account.",
+                "LFI"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be a valid UUID (RFC 4122).",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Supported for all account subtypes.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get Parties",
+        "anchor": "get-parties",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token bound to an Authorized\n consent.",
+                "API Hub"
+              ],
+              [
+                "URL version",
+                "Must match the consent version.",
+                "API Hub"
+              ],
+              [
+                "consent.Permissions",
+                "The consent must include ReadParty\n, ReadPartyUser\n, or ReadPartyUserIdentity\n.",
+                "API Hub"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be a valid UUID (RFC 4122).",
+                "N/A"
+              ],
+              [
+                "x-fapi-auth-date",
+                "Must be sent when the customer is authenticated at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-fapi-customer-ip-address",
+                "Must be sent when the customer is actively present at the time of the call.",
+                "TPP"
+              ],
+              [
+                "x-customer-user-agent",
+                "Should be sent when the customer is actively present.",
+                "TPP"
+              ],
+              [
+                "AccountSubType",
+                "Supported for all account subtypes.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Account Access Validation",
+        "anchor": "account-access",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Scenario",
+              "Response"
+            ],
+            "rows": [
+              [
+                "AccountId\n is not held by the customer who authorized the consent",
+                "403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n and errorMessage\n: The account is permanently inaccessible."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Account Status Handling",
+        "anchor": "account-status",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Status",
+              "Response"
+            ],
+            "rows": [
+              [
+                "Active\n, Inactive\n, Dormant",
+                "Data is returned normally."
+              ],
+              [
+                "Suspended",
+                "403\n with errorCode\n: Consent.AccountTemporarilyBlocked\n and errorMessage\n: The account is temporarily blocked."
+              ],
+              [
+                "Unclaimed\n, Deceased\n, Closed",
+                "403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n and errorMessage\n: The account is permanently inaccessible."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

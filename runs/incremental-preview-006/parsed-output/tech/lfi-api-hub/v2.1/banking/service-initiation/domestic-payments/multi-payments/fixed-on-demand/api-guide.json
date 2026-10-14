@@ -1,0 +1,975 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/fixed-on-demand/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/fixed-on-demand/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "055f74cab4bfc80995e8a48a69582d452c21ba85e3fa3a6d22d50c3d931dd6cf",
+    "dependencies": [
+      "jose"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Fixed On Demand — API Guide",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/fixed-on-demand/api-guide",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Fixed On Demand — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Fixed On Demand lets a TPP initiate multiple domestic payments at a fixed amount from a customer's account at your LFI via the API Hub. The customer authorises the consent once — approving a specific per-payment amount and periodic limits — and the TPP can then submit individual payments on-demand without re-authorisation. Payments run on AANI as the primary rail with UAEFTS as the fallback. This guide covers the Ozone Connect endpoints your LFI MUST implement so the Hub can serve every payment under the consent from creation through to execution and status retrieval."
+      },
+      {
+        "type": "paragraph",
+        "text": "The behavioural rules for each endpoint — validation conditions, error mappings, post-execution lifecycle — are in the Fixed On Demand Requirements. This guide covers the request and response shape of each endpoint, with code walkthroughs for the parts that need them: decrypting the PII, validating the creditor, matching the payment-time PII against the consent, and applying the duplicate-in-flight check that is specific to on-demand consent types."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before implementing Fixed On Demand",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before implementing Fixed On Demand, ensure the following are in place:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "API Hub onboarded — Your API Hub instance is provisioned and your environment-specific configuration is complete.",
+              "Enc1 key pair generated and registered — The TPP encrypts PII to your LFI's Enc1 public key. Your LFI MUST hold the corresponding private key and be able to look it up by kid.",
+              "Consent Journey implemented — The Consent Journey API Guide MUST be implemented first. A payment cannot be initiated without an authorized consent.",
+              "Ozone Connect connectivity verified — Bidirectional mTLS connectivity is confirmed between the API Hub and your Ozone Connect base URL. See Connectivity & Certificates.",
+              "Fixed On Demand advertised — ApiMetadata.FixedOnDemand.Supported is set to true on your authorisation server entry in the Trust Framework."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end Fixed On Demand",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Validate the consent before it is created",
+        "level": 2,
+        "anchor": "consent-validation",
+        "category": "Consent Validation",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When a TPP creates a payment consent, the API Hub calls your POST /consent/action/validate endpoint before the consent is created. Your LFI MUST validate the consent and respond with data.status: \"valid\" or data.status: \"invalid\". An invalid response prevents the consent being created and the TPP receives an error."
+          },
+          {
+            "type": "paragraph",
+            "text": "The full set of validation rules is enumerated in Fixed On Demand Requirements — Consent Validation. The two parts that need a code walkthrough are decrypting the PII and validating the creditor; both are covered below."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Decrypting and validating the PII",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The consent.PersonalIdentifiableInformation field arrives as a JWE compact string encrypted by the TPP to your LFI's Enc1 public key. Decryption, schema validation, and field-level checks are entirely the LFI's responsibility."
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Read the kid from the JWE protected header and look up the matching Enc1 private key.",
+                  "Decrypt the JWE → recover the inner JWS.",
+                  "Decode the JWS payload (signature verification is optional ).",
+                  "Validate the decoded payload against the consent-time PII schema — AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "For the per-step deep dive see How to Decrypt PII."
+              },
+              {
+                "type": "paragraph",
+                "text": "The decrypted consent-time PII for a Fixed On Demand consent looks like:"
+              },
+              {
+                "type": "paragraph",
+                "text": "If decryption fails, schema validation fails, or any required field is missing, respond with invalid per Rejecting an invalid consent."
+              }
+            ]
+          },
+          {
+            "heading": "Validating the Creditor",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "For Fixed On Demand, Initiation.Creditor MUST be an array of exactly one entry — the single creditor that every payment under this consent will pay. The full Creditor rules are in Creditor."
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Cardinality — exactly one entry.",
+                  "Mandatory fields — CreditorAccount.SchemeName == \"IBAN\", valid UAE IBAN, at least one of Name.en or Name.ar.",
+                  "BIC consistency — derive the BIC from the IBAN; if CreditorAgent.Identification was supplied it MUST match.",
+                  "Domestic rail reachability — the receiving bank is reachable on AANI or UAEFTS."
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Validating the DebtorAccount",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If the TPP supplied Initiation.DebtorAccount in the consent PII, your LFI MUST also validate it before approving the consent: SchemeName is IBAN, the IBAN corresponds to an account held at this LFI, and the account is in a state that permits payment initiation. Customer ownership is checked later during the authorisation journey."
+              },
+              {
+                "type": "paragraph",
+                "text": "The full check list and the invalid response shape (with code: InvalidDebtorAccount ) are in Debtor Account."
+              }
+            ]
+          },
+          {
+            "heading": "Returning the validate response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Consent Events & Actions — API Guide for the full validate request and response schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Authenticate the customer and pin the debtor account",
+        "level": 2,
+        "anchor": "consent-flow",
+        "category": "Consent Flow",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "After consent creation passes validation, the TPP redirects the customer to your LFI's authorization endpoint and your LFI runs the standard consent journey. Full details are in the Consent Journey API Guide."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Endpoint",
+              "Direction",
+              "Purpose"
+            ],
+            "rows": [
+              [
+                "GET /auth",
+                "LFI → API Hub",
+                "Initiate the authorization interaction"
+              ],
+              [
+                "GET /consents/{consentId}",
+                "LFI → API Hub",
+                "Retrieve the full consent details"
+              ],
+              [
+                "PATCH /consents/{consentId}",
+                "LFI → API Hub",
+                "Update consent status, customer identifiers, and the selected debtor account"
+              ],
+              [
+                "POST /auth/{interactionId}/doConfirm",
+                "LFI → API Hub",
+                "Complete the interaction successfully"
+              ],
+              [
+                "POST /auth/{interactionId}/doFail",
+                "LFI → API Hub",
+                "Complete the interaction with a failure"
+              ]
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "After the consent is authorized",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "When the TPP submits a payment instruction to the API Hub's resource server, the API Hub validates the access token, checks the consent is Authorised, checks the amount/currency match the consent control parameters (for Fixed On Demand this means the instructed amount equals PeriodicSchedule.Amount and the per-period count has not been exceeded), and validates the request against the OpenAPI schema — all before forwarding to your Ozone Connect POST /payments endpoint covered in the next section."
+              },
+              {
+                "type": "paragraph",
+                "text": "The Hub does not decrypt or inspect the PII. Re-validating the PII and matching it against the consent at payment time is the LFI's responsibility, covered below."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Decrypt, validate, persist, return 201",
+        "level": 2,
+        "anchor": "post-payments",
+        "category": "POST /payments",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "POST /payments is the central endpoint your LFI implements for payment execution. The API Hub calls it each time the TPP submits a payment under an authorized Fixed On Demand consent. Your LFI MUST decrypt and validate the PII, match it against the consent, run the synchronous validations listed in POST /payments Requirements — including the duplicate-in-flight check that is specific to on-demand consent types — create the payment record, and return 201 with the assigned PaymentId."
+          },
+          {
+            "type": "paragraph",
+            "text": "Screening, rail submission, and status propagation happen after the 201 response — see After returning 201."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Common request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Header",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "o3-provider-id",
+                    "Yes",
+                    "Identifier for your LFI registered in the Hub"
+                  ],
+                  [
+                    "o3-aspsp-id",
+                    "Yes (deprecated)",
+                    "Deprecated alias for o3-provider-id"
+                  ],
+                  [
+                    "o3-caller-org-id",
+                    "Yes",
+                    "Organisation ID of the TPP making the underlying request"
+                  ],
+                  [
+                    "o3-caller-client-id",
+                    "Yes",
+                    "OIDC client ID of the TPP application"
+                  ],
+                  [
+                    "o3-caller-software-statement-id",
+                    "Yes",
+                    "Software statement ID of the TPP application"
+                  ],
+                  [
+                    "o3-api-uri",
+                    "Yes",
+                    "The parameterised URL of the API being called by the TPP"
+                  ],
+                  [
+                    "o3-api-operation",
+                    "Yes",
+                    "The HTTP method ( POST )"
+                  ],
+                  [
+                    "o3-ozone-interaction-id",
+                    "Yes",
+                    "Hub-generated interaction ID"
+                  ],
+                  [
+                    "o3-consent-id",
+                    "Yes",
+                    "The consentId for which this call is being made"
+                  ],
+                  [
+                    "o3-psu-identifier",
+                    "Yes",
+                    "Base64-encoded customer identifier JSON object"
+                  ],
+                  [
+                    "o3-caller-interaction-id",
+                    "No",
+                    "Interaction ID passed in by the TPP, if present"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "The headers the TPP set on its original call to the API Hub — including x-fapi-interaction-id, x-fapi-auth-date, x-customer-user-agent, and x-idempotency-key — are forwarded to your LFI inside the request body as requestHeaders, not on the HTTP headers of the API Hub → LFI call. Unlike Single Instant Payment, Fixed On Demand does not require x-fapi-customer-ip-address — the customer may not be present at the time the TPP submits an on-demand payment."
+              }
+            ]
+          },
+          {
+            "heading": "Request body",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              }
+            ]
+          },
+          {
+            "heading": "Top-level fields",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "requestUrl",
+                    "string",
+                    "No",
+                    "The TPP-facing resource URL the TPP called"
+                  ],
+                  [
+                    "paymentType",
+                    "string",
+                    "Yes",
+                    "MUST be cbuae-payment for domestic Fixed On Demand"
+                  ],
+                  [
+                    "request.Data",
+                    "object",
+                    "Yes",
+                    "The payment payload"
+                  ],
+                  [
+                    "requestHeaders",
+                    "object",
+                    "Yes",
+                    "The complete set of HTTP headers the TPP sent to the API Hub"
+                  ],
+                  [
+                    "tpp",
+                    "object",
+                    "Yes",
+                    "The TPP's directory record. See The tpp and decodedSsa Context Blocks"
+                  ],
+                  [
+                    "supplementaryInformation",
+                    "object",
+                    "No",
+                    "Free-form pass-through context"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "request.Data",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "ConsentId",
+                    "string",
+                    "Yes",
+                    "MUST equal the o3-consent-id header"
+                  ],
+                  [
+                    "Instruction.Amount.Amount",
+                    "string",
+                    "Yes",
+                    "For Fixed On Demand this MUST equal the consent's PeriodicSchedule.Amount — the Hub enforces this before forwarding"
+                  ],
+                  [
+                    "Instruction.Amount.Currency",
+                    "string",
+                    "Yes",
+                    "MUST be AED for domestic payments"
+                  ],
+                  [
+                    "PaymentPurposeCode",
+                    "string",
+                    "Yes",
+                    "3-letter ISO 20022 purpose code, e.g. SUBS"
+                  ],
+                  [
+                    "PersonalIdentifiableInformation",
+                    "string",
+                    "No",
+                    "Encrypted PII payload as a JWE compact string"
+                  ],
+                  [
+                    "DebtorReference",
+                    "string",
+                    "No",
+                    "Reference shown on the debtor's statement"
+                  ],
+                  [
+                    "CreditorReference",
+                    "string",
+                    "No",
+                    "Reference shown on the creditor's statement"
+                  ],
+                  [
+                    "OpenFinanceBilling.Type",
+                    "string",
+                    "Yes",
+                    "Billing type"
+                  ],
+                  [
+                    "OpenFinanceBilling.MerchantId",
+                    "string",
+                    "No",
+                    "Optional merchant identifier"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Request example",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Reading the PII at payment time",
+            "level": 3,
+            "anchor": "reading-the-pii-at-payment-time",
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The payment-time PII follows a different shape from the consent-time PII:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Initiation.Creditor is a single object, not an array.",
+                  "DebtorAccount is absent.",
+                  "The schema is AEBankServiceInitiation.AEDomesticPaymentPIIProperties."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "If decryption fails, reject with 400 JWE.DecryptionError. If schema validation fails, reject with 400 Body.InvalidFormat."
+              }
+            ]
+          },
+          {
+            "heading": "Matching the PII against the consent",
+            "level": 3,
+            "anchor": "matching-the-pii-against-the-consent",
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Per POST /payments Requirements rule 2, the submitted creditor MUST exactly match the single creditor that was on the consent at consent time. Mismatch → 400 Consent.FailsControlParameters."
+              }
+            ]
+          },
+          {
+            "heading": "Pattern A — LFI persisted the decrypted creditor at consent time",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Pattern B — LFI did not persist the consent-time PII",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If your LFI did not persist the decrypted PII at consent time, fetch the consent from the API Hub via GET /consents/{consentId}, decrypt the consent's PersonalIdentifiableInformation field, and run the same isExactMatch comparison against Initiation.Creditor[0]."
+              }
+            ]
+          },
+          {
+            "heading": "Duplicate-in-flight check",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Per POST /payments Requirements rule 6, Fixed On Demand payments are subject to a duplicate-in-flight check that on-demand consent types carry but one-off and scheduled payments do not. Before the payment record is created, your LFI MUST check whether another payment under the same consent, with the same creditor and the same instructed amount, is currently in Pending status. If so, reject the new request with 409 Payment.DuplicateInFlight."
+              },
+              {
+                "type": "paragraph",
+                "text": "This is distinct from x-idempotency-key handling: the idempotency key catches TPP retries of the same HTTP request, while this rule catches genuinely separate payment intents that happen to duplicate a still-in-flight one."
+              },
+              {
+                "type": "paragraph",
+                "text": "Once the prior payment has left Pending (reached AcceptedSettlementCompleted, AcceptedCreditSettlementCompleted, AcceptedWithoutPosting, or Rejected ), a subsequent identical payment is permitted."
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "Return 201 on successful payment record creation."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "data.id",
+                    "string",
+                    "Yes",
+                    "The LFI-assigned PaymentId"
+                  ],
+                  [
+                    "data.consentId",
+                    "string",
+                    "No",
+                    "The consent under which the payment was created"
+                  ],
+                  [
+                    "data.paymentTransactionId",
+                    "string",
+                    "No",
+                    "End-to-end identifier from the rail"
+                  ],
+                  [
+                    "data.status",
+                    "string",
+                    "Yes",
+                    "One of Pending, AcceptedSettlementCompleted, AcceptedCreditSettlementCompleted, AcceptedWithoutPosting, Rejected, Received"
+                  ],
+                  [
+                    "data.statusUpdateDateTime",
+                    "string",
+                    "Yes",
+                    "ISO 8601 timestamp"
+                  ],
+                  [
+                    "data.creationDateTime",
+                    "string",
+                    "Yes",
+                    "ISO 8601 timestamp"
+                  ],
+                  [
+                    "data.instruction.Amount",
+                    "object",
+                    "No",
+                    "The payment amount and currency"
+                  ],
+                  [
+                    "data.paymentPurposeCode",
+                    "string",
+                    "Yes",
+                    "The purpose code from the request"
+                  ],
+                  [
+                    "data.openFinanceBilling.Type",
+                    "string",
+                    "Yes",
+                    "The billing type from the request"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Example — successful initiation",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Error responses",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Only return an error when the request is invalid. The errorCode values are drawn from the POST /payments OpenAPI schema Error400 / Error403 / Error409 enums."
+              }
+            ]
+          },
+          {
+            "heading": "400 — Bad request",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "errorCode",
+                  "When to use"
+                ],
+                "rows": [
+                  [
+                    "Body.InvalidFormat",
+                    "Body fails schema validation"
+                  ],
+                  [
+                    "Resource.InvalidFormat",
+                    "A field is present but not syntactically valid"
+                  ],
+                  [
+                    "Consent.Invalid",
+                    "The consent referenced is unknown to the LFI or has been revoked"
+                  ],
+                  [
+                    "Consent.FailsControlParameters",
+                    "The payment-time creditor does not match the consent-time creditor"
+                  ],
+                  [
+                    "Consent.BusinessRuleViolation",
+                    "An LFI-side business rule blocks the payment"
+                  ],
+                  [
+                    "JWE.DecryptionError",
+                    "PII JWE cannot be decrypted with any registered Enc1 key"
+                  ],
+                  [
+                    "JWE.InvalidHeader",
+                    "PII JWE header is malformed"
+                  ],
+                  [
+                    "JWS.InvalidSignature / JWS.Malformed / JWS.InvalidClaim / JWS.InvalidHeader",
+                    "PII inner JWS fails verification"
+                  ],
+                  [
+                    "GenericRecoverableError / GenericError",
+                    "Other validation errors"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "403 — Forbidden",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "errorCode",
+                  "When to use"
+                ],
+                "rows": [
+                  [
+                    "AccessToken.InvalidScope",
+                    "The Hub's token does not include the required scope"
+                  ],
+                  [
+                    "Consent.AccountTemporarilyBlocked",
+                    "Debtor account is Inactive, Dormant, or Suspended"
+                  ],
+                  [
+                    "Consent.PermanentAccountAccessFailure",
+                    "Debtor account is Closed, Deceased, or Unclaimed"
+                  ],
+                  [
+                    "Consent.TransientAccountAccessFailure",
+                    "Debtor account temporarily inaccessible"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "409 — Conflict",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "errorCode",
+                  "When to use"
+                ],
+                "rows": [
+                  [
+                    "Payment.DuplicateInFlight",
+                    "Another payment with the same creditor and amount under the same consent is still Pending"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Example error response",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "After returning 201",
+            "level": 3,
+            "anchor": "after-returning-201",
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The 201 means the payment record exists at your LFI; it does not mean the payment has settled. The lifecycle from here is asynchronous and is the LFI's responsibility:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Stage",
+                  "LFI behaviour",
+                  "Reference"
+                ],
+                "rows": [
+                  [
+                    "Screening",
+                    "Run fraud / sanctions / AML controls. SHOULD complete within 3 seconds. On failure, PATCH the payment to Rejected with an LFI. -namespaced reject reason",
+                    "Screening Checks"
+                  ],
+                  [
+                    "Rail submission",
+                    "Submit to AANI as primary. Fall back to UAEFTS automatically if AANI is unavailable",
+                    "Rail Submission"
+                  ],
+                  [
+                    "Status propagation",
+                    "On every rail status change, call PATCH /payment-log/{id}",
+                    "Payment Status"
+                  ],
+                  [
+                    "Rail rejection",
+                    "If the rail rejects the payment, PATCH paymentResponse.status: Rejected with RejectReasonCode namespaced as AANI. or FTS.",
+                    "Rail Submission"
+                  ],
+                  [
+                    "Status retrieval",
+                    "Continue serving GET /payments/{paymentId} for at least 1 year",
+                    "GET /payments/{paymentId} rules below"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Update payment status on the API Hub",
+        "level": 2,
+        "anchor": "patch-payment-log",
+        "category": "PATCH /payment-log/:id",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "PATCH /payment-log/:id updates the payment status on the API Hub. The Hub uses the update to send asynchronous notifications to TPPs and to maintain accurate state for billing and limit calculations."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request body",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Uses literal flat-key JSON (the dots are part of the key, not nested objects):"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "paymentResponse.status",
+                    "string",
+                    "Yes",
+                    "Pending, AcceptedSettlementCompleted, AcceptedCreditSettlementCompleted, AcceptedWithoutPosting, or Rejected"
+                  ],
+                  [
+                    "paymentResponse.paymentTransactionId",
+                    "string",
+                    "Conditional",
+                    "The end-to-end identifier assigned by the rail. Once set, MUST NOT change"
+                  ],
+                  [
+                    "paymentResponse.OpenFinanceBilling.numberOfSuccessfulTransactions",
+                    "integer",
+                    "No",
+                    "Number of successful transactions (typically 1 per payment)"
+                  ],
+                  [
+                    "paymentResponse.RejectReasonCode[]",
+                    "array",
+                    "Conditional",
+                    "Required when status is Rejected"
+                  ],
+                  [
+                    "paymentResponse.RejectReasonCode[].Code",
+                    "string",
+                    "Yes (in array)",
+                    "Pattern: ^(LFI|AANI|FTS)\\.[A-Za-z0-9]+$"
+                  ],
+                  [
+                    "paymentResponse.RejectReasonCode[].Message",
+                    "string",
+                    "Yes (in array)",
+                    "Sanitised, customer-relayable description"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Example — successful settlement",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Example — rail rejection",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Example — LFI screening rejection",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "A successful PATCH returns 204 No Content with no body."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Serve payment status to the TPP",
+        "level": 2,
+        "anchor": "get-payments-paymentid",
+        "category": "GET /payments/:paymentId",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "GET /payments/:paymentId backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/payment/v2.1/payments/{PaymentId}. The TPP polls this to observe screening outcomes, rail settlement, and any subsequent rejection."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The response shape mirrors the POST /payments 201 response."
+              }
+            ]
+          },
+          {
+            "heading": "Behavioural rules",
+            "level": 3,
+            "anchor": "behavioural-rules",
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "#",
+                  "Rule"
+                ],
+                "rows": [
+                  [
+                    "1",
+                    "Sustain period — Serve GET /payments/{paymentId} for at least 1 year from the payment's creation date"
+                  ],
+                  [
+                    "2",
+                    "Status consistency with the API Hub — The Status returned MUST exactly match the most recent value PATCHed to the API Hub"
+                  ],
+                  [
+                    "3",
+                    "paymentTransactionId consistency — Once the rail has assigned the end-to-end identifier, this endpoint MUST return the same value"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Errors",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Status",
+                  "errorCode",
+                  "When to use"
+                ],
+                "rows": [
+                  [
+                    "404",
+                    "Resource.NotFound",
+                    "No payment exists for the supplied paymentId"
+                  ],
+                  [
+                    "403",
+                    "Consent.AccountTemporarilyBlocked / Consent.PermanentAccountAccessFailure",
+                    "Debtor account inaccessible"
+                  ],
+                  [
+                    "500",
+                    "GenericRecoverableError / GenericError",
+                    "Transient or unrecoverable server error"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

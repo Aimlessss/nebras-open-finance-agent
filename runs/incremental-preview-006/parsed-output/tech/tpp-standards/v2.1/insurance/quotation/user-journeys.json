@@ -1,0 +1,180 @@
+{
+  "id": "tech/tpp-standards/v2.1/insurance/quotation/user-journeys",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/insurance/quotation/user-journeys.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "507c2fd4543f4d9148573a52ed209a342ea5b5276ccc83cd3b0bde9d870a510b",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": []
+  },
+  "metadata": {
+    "title": "Insurance Quotation — User Journeys",
+    "next": false,
+    "prev": false,
+    "aside": false,
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/insurance/quotation/user-journeys",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Insurance Quotation — User Journeys",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The customer-facing flow in your TPP application, broken down by mode. Insurance Quotation has no Hub-mediated consent journey — the screens below are entirely yours to design (LFI-Led: minimal handoff; TPP-Led: full application capture before redirect to the LFI for payment)."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Gather inputs and request quotes",
+        "level": 2,
+        "anchor": "quote-collection",
+        "category": "Step 1 — Quote collection",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Regardless of mode, you collect the data needed to request quotes in your own UI: sector, QuoteType, sector-specific risk data (vehicle, property, trip, etc.), and customer identifiers. POST /{type}-insurance-quotes may return one or more quotes from each LFI; present them so the customer can compare and choose."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Screens in your app",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Quote inputs — collect sector, QuoteType, and sector-specific risk inputs. Validate locally before submission.",
+                  "Quote comparison — render the returned quotes. Surface premium, coverage, exclusions, and any sector-specific selling points. Indicate which LFI declined (received 204 ) so the customer is not left wondering.",
+                  "Quote acceptance — the customer picks one quote. Confirm the selection before sending the PATCH Accept Quote."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Subscribe to events when accepting the quote",
+        "level": 2,
+        "anchor": "accept",
+        "category": "Step 2 — Accept & subscribe",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "PATCH /{type}-insurance-quotes/{QuoteId} carries both the accept payload and (optionally) a Subscription.Webhook object. Subscribe at accept time so you receive every subsequent status change — ApplicationPending through Completed — on your webhook endpoint without polling."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Where the flow forks",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "LFI-Led mode — the response is 204. The customer is handed to the LFI for KYC, payment, and document delivery. Your app waits for status events (or returns control to the customer with a \"we\\'ll let you know when your policy is ready\" screen).",
+                  "TPP-Led mode — the response is 200 with PolicyIssuanceAllowed declaring you handle CustomerVerification, Payment, and/or PolicyDocuments. Continue in your app with KYC capture."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Collect customer verification in your app",
+        "level": 2,
+        "anchor": "tpp-led-kyc",
+        "category": "Step 3 (TPP-Led only) — KYC",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "For TPP-Led quotes where PolicyIssuanceAllowed.CustomerVerification: true, your app collects the customer\\'s KYC data — Emirates ID, address, occupation, etc., per the sector\\'s accept-quote schema — and submits it via a second PATCH on the same quote endpoint."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Screens in your app",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Identity capture — Emirates ID front/back scan or manual entry. UAE PASS integration is encouraged where available.",
+                  "Declarations — any sector-specific declarations the LFI requires (claims history, smoking status for Life/Health, named drivers for Motor, etc.).",
+                  "Review & submit — surface the gathered data for the customer to confirm before transmission. This submission is treated as the customer\\'s instruction to proceed."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Redirect the customer to the LFI-hosted payment URL",
+        "level": 2,
+        "anchor": "payment-redirect",
+        "category": "Step 4 (TPP-Led only) — Payment redirect",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "After the LFI emits ApplicationApproved on the quote-log (delivered to your webhook or visible via polling), the event carries a BrokerInstructions.Url. This is the LFI\\'s hosted payment page. Redirect the customer to it; payment is collected by the LFI."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Screens in your app",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Handoff confirmation — a short screen explaining the customer is being taken to the insurer\\'s secure payment page. Show the LFI brand so the customer recognises where they\\'re going.",
+                  "Return landing — the LFI redirects the customer back to a URL you control after payment. Show a \"your policy is being finalised\" state until the PolicyIssued / Completed events arrive."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "The BrokerInstructions.Url is single-use and time-bound. Do not store, log, or replay it. If the customer abandons and returns later, request a fresh URL from the LFI (typically via a new PaymentRequired event) rather than reusing the stale one."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Surface the policy and documents to the customer",
+        "level": 2,
+        "anchor": "documents",
+        "category": "Step 5 — Policy delivery",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "On PolicyIssued, you receive the policy reference and (in TPP-Led mode) the full set of policy documents as base64-encoded Documents entries. Verify each document\\'s SHA-256 hash, then present them to the customer."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Screens in your app",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Policy summary — the issued policy with key terms surfaced (sums insured, premium, coverage dates, beneficiaries). In LFI-Led mode you receive an InsurancePolicyId; in TPP-Led mode the documents themselves are authoritative.",
+                  "Document downloads — Policy Booklet, Terms & Conditions, IPID, etc. Allow the customer to download each PDF and offer to email them on demand.",
+                  "Lifecycle hooks — surface \"manage your policy\" links that take the customer back to the LFI (or your own broker-of-record surface) for claims, mid-term adjustments, and renewal."
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

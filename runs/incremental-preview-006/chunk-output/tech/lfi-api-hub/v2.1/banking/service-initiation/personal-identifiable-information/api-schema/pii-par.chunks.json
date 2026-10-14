@@ -1,0 +1,1305 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+  "chunk_count": 38,
+  "chunks": [
+    {
+      "id": "351701c7-4f9e-5d46-9993-798294d59dce",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "intro",
+      "text": "PII Schema — Consent (Consent Manager)\n\nThe schema below shows the full structure of the decrypted PersonalIdentifiableInformation payload as received during consent authorisation via the Consent Manager. This is the PII the LFI MUST decrypt and validate before authorising a payment consent.\n\nAt this stage, the PII includes the Initiation.Creditor array (1–10 entries, or omitted for open beneficiary) and optionally Initiation.DebtorAccount. See the Overview for decryption steps.",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "86786462e053c67d234bf023a8e2d329d0638f0342e531235d0c2f973e5475a2",
+      "schema_version": 2
+    },
+    {
+      "id": "c3ed8876-8e6f-5646-a0b3-36404468fc04",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > Schema AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII\n\n{\n \"info\": {\n \"title\": \"Consent Manager API\",\n \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor the Consent Manager API.\\n\\nThese APIs are implemented by Ozone and should be called by the financial institution to find, modify and delete consents.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.1.10\\n* Added a character-set `pattern` (`^[A-Za-z0-9 \\\\/?:().,'+-]+$`, the ISO 20022 / SWIFT \\\"x\\\" set) to the\\n current (free-text, 35-char) branch of the Creditor and Debtor references\\n (`AEServiceInitiationCreditorReference` / `AEServiceInitiationDebtorReference`), so every LFI knows\\n exactly which characters it must accept and store. The deprecated structured (120-char) branch is\\n unchanged. Per OFP-003.\\n\\n### v2.1.9\\n* Restructured the international Creditor PII (`PersonalIdentifiableInformation.Initiation.Creditor`) for\\n SWIFT SR2026: the Creditor party is now a `oneOf` of Individual and Organization variants, discriminated\\n by `IdentityType`.\\n\\n\\n* The Individual variant carries object-valued `FirstName` / `MiddleName` / `LastName` (`en` / `ar` / `ls`),\\n `RelationshipToSender`, `DateOfBirth`, `Occupation`, `Nationality`, `Gender`, `CountryOfBirth`,\\n `SourceOfIncome`, `SourceOfFunds`, and `Evidence`. The Organization variant carries `AnyBIC`, `LEI`, and\\n `Identification` + `SchemeName`. Both variants share `MobileNumber` / `Email` and an object-valued `Name`\\n (`en` / `ar` / `ls`).\\n\\n\\n* Added SWIFT SR2026 fields to the international `PostalAddress` (`PostCode`, `Room`, `Department`,\\n `SubDepartment`, `TownLocationName`, and now-mandatory `TownName`). It is now a single\\n `AEInternationalAddress` schema shared by both the Creditor and the Creditor Agent (the Creditor Agent\\n previously used the legacy `AEAddress`).\\n\\n\\n* Added a `CreditorAgent.Branch` object and `CreditorAccount.AccountType` (Savings / Current / Checking /\\n Prepaid). Domestic Creditor schemas are unchanged.\\n\\n\\n### v2.1.8\\n* Aligned `AEBankServiceInitiationRichAuthorizationRequests.AECreditorIndicators.AccountType` enum with Standards (Retail / SME / Corporate), replacing the previous product-category enum (CurrentAccount / Savings / CreditCard / Mortgage / Finance) that diverged from the Standards PAR + Payments specs.\\n\\n* Aligned the `Risk` object with Standards: tightened `AERisk` and its descendants on the payment-initiation side with `additionalProperties: false` throughout, carved out the three `SupplementaryData` blocks on the RAR-shape (`AEBankServiceInitiationRichAuthorizationRequests.AE*Indicators.SupplementaryData`) to be open extension points (no `additionalProperties: false`), and added `minLength: 1` / `maxLength: 70` to `AddressLine` items inside the legacy `AEAddress` variant.\\n\\n* Added `ReadStatements` and `ReadProductFinanceRates` to `AEAccountAccessConsentPermissionCodes`, which were present in the v2.1 Standards Bank Data Sharing permission set but missing from the Consent Manager. The Consent Manager must accept every permission code from all supported Standards versions.\\n\\n* Closed the three `ConsentManager.AE*ConsentUpdateProperties` schemas with `additionalProperties: false`. The `PATCH /consents/{consentId}` request body is an `anyOf` of one schema per consent type (Bank Data Sharing, Bank Service Initiation, Insurance Data Sharing); without this, unknown properties were silently accepted, so a field belonging to one consent type could be patched onto another. The schemas now enforce the per-type field separation they describe.\\n\\n* Reverted the payment-log reject reason code to match the v2.0.x Consent Manager: the top-level property is `rejectReasonCode` (not `RejectReasonCode`) on the `GET /payment-log` response and `PATCH /payment-log/{id}` request body, and the `code` / `message` fields inside `CbuaePaymentLogRejectReasonCode` items are lower-case again (not `Code` / `Message`). The PascalCase variants were introduced in error and broke LFIs built against the v2.0.x payment-log contract.\\n\\n### v2.1.7\\n* Added `SME` to `AEExternalAccountTypeCode`.\\n\\n* Changed the `Amount` schema `pattern` regex, which was over-escaped in YAML and failed to validate decimal \\n monetary values.\\n\\n\\n* Removed the unused `AEBankServiceInitiationRichAuthorizationRequests.AERiskExternalAccountIdentificationCode` \\n schema, which duplicated `AERiskExternalAccountIdentificationCode` and was never referenced.\\n\\n\\n### v2.1.6\\n* Added revised PII properties compatible with version 2.1.\\n\\n* Changed DebtorReference and CreditorReference to reflect v2.0 properties.\\n\\n* Changed Rich Authorization Request `type` values to reflect exactly the consent type they are describing.\\n\\n* Removed changelog before v2.1.4 to reduce bloat of API description.\\n### v2.1.5\\n* Changed Account Opening Statuses to provide correct status codes for `patch /account-opening-log/{logId}`.\\n### v2.1.4\\n* Added `FromDate` and `ToDate` in Bank Data Sharing Consents.\\n* Changed `TransactionFromDateTime` and `TransactionToDateTime` to `deprecated` in Bank Data Sharing Consents in\\n line with changes in v2.1 Pushed Authorization Requests.\\n\",\n \"version\": \"v2.1.10\"\n },\n \"servers\": [\n {\n \"url\": \"https://<your-ozone-cm-server>\"\n }\n ],\n \"display_path\": \"/consent.PersonalIdentifiableInformation\",\n \"schema\": {\n",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "Schema AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"Schema AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII\"],\"\"]:0:part:0",
+      "content_hash": "30dd5d677077aa701303511ff89e7d628c3af9ac537829c4374fbdacea21c74e",
+      "schema_version": 2
+    },
+    {
+      "id": "2fb66aa5-5fc6-59bf-accd-dd50953901e0",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > Schema AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII\n\n \"type\": \"object\",\n \"properties\": {\n \"Initiation\": {\n \"type\": \"object\",\n \"properties\": {\n \"DebtorAccount\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEBankServiceInitiationDebtorAccountProperties\"\n },\n \"Creditor\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditor\"\n },\n \"minItems\": 1,\n \"description\": \"List of Creditors for a domestic payment consent.\"\n }\n },\n \"description\": \"The Initiation payload is sent by the initiating party to the LFI. It is used to request movement of funds from the Debtor Account to a Creditor for one-or-more domestic payments.\",\n \"additionalProperties\": false\n },\n \"Risk\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AERisk\"\n }\n },\n \"description\": \"Elements of Personal Identifiable Information for a Domestic Payment.\",\n \"additionalProperties\": false,\n \"title\": \"Domestic Payment PII Schema Object\"\n },\n \"security\": [\n {},\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n }\n }\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "Schema AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"Schema AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII\"],\"\"]:0:part:1",
+      "content_hash": "fed723e583b3099aa4c890d8307cded4d3197d525ebd54e86245e79ff627128b",
+      "schema_version": 2
+    },
+    {
+      "id": "6bd4e556-4bc8-55f0-9cdb-1f72512c1cfb",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEBankServiceInitiationDebtorAccountProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"SchemeName\",\n \"Identification\"\n ],\n \"properties\": {\n \"SchemeName\": {\n \"type\": \"string\",\n \"enum\": [\n \"IBAN\"\n ],\n \"description\": \"Scheme name for the Debtor Account. The Debtor Account must be an IBAN.\"\n },\n \"Identification\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"description\": \"The Identification of the Debtor Account.\"\n },\n \"Name\": {\n \"type\": \"object\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"maxLength\": 70\n },\n \"ar\": {\n \"type\": \"string\",\n \"maxLength\": 70\n }\n },\n \"minProperties\": 1,\n \"description\": \"The Debtor Account, which can be provided in both English and Arabic. Omitted if not held by the TPP.\",\n \"additionalProperties\": false\n }\n },\n \"description\": \"Details of the Debtor Account when provided at the TPP. Omitted if not available at the TPP or the User chooses to select the Debtor Account at the LFI.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEBankServiceInitiationDebtorAccountProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEBankServiceInitiationDebtorAccountProperties\"],\"\"]:0",
+      "content_hash": "97967b43ee5819374431bc5612d8623023b333d3bd94b6d71120dcf2e3899388",
+      "schema_version": 2
+    },
+    {
+      "id": "5040bc00-0948-502c-94cb-9503909c4862",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditor\n\n{\n \"type\": \"object\",\n \"required\": [\n \"CreditorAccount\"\n ],\n \"properties\": {\n \"CreditorAgent\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAgentProperties\"\n },\n \"Creditor\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorProperties\"\n },\n \"CreditorAccount\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditorAccountProperties\"\n },\n \"ConfirmationOfPayeeResponse\": {\n \"type\": \"string\",\n \"pattern\": \"^.+\\\\..+\\\\..+$\",\n \"description\": \"Response from Confirmation of Payee operation, when executed for the Creditor Account.\\n\\nThis is JSON Web Signature returned by the Payee Confirmation operation at the Confirmation of Payee API.\\n\\nThe value must be the full JWS string, including the header and signature, without decoding to an object.\\n\\nIf Confirmation of Payee is not performed this property can be omitted\"\n }\n },\n \"description\": \"Identification elements for a Creditor for a domestic payment instruction.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditor",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditor\"],\"\"]:0",
+      "content_hash": "528b472cd6039945e430aedc17b3c92d22d4e1f9f66b4fafdefa86e1eda5d3ac",
+      "schema_version": 2
+    },
+    {
+      "id": "046c3870-da58-5584-b5fb-fd0a51b7bfe5",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAgentProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"SchemeName\",\n \"Identification\"\n ],\n \"properties\": {\n \"SchemeName\": {\n \"type\": \"string\",\n \"enum\": [\n \"BICFI\",\n \"Other\"\n ]\n },\n \"Identification\": {\n \"type\": \"string\"\n },\n \"Name\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"PostalAddress\": {\n \"$ref\": \"#/components/schemas/AEAddress\"\n }\n },\n \"description\": \"Properties of the Creditor Agent, which provides information on the Financial Institution that holds the Creditor Account.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAgentProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAgentProperties\"],\"\"]:0",
+      "content_hash": "86528215549ae45b3eb2c504c4eea58d757ce740af3ab2d35512d6a490d42125",
+      "schema_version": 2
+    },
+    {
+      "id": "f81d7a14-fe57-5fe0-b896-cf259dd9b8d9",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEAddress\n\n{\n \"anyOf\": [\n {\n \"description\": \"(Array) Address information that locates and identifes a specific address, as defined by a national or international postal service.\\\"\\n**v1.2 version of address format marked as deprecated, replaced at v2.0**\\n\",\n \"type\": \"array\",\n \"minItems\": 1,\n \"items\": {\n \"type\": \"object\",\n \"required\": [\n \"AddressType\",\n \"Country\"\n ],\n \"properties\": {\n \"AddressType\": {\n \"$ref\": \"#/components/schemas/AEAddressTypeCode\"\n },\n \"ShortAddress\": {\n \"$ref\": \"#/components/schemas/AEShortAddress\"\n },\n \"UnitNumber\": {\n \"$ref\": \"#/components/schemas/AEUnitNumber\"\n },\n \"FloorNumber\": {\n \"$ref\": \"#/components/schemas/AEFloorNumber\"\n },\n \"BuildingNumber\": {\n \"$ref\": \"#/components/schemas/AEBuildingNumber\"\n },\n \"StreetName\": {\n \"$ref\": \"#/components/schemas/AEStreetName\"\n },\n \"SecondaryNumber\": {\n \"$ref\": \"#/components/schemas/AESecondaryNumber\"\n },\n \"District\": {\n \"$ref\": \"#/components/schemas/AEDistrict\"\n },\n \"PostalCode\": {\n \"$ref\": \"#/components/schemas/AEPostalCode\"\n },\n \"POBox\": {\n \"$ref\": \"#/components/schemas/AEPOBox\"\n },\n \"ZipCode\": {\n \"$ref\": \"#/components/schemas/AEZipCode\"\n },\n \"City\": {\n \"$ref\": \"#/components/schemas/AECity\"\n },\n \"Region\": {\n \"$ref\": \"#/components/schemas/AERegion\"\n },\n \"Country\": {\n \"$ref\": \"#/components/schemas/AECountryCode\"\n }\n },\n \"additionalProperties\": false\n }\n },\n {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"AddressType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Billing\",\n \"Business\",\n \"Correspondence\",\n \"DeliveryTo\",\n \"MailTo\",\n \"POBox\",\n \"Postal\",\n \"Permanent\",\n \"Residential\",\n \"Statement\",\n \"Other\"\n ]\n },\n \"AddressLine\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"minItems\": 1,\n \"maxItems\": 7\n },\n \"BuildingNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"BuildingName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"Floor\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"StreetName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"DistrictName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"PostBox\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"TownName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"CountrySubDivision\": {\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"AbuDhabi\",\n \"Ajman\",\n \"Dubai\",\n \"Fujairah\",\n \"RasAlKhaimah\",\n \"Sharjah\",\n \"UmmAlQuwain\"\n ]\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"Country\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{2}$\"\n }\n },\n \"required\": [\n \"AddressType\",\n \"AddressLine\",\n \"Country\"\n ],\n \"additionalProperties\": false\n },\n \"minItems\": 1,\n \"description\": \"One-or-more addresses related to a given subject.\"\n }\n ]\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEAddress",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEAddress\"],\"\"]:0",
+      "content_hash": "71a6dfdff3fde8d5a9c2734bdff9807c869311ad8606aaa0e7a2a859111e1468",
+      "schema_version": 2
+    },
+    {
+      "id": "39f970fe-c8ff-567f-9cea-a5f1971edde0",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEAddressTypeCode\n\n{\n \"description\": \"Specifies the nature of the Address.\",\n \"type\": \"string\",\n \"enum\": [\n \"Business\",\n \"Correspondence\",\n \"Residential\"\n ],\n \"example\": \"Residential\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEAddressTypeCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEAddressTypeCode\"],\"\"]:0",
+      "content_hash": "d71ae0902216eb0800cfa073d70219fa21c9184c7a90e22b1d9166981ca8045e",
+      "schema_version": 2
+    },
+    {
+      "id": "599b0c8a-7b4e-54de-b4c2-02852c6515fb",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEShortAddress\n\n{\n \"description\": \"A short address consists of four letters: region code, branch code, division code, unique code and a four-digit number for the building.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 8,\n \"example\": \"ABCD1234\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEShortAddress",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEShortAddress\"],\"\"]:0",
+      "content_hash": "f87cb8586fe876e5cebebea59dc5cbdb0b50bd8ddf2bdabf5970e02c372fbf22",
+      "schema_version": 2
+    },
+    {
+      "id": "a8a74af9-3d95-5d13-87d0-65d4e25c86c8",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEUnitNumber\n\n{\n \"description\": \"Identifies the unit or apartment number.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 10,\n \"example\": \"6\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEUnitNumber",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEUnitNumber\"],\"\"]:0",
+      "content_hash": "cb7e4fe1baa4c7827594acfc7f807ce89b9d70208201638dd7704e03cf7f5777",
+      "schema_version": 2
+    },
+    {
+      "id": "9b2bb186-44d0-5865-907f-d4c91cf8d23e",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEFloorNumber\n\n{\n \"description\": \"Identifies the building floor number.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 10,\n \"example\": \"2\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEFloorNumber",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEFloorNumber\"],\"\"]:0",
+      "content_hash": "9f433209665f93c9bb5fbd1cf811a3745642c3f3d6839d2995305e9a6293bdc3",
+      "schema_version": 2
+    },
+    {
+      "id": "602441aa-e99b-568c-8b9e-7d02c322fe32",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBuildingNumber\n\n{\n \"description\": \"Identifies the building number.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 10,\n \"example\": \"34\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBuildingNumber",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBuildingNumber\"],\"\"]:0",
+      "content_hash": "d23730ec161fce6084d5e05a64b4af07f505c406ac780b08199c18069bed21fb",
+      "schema_version": 2
+    },
+    {
+      "id": "c7c40391-a3b2-554e-b3b0-a1198c8b5885",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEStreetName\n\n{\n \"description\": \"Identifies the street name or road.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"example\": \"Omar Bin Hassan Street\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEStreetName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEStreetName\"],\"\"]:0",
+      "content_hash": "3f06a5dd140d9dc11c4f5896da92c907b3b5736eb6f7886534134f5c60716cbb",
+      "schema_version": 2
+    },
+    {
+      "id": "35eede06-0f3c-5baf-a1fa-f74b8c0b692f",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AESecondaryNumber\n\n{\n \"description\": \"4 numbers representing the accurate location coordinates of the address\",\n \"type\": \"string\",\n \"minLength\": 4,\n \"maxLength\": 4,\n \"example\": \"1233\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AESecondaryNumber",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AESecondaryNumber\"],\"\"]:0",
+      "content_hash": "409dd7eefe627c02d7ed27a4deb54da0e697c92464dfa0db14149ec13a995136",
+      "schema_version": 2
+    },
+    {
+      "id": "67101601-35dc-5eb7-b67d-5dc11544017a",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEDistrict\n\n{\n \"description\": \"Identifies the district of a city.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"example\": \"Olaya Dist.\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEDistrict",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDistrict\"],\"\"]:0",
+      "content_hash": "4d3c2d47bee74bd44999905d85bd5986b34bfad54aeb56ed07e62608f9f15bbe",
+      "schema_version": 2
+    },
+    {
+      "id": "dab7d5fe-0cca-57e8-bf71-32784b733045",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEPostalCode\n\n{\n \"description\": \" Identifies the postal code; a unique code assigned to a specific geographic area for efficient mail sorting and delivery purposes.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 10,\n \"example\": \"12345\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEPostalCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPostalCode\"],\"\"]:0",
+      "content_hash": "4e9e2b6ca475c451d2a610bbd15a7632fa7e2c8dc7816496c08dc88f4eeba5d2",
+      "schema_version": 2
+    },
+    {
+      "id": "e3f49683-6b7f-55a9-a86a-da6f47dbdbb0",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEPOBox\n\n{\n \"description\": \" Identifies the POBox.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 10,\n \"example\": \"11562\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEPOBox",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPOBox\"],\"\"]:0",
+      "content_hash": "3fbc7e1b6519caab841bd5ff5ca0d73eb5669dcbc94b10b796f5619751eafe7c",
+      "schema_version": 2
+    },
+    {
+      "id": "b5b6a76b-01d4-5618-961c-8cfdd8cb77b1",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEZipCode\n\n{\n \"description\": \"Identifies the ZIP code; a unique code assigned to a specific geographic area for efficient mail sorting and delivery purposes.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 10,\n \"example\": \"12366\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEZipCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEZipCode\"],\"\"]:0",
+      "content_hash": "b980f072a3f9a477a5d30b19ba5df763334c786cda734d667fd0ef0b7e10af56",
+      "schema_version": 2
+    },
+    {
+      "id": "346d9e17-b56d-5285-ac60-0c12c61f4f66",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AECity\n\n{\n \"description\": \"Identifies the name of the city or town where the address is situated.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"example\": \"Riyadh\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AECity",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECity\"],\"\"]:0",
+      "content_hash": "07b542857e5cdd056271cc257426a7bd3ada66e123d82bcf12f70dc5a955f422",
+      "schema_version": 2
+    },
+    {
+      "id": "ede6dd34-d336-5206-9382-028286fd8038",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AERegion\n\n{\n \"description\": \"Identifies the region.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"example\": \"North\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AERegion",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AERegion\"],\"\"]:0",
+      "content_hash": "f795cc85481d5e8179b24a8bb744d6ac3cf522c5edbcfee85f389321214aefa0",
+      "schema_version": 2
+    },
+    {
+      "id": "af00ba71-cf87-5237-83b6-2753979e8a68",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AECountryCode\n\n{\n \"description\": \"Indicates the country code in which the address is located (References ISO 3166-1 alpha-2).\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{2,2}$\",\n \"example\": \"SA\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AECountryCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECountryCode\"],\"\"]:0",
+      "content_hash": "fd8c07d24846bf1289694c9d75cbfec778e27a93feaed2d98907980d5b727472",
+      "schema_version": 2
+    },
+    {
+      "id": "07a814a1-39f8-5e0f-bb28-436de3a86f65",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorProperties\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"Name\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"PostalAddress\": {\n \"$ref\": \"#/components/schemas/AEAddress\"\n }\n },\n \"description\": \"Party to which an amount of money is due.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorProperties\"],\"\"]:0",
+      "content_hash": "6c2a4f2fd7db58fe922dfd4fb312abd2b910d686bce18ee45eebfe49cfc9b53c",
+      "schema_version": 2
+    },
+    {
+      "id": "15df428e-f730-5445-a925-8875bdc55f0a",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditorAccountProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"SchemeName\",\n \"Identification\",\n \"Name\"\n ],\n \"properties\": {\n \"SchemeName\": {\n \"type\": \"string\",\n \"enum\": [\n \"IBAN\"\n ],\n \"description\": \"Domestic payment scheme, restricted to `IBAN`\"\n },\n \"Identification\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIdentification\"\n },\n \"Name\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEName\"\n },\n \"TradingName\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName\"\n },\n \"Type\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAccountTypeCodes\"\n }\n },\n \"description\": \"Unambiguous identification of the account of the creditor to which a credit entry will be posted.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditorAccountProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditorAccountProperties\"],\"\"]:0",
+      "content_hash": "3b408380100e431988b017f7deace6ddfc769037d340e151bec16d398406126c",
+      "schema_version": 2
+    },
+    {
+      "id": "1bba36f7-e011-52fc-b714-d82e47ee0a82",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIdentification\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"description\": \"Identification for the account assigned by the LFI based on the Account Scheme Name.\\nThis identification is known by the User account owner.\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIdentification",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIdentification\"],\"\"]:0",
+      "content_hash": "7914c9aafa8cf81b0cf0aaa806ee8964b5af6ba0b409a151d7833cc0acb96221",
+      "schema_version": 2
+    },
+    {
+      "id": "ade2dbe4-2182-54e8-8a77-22adf57385ef",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEName\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"maxLength\": 70,\n \"description\": \"English value of the string\"\n },\n \"ar\": {\n \"type\": \"string\",\n \"maxLength\": 70,\n \"description\": \"Arabic value of the string\"\n }\n },\n \"description\": \"The Account Holder Name is the name or names of the Account owner(s) represented at the account level\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEName\"],\"\"]:0",
+      "content_hash": "968ffb7b9b25cdbc445b10d3fdfb468b456ce415adf9b4e8aa409725aba54e19",
+      "schema_version": 2
+    },
+    {
+      "id": "3a47ac5e-f79a-5cf1-a379-edc3b6e2a2e2",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"maxLength\": 70,\n \"description\": \"English value of the string\"\n },\n \"ar\": {\n \"type\": \"string\",\n \"maxLength\": 70,\n \"description\": \"Arabic value of the string\"\n }\n },\n \"description\": \"The Trading Brand Name (if applicable) for the Creditor.\\nApplicable to Payments.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName\"],\"\"]:0",
+      "content_hash": "c8f907805d3c7d0f7ddffb0edc6c751344386330b3ea33d69892bebf3f487d1a",
+      "schema_version": 2
+    },
+    {
+      "id": "8f373d45-4052-57a2-981c-0c49f60c8a55",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAccountTypeCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Individual\",\n \"Merchant\",\n \"Business\",\n \"Charity\",\n \"GovernmentBody\",\n \"Other\"\n ],\n \"description\": \"The Creditor (Payee) Type, based on an allowed list. This value is populated by TPPs to inform the User of the type of Creditor being authorized, which facilitates providing information during the Consent journey.\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAccountTypeCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAccountTypeCodes\"],\"\"]:0",
+      "content_hash": "69e29723d757c2ba1d5723197262e84869f5241ad7cadb57be291e3c7cbcdc88",
+      "schema_version": 2
+    },
+    {
+      "id": "375ddc02-4fd0-560a-a671-bb45b4acc1d3",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AERisk\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"DebtorIndicators\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDebtorIndicators\"\n },\n \"DestinationDeliveryAddress\": {\n \"type\": \"object\",\n \"properties\": {\n \"RecipientType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Individual\",\n \"Corporate\"\n ]\n },\n \"RecipientName\": {\n \"type\": \"object\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\"\n },\n \"ar\": {\n \"type\": \"string\"\n }\n },\n \"additionalProperties\": false\n },\n \"NationalAddress\": {\n \"$ref\": \"#/components/schemas/AEAddress\"\n }\n },\n \"description\": \"Destination Delivery Address\",\n \"additionalProperties\": false\n },\n \"TransactionIndicators\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETransactionIndicators\"\n },\n \"CreditorIndicators\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorIndicators\"\n }\n },\n \"description\": \"The Risk section is sent by the TPP to the LFI. It is used to specify additional details for risk/fraud scoring regarding Payments.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AERisk",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AERisk\"],\"\"]:0",
+      "content_hash": "666f8f4a98c87d421adc2404a4b79ae739581bb3fd4fabdafbc16580045ab4eb",
+      "schema_version": 2
+    },
+    {
+      "id": "2518d81f-89f5-5168-aeb5-c3a93cbf2ac6",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDebtorIndicators\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"Authentication\": {\n \"type\": \"object\",\n \"properties\": {\n \"AuthenticationChannel\": {\n \"type\": \"string\",\n \"enum\": [\n \"App\",\n \"Web\"\n ]\n },\n \"PossessionFactor\": {\n \"type\": \"object\",\n \"properties\": {\n \"IsUsed\": {\n \"type\": \"boolean\"\n },\n \"Type\": {\n \"type\": \"string\",\n \"enum\": [\n \"FIDO2SecurityKey\",\n \"Passkey\",\n \"OTPDevice\",\n \"OTPApp\",\n \"SMSOTP\",\n \"EmailOTP\",\n \"PushNotification\",\n \"WebauthnToken\",\n \"SecureEnclaveKey\",\n \"HardwareOTPKey\",\n \"TrustedDevice\",\n \"Other\"\n ]\n }\n },\n \"additionalProperties\": false\n },\n \"KnowledgeFactor\": {\n \"type\": \"object\",\n \"properties\": {\n \"IsUsed\": {\n \"type\": \"boolean\"\n },\n \"Type\": {\n \"type\": \"string\",\n \"enum\": [\n \"PIN\",\n \"Password\",\n \"SecurityQuestion\",\n \"SMSOTP\",\n \"EmailOTP\",\n \"OTPPush\",\n \"Other\"\n ]\n }\n },\n \"additionalProperties\": false\n },\n \"InherenceFactor\": {\n \"type\": \"object\",\n \"properties\": {\n \"IsUsed\": {\n \"type\": \"boolean\"\n },\n \"Type\": {\n \"type\": \"string\",\n \"enum\": [\n \"Biometric\",\n \"Fingerprint\",\n \"FaceRecognition\",\n \"IrisScan\",\n \"VoiceRecognition\",\n \"FIDOBiometric\",\n \"DeviceBiometrics\",\n \"Other\"\n ]\n }\n },\n \"additionalProperties\": false\n },\n \"ChallengeOutcome\": {\n \"type\": \"string\",\n \"enum\": [\n \"Pass\",\n \"Fail\",\n \"NotPerformed\"\n ]\n },\n \"AuthenticationFlow\": {\n \"type\": \"string\",\n \"enum\": [\n \"MFA\",\n \"Other\"\n ]\n },\n \"AuthenticationValue\": {\n \"type\": \"string\"\n },\n \"ChallengeDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\"\n }\n },\n \"description\": \"The authentication method used by the User to access their account with the TPP\",\n \"additionalProperties\": false\n },\n \"UserName\": {\n \"type\": \"object\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\"\n },\n \"ar\": {\n \"type\": \"string\"\n }\n },\n \"description\": \"The Name of the User initiating the Payment\",\n \"additionalProperties\": false\n },\n \"GeoLocation\": {\n \"type\": \"object\",\n \"properties\": {\n \"Latitude\": {\n \"type\": \"string\"\n },\n \"Longitude\": {\n \"type\": \"string\"\n }\n },\n \"required\": [\n \"Latitude\",\n \"Longitude\"\n ],\n \"description\": \"GPS to identify and track the whereabouts of the connected electronic device.\",\n \"additionalProperties\": false\n },\n \"DeviceInformation\": {\n \"type\": \"object\",\n \"properties\": {\n \"DeviceId\": {\n \"type\": \"string\"\n },\n \"AlternativeDeviceId\": {\n \"type\": \"string\"\n },\n \"DeviceOperatingSystem\": {\n \"type\": \"string\"\n },\n \"DeviceOperatingSystemVersion\": {\n \"type\": \"string\"\n },\n \"DeviceBindingId\": {\n \"type\": \"string\"\n },\n \"LastBindingDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\"\n },\n \"BindingDuration\": {\n \"type\": \"string\",\n \"format\": \"duration\"\n },\n \"BindingStatus\": {\n \"type\": \"string\",\n \"enum\": [\n \"Active\",\n \"Expired\",\n \"Revoked\",\n \"Suspended\"\n ]\n },\n \"DeviceType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Mobile\",\n \"Desktop\",\n \"Tablet\",\n \"Wearable\",\n \"Other\"\n ]\n },\n \"DeviceManufacturer\": {\n \"type\": \"object\",\n \"properties\": {\n \"Model\": {\n \"type\": \"string\",\n \"maxLength\": 50\n },\n \"Manufacturer\": {\n \"type\": \"string\",\n \"maxLength\": 50\n }\n },\n \"additionalProperties\": false\n },\n \"DeviceLanguage\": {\n \"type\": \"string\"\n },\n \"DeviceLocalDateTime\": {\n \"type\": \"string\"\n },\n \"ConnectionType\": {\n \"type\": \"string\",\n \"enum\": [\n \"WiFi\",\n \"Cellular\",\n \"Other\"\n ]\n },\n \"ScreenInformation\": {\n \"type\": \"object\",\n \"properties\": {\n \"PixelDensity\": {\n \"type\": \"number\"\n },\n \"Orientation\": {\n \"type\": \"string\",\n \"enum\": [\n \"Portrait\",\n \"Landscape\"\n ]\n }\n },\n \"additionalProperties\": false\n },\n \"BatteryStatus\": {\n \"type\": \"object\",\n \"properties\": {\n \"Level\": {\n \"type\": \"number\",\n \"minimum\": 0,\n \"maximum\": 100\n },\n \"IsCharging\": {\n \"type\": \"boolean\"\n }\n },\n \"additionalProperties\": false\n },\n \"TouchSupport\": {\n \"type\": \"object\",\n \"properties\": {\n \"Supported\": {\n \"type\": \"boolean\"\n },\n \"MaxTouchPoints\": {\n \"type\": \"integer\",\n \"minimum\": 0\n }\n },\n \"additionalProperties\": false\n },\n \"MotionSensors\": {\n \"type\": \"object\",\n \"properties\": {\n \"Status\": {\n \"type\": \"string\",\n \"enum\": [\n \"InMotion\",\n \"Stationary\"\n ]\n },\n \"Accelerometer\": {\n \"type\": \"boolean\"\n },\n \"Gyroscope\": {\n \"type\": \"boolean\"\n }\n },\n \"additionalProperties\": false\n },\n \"DeviceEnvironmentContext\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"string\",\n \"enum\": [\n \"VPNDetected\",\n \"EmulatorDetected\"\n ]\n }\n }\n },\n \"description\": \"Detailed device information\",\n \"additionalProperties\": false\n },\n \"BiometricCapabilities\": {\n \"type\": \"object\",\n \"properties\": {\n \"SupportsBiometric\": {\n \"type\": \"boolean\"\n },\n \"BiometricTypes\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"string\",\n \"enum\": [\n \"Fingerprint\",\n \"FacialRecognition\",\n \"Iris\",\n \"VoicePrint\",\n \"Other\"\n ]\n }\n }\n },\n \"description\": \"Device biometric capabilities\",\n \"additionalProperties\": false\n },\n \"AppInformation\": {\n \"type\": \"object\",\n \"properties\": {\n \"AppVersion\": {\n \"type\": \"string\"\n },\n \"PackageName\": {\n \"type\": \"string\"\n },\n \"BuildNumber\": {\n \"type\": \"string\"\n }\n },\n \"description\": \"Mobile application specific information\",\n \"additionalProperties\": false\n },\n \"BrowserInformation\": {\n \"type\": \"object\",\n \"properties\": {\n \"UserAgent\": {\n \"type\": \"string\"\n },\n \"IsCookiesEnabled\": {\n \"type\": \"boolean\"\n },\n \"AvailableFonts\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"string\"\n }\n },\n \"Plugins\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"string\"\n }\n },\n \"PixelRatio\": {\n \"type\": \"number\"\n }\n },\n \"description\": \"Browser-specific information\",\n \"additionalProperties\": false\n },\n \"UserBehavior\": {\n \"type\": \"object\",\n \"properties\": {\n \"ScrollBehavior\": {\n \"type\": \"object\",\n \"properties\": {\n \"Direction\": {\n \"type\": \"string\",\n \"enum\": [\n \"Up\",\n \"Down\",\n \"Both\"\n ]\n },\n \"Speed\": {\n \"type\": \"number\"\n },\n \"Frequency\": {\n \"type\": \"number\"\n }\n },\n \"additionalProperties\": false\n }\n },\n \"description\": \"User behavior indicators\",\n \"additionalProperties\": false\n },\n \"AccountRiskIndicators\": {\n \"type\": \"object\",\n \"properties\": {\n \"UserOnboardingDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\"\n },\n \"LastAccountChangeDate\": {\n \"type\": \"string\",\n \"format\": \"date\"\n },\n",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDebtorIndicators",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDebtorIndicators\"],\"\"]:0:part:0",
+      "content_hash": "90a3bf64f4f672b9a10c5f20dd9c0ac1d3ca545201b3503307a29d4d7362b878",
+      "schema_version": 2
+    },
+    {
+      "id": "e7f5b51c-993c-585e-90c1-55981e2b10a9",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDebtorIndicators\n\n \"LastPasswordChangeDate\": {\n \"type\": \"string\",\n \"format\": \"date\"\n },\n \"SuspiciousActivity\": {\n \"type\": \"string\",\n \"enum\": [\n \"NoSuspiciousActivity\",\n \"SuspiciousActivityDetected\"\n ]\n },\n \"TransactionHistory\": {\n \"type\": \"object\",\n \"properties\": {\n \"LastDay\": {\n \"type\": \"integer\",\n \"minimum\": 0\n },\n \"LastYear\": {\n \"type\": \"integer\",\n \"minimum\": 0\n }\n },\n \"additionalProperties\": false\n }\n },\n \"description\": \"Risk indicators related to the account\",\n \"additionalProperties\": false\n },\n \"SupplementaryData\": {\n \"type\": \"object\",\n \"description\": \"Additional information that cannot be captured in the structured fields and/or any other specific block This\\nmay include information that is not available in the structured fields, such as a user's behavioural data\\nlike their typing speed and typing patterns.\"\n }\n },\n \"description\": \"Debtor (User) Indicators\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDebtorIndicators",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDebtorIndicators\"],\"\"]:0:part:1",
+      "content_hash": "3fc1dea1cacd56af10f6b4c2d10342a74ab73430251c100c145f420574e377f0",
+      "schema_version": 2
+    },
+    {
+      "id": "4516276e-ba5f-5315-a5a4-4714d6fb1d2f",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETransactionIndicators\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"IsCustomerPresent\": {\n \"type\": \"boolean\",\n \"description\": \"This field differentiates between automatic and manual payment initiation.\"\n },\n \"IsContractPresent\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates if the Creditor has a contractual relationship with the TPP.\"\n },\n \"Channel\": {\n \"type\": \"string\",\n \"enum\": [\n \"Web\",\n \"Mobile\"\n ],\n \"description\": \"Where the payment has been initiated from.\"\n },\n \"ChannelType\": {\n \"type\": \"string\",\n \"enum\": [\n \"ECommerce\",\n \"InStore\",\n \"InApp\",\n \"Telephone\",\n \"Mail\",\n \"RecurringPayment\",\n \"Other\"\n ],\n \"description\": \"The channel through which the transaction is being conducted\"\n },\n \"SubChannelType\": {\n \"type\": \"string\",\n \"enum\": [\n \"WebBrowser\",\n \"MobileApp\",\n \"SmartTV\",\n \"WearableDevice\",\n \"POSTerminal\",\n \"ATM\",\n \"KioskTerminal\",\n \"Other\"\n ],\n \"description\": \"More specific classification of the transaction channel\"\n },\n \"PaymentProcess\": {\n \"type\": \"object\",\n \"properties\": {\n \"TotalDuration\": {\n \"type\": \"integer\",\n \"minimum\": 0\n },\n \"CurrentSessionAttempts\": {\n \"type\": \"integer\",\n \"minimum\": 1\n },\n \"CurrentSessionFailedAttempts\": {\n \"type\": \"integer\",\n \"minimum\": 0\n },\n \"Last24HourAttempts\": {\n \"type\": \"integer\",\n \"minimum\": 0\n },\n \"Last24HourFailedAttempts\": {\n \"type\": \"integer\",\n \"minimum\": 0\n }\n },\n \"description\": \"Metrics related to the payment process duration and attempts\",\n \"additionalProperties\": false\n },\n \"MerchantRisk\": {\n \"type\": \"object\",\n \"properties\": {\n \"DeliveryTimeframe\": {\n \"type\": \"string\",\n \"enum\": [\n \"ElectronicDelivery\",\n \"SameDayShipping\",\n \"OvernightShipping\",\n \"MoreThan1DayShipping\"\n ]\n },\n \"ReorderItemsIndicator\": {\n \"type\": \"string\",\n \"enum\": [\n \"FirstTimeOrder\",\n \"Reorder\"\n ]\n },\n \"PreOrderPurchaseIndicator\": {\n \"type\": \"string\",\n \"enum\": [\n \"MerchandiseAvailable\",\n \"FutureAvailability\"\n ]\n },\n \"IsGiftCardPurchase\": {\n \"type\": \"boolean\"\n },\n \"IsDeliveryAddressMatchesBilling\": {\n \"type\": \"boolean\"\n },\n \"AddressMatchLevel\": {\n \"type\": \"string\",\n \"enum\": [\n \"FullMatch\",\n \"PartialMatch\",\n \"NoMatch\",\n \"NotApplicable\"\n ]\n }\n },\n \"description\": \"Risk indicator details provided by the merchant\",\n \"additionalProperties\": false\n },\n \"SupplementaryData\": {\n \"type\": \"object\",\n \"description\": \"Additional information that cannot be captured in the structured fields and/or any other specific block\"\n }\n },\n \"description\": \"Transaction Indicators\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETransactionIndicators",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETransactionIndicators\"],\"\"]:0",
+      "content_hash": "5e97203048fbc57246df2b9c1848245d334c0843365b17c9ec0e20485936b437",
+      "schema_version": 2
+    },
+    {
+      "id": "ea9c03b3-50a1-5778-84a9-ac2a7ca0bbcc",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorIndicators\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"AccountType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Retail\",\n \"SME\",\n \"Corporate\"\n ],\n \"description\": \"Specifies the type of account (Retail, SME or Corporate).\"\n },\n \"IsCreditorPrePopulated\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsCreditorPrePopulated\"\n },\n \"TradingName\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName\"\n },\n \"IsVerifiedByTPP\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsVerifiedbyTPP\"\n },\n \"AdditionalAccountHolderIdentifiers\": {\n \"$ref\": \"#/components/schemas/AEAdditionalAccountHolderIdentifiers\"\n },\n \"MerchantDetails\": {\n \"type\": \"object\",\n \"properties\": {\n \"MerchantId\": {\n \"type\": \"string\",\n \"minLength\": 8,\n \"maxLength\": 20\n },\n \"MerchantName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 350\n },\n \"MerchantSICCode\": {\n \"type\": \"string\",\n \"minLength\": 3,\n \"maxLength\": 4\n },\n \"MerchantCategoryCode\": {\n \"type\": \"string\",\n \"minLength\": 3,\n \"maxLength\": 4\n }\n },\n \"description\": \"Details of the Merchant involved in the transaction.\\nMerchant Details are specified only for those merchant categories that are generally expected to originate retail financial transactions\",\n \"additionalProperties\": false\n },\n \"IsCreditorConfirmed\": {\n \"type\": \"boolean\",\n \"description\": \"Creditor account details have been confirmed successfully using Confirmation of Payee\"\n },\n \"SupplementaryData\": {\n \"type\": \"object\",\n \"description\": \"Additional information that cannot be captured in the structured fields and/or any other specific block\"\n }\n },\n \"description\": \"Creditor Indicators\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorIndicators",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorIndicators\"],\"\"]:0",
+      "content_hash": "66729e9a8f12871b46dfb27a61330c8dc0884e6ae6fbcf8c7a594f713bb47adc",
+      "schema_version": 2
+    },
+    {
+      "id": "effc5735-70cb-506d-a950-ae59d84c5e3f",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsCreditorPrePopulated\n\n{\n \"type\": \"boolean\",\n \"description\": \"Is Creditor populated\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsCreditorPrePopulated",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsCreditorPrePopulated\"],\"\"]:0",
+      "content_hash": "5152936697d187ba19d345cc4c2d705239f915eb948a846f27c0c472b06eba62",
+      "schema_version": 2
+    },
+    {
+      "id": "30e7c19e-8d3d-5a86-80ae-56d9800638f9",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsVerifiedbyTPP\n\n{\n \"type\": \"boolean\",\n \"description\": \"The TPP has onboarded the Creditor\"\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsVerifiedbyTPP",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsVerifiedbyTPP\"],\"\"]:0",
+      "content_hash": "9360ea67990a65042b969115dd684d69cb6b2639855d50960228792f568f08a3",
+      "schema_version": 2
+    },
+    {
+      "id": "1e4d3105-6f89-556a-a408-41ecb39c4bd5",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEAdditionalAccountHolderIdentifiers\n\n{\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"description\": \"Provides the details to identify an account.\",\n \"required\": [\n \"SchemeName\",\n \"Identification\"\n ],\n \"properties\": {\n \"SchemeName\": {\n \"$ref\": \"#/components/schemas/AERiskExternalAccountIdentificationCode\"\n },\n \"Identification\": {\n \"$ref\": \"#/components/schemas/AEIdentification\"\n },\n \"Name\": {\n \"$ref\": \"#/components/schemas/AEName\"\n }\n },\n \"additionalProperties\": false\n }\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEAdditionalAccountHolderIdentifiers",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEAdditionalAccountHolderIdentifiers\"],\"\"]:0",
+      "content_hash": "e7055ffa675eb9ae52dcc44ce68c752586b982caf999497dd8d2d9dce090e6e9",
+      "schema_version": 2
+    },
+    {
+      "id": "2a3ee69a-b759-53a4-b801-1143564324aa",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AERiskExternalAccountIdentificationCode\n\n{\n \"description\": \"Name of the identification scheme, in a coded form as published in an external list.\",\n \"type\": \"string\",\n \"enum\": [\n \"EmiratesID\",\n \"TradeLicenceNumber\"\n ]\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AERiskExternalAccountIdentificationCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AERiskExternalAccountIdentificationCode\"],\"\"]:0",
+      "content_hash": "048d2cde69bc555c4df7e9c45f7861e5729d2194739ff5187254fe2f486e44db",
+      "schema_version": 2
+    },
+    {
+      "id": "d27749f6-8484-5e50-8578-79861a39298b",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEIdentification\n\n{\n \"description\": \"Identification for the account assigned by the LFI based on the Account Scheme Name.\\nThis identification is known by the User account owner.\\n\",\n \"type\": \"string\",\n \"minLength\": 1\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEIdentification",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEIdentification\"],\"\"]:0",
+      "content_hash": "d2ee840ea13609a18b8399e6940d4ad1671f12c19eafb5e1897a3f35c8655a6a",
+      "schema_version": 2
+    },
+    {
+      "id": "2b5afa94-5781-5a1c-b77d-c8b55896ea9d",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+      "type": "section",
+      "text": "PII Schema — Consent (Consent Manager) > OpenAPI definition #/components/schemas/AEName\n\n{\n \"type\": \"object\",\n \"description\": \"The Account Holder Name is the name or names of the Account owner(s) represented at the account level\\n\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"description\": \"English value of the string\",\n \"maxLength\": 70\n },\n \"ar\": {\n \"type\": \"string\",\n \"description\": \"Arabic value of the string\",\n \"maxLength\": 70\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "PII Schema — Consent (Consent Manager)",
+        "section": "OpenAPI definition #/components/schemas/AEName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEName\"],\"\"]:0",
+      "content_hash": "cfffe301b07f85149804d82a422b039cf0dfb70f046a605cc7e5fe2e109a6184",
+      "schema_version": 2
+    }
+  ]
+}

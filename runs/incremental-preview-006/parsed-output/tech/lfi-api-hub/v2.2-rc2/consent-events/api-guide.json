@@ -1,0 +1,250 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/consent-events/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/consent-events/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "6bd6020edce1e362a7c5e26ee08e9bce1390bbae3a7e60ca75f96f929a510e90",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Consent Events & Actions — API Guide",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/consent-events/api-guide",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Consent Events & Actions — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "This guide covers the implementation of the Consent Events & Actions endpoints on your Ozone Connect server. These are endpoints your LFI exposes and the API Hub calls."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What must already be in place",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before implementing these endpoints, ensure the following are in place:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "API Hub onboarded — Your API Hub instance is provisioned and your environment-specific configuration is complete",
+              "Ozone Connect base URL configured — The API Hub knows the base URL of your Ozone Connect server. See Ozone Connect Base URL",
+              "Connectivity verified — Bidirectional mTLS connectivity confirmed between your systems and the API Hub. See Connectivity & Certificates"
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "POST /consent/action/validate",
+        "level": 2,
+        "anchor": "validate",
+        "category": "Validate",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "API Sequence Flow",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The API Hub calls this endpoint during consent creation, before the consent is stored. The trigger is a TPP submitting a POST /par request to the API Hub."
+              }
+            ]
+          },
+          {
+            "heading": "What to validate",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Your LFI SHOULD validate that the consent is one you can support. At a high level, typical checks include:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Does the consent version match what your LFI supports?",
+                  "Are the requested permissions within the scope of what your LFI offers?"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Each consent type defines its own specific validation rules in its Requirements page (e.g. Bank Data Sharing — Requirements ). Refer to the Requirements page for each consent type your LFI supports to understand the full set of validation checks you MUST implement."
+              }
+            ]
+          },
+          {
+            "heading": "Response schema",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "data.status",
+                    "string",
+                    "Yes",
+                    "valid or invalid"
+                  ],
+                  [
+                    "data.code",
+                    "string",
+                    "No",
+                    "An error code — returned when status is invalid"
+                  ],
+                  [
+                    "data.description",
+                    "string",
+                    "No",
+                    "A human-readable description of why the consent was rejected"
+                  ],
+                  [
+                    "meta",
+                    "object",
+                    "Yes",
+                    "Empty object {}"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See the POST /consent/action/validate API Reference for the full request and response schemas."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "POST /consent/event/{operation}",
+        "level": 2,
+        "anchor": "consent-events",
+        "category": "Consent events",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "API Sequence Flow",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The API Hub calls this endpoint to notify your LFI of consent lifecycle changes:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Operation",
+                  "Trigger"
+                ],
+                "rows": [
+                  [
+                    "POST /consent/event/post",
+                    "A consent has been created — i.e. after POST /par succeeds (and after validation, if configured)"
+                  ],
+                  [
+                    "POST /consent/event/patch",
+                    "A consent has been updated — e.g. status changed to Authorized, Rejected, Revoked, or Expired"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "What to do with the event",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If your LFI stores consents locally, use these events to keep your local state in sync with the API Hub:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "On post — Store the new consent in your local system",
+                  "On patch — Update your local consent record to reflect the latest state"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "The request body contains the full consent object as stored in the API Hub's Consent Manager — not a diff. Your LFI can replace its local record entirely with the received payload."
+              },
+              {
+                "type": "paragraph",
+                "text": "The API Hub is the single source of truth for consent state. Your local copy is a convenience cache. If there is ever a discrepancy, the Hub's state takes precedence."
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Your LFI MUST return 204 No Content to acknowledge receipt."
+              },
+              {
+                "type": "paragraph",
+                "text": "If your endpoint returns an error (e.g. 400 or 500 ), the API Hub will not retry the notification and will not roll back the consent change. The consent state in the Hub proceeds regardless."
+              },
+              {
+                "type": "paragraph",
+                "text": "Because the Hub is the source of truth and your local copy is a cache, any missed event can be reconciled by reading from the Consent Manager:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Handler received the payload but failed to process it — you have the consentId, so call GET /consents/{consentId} to fetch the latest state.",
+                  "Your system was offline and never received the event — reconcile lazily at end user login by calling GET /psu/{userId}/consents before rendering the CMI."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "LFIs that do not maintain a local consent cache do not need to reconcile — read from the Consent Manager on demand."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Full request and response schemas",
+        "level": 2,
+        "anchor": "api-reference",
+        "category": "API Reference",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "POST /consent/action/validate — Full request and response schema",
+              "POST /consent/event/{operation} — Full request and response schema"
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

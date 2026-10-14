@@ -1,0 +1,1607 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+  "chunk_count": 47,
+  "chunks": [
+    {
+      "id": "6b38011d-a4d9-5292-bb63-0cf6aeade436",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "intro",
+      "text": "Get Motor Insurance Policies\n\nLFI · Insurance · Data Sharing",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "739b0cb5ec6c69e2a15ae2c7d23f3dc7905b4dbb13c5a6e2d4896c527afbd544",
+      "schema_version": 2
+    },
+    {
+      "id": "0e271c8a-d40e-5aff-aaf1-61128218f77b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > API /motor-insurance-policies\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - UAE Insurance API Description\",\n \"description\": \"## Ozone Connect - UAE Insurance API Description\\n\\nThis document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html) for Insurance APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a financial institution to facilitate integration with the API Hub.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where: \\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n\\n### v2.2.2\\n\\n* Changed every date-time field to reference the shared `AEDateTime` Schema Object. `AEDateTime` states that a\\n date-time value identifies an instant, that the offset is part of the value and must be applied by the\\n recipient, and that two encodings of the same instant are equivalent and must behave identically. It carries\\n a `pattern` requiring an offset and forbidding `-00:00`; all other offsets remain conformant. Each field\\n description now states only what is specific to that field. Per OFP-014.\\n\\n\\n### v2.2.1\\n\\n\\n* Added the optional `PolicyEndDate` property to the `get /life-insurance-policies` response, which was the only\\n insurance policy list schema not to carry it. It matches the `PolicyEndDate` in the corresponding UAE Insurance\\n API description response, which is an unconstrained string described as the date on which cover ends, rather than\\n the `format: date` property used by the other insurance types.\\n\\n\\n* Changed the `get /{industryType}-insurance-policies/{InsurancePolicyId}` operation to return\\n `CreditDebitIndicator` within `Premium.Adjustments`, indicating whether a premium adjustment is a credit,\\n reducing the premium payable, or a debit, increasing the premium payable. `CreditDebitIndicator` and\\n `AdjustmentAmount` are both mandatory for each entry in `Adjustments`.\\n\\n\\n* Removed the `maximum` of 100 from `AEInsuranceServiceRatingRateOrRatio`, which is referenced by the\\n `ServiceRating` properties `SolvencyRatio`, `ClaimsPaymentCapacityRatio`, `AverageClaimSettlementTime`, and\\n `CustomerComplaintRate`. None of these is a 0-100 percentage: both ratios routinely exceed 100% for a solvent\\n insurer, and the other two are measured in calendar days and in complaints per 1,000 active policies\\n respectively. The two genuine percentages, `ClaimSettlementRatio` and `ClaimRejectionRate`, now reference a new\\n `AEInsuranceServiceRatingPercentage` schema, which retains `maximum: 100` and adds `minimum: 0`.\\n\\n\\n### v2.1.3\\n\\n\\n* Changed the `get /{insurance-type}-insurance-quotes/{QuoteId}` operation to return the correct type for `Pending`\\n `QuoteStatus` responses.\\n\\n\\n### v2.1.2\\n\\n\\n* Changed the `insurancePolicyIds` parameter from optional to mandatory for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n* Changed the guidance for `insurancePolicyIds` parameter for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n### v2.1.1\\n\\n\\n* Initial version that delivers v2.1 requirements (see separate, detailed changelog for changes from last v2.1.x version).\\n\\n\",\n \"version\": \"v2.2.2\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/motor-insurance-policies\",\n \"operations\": {\n \"post\": {\n \"operationId\": \"MotorInsuranceCreateInsurancePolicyOperation\",\n \"summary\": \"Create a motor insurance policy from a quote\",\n \"description\": \"Create a motor insurance policy based on a quote previously created by the\\nLFI. The TPP will send the `QuoteId` that has been saved by the LFI, together with\\nany additional data that is required to create the insurance policy. The\\nLFI will then invoke their BAU process to create the insurance policy.\\n\\nAfter the policy initiation request has been sent the User will be redirected to\\nthe LFI to complete the creation of the insurance policy.\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.ozoneInteractionId\"\n }\n ],\n \"responses\": {\n \"201\": {\n \"description\": \"The request has succeeded and a new resource has been created as a result.\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/AEInsuranceCreatePolicyResponse1\"\n }\n }\n }\n },\n \"400\": {\n \"$ref\": \"#/components/responses/error400Response\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/error403Response\"\n },\n \"409\": {\n \"$ref\": \"#/components/responses/error409Response\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/error500Response\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n },\n \"tags\": [\n \"Motor Insurance\"\n ],\n \"requestBody\": {\n \"required\": true,\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCreatePolicyData1\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n }\n },\n \"get\": {\n \"operationId\": \"MotorInsuranceReadInsurancePoliciesOperation\",\n \"summary\": \"Retrieve motor insurance policies\",\n",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "API /motor-insurance-policies",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /motor-insurance-policies\"],\"\"]:0:part:0",
+      "content_hash": "97710dfbe95a67647a564c3b5a3b77bdd544b3e5ecaea1448ef01f8af443d13f",
+      "schema_version": 2
+    },
+    {
+      "id": "3f32806e-5cf1-51f6-a07a-7b11e9875c38",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > API /motor-insurance-policies\n\n \"description\": \"Retrieve all insurance policies to which access has been granted by the User\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.ozoneInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.consentId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.psuIdentifier\"\n },\n {\n \"$ref\": \"#/components/parameters/InsurancePolicyIds\"\n },\n {\n \"$ref\": \"#/components/parameters/IsCaapConsentOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.page\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.page-size\"\n }\n ],\n \"responses\": {\n \"200\": {\n \"description\": \"The request has succeeded.\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/AEReadMotorInsurancePolicies1\"\n }\n }\n }\n },\n \"400\": {\n \"$ref\": \"#/components/responses/error400Response\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/error403Response\"\n },\n \"409\": {\n \"$ref\": \"#/components/responses/error409Response\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/error500Response\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n },\n \"tags\": [\n \"Motor Insurance\"\n ]\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n },\n \"OzoneConnectServiceInitiationToken\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Bearer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "API /motor-insurance-policies",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /motor-insurance-policies\"],\"\"]:0:part:1",
+      "content_hash": "89cac299d86780d6a9ee2f189c3629f60c58762e4ef86750770ad4cc3805a820",
+      "schema_version": 2
+    },
+    {
+      "id": "e588a504-220e-5724-9c71-b8f0668b3f8c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targeted to\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.providerId\"],\"\"]:0",
+      "content_hash": "167c9cd00db069b52736f900557dac0053b68c4cbea4ec72a2227b27875df4b0",
+      "schema_version": 2
+    },
+    {
+      "id": "c1116e81-c76b-5470-927b-076aef93c0b8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\"],\"\"]:0",
+      "content_hash": "b127bc4331c80faba5b623df1c78f9febc15045f2832dee70e34e7c579288211",
+      "schema_version": 2
+    },
+    {
+      "id": "acd3c334-693a-50b1-9ef7-5439d0dde2ad",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\"],\"\"]:0",
+      "content_hash": "8a483493f33f57b1ae0179381d532b6b9929e3acf0baa5ca6283bebd2ab986d4",
+      "schema_version": 2
+    },
+    {
+      "id": "8a77e292-b24a-532a-879f-aeadb68d67fe",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "60edbbd81ce0b60c1da2ed04310e1dc5514429922879a363fc3d2754626dd821",
+      "schema_version": 2
+    },
+    {
+      "id": "b1a5966e-0c16-573f-b617-454ccd85325b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The URL of the API being called by the caller\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiUri\"],\"\"]:0",
+      "content_hash": "3f737171b254d88ad811395ebb478e9c42a6599d52327460931e28a442a7f191",
+      "schema_version": 2
+    },
+    {
+      "id": "8399ec83-14d0-53e1-b633-03650d789689",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\"],\"\"]:0",
+      "content_hash": "ea0070ff484261264dcab99ca5675bc8682b3d6c2e7337773c05d2b301e4ccd0",
+      "schema_version": 2
+    },
+    {
+      "id": "2c151256-bf04-5caf-8ecb-a101e3715385",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\"],\"\"]:0",
+      "content_hash": "2ef9ecac5fce42cbc744a69a0a414e0a458978a48fd450c0b95d6c62b31882b1",
+      "schema_version": 2
+    },
+    {
+      "id": "af36a7de-5551-5aca-a16d-cdc43409ebc0",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "39baf96612e800b3937e7c1cad0ee87c5537c1966dfb0503a38020efb4ff6ae2",
+      "schema_version": 2
+    },
+    {
+      "id": "d28f9e2d-5e5d-55ab-a0d5-17704cf40647",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEInsuranceCreatePolicyResponse1\n\n{\n \"type\": \"object\",\n \"required\": [\n \"data\"\n ],\n \"properties\": {\n \"data\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceInsurancePolicyResponseData1\"\n },\n \"links\": {\n \"type\": \"object\",\n \"properties\": {\n \"CreateInsurancePolicyRedirectUrl\": {\n \"type\": \"string\",\n \"format\": \"uri\",\n \"description\": \"A redirect URL provided by the LFI to complete creating the insurance policy. The TPP must redirect the User to this URL.\\nThe URL is optional as the LFI may have all required information through party data to complete account creation.\"\n }\n },\n \"minProperties\": 1,\n \"description\": \"Links to other resources. Can be omitted where `CreateInsurancePolicyRedirectUrl` is not returned.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsuranceCreatePolicyResponse1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsuranceCreatePolicyResponse1\"],\"\"]:0",
+      "content_hash": "52ad716816f48dca2a184b618a7f842b19b096e488817eea5ecb9723b78a80f7",
+      "schema_version": 2
+    },
+    {
+      "id": "8e17f90a-31c0-52e4-96bb-c6ff24581a4a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceInsurancePolicyResponseData1\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"InsurancePolicyId\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n }\n ],\n \"description\": \"Unique identifier for a given insurance policy\",\n \"example\": \"d330c5bb-0889-4596-86bb-17cc9a4a17b5\"\n },\n \"PostIssuanceResponse\": {\n \"type\": \"object\",\n \"properties\": {\n \"ClaimsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the LFI allows the TPP to handle customer claims processes after policy issuance.\"\n },\n \"EndorsementsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the LFI allows the TPP to handle policy endorsements after policy issuance.\"\n },\n \"RenewalsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the LFI allows the TPP to handle the policy renewal process.\"\n },\n \"CancellationAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the LFI allows the TPP to handle the policy cancellation when requested by the customer.\"\n }\n },\n \"required\": [\n \"ClaimsAllowed\",\n \"EndorsementsAllowed\",\n \"RenewalsAllowed\",\n \"CancellationAllowed\"\n ],\n \"description\": \"Defines whether the LFI allows or rejects the TPPs request for accountability over specific post-policy issuance activities.\"\n },\n \"Documents\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n },\n \"minItems\": 1,\n \"description\": \"Policy documents to be issued to the Customer via the TPP.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceInsurancePolicyResponseData1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceInsurancePolicyResponseData1\"],\"\"]:0",
+      "content_hash": "db68a140ee49e56c4d850a220cc97998d4fe03bb808a4a81c1547530ae7caa5d",
+      "schema_version": 2
+    },
+    {
+      "id": "42bab6bc-ec6d-582e-9111-24f64e5c8c3c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 128,\n \"description\": \"Unique identifier for a given insurance policy. \\n\\nA uuid v4 is recommended for consistency but not mandatory.\"\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"],\"\"]:0",
+      "content_hash": "3e0dd5cd402a383f5c0a142b70a89bb5f603c983fa98f5ce37d84c1fb20f5926",
+      "schema_version": 2
+    },
+    {
+      "id": "81e61852-d56a-5c85-bba1-51cce07219e0",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Type\",\n \"FileName\",\n \"ContentType\",\n \"Content\",\n \"HashType\",\n \"Hash\"\n ],\n \"properties\": {\n \"Type\": {\n \"type\": \"string\",\n \"description\": \"The type of document that has been provided. For example, Policy Booklet, Terms & Conditions\"\n },\n \"FileName\": {\n \"type\": \"string\",\n \"description\": \"Original file name for operator reference (no paths). Should include a suitable extension (e.g., policy.pdf, terms.pdf).\"\n },\n \"ContentType\": {\n \"type\": \"string\",\n \"enum\": [\n \"application/pdf\",\n \"image/jpeg\",\n \"image/png\"\n ],\n \"description\": \"Content (MIME) type of the document, using IANA-registered media types, and based on types supported in the Open Finance Framework.\"\n },\n \"Content\": {\n \"type\": \"string\",\n \"format\": \"base64\",\n \"description\": \"Base64-encoded representation of the document content. The encoded string must be generated from the raw file bytes and decoded by the LFI to restore the original file.\"\n },\n \"HashType\": {\n \"type\": \"string\",\n \"enum\": [\n \"SHA256\"\n ],\n \"description\": \"Approach used to create checksum or hash of the file. SHA256 is supported.\"\n },\n \"Hash\": {\n \"type\": \"string\",\n \"description\": \"Checksum of the original file bytes created using the method indicated by `HashType`. Required to enable integrity verification by comparing with the hash or checksum calculated on the decoded file.\"\n },\n \"AdditionalInformation\": {\n \"type\": \"string\",\n \"maxLength\": 1000,\n \"description\": \"Optional free text notes providing context on the document.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\"],\"\"]:0",
+      "content_hash": "e6244f089d046d48300ee3deab5175eb361171274a5ce3a44a5ba25eba28145b",
+      "schema_version": 2
+    },
+    {
+      "id": "b11e32de-aa53-5beb-900b-583fbae263de",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/responses/error400Response\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/responses/error400Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error400Response\"],\"\"]:0",
+      "content_hash": "f8c92c6e4a5f05345be8a16842bc8d4b6c417514cbf8ffb6730a918687db55e2",
+      "schema_version": 2
+    },
+    {
+      "id": "22f3ed4f-5186-51c2-ab9e-34151fc734c6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.Error400\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError400Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Default error response payload structure for Ozone Connect\"\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error400\"],\"\"]:0",
+      "content_hash": "431e3c686a9d1c4fe292a74274095cc466d4eed564b28dbb5ac68851f316dbf5",
+      "schema_version": 2
+    },
+    {
+      "id": "9df4132f-74b3-5572-bbb0-8a47a79a0ad1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEError400Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWS.InvalidPayload\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError400Codes\"],\"\"]:0",
+      "content_hash": "bf2196576281bc6aea3ef68610420288bf1f19e1927fd164cf6ce8f75ba6e950",
+      "schema_version": 2
+    },
+    {
+      "id": "918a8509-8024-53a9-9b33-c6e06088220c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AECustomErrorCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECustomErrorCode\"],\"\"]:0",
+      "content_hash": "e7e141f55f875f3d01a57e61b746d833324e7e5a014c4e100c404bc53ad2a45d",
+      "schema_version": 2
+    },
+    {
+      "id": "a3eb3952-1d86-5b4f-b656-15bb1501e59b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\n\n{\n \"type\": \"string\",\n \"description\": \"Custom error code without prefix, retained for compatibility with version 1.2.\"\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\"],\"\"]:0",
+      "content_hash": "d93cdfa64c639d0da5426f9477cdba2ad76f14b177cad8e5d6f9201081ce2d65",
+      "schema_version": 2
+    },
+    {
+      "id": "ffbc81ea-c785-5065-812e-cca7954c9cca",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/responses/error403Response\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/responses/error403Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error403Response\"],\"\"]:0",
+      "content_hash": "a8a0b6ef3bc482b77ecbdae3a03a84ec480569b532a76cec7106dc9cb37d77b2",
+      "schema_version": 2
+    },
+    {
+      "id": "c7282552-7224-5c02-b1ff-2c3ad0d36e95",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.Error403\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError403Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n \\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error403\"],\"\"]:0",
+      "content_hash": "34631d3ef66e9e0cbe548ef5ede33d74701f482c3ff3f231d2674f7ecd01eb5e",
+      "schema_version": 2
+    },
+    {
+      "id": "06172d80-ab85-5c0c-befe-6d517a8f78f6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEError403Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError403Codes\"],\"\"]:0",
+      "content_hash": "76ec6a5a9e3e91188fe24b80a4924c3e165ce0f27919c5c85eacd8c527904d3f",
+      "schema_version": 2
+    },
+    {
+      "id": "1d04184e-979e-5dd7-b5b0-0c4c9d85c558",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/responses/error409Response\n\n{\n \"description\": \"Operation failed due to a conflict\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error409\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/responses/error409Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error409Response\"],\"\"]:0",
+      "content_hash": "6c836b5dcf714ea4c5771ad8b8132e0b79d3dfbef3a69c49d9b6945060f7c382",
+      "schema_version": 2
+    },
+    {
+      "id": "ed941c37-3166-57b0-87c7-d998c64581d6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.Error409\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error409",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error409\"],\"\"]:0",
+      "content_hash": "2c0fbf233b26ea0361bb1e605084e3d8385f6bc334cce8ccafe341c7124a08f5",
+      "schema_version": 2
+    },
+    {
+      "id": "58fb1d51-bb9a-5e9f-8973-f6d163185bd7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEErrorGenericCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEErrorGenericCodes\"],\"\"]:0",
+      "content_hash": "07be2b9d46436d5b10a78bc01f46e382468c9d4ede4c28cb243d3f9a880a9c9f",
+      "schema_version": 2
+    },
+    {
+      "id": "6ecf9f98-9924-582b-8889-e9f1d89bbe30",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/responses/error500Response\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/responses/error500Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error500Response\"],\"\"]:0",
+      "content_hash": "d61ccbda54cf140e304cc4c83cd9f895bc2afa96610204af1aa5e2dd335dbfc9",
+      "schema_version": 2
+    },
+    {
+      "id": "3dd28746-c8b4-5ca7-837e-027d48164e6c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.Error500\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error500\"],\"\"]:0",
+      "content_hash": "b869ebe96f7e5e78528c2130667a8c8c2e45e8d0d3b427221bf5d40a92a75cde",
+      "schema_version": 2
+    },
+    {
+      "id": "a3b5a3a9-b2f1-5bde-ae1c-811c54c4bf58",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/responses/errorResponse\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.DefaultError\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "c33cf8b28f43227e0d7f25c29906713c720ed4e46c4ccda38171ef62fe9d167b",
+      "schema_version": 2
+    },
+    {
+      "id": "6dd11d7c-8090-56c6-9faf-b81d2afb584e",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Generic error code set by the LFI. Non-namespaced error codes are allowed for compatibility versions prior to v2.0.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.DefaultError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\"],\"\"]:0",
+      "content_hash": "22098f485210daf2d63d6f190e1e9d951f6dff489f8be08cb11eb9eac6b727d6",
+      "schema_version": 2
+    },
+    {
+      "id": "6cfb3a97-1738-5f68-b4e1-71728d510421",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCreatePolicyData1\n\n{\n \"type\": \"object\",\n \"required\": [\n \"QuoteId\"\n ],\n \"properties\": {\n \"QuoteId\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n }\n ],\n \"description\": \"Unique identifier for a quote created by an LFI\",\n \"example\": \"47409fec-4b04-4356-b3a1-6f5508524a5a\"\n },\n \"PaymentReferenceId\": {\n \"type\": \"string\",\n \"description\": \"Payment reference generated when the Broker collects the payment from the customer on behalf of the LFI.\"\n },\n \"PaymentDetails\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentDetails\"\n }\n ],\n \"description\": \"Customer payment details that can optionally provided by the TPP, based on data\\nretrieved from an insurance\"\n },\n \"PostIssuanceRequest\": {\n \"type\": \"object\",\n \"properties\": {\n \"ClaimsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Broker requests to handle customer claims processes after policy issuance.\"\n },\n \"EndorsementsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Broker requests to handle policy endorsements after policy issuance.\"\n },\n \"RenewalsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Broker requests to handle the policy renewal process.\"\n },\n \"CancellationAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Broker requests to handle the policy cancellation when requested by the customer.\"\n }\n },\n \"required\": [\n \"ClaimsAllowed\",\n \"EndorsementsAllowed\",\n \"RenewalsAllowed\",\n \"CancellationAllowed\"\n ],\n \"description\": \"Broker requests accountability for the following post-policy issuance activities:\"\n },\n \"SupplementaryData\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceSupplementaryData\"\n }\n ],\n \"description\": \"Additional information optionally supplied by the TPP that is not described by the Open Finance Framework standards.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCreatePolicyData1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCreatePolicyData1\"],\"\"]:0",
+      "content_hash": "04f7330cc315e56c9680e222e50922346781ec4ea286a77f792b32b3983cd99d",
+      "schema_version": 2
+    },
+    {
+      "id": "3056bf61-370d-576f-86df-4e483889d953",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentDetails\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Account\",\n \"Bank\"\n ],\n \"properties\": {\n \"Account\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCashAccount\"\n }\n ],\n \"description\": \"Properties of the customer bank account\"\n },\n \"Bank\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceBankIdentification\"\n }\n ],\n \"description\": \"Properties of the bank and branch of the account-holder bank\"\n },\n \"AccountType\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"Account Type\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentDetails",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentDetails\"],\"\"]:0",
+      "content_hash": "361fad187199cc82de8a76389f99b39c0bfc2dba642ffc5194244a1c24ed7b9a",
+      "schema_version": 2
+    },
+    {
+      "id": "a2fd63cd-f12a-5bd3-84c3-f05597973c16",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCashAccount\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Identification\",\n \"SchemeName\",\n \"Name\"\n ],\n \"properties\": {\n \"Identification\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 34,\n \"description\": \"Account identification\"\n },\n \"SchemeName\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAccountSchemeName\"\n },\n \"Name\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Account Name\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCashAccount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCashAccount\"],\"\"]:0",
+      "content_hash": "b2dc3f6e072d426ca66bb27332040c76a257555a6c466ef45d7902eaf3721e4c",
+      "schema_version": 2
+    },
+    {
+      "id": "a4496140-b411-50c8-88ba-253676e3af3f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAccountSchemeName\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AccountNumber\",\n \"IBAN\"\n ],\n \"description\": \"Name of the identification scheme for the account\"\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAccountSchemeName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAccountSchemeName\"],\"\"]:0",
+      "content_hash": "ab80fa5c402cb756c8d94fcb02f8dae4874804ba8822e1d5cdc888b4509c5504",
+      "schema_version": 2
+    },
+    {
+      "id": "1b107b99-2dec-535d-a657-a51dbcaa7444",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceBankIdentification\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"BICFI\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z0-9]{4,4}[A-Z]{2,2}[A-Z0-9]{2,2}([A-Z0-9]{3,3}){0,1}$\",\n \"description\": \"Bank Identification Code (BIC)\"\n },\n \"Name\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Bank Name\"\n },\n \"Identification\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Branch Name\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceBankIdentification",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceBankIdentification\"],\"\"]:0",
+      "content_hash": "964365f299b0dbd298db814538c3cbde789e9349a85ae00e82cab62099173a6f",
+      "schema_version": 2
+    },
+    {
+      "id": "a1c4ceaa-94fe-5999-bd59-544268c1789a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSupplementaryData\n\n{\n \"type\": \"object\",\n \"description\": \"Additional data sent by the TPP to finalise the quote ready for completion by the User\\nat the LFI\"\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSupplementaryData",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSupplementaryData\"],\"\"]:0",
+      "content_hash": "75522617ea033d9ac810faabde5931d4d3aa5b33322fcd5978e59afa255617bb",
+      "schema_version": 2
+    },
+    {
+      "id": "6c96ccbb-ff22-5698-969d-0244c683ef72",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.consentId\n\n{\n \"name\": \"o3-consent-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The consentId for which this call is being made\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.consentId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.consentId\"],\"\"]:0",
+      "content_hash": "17f268b49792cd291f09959ac3ef7611c6761e8b0af327273a422a4cfcaac356",
+      "schema_version": 2
+    },
+    {
+      "id": "861a71fa-3dd1-5ae8-a00a-48468d4676b5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.psuIdentifier\n\n{\n \"name\": \"o3-psu-identifier\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"A Base64 encoded representation of the psuIdentifier JSON object.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.psuIdentifier",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.psuIdentifier\"],\"\"]:0",
+      "content_hash": "dc9c2d4a1648d730ee528c95c2556bd6c533d17f5d1e69500700cbb8891dde1f",
+      "schema_version": 2
+    },
+    {
+      "id": "d95dbcc0-c15a-5823-99c6-f9e6e7f743c2",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/InsurancePolicyIds\n\n{\n \"name\": \"insurancePolicyIds\",\n \"in\": \"query\",\n \"required\": true,\n \"description\": \"A common-separated list of insurance policy identifiers. Used to retrieve all insurance policies authorized by the User, which matches the `insurancePolicyIds` data for a given Consent at Consent Manager.\\n\\nThis parameter is **mandatory**. However, where `o3-is-caap-consent-operation` is `true` an empty value will be sent, as insurance policy selection has not been completed at CAAP.\\n\\nLFIs using CAAP **MUST** follow the guidance in `o3-is-caap-consent-operation` parameter.\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"explode\": false\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/InsurancePolicyIds",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/InsurancePolicyIds\"],\"\"]:0",
+      "content_hash": "0180d654b67716c463962e8aac185c20c7761f05cee8c95206941baf88d0aba1",
+      "schema_version": 2
+    },
+    {
+      "id": "f7194fcf-87dc-5cfd-a495-6ee50778f6ea",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/IsCaapConsentOperation\n\n{\n \"name\": \"o3-is-caap-consent-operation\",\n \"in\": \"header\",\n \"required\": false,\n \"description\": \"Flag to indicate that query originates from CAAP and is invoked to get available insurance policies to allow the User to authorize access to one-or-more insurance policies.\\n\\nLFIs must return all eligible policies when value is `true` to facilitate User selection of policies in the CAAP application.\",\n \"schema\": {\n \"type\": \"boolean\"\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/IsCaapConsentOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/IsCaapConsentOperation\"],\"\"]:0",
+      "content_hash": "5a75c043aa5cc36db2fd8ae3ba829f586f1e73bd3ac771dc9f6d615696aa41f4",
+      "schema_version": 2
+    },
+    {
+      "id": "e25d9482-2af4-5b03-a807-38cd0d1c58ae",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.page\n\n{\n \"name\": \"page\",\n \"in\": \"query\",\n \"required\": true,\n \"description\": \"Page of results to request (standard pagination)\",\n \"schema\": {\n \"type\": \"integer\",\n \"default\": 1\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.page",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.page\"],\"\"]:0",
+      "content_hash": "fcafa6149796ba1fa724ae184f1f9f726d63c7dc772b5844ad7c98444107bf29",
+      "schema_version": 2
+    },
+    {
+      "id": "686c0169-11bd-5362-a18a-3e12833fd6fb",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.page-size\n\n{\n \"name\": \"page-size\",\n \"in\": \"query\",\n \"required\": true,\n \"description\": \"Page size to request. Default is 100 to comply with the Operating Guidelines for the Open Finance Framework.\",\n \"schema\": {\n \"type\": \"integer\",\n \"default\": 100\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.page-size",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.page-size\"],\"\"]:0",
+      "content_hash": "5f2333d2ecd30b25c4618db095a325a053e5834908a363604ab762dc0d074ac3",
+      "schema_version": 2
+    },
+    {
+      "id": "8be80215-78cd-538b-a586-6dc0cf633ae7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEReadMotorInsurancePolicies1\n\n{\n \"type\": \"object\",\n \"required\": [\n \"data\"\n ],\n \"properties\": {\n \"data\": {\n \"$ref\": \"#/components/schemas/AEMotorInsurancePolicies1\"\n },\n \"meta\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/PaginatedMetadata\"\n }\n ],\n \"description\": \"Metadata related to pagination. Can be omitted if response data is not paginated.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEReadMotorInsurancePolicies1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEReadMotorInsurancePolicies1\"],\"\"]:0",
+      "content_hash": "59cc03969837200257b9219bbe6caa27ec97e9b3a114b863c8b218e265471e3e",
+      "schema_version": 2
+    },
+    {
+      "id": "7a12df5c-b68d-5677-8824-c4c7891c2211",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEMotorInsurancePolicies1\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Policies\"\n ],\n \"properties\": {\n \"Policies\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEMotorInsurancePolicyProperties\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEMotorInsurancePolicies1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEMotorInsurancePolicies1\"],\"\"]:0",
+      "content_hash": "5ded850730a2908c019015c756d64db0c795ff0fda232dbfce10ef9e300c54f8",
+      "schema_version": 2
+    },
+    {
+      "id": "a2066e48-68da-57a4-9ef4-7bbcea790d9e",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEMotorInsurancePolicyProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"InsurancePolicyId\",\n \"PolicyNumber\",\n \"PolicyStatus\",\n \"PolicyStartDate\"\n ],\n \"properties\": {\n \"InsurancePolicyId\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n }\n ],\n \"description\": \"Unique identifier for a given insurance policy\",\n \"example\": \"d330c5bb-0889-4596-86bb-17cc9a4a17b5\"\n },\n \"PolicyNumber\": {\n \"type\": \"string\",\n \"description\": \"The policy number assigned by the LFI.\"\n },\n \"PolicyStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePolicyStatusCodes\"\n }\n ],\n \"description\": \"The current status of the policy.\"\n },\n \"PolicyStartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy start date\"\n },\n \"PolicyEndDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy end date\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEMotorInsurancePolicyProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEMotorInsurancePolicyProperties\"],\"\"]:0",
+      "content_hash": "3df5ea97f635042b3a6152e5fde711bc5e9a3f651b43ba23a7fc9890ddd59496",
+      "schema_version": 2
+    },
+    {
+      "id": "ab4253f9-2f6b-557d-8c28-01288747a7dc",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePolicyStatusCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"New\",\n \"Renewed\",\n \"Expired\",\n \"Lapsed\",\n \"Cancelled\",\n \"PaidUp\",\n \"Converted\",\n \"Surrendered\",\n \"DeathClaim\",\n \"RiderClaim\"\n ],\n \"description\": \"The status of the policy, with the following definitions:\\n\\n* `New`: New policy issued\\n\\n* `Renewed`: The reissuing of the same policy for a subsequent term\\n\\n* `Expired`: Policy has been expired by date\\n\\n* `Lapsed`: No longer valid policy\\n\\n* `Cancelled`: Policy cancelled by insurer or insured\\n\\n* `PaidUp`: Policy paid up in full\\n\\n* `Converted`: Policy converted to another plan\\n\\n* `Surrendered`: Policy has been surrendered\\n\\n* `DeathClaim`: Policy paid due to death (only for Life)\\n\\n* `RiderClaim`: Rider paid (only for Life)\\n\"\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePolicyStatusCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePolicyStatusCodes\"],\"\"]:0",
+      "content_hash": "852d89180437bad583bd69757294fd7060930688223efc614b4b390dc2536b89",
+      "schema_version": 2
+    },
+    {
+      "id": "1e02bf87-a2e5-5e07-96f6-2dfe97cb4bc3",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+      "type": "section",
+      "text": "Get Motor Insurance Policies > OpenAPI definition #/components/schemas/PaginatedMetadata\n\n{\n \"type\": \"object\",\n \"required\": [\n \"page\",\n \"pageSize\",\n \"totalPages\",\n \"totalRecords\"\n ],\n \"properties\": {\n \"page\": {\n \"type\": \"integer\",\n \"minimum\": 1,\n \"description\": \"The current page number.\"\n },\n \"pageSize\": {\n \"type\": \"integer\",\n \"minimum\": 1,\n \"description\": \"Number of records in the current page.\"\n },\n \"totalPages\": {\n \"type\": \"integer\",\n \"minimum\": 1,\n \"description\": \"Total number of pages available for response.\"\n },\n \"totalRecords\": {\n \"type\": \"integer\",\n \"minimum\": 1,\n \"description\": \"Total number of records across all pages\"\n }\n },\n \"description\": \"Provides information on paginated data\"\n}",
+      "metadata": {
+        "title": "Get Motor Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/PaginatedMetadata",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "b5bc2d6ae09a301b5c7e98cae1997ebc7e9ace32fda390a2c40ffe3939df8f92",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/open-api/motor-insurance-policies",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/PaginatedMetadata\"],\"\"]:0",
+      "content_hash": "c043b7a5e1da6e6e4377052b1f66c5b3733996131ecbcbdbd53245beb5f8218f",
+      "schema_version": 2
+    }
+  ]
+}

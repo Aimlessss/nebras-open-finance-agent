@@ -1,0 +1,331 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/consent-journey/authorization/requirements",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/consent-journey/authorization/requirements.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "1ec1d9d6ea43b697407acab3947554714392c5385e850b04dded58ec4dc3f6ac",
+    "dependencies": [
+      "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-consent-journey-authorization",
+      "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-consent-journey-authorization.ts"
+    ],
+    "assets": [
+      {
+        "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-consent-journey-authorization.ts",
+        "hash": "d54f610299921c8ccad9ac0057db44f5fb1a917dcb5a745cd1d45f93f7ac6a4c"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Authorization Requirements",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/consent-journey/authorization/requirements",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Authorization Requirements",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "This page defines the required error handling behaviour when the consent authorization fails after the end user has been authenticated\n. The LFI MUST invoke POST /auth/{interactionId}/doFail\n with the exact error\n and error_description\n values specified below."
+      },
+      {
+        "type": "paragraph",
+        "text": "For all authorization failure scenarios, the LFI MUST PATCH the consent to Rejected\n before calling doFail\n — the end user has been identified during the authentication step. For the full doFail\n API specification, see the POST /auth/{interactionId}/doFail\n API Reference\n."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Error scenarios",
+        "anchor": "error-scenarios",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 1. End user explicitly cancels or declines the consent",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The end user reviews the consent details and chooses to decline or cancel the authorization."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "access_denied"
+              ],
+              [
+                "error_description",
+                "user_rejected_consent"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 2. End user lacks eligible accounts or access",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The end user does not have any accounts or sufficient access rights to authorize the consent. For example: The end user has no eligible accounts for the requested consent type\nThe end user's accounts do not support the requested payment rail or currency\nThe consent has IsSingleAuthorization\n set to true\n but the end user does not have sufficient authority to authorize the payment independently — for example, where the payment would require an additional approver (subsequent authorizer)"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "invalid_request"
+              ],
+              [
+                "error_description",
+                "user_lacks_eligible_accounts"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 3. Consent type not supported by LFI",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Use POST /consent/action/validate instead: This scenario SHOULD NOT occur in steady state. LFIs SHOULD implement the POST /consent/action/validate\n\n endpoint to reject unsupported consents at creation time — before the end user is redirected to the LFI. If this error is reported persistently or frequently, Nebras may require the LFI to implement the POST /consent/action/validate\n endpoint."
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI does not support the consent type or configuration requested by the TPP."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "access_denied"
+              ],
+              [
+                "error_description",
+                "consent_not_supported"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 4. End user session expires",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Session timeout guidance: LFIs MUST ensure that session timeouts are not so short that they create an obstacle to an end user completing authentication and authorization. The introduction of payment step-up authentication enables LFIs to implement session management in a way that balances security with usability."
+          },
+          {
+            "type": "paragraph",
+            "text": "The end user's session with the LFI expires before they complete the authorization of the consent."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "access_denied"
+              ],
+              [
+                "error_description",
+                "session_expired"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 5. LFI internal technical error",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The LFI encounters an internal technical error during the authorization process — for example, an internal service failure or inability to retrieve account data."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "server_error"
+              ],
+              [
+                "error_description",
+                "lfi_internal_error"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 6. LFI fails to communicate with API Hub",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The LFI cannot communicate with the API Hub during the authorization process — for example, a failure when calling PATCH /consents/{consentId}\n to update the consent status."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "server_error"
+              ],
+              [
+                "error_description",
+                "api_hub_communication_error"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI MUST attempt to PATCH the consent to Rejected\n before calling doFail\n, but if the API Hub is unreachable, the LFI MUST still call doFail\n to redirect the end user back to the TPP."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 7. LFI temporarily unavailable",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The LFI cannot complete authorization due to high load or temporary capacity constraints at the LFI's systems."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "temporarily_unavailable"
+              ],
+              [
+                "error_description",
+                "lfi_temporarily_unavailable"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI MUST PATCH the consent to Rejected\n before calling doFail\n — the end user has been identified during the authentication step."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Summary",
+        "anchor": "summary",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "FAPI error code validation: If the LFI submits an error\n code that is not supported by the FAPI 2.0 Security Profile, the API Hub will overwrite it with invalid_request\n."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Scenario",
+              "`error`",
+              "`error_description`"
+            ],
+            "rows": [
+              [
+                "1",
+                "End user explicitly cancels or declines the consent",
+                "access_denied",
+                "user_rejected_consent"
+              ],
+              [
+                "2",
+                "End user lacks eligible accounts or access",
+                "invalid_request",
+                "user_lacks_eligible_accounts"
+              ],
+              [
+                "3",
+                "Consent type not supported by LFI",
+                "access_denied",
+                "consent_not_supported"
+              ],
+              [
+                "4",
+                "End user session expires",
+                "access_denied",
+                "session_expired"
+              ],
+              [
+                "5",
+                "LFI internal technical error",
+                "server_error",
+                "lfi_internal_error"
+              ],
+              [
+                "6",
+                "LFI fails to communicate with API Hub",
+                "server_error",
+                "api_hub_communication_error"
+              ],
+              [
+                "7",
+                "LFI temporarily unavailable",
+                "temporarily_unavailable",
+                "lfi_temporarily_unavailable"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "For all scenarios above, the LFI MUST PATCH the consent to Rejected\n before calling doFail\n, except scenario 6 where the API Hub may be unreachable — in which case the LFI MUST make a best-effort attempt."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

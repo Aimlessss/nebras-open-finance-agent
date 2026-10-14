@@ -1,0 +1,209 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "6745088203a5fa28bd24d69546ccb91b9ae8a1a1ecf52405ddc9128199e5626f",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Personal Identifiable Information (PII)",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Personal Identifiable Information (PII)",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Every payment instruction carries sensitive data about who is paying and who is receiving the funds — creditor account details, optional debtor account, and risk indicators. This data is collectively referred to as Personal Identifiable Information (PII)."
+      },
+      {
+        "type": "paragraph",
+        "text": "PII arrives at the LFI as an encrypted JWE string in the PersonalIdentifiableInformation field. The API Hub passes the JWE through without inspection — it cannot read or validate the contents. This means:"
+      }
+    ],
+    "sections": [
+      {
+        "heading": "The Hub does not see PII",
+        "level": 2,
+        "anchor": "hub-cant-inspect",
+        "category": "What this implies",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "The LFI is solely responsible for decrypting and validating PII.",
+              "The PII has not been schema-validated by the API Hub.",
+              "The PII content has not been read or inspected by any intermediary."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Unlike other fields in the consent or payment request — which the API Hub validates against the OpenAPI specification before forwarding — PII is opaque to the API Hub. The LFI MUST decrypt, parse, and validate the PII independently against the schema defined in the OpenAPI specification. A malformed or invalid PII payload MUST be rejected by the LFI."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Two points in the payment lifecycle",
+        "level": 2,
+        "anchor": "when-received",
+        "category": "When PII is received",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "PII is present at two points in the payment lifecycle:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Stage",
+              "Source",
+              "Field"
+            ],
+            "rows": [
+              [
+                "Consent authorisation",
+                "Consent Manager → LFI",
+                "consent.PersonalIdentifiableInformation"
+              ],
+              [
+                "Payment creation",
+                "Ozone Connect → LFI",
+                "payment.PersonalIdentifiableInformation"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The structure of the decrypted PII differs between the two stages — see PII (Consent — Consent Manager) and PII (Payments — Ozone Connect) for the full schemas."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end confidentiality",
+        "level": 2,
+        "anchor": "why-encrypted",
+        "category": "Why PII is encrypted",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Payment consents are stored centrally at the API Hub. Because the API Hub acts as an intermediary between TPPs and LFIs, PII is encrypted end-to-end before it leaves the TPP — ensuring that the API Hub, and any other party in transit, cannot read the sensitive payment details."
+          },
+          {
+            "type": "paragraph",
+            "text": "The encryption uses the LFI's public encryption key ( Enc1 ). Only the LFI can decrypt the payload using the corresponding Enc1 private key."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Decrypt, validate, reject",
+        "level": 2,
+        "anchor": "lfi-responsibilities",
+        "category": "LFI responsibilities",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Because the API Hub cannot inspect PII, the LFI takes on additional responsibilities compared to other parts of the request:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Responsibility",
+              "Description"
+            ],
+            "rows": [
+              [
+                "Decryption",
+                "Decrypt the JWE using the Enc1 private key — see How to Decrypt PII"
+              ],
+              [
+                "Schema validation",
+                "Validate the decrypted payload against the OpenAPI schema — no additional properties are permitted"
+              ],
+              [
+                "Field validation",
+                "Verify mandatory fields, IBAN format, BIC consistency, and creditor matching rules — see Debtor Account and Creditor"
+              ],
+              [
+                "Rejection",
+                "Mark the consent invalid via POST /consent/action/validate if PII is malformed, missing required fields, or fails validation"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Initiation and Risk",
+        "level": 2,
+        "anchor": "structure",
+        "category": "Structure of the PII payload",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The decrypted PII contains two top-level sections:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Property",
+              "Description"
+            ],
+            "rows": [
+              [
+                "Initiation",
+                "Creditor and debtor account details — structure differs between consent and payment stages"
+              ],
+              [
+                "Risk",
+                "Fraud and risk indicators about the debtor, transaction, and creditor"
+              ]
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "At consent validation ( POST /consent/action/validate )",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Initiation.Creditor is an array of 1–10 creditor entries (or omitted for open beneficiary)",
+                  "Initiation.DebtorAccount is optionally present"
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "At payment time (Ozone Connect payment instruction)",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Creditor fields sit directly on Initiation as a single creditor (not an array)",
+                  "DebtorAccount is absent — the debtor account was fixed during consent authorisation"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

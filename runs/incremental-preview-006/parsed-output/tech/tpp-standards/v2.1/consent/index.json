@@ -1,0 +1,167 @@
+{
+  "id": "tech/tpp-standards/v2.1/consent",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/consent/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "5f0c5b56243466c50450e6e6340147dc5b6ccd477243af5d6bf3f28a3cb0208d",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Consent",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/consent",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Consent",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "A Consent is an authorisation object that represents a user's explicit permission for a TPP to access their data or initiate services at an LFI. Every protected resource request in UAE Open Finance is bound to a consent — there is no access without one."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Consent types",
+        "level": 2,
+        "anchor": "consent-types",
+        "category": "Two flavours",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "There are two types of consent, corresponding to the two service families."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Type",
+              "Used for",
+              "Created via"
+            ],
+            "rows": [
+              [
+                "Bank Data Sharing",
+                "Reading account data, balances, transactions, and related resources",
+                "authorization_details with type: urn:openfinanceuae:account-access-consent:v2.1"
+              ],
+              [
+                "Bank Service Initiation",
+                "Initiating payments",
+                "authorization_details with type: urn:openfinanceuae:payment-consent:v2.1"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "From creation to authorized",
+        "level": 2,
+        "anchor": "high-level-flow",
+        "category": "Lifecycle at a glance",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before any UserOAuth2Security protected resource can be accessed, a consent must go through a two-phase flow: staging and authorization."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "API Hub as the source of truth",
+        "level": 2,
+        "anchor": "source-of-truth",
+        "category": "Authoritative record",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The API Hub maintains all Open Finance consents and acts as the authoritative system of record for consents across the ecosystem. All consent creation, modification, and revocation events are recorded within the API Hub to ensure a single, consistent source of truth."
+          },
+          {
+            "type": "paragraph",
+            "text": "Whenever a TPP initiates a request to access customer data or initiate a payment, the request is validated against the consent record stored in the API Hub."
+          },
+          {
+            "type": "paragraph",
+            "text": "To maintain ecosystem-wide consistency, consent updates such as status changes must be synchronised with the API Hub."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Consent immutability after staging",
+        "level": 2,
+        "anchor": "immutability",
+        "category": "What can change",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Once a consent is staged, the only field under Data that may change is Status. All other Data values are fixed for the lifetime of that consent. Subscription and Meta may be patched, but they sit outside the Data object. See the request/response models in the OpenAPI (e.g. /account-access-consents ) for the canonical structure."
+          },
+          {
+            "type": "paragraph",
+            "text": "If a user needs to change any Data value (for example, to adjust ExpirationDateTime or add or remove a permission), the TPP must create a new consent, revoke the previous one, and link the two via BaseConsentId."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Accessing a protected resource",
+        "level": 2,
+        "anchor": "accessing-protected-resource",
+        "category": "Two conditions to satisfy",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Resources secured with UserOAuth2Security require user involvement — the user must authenticate with the LFI and explicitly authorise the consent before the TPP can access any resource on their behalf."
+          },
+          {
+            "type": "paragraph",
+            "text": "Two independent conditions must both be satisfied before the API Hub will serve a UserOAuth2Security resource:"
+          },
+          {
+            "type": "paragraph",
+            "text": "Requests must carry a Bearer access token in the Authorization header:"
+          },
+          {
+            "type": "code",
+            "text": "Authorization: Bearer <access_token>"
+          },
+          {
+            "type": "paragraph",
+            "text": "Access tokens are short-lived (10-minute lifetime) and are bound to the consent they were issued for. See Tokens & Assertions for the full token lifecycle."
+          },
+          {
+            "type": "paragraph",
+            "text": "The consent referenced in the access token's authorization_details must be in the Authorized state. The authorization_details object defines the exact scope of access — which permissions are granted, to which endpoints, for which accounts, and for how long."
+          },
+          {
+            "type": "paragraph",
+            "text": "The API Hub must reject all requests to UserOAuth2Security resources where the associated consent is not in the Authorized state — including consents that are AwaitingAuthorization, Suspended, Expired, Revoked, Rejected, or Consumed."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Consent states",
+        "level": 2,
+        "anchor": "consent-states",
+        "category": "Lifecycle states",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "A consent moves through a defined set of states during its lifecycle. Your application must track these states and respond appropriately — particularly to terminal states, which require a new consent flow."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}
