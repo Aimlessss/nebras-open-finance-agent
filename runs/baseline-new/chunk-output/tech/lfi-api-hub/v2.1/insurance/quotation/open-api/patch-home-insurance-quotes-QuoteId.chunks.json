@@ -1,0 +1,1854 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+  "chunk_count": 54,
+  "chunks": [
+    {
+      "id": "6dedc19b-c252-52b5-a8aa-68c518884c0d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > API /home-insurance-quotes/{QuoteId}\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - UAE Insurance API Description\",\n \"description\": \"## Ozone Connect - UAE Insurance API Description\\n\\nThis document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html) for Insurance APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a financial institution to facilitate integration with the API Hub.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where: \\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n\\n### v2.1.4\\n\\n* Removed the CAAP-specific header `o3-is-caap-consent-operation` from the `get /{insurance-type}-insurance-policies`\\n operations, the CAAP-conditional `ProductName`, `BodyType`, and `PlateNumber` properties from the insurance\\n policy schemas, and related CAAP-conditional language. CAAP variants of these endpoints have been moved to the\\n CAAP Operations OpenAPI description. `PolicyEndDate` is retained on the insurance policy schemas but is no longer\\n CAAP-conditional: it is now an ordinary optional property, returnable for all consent types, matching the\\n `get /{insurance-type}-insurance-policies` response in the UAE Insurance API description.\\n\\n\\n* Removed the `maximum` of 100 from `AEInsuranceServiceRatingRateOrRatio`, which is referenced by the\\n `ServiceRating` properties `SolvencyRatio`, `ClaimsPaymentCapacityRatio`, `AverageClaimSettlementTime`, and\\n `CustomerComplaintRate`. None of these is a 0-100 percentage: both ratios routinely exceed 100% for a solvent\\n insurer, and the other two are measured in calendar days and in complaints per 1,000 active policies\\n respectively. The two genuine percentages, `ClaimSettlementRatio` and `ClaimRejectionRate`, now reference a new\\n `AEInsuranceServiceRatingPercentage` schema, which retains `maximum: 100` and adds `minimum: 0`.\\n\\n\\n* Changed the `get /{industryType}-insurance-policies/{InsurancePolicyId}` operation to return an optional\\n `CreditDebitIndicator` within `Premium.Adjustments`, indicating whether a premium adjustment is a credit,\\n reducing the premium payable, or a debit, increasing the premium payable. `AdjustmentAmount` is unsigned and\\n carries no direction of its own. Where `CreditDebitIndicator` is absent, the adjustment must be treated as a\\n `Debit`, which is the reading that matches existing v2.1 behaviour.\\n\\n\\n* Removed `format: uuid` from `AEInsurance.AEInsuranceResourceIdentifierType`, the schema behind the\\n `InsurancePolicyId` and `QuoteId` path parameters and the `QuoteId`, `InsurancePolicyId` and related identifier\\n properties. A uuid v4 remains recommended for consistency but is no longer mandatory, so LFIs may use their own\\n identifier scheme within the existing 1-128 character bounds. This matches UAE standards v2.1-errata3.\\n\\n\\n### v2.1.3\\n\\n\\n* Changed the `get /{insurance-type}-insurance-quotes/{QuoteId}` operation to return the correct type for `Pending`\\n `QuoteStatus` responses.\\n\\n\\n### v2.1.2\\n\\n\\n* Changed the `insurancePolicyIds` parameter from optional to mandatory for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n* Changed the guidance for `insurancePolicyIds` parameter for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n### v2.1.1\\n\\n\\n* Initial version that delivers v2.1 requirements (see separate, detailed changelog for changes from last v2.1.x version).\\n\\n\",\n \"version\": \"v2.1.4\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/home-insurance-quotes/{QuoteId}\",\n \"operations\": {\n \"patch\": {\n \"operationId\": \"HomeInsuranceUpdateInsuranceQuoteByQuoteIdOperation\",\n \"summary\": \"Accept a home insurance quote\",\n \"description\": \"Update the quote status to `Accepted` in readiness to send the quote data to \\ncreate a new insurance policy. The TPP must update the status to Accepted before\\nretrieving any additional data through their Data Sharing permissions, to include\\nin the new insurance policy request.\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.ozoneInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/AEInsurance.QuoteId\"\n }\n ],\n \"responses\": {\n \"200\": {\n \"description\": \"The request has succeeded.\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"type\": \"object\",\n \"properties\": {\n \"PolicyIssuanceAllowed\": {\n \"type\": \"object\",\n \"properties\": {\n \"CustomerVerification\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to complete capture of customer verification information and documents for this quote.\"\n },\n \"Payment\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to host payment checkout.\"\n },\n \"PolicyDocuments\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to provide policy documents to customer.\"\n }\n },\n \"required\": [\n \"CustomerVerification\",\n \"Payment\",\n \"PolicyDocuments\"\n ],\n \"description\": \"Broker requests to handle following steps of policy issuance process.\"\n }\n },\n \"minProperties\": 1,\n",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "API /home-insurance-quotes/{QuoteId}",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /home-insurance-quotes/{QuoteId}\"],\"\"]:0:part:0",
+      "content_hash": "e4800106c781348b35bd3f9292e9a92b6be74ff4465fdacba8a12508d24b34db",
+      "schema_version": 2
+    },
+    {
+      "id": "320fb49a-ec88-5369-891f-ad58f0a6a47e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > API /home-insurance-quotes/{QuoteId}\n\n \"description\": \"This response **MUST** only be used where there are instruction for TPP acting as a Broker. Please use a `204` response if Broker instructions are not required.\"\n },\n \"links\": {\n \"type\": \"object\",\n \"properties\": {\n \"PaymentUrl\": {\n \"type\": \"string\",\n \"format\": \"uri\",\n \"description\": \"Hosted payment URL for TPP to present to customer. Required when the Payment field is true.\"\n }\n },\n \"required\": [\n \"PaymentUrl\"\n ],\n \"description\": \"Links to other resources. Can be omitted where `PaymentUrl` is not returned.\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n },\n \"204\": {\n \"description\": \"No content\"\n },\n \"400\": {\n \"$ref\": \"#/components/responses/error400Response\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/error403Response\"\n },\n \"409\": {\n \"$ref\": \"#/components/responses/error409Response\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/error500Response\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n },\n \"tags\": [\n \"Home Insurance\"\n ],\n \"requestBody\": {\n \"required\": true,\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n },\n \"OzoneConnectServiceInitiationToken\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Bearer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "API /home-insurance-quotes/{QuoteId}",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /home-insurance-quotes/{QuoteId}\"],\"\"]:0:part:1",
+      "content_hash": "0207cdf8dd28eaa50ce321c4519469f4ee057f5a858d11a5570c3dea3da4945d",
+      "schema_version": 2
+    },
+    {
+      "id": "776c6d3a-dbee-5512-b3a9-7c7230bdb0f1",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targeted to\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.providerId\"],\"\"]:0",
+      "content_hash": "86f32f699968afee579b0f1d33351e9d442401dbdce4e7048c6998b3f4ed2c1f",
+      "schema_version": 2
+    },
+    {
+      "id": "aedf6f55-098a-5d3d-acf0-e2191cff5043",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\"],\"\"]:0",
+      "content_hash": "5ba0e192ff2229d7eb5de00c9000c02e73ae17534373d6ef0af694466e360aee",
+      "schema_version": 2
+    },
+    {
+      "id": "b10b81ca-1e91-59b8-bd4c-ee44f218357a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\"],\"\"]:0",
+      "content_hash": "7191459ab205e689a3830bf7a36a64e4ea47ec3642af2e933160eb5401fc60a1",
+      "schema_version": 2
+    },
+    {
+      "id": "d84d2c8d-695b-5f5e-91b2-ee2998784ee1",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "08b2f811a4035121d97b874a30445b6c7f84124811b27a4121a1b4c5fc89e4e5",
+      "schema_version": 2
+    },
+    {
+      "id": "b24f2ae8-2a79-5ba1-8608-b2b69257c25a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The URL of the API being called by the caller\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiUri\"],\"\"]:0",
+      "content_hash": "a8f9529e58567fd21e9ba65e3baa2f69bf1ae04a1bc63018afa5a56d866f9f54",
+      "schema_version": 2
+    },
+    {
+      "id": "b302bcf5-f1aa-5ffa-9e97-40a029aa7454",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\"],\"\"]:0",
+      "content_hash": "06f6953f12960f0d1e05a40b8e4d949574457e762a224eb2f7127555ccfb2baa",
+      "schema_version": 2
+    },
+    {
+      "id": "c204d391-cd82-599c-a3ee-bc9df25d8dea",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\"],\"\"]:0",
+      "content_hash": "ce80e1d5043b533c89ba22f65bc8a4a15958fdb5a30c487d29ec16cd53beef05",
+      "schema_version": 2
+    },
+    {
+      "id": "021fe9f1-da3a-5594-b312-d2c9027d01ed",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "7191b00f18843dabbab193a37e6424e345762ede69235e332429624437582c93",
+      "schema_version": 2
+    },
+    {
+      "id": "c7beb557-c86c-56fa-bfaa-224b9613d62a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/parameters/AEInsurance.QuoteId\n\n{\n \"name\": \"QuoteId\",\n \"in\": \"path\",\n \"required\": true,\n \"description\": \"Unique identifier for a quote created by an LFI\",\n \"schema\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/AEInsurance.QuoteId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/AEInsurance.QuoteId\"],\"\"]:0",
+      "content_hash": "a568332fbf3d8b24773b0731ceeec2d3c5c5886ba6e8dc6c24a1aaedccdd3f64",
+      "schema_version": 2
+    },
+    {
+      "id": "b3f9af17-359a-5408-b820-7ccef8754343",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 128,\n \"description\": \"Unique identifier for a given insurance policy. \\n\\nA uuid v4 is recommended for consistency but not mandatory.\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"],\"\"]:0",
+      "content_hash": "ae937370c6b9ffd876602834a9c7e5dda335d24cf523d5d1c0d9812cad694b19",
+      "schema_version": 2
+    },
+    {
+      "id": "400f81c5-994b-5d7b-8574-03b89cb1ef35",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/responses/error400Response\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error400Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error400Response\"],\"\"]:0",
+      "content_hash": "deaa14f6ddcb638be6a50f0d2126222ede4108bf5f381f2c853fc215731e1baf",
+      "schema_version": 2
+    },
+    {
+      "id": "8a4e9a03-5d7d-5eda-8762-dfd46928f8f4",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error400\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError400Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Default error response payload structure for Ozone Connect\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error400\"],\"\"]:0",
+      "content_hash": "b4b15e4e1e24583b48e6e658a7d111e7dd254d1fdae4f7bedb003c28940c371c",
+      "schema_version": 2
+    },
+    {
+      "id": "138c836b-b7aa-5d7e-aaf4-07ddfa9a3270",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEError400Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWS.InvalidPayload\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError400Codes\"],\"\"]:0",
+      "content_hash": "199efe19db828519bca52d6767ce0740a87bc32b1a8bbd01341ce267d95b61a5",
+      "schema_version": 2
+    },
+    {
+      "id": "f1230174-258d-5911-8e8a-f51e901270c0",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AECustomErrorCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECustomErrorCode\"],\"\"]:0",
+      "content_hash": "428d3ef1fc8383b51a9a8d3ffa680ddfb891ed6d5af73143a1b5b0ab7886158d",
+      "schema_version": 2
+    },
+    {
+      "id": "8e1ee7de-ca08-5284-931f-792a193a8353",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\n\n{\n \"type\": \"string\",\n \"description\": \"Custom error code without prefix, retained for compatibility with version 1.2.\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\"],\"\"]:0",
+      "content_hash": "62926c37b53ac878ffcbcf0804605b673ad5dc9a1a248bbc829af829466022f6",
+      "schema_version": 2
+    },
+    {
+      "id": "f819b67d-20e3-5061-9735-235941dd550f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/responses/error403Response\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error403Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error403Response\"],\"\"]:0",
+      "content_hash": "fdde825d31905358c7e64029bf28fe14ce44cde46e1f743f75eaa62cd40882b5",
+      "schema_version": 2
+    },
+    {
+      "id": "2374e05f-7e3e-5ca6-a938-0b89baa863af",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error403\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError403Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n \\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error403\"],\"\"]:0",
+      "content_hash": "8ad6a956875079a13dd2d0e6f21081833ecab4a3290cf2c0e7e7c7167941336b",
+      "schema_version": 2
+    },
+    {
+      "id": "2e255b9d-88b5-505a-bcad-dee21bc1f123",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEError403Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError403Codes\"],\"\"]:0",
+      "content_hash": "2fefb6069ab70de9c89ea835ff393084ea2b3325f43aeca1f1b7b39df3ffef0e",
+      "schema_version": 2
+    },
+    {
+      "id": "863d877f-ada6-5416-8d86-b318d2ecc5be",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/responses/error409Response\n\n{\n \"description\": \"Operation failed due to a conflict\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error409\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error409Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error409Response\"],\"\"]:0",
+      "content_hash": "18571a323cc7ee0073d076ff4eb1673e70db4c304abd830473ef2e7cadc93383",
+      "schema_version": 2
+    },
+    {
+      "id": "8a426b87-cfc4-5f71-9107-9aeb1e7d1f83",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error409\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error409",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error409\"],\"\"]:0",
+      "content_hash": "2d3ae589c6cae3b9429882904760de2b0ed83187d4e367d1baf2c25eff350777",
+      "schema_version": 2
+    },
+    {
+      "id": "b2560fb5-7e42-5b20-b290-68868a1e9173",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEErrorGenericCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEErrorGenericCodes\"],\"\"]:0",
+      "content_hash": "4405a09f48a4be6700296d7e972502f3e0ef7f73587c2891f5c52eff19f14256",
+      "schema_version": 2
+    },
+    {
+      "id": "a881f96a-23fb-5712-a63c-84fa66990463",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/responses/error500Response\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error500Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error500Response\"],\"\"]:0",
+      "content_hash": "dd9b451cf2ca9f1ced22e5dd955bdb1ef10012f5c0ffa7003d95ae6c53adbae8",
+      "schema_version": 2
+    },
+    {
+      "id": "6b04a7c4-bbb6-5c90-8355-58687b1ba06f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error500\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error500\"],\"\"]:0",
+      "content_hash": "1ec86f6d7cad80a588b65a1de1eba0cd51800718ece0eea6cb28711f8f657535",
+      "schema_version": 2
+    },
+    {
+      "id": "d9dbd4a3-c9ec-57cc-b366-422e2efc7f91",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/responses/errorResponse\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.DefaultError\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "b6f873ad6e865c54e7aecc9546f8edb89c706361ded844f6920e8d7fcb46b07e",
+      "schema_version": 2
+    },
+    {
+      "id": "1c93a43a-e88a-593d-9f66-cd89079dd1f0",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Generic error code set by the LFI. Non-namespaced error codes are allowed for compatibility versions prior to v2.0.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.DefaultError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\"],\"\"]:0",
+      "content_hash": "64f6c74e00a4a0dcac591878c153f1b961cd73a134a5074e6f40b48e42d4e4cc",
+      "schema_version": 2
+    },
+    {
+      "id": "8e6cab38-0954-562c-a4ea-cd594488d378",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"QuoteStatus\",\n \"QuoteReference\",\n \"InsuranceSubType\",\n \"Premium\",\n \"Commission\",\n \"QuoteCreationDateTime\"\n ],\n \"properties\": {\n \"QuoteStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\"\n }\n ],\n \"description\": \"Quote status.\"\n },\n \"QuoteReference\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"\n },\n \"InsuranceSubType\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Insurance sub-type, describing the insurance type specific to the sector.\"\n },\n \"Premium\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePremiumProperties\"\n }\n ],\n \"description\": \"Details of the quoted premium, as provided in the quote response.\"\n },\n \"Commission\": {\n \"type\": \"object\",\n \"properties\": {\n \"CommissionAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total monetary value of the commission paid to the TPP if the User proceeds with the quote application and purchases the policy based on the quote information provided.\"\n },\n \"PaymentMethod\": {\n \"type\": \"string\",\n \"enum\": [\n \"DirectToTPP\",\n \"ThroughAPIHub\"\n ],\n \"description\": \"The method to be used to pay the commission to the TPP if the User elects to proceed with the application and successfully purchases the policy.\"\n }\n },\n \"required\": [\n \"PaymentMethod\"\n ],\n \"description\": \"Details of the commission, as provided in the quote response.\"\n },\n \"CustomerSalary\": {\n \"type\": \"string\",\n \"enum\": [\n \"Under4K\",\n \"Over4K\"\n ],\n \"description\": \"Confirmation whether the customer monthly salary is less than or greater than AED 4,000 each month. Required for Health Insurance.\"\n },\n \"QuoteCreationDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"description\": \"The quote creation date and time, as supplied by the LFI in the property `CreationDateTime`.\"\n },\n \"ExpirationDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"description\": \"The expiration date of the quote, as provided in the quote response, if provided by the LFI.\"\n },\n \"PolicyIssuanceRequest\": {\n \"type\": \"object\",\n \"properties\": {\n \"CustomerVerification\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to complete capture of customer verification information and documents for this quote.\"\n },\n \"Payment\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to host payment checkout.\"\n },\n \"PolicyDocuments\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to provide policy documents to customer.\"\n }\n },\n \"required\": [\n \"CustomerVerification\",\n \"Payment\",\n \"PolicyDocuments\"\n ],\n \"description\": \"Broker requests to handle following steps of policy issuance process.\"\n },\n \"Documents\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n },\n \"description\": \"Customer documents encoded for submission to the LFI. Omitted if not required or quote status is `ApplicationPending`.\"\n },\n \"VerifiedDetails\": {\n \"type\": \"object\",\n \"properties\": {\n \"Policy\": {\n \"type\": \"object\",\n \"properties\": {\n \"Takaful\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the policy is Sharia compliant.\"\n },\n \"TypeOfCover\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteTypeOfCover\"\n }\n ],\n \"description\": \"The type of Home or Renter insurance cover required\"\n },\n \"PolicyStartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy start date\"\n },\n \"PolicyEndDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy end date\"\n },\n \"AddOns\": {\n \"type\": \"object\",\n \"properties\": {\n \"AccidentalDamageCover\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the customer wishes to include Accidental Damage cover.\"\n },\n \"PersonalBelongingsCover\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the customer wishes to include Personal Belongings cover.\"\n },\n \"LiabilityCover\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the customer wishes to include Liability cover.\"\n },\n \"DomesticHelpersCover\": {\n \"type\": \"boolean\"\n }\n }\n },\n \"ClaimsInLastThreeYears\": {\n \"type\": \"boolean\"\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n },\n \"PolicyHolder\": {\n \"type\": \"object\",\n \"properties\": {\n \"Salutation\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceSalutationCodes\"\n }\n ],\n \"description\": \"The salutation of the individual or customer.\"\n },\n \"FirstName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"First Name of the individual.\"\n },\n \"MiddleName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Middle Name of the individual.\"\n },\n \"LastName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Last Name (Surname) of the individual.\"\n },\n \"Gender\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceGender\"\n }\n ],\n \"description\": \"The gender of the customer\"\n },\n \"DateOfBirth\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date of birth of the individual.\"\n },\n \"MaritalStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceMaritalStatus\"\n }\n ],\n \"description\": \"The marital status of the individual.\"\n },\n \"ResidentialLocation\": {\n \"type\": \"string\",\n \"description\": \"Residential Location of the individual.\"\n },\n \"LandlineNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"\n }\n ],\n \"pattern\": \"^\\\\+?[1-9]\\\\d{1,14}$\",\n \"description\": \"The landline telephone number of the individual.\"\n },\n \"Nationality\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3}$\",\n \"description\": \"The nationality of the individual based on the ISO 3166-1 alpha-3 codes\"\n },\n \"PrimaryLanguage\": {\n \"allOf\": [\n {\n",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 4,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:0",
+      "content_hash": "2ed8d865ad64c8c24cb8d96e6c88988ec1f3a4b172cb8577928cea9eaa15f886",
+      "schema_version": 2
+    },
+    {
+      "id": "80f51a12-11d3-5640-af1b-c308783385b5",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties\n\n \"$ref\": \"#/components/schemas/AEInsurance.AECustomerPrimaryLanguage\"\n }\n ],\n \"description\": \"Primary language spoken by the insurance policy customer\"\n },\n \"MobileNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"\n }\n ],\n \"description\": \"The mobile telephone number of the individual.\"\n },\n \"EmailAddress\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmailAddressType\"\n }\n ],\n \"description\": \"Email address of the individual.\"\n },\n \"Address\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"AddressType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Billing\",\n \"Business\",\n \"Correspondence\",\n \"DeliveryTo\",\n \"MailTo\",\n \"POBox\",\n \"Postal\",\n \"Permanent\",\n \"Residential\",\n \"Statement\",\n \"Other\"\n ],\n \"description\": \"The type of address.\"\n },\n \"AddressLine\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddressLine\"\n },\n \"minItems\": 1,\n \"maxItems\": 7,\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\\n\\nThis value should be used where the address is provided or stored as a single string.\"\n },\n \"BuildingNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The unit, apartment, or villa number within a building or community\"\n },\n \"BuildingName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of the building or house.\"\n },\n \"Floor\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Floor or storey within a building.\"\n },\n \"StreetName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the street or road where the property is located\"\n },\n \"DistrictName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The district, community, or neighbourhood where the property is located\"\n },\n \"PostBox\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery\"\n },\n \"TownName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of a built-up area, such as a town or city\"\n },\n \"CountrySubDivision\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Country subdivision, such as state or province. This is the Emirate where the address is registered.\"\n },\n \"Country\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCountryCode\"\n }\n ],\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\"\n }\n },\n \"description\": \"The template for adding optional properties.\"\n },\n \"minItems\": 1,\n \"description\": \"Address details\"\n },\n \"Identity\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\"\n }\n ],\n \"description\": \"Identification details of the policyholder.\"\n },\n \"EmployerName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Employer name.\"\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n },\n \"PropertyDetails\": {\n \"type\": \"object\",\n \"properties\": {\n \"TypeOfProperty\": {\n \"type\": \"string\",\n \"enum\": [\n \"House\",\n \"Villa\",\n \"Apartment\",\n \"Flat\",\n \"Other\"\n ],\n \"description\": \"Based on enumeration values.\"\n },\n \"OwnershipStatus\": {\n \"type\": \"string\",\n \"enum\": [\n \"Owner\",\n \"OwnerWithMortgage\",\n \"Landlord\",\n \"Tenant\"\n ],\n \"description\": \"Based on enumeration values.\"\n },\n \"Construction\": {\n \"type\": \"string\",\n \"enum\": [\n \"ClassA\",\n \"ClassB\",\n \"ClassC\"\n ],\n \"description\": \"Type of construction\"\n },\n \"OverTenYears\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property is over 10 years old\"\n },\n \"FloodDamage\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the buildings and/or contents have suffered damage by storm, tempest or flood during the past five years\"\n },\n \"NumberOfAdults\": {\n \"type\": \"integer\",\n \"description\": \"The number of adults that will be living in the home\"\n },\n \"NumberOfChildren\": {\n \"type\": \"integer\",\n \"description\": \"The number of children that will be living in the home\"\n },\n \"NumberOfFloors\": {\n \"type\": \"integer\",\n \"description\": \"The total number of floors in the insured property, including all above-ground levels.\"\n },\n \"NumberOfRooms\": {\n \"type\": \"integer\",\n \"description\": \"The total number of rooms within the property, excluding bathrooms. \"\n },\n \"InsuredPropertyAddress\": {\n \"type\": \"object\",\n \"properties\": {\n \"AddressLine\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddressLine\"\n },\n \"minItems\": 1,\n \"maxItems\": 7,\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\\n\\nThis value should be used where the address is provided or stored as a single string.\"\n },\n \"BuildingNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The unit, apartment, or villa number within a building or community\"\n },\n \"BuildingName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of the building or house.\"\n },\n \"Floor\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Floor or storey within a building.\"\n },\n \"StreetName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the street or road where the property is located\"\n },\n \"DistrictName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The district, community, or neighbourhood where the property is located\"\n },\n \"PostBox\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery\"\n",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 4,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:1",
+      "content_hash": "486d836f7456124a9ee4589625a6547194e54938d1b4a1709fbcc11abd540eac",
+      "schema_version": 2
+    },
+    {
+      "id": "716a9050-de9c-5078-8640-cbef3f2b2f08",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties\n\n },\n \"TownName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of a built-up area, such as a town or city\"\n },\n \"CountrySubDivision\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Country subdivision, such as state or province. This is the Emirate where the address is registered.\"\n },\n \"Country\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCountryCode\"\n }\n ],\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\"\n }\n },\n \"description\": \"The full address of the property to be insured\"\n },\n \"SafetySecurityFeatures\": {\n \"type\": \"object\",\n \"properties\": {\n \"DistanceFromShoreline\": {\n \"type\": \"string\",\n \"description\": \"The shortest distance from the insured property to the nearest coastline, measured in meters \"\n },\n \"DistanceAboveSeaLevel\": {\n \"type\": \"string\",\n \"description\": \"The elevation of the insured property above sea level, measured in meters\"\n },\n \"InDesignatedFloodZone\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property to be insured or is being insured is in a Designated Flood Zone\"\n },\n \"WaterLeakDetectionSystems\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property to be insured or is being insured has Water Leak Detection Systems\"\n },\n \"BurglarAlarm\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property to be insured or is being insured has a burglar installed\"\n },\n \"SurveillanceCameras\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property to be insured or is being insured has Surveillance or Security Cameras\"\n },\n \"DoorCamera\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property to be insured or is being insured has a door camera\"\n },\n \"SecurityGuards\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property to be insured or is being insured has Security Guards employed\"\n },\n \"SmokeDetectors\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property to be insured or is being insured has Smoke Detectors installed\"\n },\n \"FireExtinguishers\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property to be insured or is being insured has Fire Extinguishers\"\n },\n \"SprinklerSystem\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property to be insured or is being insured has Sprinkler System installed\"\n },\n \"DeadboltLocks\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property to be insured or is being insured has Dead bolt Locks installed\"\n },\n \"WindowLocks\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the property to be insured or is being insured has Window Locks installed\"\n }\n },\n \"description\": \"Details of property safety and security features.\"\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n },\n \"Mortgage\": {\n \"type\": \"object\",\n \"properties\": {\n \"BankName\": {\n \"type\": \"string\",\n \"description\": \"Required when PropertyMortgage is true (Yes) to confirm the name of the financial institution providing the mortgage finance\"\n },\n \"BranchName\": {\n \"type\": \"string\",\n \"description\": \"The Bank's Branch name\"\n },\n \"BankAddress\": {\n \"type\": \"object\",\n \"properties\": {\n \"AddressLine\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddressLine\"\n },\n \"minItems\": 1,\n \"maxItems\": 7,\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\\n\\nThis value should be used where the address is provided or stored as a single string.\"\n },\n \"BuildingNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The unit, apartment, or villa number within a building or community\"\n },\n \"BuildingName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of the building or house.\"\n },\n \"Floor\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Floor or storey within a building.\"\n },\n \"StreetName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the street or road where the property is located\"\n },\n \"DistrictName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The district, community, or neighbourhood where the property is located\"\n },\n \"PostBox\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery\"\n },\n \"TownName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of a built-up area, such as a town or city\"\n },\n \"CountrySubDivision\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Country subdivision, such as state or province. This is the Emirate where the address is registered.\"\n },\n \"Country\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCountryCode\"\n }\n ],\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\"\n }\n },\n \"description\": \"The address details of the customer's Bank Branch\"\n },\n \"ContactDetails\": {\n \"type\": \"string\",\n \"description\": \"The contact details of the Bank\"\n },\n \"MortgageBalanceAmount\": {\n \"type\": \"object\",\n \"properties\": {\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n },\n \"Amount\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n }\n },\n \"description\": \"The amount or outstanding balance of the mortgage\"\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n },\n \"DomesticHelpers\": {\n \"type\": \"object\",\n \"properties\": {\n",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 2,
+      "part_count": 4,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:2",
+      "content_hash": "87201c01d9421367dedce064273b140fea68defa38c3adc7cccd263c379aa6e9",
+      "schema_version": 2
+    },
+    {
+      "id": "e43d2851-55fe-5898-bf46-8f49c92517b7",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties\n\n \"NumberOfDomesticHelpers\": {\n \"type\": \"integer\",\n \"description\": \"Required when Domestic Helpers cover is required. Confirms the number of Domestic Helpers to be covered\"\n },\n \"IndividualDetails\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"FirstName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"First Name of the individual.\"\n },\n \"LastName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Last Name (Surname) of the individual.\"\n },\n \"Nationality\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3}$\",\n \"description\": \"The nationality of the individual based on the ISO 3166-1 alpha-3 codes\"\n },\n \"DateOfBirth\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date of birth of the individual.\"\n },\n \"PassportNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCustomerPassportNumberType\"\n }\n ],\n \"description\": \"Passport Number of the individual.\"\n }\n },\n \"description\": \"The template for adding optional properties.\"\n },\n \"description\": \"Domestic Helpers details when included in the insurance cover\"\n }\n },\n \"minProperties\": 1,\n \"description\": \"Revised details, verified by the TPP.\"\n },\n \"ExistingHomeInsurance\": {\n \"type\": \"object\",\n \"properties\": {\n \"CoverType\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteTypeOfCover\"\n }\n ],\n \"description\": \"The type of existing insurance cover held.\"\n },\n \"ProviderName\": {\n \"type\": \"string\",\n \"description\": \"The name of the existing home insurance provider.\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The expiry date of the existing home insurance cover.\"\n },\n \"ReplacementCover\": {\n \"type\": \"boolean\",\n \"description\": \"Confirm whether this proposal will replace the existing insurance cover.\"\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n }\n },\n \"description\": \"Verified details captured by the TPP, when the TPP is a Broker. Omitted if not required.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 3,
+      "part_count": 4,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEHomeInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:3",
+      "content_hash": "448d44d8df214f07576cd96edf2911f1e770f801626552fef37b93adc27672d6",
+      "schema_version": 2
+    },
+    {
+      "id": "aaf234c4-48d6-57aa-a558-d9db3a8fce61",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"ApplicationPending\",\n \"KYCCaptured\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\"],\"\"]:0",
+      "content_hash": "a002309af38695e13580bf7d9b3d8ffe877a8cf092883097c1dd131e8652f7e7",
+      "schema_version": 2
+    },
+    {
+      "id": "e9c094f4-f8ed-5c8e-b958-35c0262bcb16",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\n\n{\n \"type\": \"string\",\n \"description\": \"The unique quote reference number generated by the TPP for tracking the quote\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"],\"\"]:0",
+      "content_hash": "debaae2aa9a08a9d71918dd40965235775748f7cb9ea40f80513c45db278201c",
+      "schema_version": 2
+    },
+    {
+      "id": "36b78c8d-501d-53f3-89ae-a2f81441f645",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"PremiumAmountExcludingVAT\",\n \"VATAmount\",\n \"TotalPremiumAmount\",\n \"PaymentFrequency\"\n ],\n \"properties\": {\n \"Status\": {\n \"type\": \"string\",\n \"enum\": [\n \"Initial\",\n \"StartingFrom\",\n \"Final\"\n ],\n \"description\": \"Confirmation whether the premium quoted is an initial premium, starting from, or final.\"\n },\n \"TotalDiscountAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total discount amount applied to the final premium amount\"\n },\n \"DiscountApplied\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\"\n },\n \"minItems\": 1,\n \"description\": \"Details of the discounts applied\"\n },\n \"PremiumAmountExcludingVAT\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The Premium Amount excluding any VAT amount\"\n },\n \"VATAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The Premium VAT amount.\"\n },\n \"VATPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceVATPercentage\"\n }\n ],\n \"description\": \"The VAT percentage rate charged to the premium.\"\n },\n \"TotalPremiumAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total Premium amount including VAT\"\n },\n \"PaymentFrequency\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"\n }\n ],\n \"description\": \"The payment frequency the calculated Premium has been based on.\"\n },\n \"InstallmentOptions\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"\n },\n \"minItems\": 1,\n \"description\": \"The possible Premium instalment frequency options available to the customer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties\"],\"\"]:0",
+      "content_hash": "faa30aeb1940e37213b7cdb99d770e239d0b7972e6cd1c9696bd28c57a234892",
+      "schema_version": 2
+    },
+    {
+      "id": "d6c3e892-863c-5de4-bf14-50935b6baf5b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Currency\",\n \"Amount\"\n ],\n \"properties\": {\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n },\n \"Amount\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n }\n },\n \"description\": \"The Currency and Amount relating to the Payment, Refund or Request to Pay\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\"],\"\"]:0",
+      "content_hash": "68cc353f00817ad57364367976ec706fb91a092bc82177c8c2bbc7722d097eaa",
+      "schema_version": 2
+    },
+    {
+      "id": "a89d2e11-32c4-5810-a434-6da74f0739f6",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n \"example\": \"AED\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"],\"\"]:0",
+      "content_hash": "d94c6b1aa757d8f9793d482de2bbab01bcbe519260320b0a934ecbfac417fe5b",
+      "schema_version": 2
+    },
+    {
+      "id": "04a632e5-cd17-514e-b5b5-e01427d18cbd",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\n\n{\n \"type\": \"string\",\n \"pattern\": \"^\\\\d{1,16}\\\\.\\\\d{2}$\",\n \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n \"example\": \"100.00\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"],\"\"]:0",
+      "content_hash": "50f6eea958621e6b52201ab224d1dea5adf42e27549b19c8e812cc1c0bf62cf7",
+      "schema_version": 2
+    },
+    {
+      "id": "fac4138b-89c4-53e2-9502-f12ea71d4397",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\n\n{\n \"type\": \"object\",\n \"required\": [\n \"DiscountName\",\n \"DiscountAmount\"\n ],\n \"properties\": {\n \"DiscountName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the discount applied to the insurance premium\"\n },\n \"DiscountPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePercentageValue\"\n }\n ],\n \"description\": \"The percentage reduction applied to the insurance premium as part of the discount.\"\n },\n \"DiscountAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The monetary value of the discount applied to the insurance premium\"\n }\n },\n \"description\": \"Details of discounts applied to the insurance premium\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\"],\"\"]:0",
+      "content_hash": "3065fd72464e527d0ba28bc48044ad501e09ef9eaf3a09ce6ab91dfae98ea4a6",
+      "schema_version": 2
+    },
+    {
+      "id": "fc84faa4-a4e5-5d6f-b0cc-bdf643367be7",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue\n\n{\n \"type\": \"number\",\n \"format\": \"decimal\",\n \"minimum\": 0,\n \"maximum\": 100\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue\"],\"\"]:0",
+      "content_hash": "49f665423f90fa2cc50c2204fdf3d3bc94da35c10e2c28042a90519c1a0aed88",
+      "schema_version": 2
+    },
+    {
+      "id": "abb34306-dcb6-52f5-9da0-149b4b165b81",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage\n\n{\n \"type\": \"number\",\n \"format\": \"decimal\",\n \"minimum\": 0,\n \"maximum\": 100\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage\"],\"\"]:0",
+      "content_hash": "706bd75c0bf349ea8d952d9ca51a186221207b3611d54a982369d24da57ed094",
+      "schema_version": 2
+    },
+    {
+      "id": "5edd2801-612c-5834-ac00-a615ff018e3d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Annually\",\n \"OneTime\",\n \"Monthly\",\n \"Quarterly\",\n \"BiAnnual\",\n \"Other\",\n \"Limited\"\n ],\n \"description\": \"Frequencies\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"],\"\"]:0",
+      "content_hash": "3f5673d2bb6a5fb42032fcd0d1ec0b64c0dfab395b551fa0640a1cc7d6d2f4b9",
+      "schema_version": 2
+    },
+    {
+      "id": "feb44338-aeea-5585-af8a-a89a5b32eeb0",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Type\",\n \"FileName\",\n \"ContentType\",\n \"Content\",\n \"HashType\",\n \"Hash\"\n ],\n \"properties\": {\n \"Type\": {\n \"type\": \"string\",\n \"description\": \"The type of document that has been provided. For example, Policy Booklet, Terms & Conditions\"\n },\n \"FileName\": {\n \"type\": \"string\",\n \"description\": \"Original file name for operator reference (no paths). Should include a suitable extension (e.g., policy.pdf, terms.pdf).\"\n },\n \"ContentType\": {\n \"type\": \"string\",\n \"enum\": [\n \"application/pdf\",\n \"image/jpeg\",\n \"image/png\"\n ],\n \"description\": \"Content (MIME) type of the document, using IANA-registered media types, and based on types supported in the Open Finance Framework.\"\n },\n \"Content\": {\n \"type\": \"string\",\n \"format\": \"base64\",\n \"description\": \"Base64-encoded representation of the document content. The encoded string must be generated from the raw file bytes and decoded by the LFI to restore the original file.\"\n },\n \"HashType\": {\n \"type\": \"string\",\n \"enum\": [\n \"SHA256\"\n ],\n \"description\": \"Approach used to create checksum or hash of the file. SHA256 is supported.\"\n },\n \"Hash\": {\n \"type\": \"string\",\n \"description\": \"Checksum of the original file bytes created using the method indicated by `HashType`. Required to enable integrity verification by comparing with the hash or checksum calculated on the decoded file.\"\n },\n \"AdditionalInformation\": {\n \"type\": \"string\",\n \"maxLength\": 1000,\n \"description\": \"Optional free text notes providing context on the document.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\"],\"\"]:0",
+      "content_hash": "bf75b76e517c8477bf6befdf51ff9d5a4e6e247238b7370687c55576a39c8b9e",
+      "schema_version": 2
+    },
+    {
+      "id": "adb9af4c-027a-5e09-997d-ed6081bdcc64",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteTypeOfCover\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"BuildingsOnly\",\n \"ContentsOnly\",\n \"BuildingsAndContents\"\n ],\n \"description\": \"The type of Home or Renter insurance cover required\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteTypeOfCover",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteTypeOfCover\"],\"\"]:0",
+      "content_hash": "296e9b1d1aae782fe19c49c8fa871c0eff1abfcd213862f38b2d1076333b6a43",
+      "schema_version": 2
+    },
+    {
+      "id": "da1eef6a-cbb9-5055-80ef-9b5a864436e3",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Mr\",\n \"Mrs\",\n \"Ms\",\n \"Miss\",\n \"Dr\",\n \"Prof\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes\"],\"\"]:0",
+      "content_hash": "387fdc133556a05f313b1c52fbf5a3e87ca429d69072d8f17e025fdba5515697",
+      "schema_version": 2
+    },
+    {
+      "id": "e147df92-3f40-5c6c-996b-7d51c825b28f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Male\",\n \"Female\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender\"],\"\"]:0",
+      "content_hash": "9c22e7caad6b915f49f133c026d1482ec9ce9b5120fd4e8bf2aa450363972bda",
+      "schema_version": 2
+    },
+    {
+      "id": "68b5cd14-0c21-555e-b989-5dd9a635d05a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Single\",\n \"Married\",\n \"Divorced\",\n \"Widowed\",\n \"Separated\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus\"],\"\"]:0",
+      "content_hash": "6ffa395379258abf77b38ada84e5b9d411484562c1eaf433c94265f3e3541a0b",
+      "schema_version": 2
+    },
+    {
+      "id": "30d6454d-3e72-53d5-978d-f815ceb50e42",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType\n\n{\n \"type\": \"string\",\n \"pattern\": \"^\\\\+?[1-9]\\\\d{1,14}$\",\n \"example\": \"+971501234567\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"],\"\"]:0",
+      "content_hash": "805356b9ff86e48d98caf79c35872609bde679d428cf114b1ab9f87b28b93f81",
+      "schema_version": 2
+    },
+    {
+      "id": "f85bf1bf-3a48-567f-ad31-fead6fb1640d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"English\",\n \"Arabic\",\n \"Other\"\n ],\n \"description\": \"Primary language spoken by the insurance policy customer\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage\"],\"\"]:0",
+      "content_hash": "07f0bc1537b99a4d1e84d00552dfaa84d51ede6941b69304fc336941c9165bcf",
+      "schema_version": 2
+    },
+    {
+      "id": "24325079-6af7-51a3-ad59-fc92efaf369b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\",\n \"example\": \"ali.hamad@example.openfinanceplatform.ae\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType\"],\"\"]:0",
+      "content_hash": "8b5db5be855344f77bb2f67115d0cc571a2cc6199cb53c33ae2f203f3e2e152b",
+      "schema_version": 2
+    },
+    {
+      "id": "4ca3edea-2694-58bc-95d0-e795792408ff",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine\"],\"\"]:0",
+      "content_hash": "02963ebc15711e9a1d327ae12a225227d0f2504f893dbfe03255ef96a9c178c2",
+      "schema_version": 2
+    },
+    {
+      "id": "c2e7e0cd-6fa2-534d-995f-d406f5d5cb0e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AbuDhabi\",\n \"Ajman\",\n \"Dubai\",\n \"Fujairah\",\n \"RasAlKhaimah\",\n \"Sharjah\",\n \"UmmAlQuwain\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\"],\"\"]:0",
+      "content_hash": "d78b01d87cd2b14cb3bd4d4ca8e1338572d22f276a76e68d021bca9e2f4be060",
+      "schema_version": 2
+    },
+    {
+      "id": "1800c4cc-41b5-55db-a14b-c7f590e06c1e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"[A-Z]{2}\",\n \"description\": \"Country code that conforms with ISO 3166, 3 character alpha code\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode\"],\"\"]:0",
+      "content_hash": "bda53f150b9b5bd8a36961b31992cd64470396d02ab92f591029ede5104f8201",
+      "schema_version": 2
+    },
+    {
+      "id": "b340c4f8-aa26-5924-81f0-f6d05fbcb065",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"EmiratesId\": {\n \"type\": \"object\",\n \"properties\": {\n \"EmiratesIdNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$\",\n \"description\": \"Emirates identification number\"\n },\n \"EmiratesIdExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Emirates ID expiry date\"\n }\n },\n \"description\": \"Verified Emirates ID details, captured by the TPP.\"\n },\n \"Passport\": {\n \"type\": \"object\",\n \"properties\": {\n \"PassportNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z0-9]+$\",\n \"description\": \"Passport number\"\n },\n \"IssuingCountry\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"The country the passport is issued by.\"\n },\n \"NameOnPassport\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The applicant, policyholder or insured person name as detailed on their passport\"\n },\n \"IssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The passport issue date\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The passport expiry date\"\n }\n },\n \"description\": \"Verified Passport details, captured by the TPP.\"\n },\n \"Visa\": {\n \"type\": \"object\",\n \"properties\": {\n \"VisaType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Employment\",\n \"Residence\",\n \"Business\",\n \"Investor\",\n \"Freelance\",\n \"VirtualWork\",\n \"Retirement\",\n \"Student\",\n \"Family\",\n \"Green\",\n \"Golden\",\n \"Blue\"\n ],\n \"description\": \"The type of visa issues, based on an available code list\"\n },\n \"VisaNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^[0-9]+$\",\n \"description\": \"Visa number\"\n },\n \"IssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The visa issue date\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The visa expiry date\"\n },\n \"IssuingEmirate\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Emirate that issued the visa\"\n }\n },\n \"description\": \"Verified Passport details, captured by the TPP.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\"],\"\"]:0",
+      "content_hash": "6aa7419252b82088f10eaa1c6aedf6303378fb2acb16f71943965a1d6ff70dfe",
+      "schema_version": 2
+    },
+    {
+      "id": "ae8314a7-d1a0-55b0-ae1c-7b85bb26ed19",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Home Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCustomerPassportNumberType\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Accept a Home Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCustomerPassportNumberType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "807919620a0cc2161a0ae751ed753276ae35ca8dd288e37984f6345de21aa0ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-home-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCustomerPassportNumberType\"],\"\"]:0",
+      "content_hash": "6e522e16d0cb34c69ba63524d8797b0baf76ad6159d2089aa71297742418295b",
+      "schema_version": 2
+    }
+  ]
+}

@@ -1,0 +1,404 @@
+{
+  "id": "tech/tpp-standards/v2.2-rc2/banking/confirmation-of-payee/open-api/discovery",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/confirmation-of-payee/open-api/discovery.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "fa0cee9b96239a31de00c7c84eb722c734256a2a6da8a46aac3ce765e29f7845",
+    "dependencies": [
+      "public/openapi/v2.2-rc2/standards/uae-confirmation-of-payee-openapi.yaml"
+    ],
+    "assets": [
+      {
+        "file": "public/openapi/v2.2-rc2/standards/uae-confirmation-of-payee-openapi.yaml",
+        "hash": "32781e4fe3f2374b9b18f0bec908487bdae158b61194f37375bd2c36485aeb9c"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Discover the LFI that will confirm the payee",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/confirmation-of-payee/open-api/discovery",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Discover the LFI that will confirm the payee",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "API /discovery",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"info\": {\n    \"title\": \"UAE Confirmation of Payee API\",\n    \"description\": \"## UAE Open Finance Confirmation of Payee API Specification\",\n    \"version\": \"v2.2-rc2\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://rs1.[LFICODE].apihub.openfinance.ae/open-finance/confirmation-of-payee/v2.2\"\n    },\n    {\n      \"url\": \"https://rs1.[LFICODE].preprod.apihub.openfinance.ae/open-finance/confirmation-of-payee/v2.2\"\n    },\n    {\n      \"url\": \"https://rs1.altareq1.sandbox.apihub.openfinance.ae/open-finance/confirmation-of-payee/v2.2\"\n    }\n  ],\n  \"source_path\": \"/discovery\",\n  \"operations\": {\n    \"post\": {\n      \"operationId\": \"ConfirmationOfPayeeDiscovery_signedDiscoveryRequest\",\n      \"summary\": \"Discover the LFI or LFIs that will confirm the payee attributes\",\n      \"description\": \"Before a Confirmation of Payee (CoP) operation takes place the TPP will need to resolve the LFI that will service the account properties request. This requirement is based on the separation of concerns implemented in the OFP, which ensures that the APIs for a given LFI are always physically separated.\\n\\nThe TPP will call this endpoint with the Creditor Account IBAN, which will be used to resolve the correct URL with which to make the CoP operation.\\n\\nThe response carries an array of confirmation sources. An LFI exposes a separate Resource Server per account segment (for example retail, corporate and SME), and the IBAN alone identifies the bank but not the segment, so more than one entry may be returned for a single account. The TPP should invoke the CoP operation against each entry in the order returned until a match is obtained. An empty array is returned when the account is not serviced by any participating LFI.\",\n      \"parameters\": [\n        {\n          \"$ref\": \"#/components/parameters/Authorization\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/x-customer-user-agent\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/x-fapi-auth-date\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/x-fapi-customer-ip-address\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/x-fapi-interaction-id\"\n        }\n      ],\n      \"responses\": {\n        \"200\": {\n          \"description\": \"The request has succeeded.\",\n          \"headers\": {\n            \"x-fapi-interaction-id\": {\n              \"required\": false,\n              \"description\": \"An RFC4122 UID used as a correlation ID.\",\n              \"schema\": {\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"content\": {\n            \"application/jwt\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/DiscoverConfirmationSourceResponseBodySigned\"\n              }\n            }\n          }\n        },\n        \"400\": {\n          \"$ref\": \"#/components/responses/400Error\"\n        },\n        \"401\": {\n          \"$ref\": \"#/components/responses/401Error\"\n        },\n        \"403\": {\n          \"$ref\": \"#/components/responses/403Error\"\n        },\n        \"404\": {\n          \"$ref\": \"#/components/responses/404Error\"\n        },\n        \"405\": {\n          \"$ref\": \"#/components/responses/405Error\"\n        },\n        \"406\": {\n          \"$ref\": \"#/components/responses/406Error\"\n        },\n        \"415\": {\n          \"$ref\": \"#/components/responses/415Error\"\n        },\n        \"429\": {\n          \"$ref\": \"#/components/responses/429Error\"\n        },\n        \"500\": {\n          \"$ref\": \"#/components/responses/500Error\"\n        }\n      },\n      \"tags\": [\n        \"Discovery Operations\"\n      ],\n      \"requestBody\": {\n        \"required\": true,\n        \"content\": {\n          \"application/jwt\": {\n            \"schema\": {\n              \"$ref\": \"#/components/schemas/DiscoverConfirmationSourceRequestBodySigned\"\n            }\n          }\n        }\n      },\n      \"security\": [\n        {\n          \"TPPOAuth2Security\": [\n            \"confirmation-of-payee\"\n          ]\n        }\n      ]\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/Authorization",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"authorization\",\n  \"in\": \"header\",\n  \"required\": true,\n  \"description\": \"An Access Token as per https://tools.ietf.org/html/rfc6750\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/x-customer-user-agent",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"x-customer-user-agent\",\n  \"in\": \"header\",\n  \"required\": false,\n  \"description\": \"Indicates the user-agent that the User is using.\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/x-fapi-auth-date",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"x-fapi-auth-date\",\n  \"in\": \"header\",\n  \"required\": false,\n  \"description\": \"The time when the User last logged in with the TPP. \\nAll dates in the HTTP headers are represented as RFC 7231 Full Dates. An example is below: \\nSun, 10 Sep 2017 19:43:31 UTC\",\n  \"schema\": {\n    \"type\": \"string\",\n    \"pattern\": \"^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \\\\d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\\\d{4} \\\\d{2}:\\\\d{2}:\\\\d{2} (GMT|UTC)$\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/x-fapi-customer-ip-address",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"x-fapi-customer-ip-address\",\n  \"in\": \"header\",\n  \"required\": false,\n  \"description\": \"The User's IP address if the User is currently logged in with the TPP.\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/x-fapi-interaction-id",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"x-fapi-interaction-id\",\n  \"in\": \"header\",\n  \"required\": false,\n  \"description\": \"An RFC4122 UID used as a correlation ID.\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/DiscoverConfirmationSourceResponseBodySigned",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"iss\",\n    \"exp\",\n    \"nbf\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"iss\": {\n      \"type\": \"string\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1)\"\n    },\n    \"exp\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4)\"\n    },\n    \"nbf\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5)\"\n    },\n    \"aud\": {\n      \"type\": \"string\",\n      \"description\": \"The identifier of the intended recipient of the JWT. A single StringOrURI per RFC 7519 §4.1.3 (single-audience form). [https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3)\"\n    },\n    \"iat\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6)\"\n    },\n    \"message\": {\n      \"$ref\": \"#/components/schemas/AEConfirmationDiscoveryResponse\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEConfirmationDiscoveryResponse",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Data\",\n    \"Links\",\n    \"Meta\"\n  ],\n  \"properties\": {\n    \"Data\": {\n      \"type\": \"object\",\n      \"description\": \"Primary data for the resource\",\n      \"required\": [\n        \"ConfirmationSource\"\n      ],\n      \"properties\": {\n        \"ConfirmationSource\": {\n          \"type\": \"array\",\n          \"minItems\": 0,\n          \"items\": {\n            \"$ref\": \"#/components/schemas/AEConfirmationSourceProperties\"\n          },\n          \"description\": \"The set of Confirmation of Payee sources that may service the supplied Creditor Account. Each entry identifies one endpoint pair at which the Confirmation of Payee operation can be invoked. More than one entry may be returned where an LFI exposes a separate Resource Server per account segment. An empty array is returned when the supplied account is not serviced by any participating LFI.\"\n        }\n      },\n      \"additionalProperties\": false\n    },\n    \"Links\": {\n      \"$ref\": \"#/components/schemas/LinksSelf\"\n    },\n    \"Meta\": {\n      \"$ref\": \"#/components/schemas/Meta\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEConfirmationSourceProperties",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"DiscoveryEndpointUrl\",\n    \"ResourceServerUrl\"\n  ],\n  \"properties\": {\n    \"DiscoveryEndpointUrl\": {\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 500,\n      \"description\": \"Discovery or .well-known endpoint hosted at the API Hub that provides the information to request an Access Token from the target LFI Authorisation Server.\"\n    },\n    \"ResourceServerUrl\": {\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 500,\n      \"description\": \"Resource Server URL at which the Confirmation of Payee operation should be invoked\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/LinksSelf",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Self\"\n  ],\n  \"properties\": {\n    \"Self\": {\n      \"$ref\": \"#/components/schemas/Self\"\n    }\n  },\n  \"description\": \"Links relevant to the resource\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/Self",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"format\": \"uri\",\n  \"description\": \"A link to the current resource\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/Meta",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"description\": \"Metadata relevant to the resource\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/400Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Bad request\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"content\": {\n    \"application/jwt\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/AEError400ResponseBodySigned\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError400ResponseBodySigned",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"iss\",\n    \"exp\",\n    \"nbf\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"iss\": {\n      \"type\": \"string\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1)\"\n    },\n    \"exp\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4)\"\n    },\n    \"nbf\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5)\"\n    },\n    \"aud\": {\n      \"type\": \"string\",\n      \"description\": \"The identifier of the intended recipient of the JWT. A single StringOrURI per RFC 7519 §4.1.3 (single-audience form). [https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3)\"\n    },\n    \"iat\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6)\"\n    },\n    \"message\": {\n      \"$ref\": \"#/components/schemas/AEError400ResponseBody\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError400ResponseBody",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Errors\"\n  ],\n  \"properties\": {\n    \"Errors\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"Code\": {\n            \"$ref\": \"#/components/schemas/AEError400\"\n          },\n          \"Message\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"A description of the error that occurred. e.g., 'A mandatory field isn't supplied' or 'RequestedExecutionDateTime must be in future'\\nUAEOF doesn't standardise this field\"\n          },\n          \"Path\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"Recommended but optional reference to the JSON Path of the field with error, e.g., $.Data.Initiation.InstructedAmount.Currency\"\n          },\n          \"Url\": {\n            \"type\": \"string\",\n            \"description\": \"URL to help remediate the problem, or provide more information, or to API Reference, or help etc\"\n          }\n        },\n        \"required\": [\n          \"Code\",\n          \"Message\"\n        ],\n        \"additionalProperties\": false\n      },\n      \"minItems\": 1\n    }\n  },\n  \"description\": \"An array of detail error codes, and messages, and URLs to documentation to help remediation.\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError400",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/AEError400Codes\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"Consent.Invalid\",\n    \"Consent.BusinessRuleViolation\",\n    \"Consent.FailsControlParameters\",\n    \"Consent.InvalidUserIdentifier\",\n    \"JWS.InvalidSignature\",\n    \"JWS.Malformed\",\n    \"JWS.InvalidClaim\",\n    \"JWS.InvalidHeader\",\n    \"JWS.InvalidPayload\",\n    \"JWE.DecryptionError\",\n    \"JWE.InvalidHeader\",\n    \"GenericRecoverableError\",\n    \"GenericError\",\n    \"Event.UnexpectedEvent\",\n    \"Body.InvalidFormat\",\n    \"Resource.InvalidFormat\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/401Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Unauthorized\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/403Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Forbidden\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"content\": {\n    \"application/jwt\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/AEError403ResponseBodySigned\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError403ResponseBodySigned",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"iss\",\n    \"exp\",\n    \"nbf\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"iss\": {\n      \"type\": \"string\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1)\"\n    },\n    \"exp\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4)\"\n    },\n    \"nbf\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5)\"\n    },\n    \"aud\": {\n      \"type\": \"string\",\n      \"description\": \"The identifier of the intended recipient of the JWT. A single StringOrURI per RFC 7519 §4.1.3 (single-audience form). [https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3)\"\n    },\n    \"iat\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6)\"\n    },\n    \"message\": {\n      \"$ref\": \"#/components/schemas/AEError403ResponseBody\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError403ResponseBody",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Errors\"\n  ],\n  \"properties\": {\n    \"Errors\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"Code\": {\n            \"$ref\": \"#/components/schemas/AEError403\"\n          },\n          \"Message\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"A description of the error that occurred. e.g., 'A mandatory field isn't supplied' or 'RequestedExecutionDateTime must be in future'\\nUAEOF doesn't standardise this field\"\n          },\n          \"Path\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"Recommended but optional reference to the JSON Path of the field with error, e.g., $.Data.Initiation.InstructedAmount.Currency\"\n          },\n          \"Url\": {\n            \"type\": \"string\",\n            \"description\": \"URL to help remediate the problem, or provide more information, or to API Reference, or help etc\"\n          }\n        },\n        \"required\": [\n          \"Code\",\n          \"Message\"\n        ],\n        \"additionalProperties\": false\n      },\n      \"minItems\": 1\n    }\n  },\n  \"description\": \"An array of detail error codes, and messages, and URLs to documentation to help remediation.\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError403",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/AEError403Codes\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"AccessToken.InvalidScope\",\n    \"Consent.TransientAccountAccessFailure\",\n    \"Consent.AccountTemporarilyBlocked\",\n    \"Consent.PermanentAccountAccessFailure\",\n    \"GenericRecoverableError\",\n    \"GenericError\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/404Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Not found\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/405Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Method Not Allowed\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/406Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Not Acceptable\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/415Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Unsupported Media Type\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/429Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Too Many Requests\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    },\n    \"retry-after\": {\n      \"required\": true,\n      \"description\": \"Number in seconds to wait\",\n      \"schema\": {\n        \"type\": \"integer\",\n        \"format\": \"int64\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/500Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Internal Server Error\",\n  \"headers\": {\n    \"x-fapi-interaction-id\": {\n      \"required\": true,\n      \"description\": \"An RFC4122 UID used as a correlation id.\",\n      \"schema\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"content\": {\n    \"application/jwt\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/AEError500ResponseBodySigned\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError500ResponseBodySigned",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"iss\",\n    \"exp\",\n    \"nbf\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"iss\": {\n      \"type\": \"string\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1)\"\n    },\n    \"exp\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4)\"\n    },\n    \"nbf\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5)\"\n    },\n    \"aud\": {\n      \"type\": \"string\",\n      \"description\": \"The identifier of the intended recipient of the JWT. A single StringOrURI per RFC 7519 §4.1.3 (single-audience form). [https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3)\"\n    },\n    \"iat\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6)\"\n    },\n    \"message\": {\n      \"$ref\": \"#/components/schemas/AEError500ResponseBody\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError500ResponseBody",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Errors\"\n  ],\n  \"properties\": {\n    \"Errors\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"Code\": {\n            \"$ref\": \"#/components/schemas/AEError500\"\n          },\n          \"Message\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"A description of the error that occurred. e.g., 'A mandatory field isn't supplied' or 'RequestedExecutionDateTime must be in future'\\nUAEOF doesn't standardise this field\"\n          },\n          \"Path\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 500,\n            \"description\": \"Recommended but optional reference to the JSON Path of the field with error, e.g., $.Data.Initiation.InstructedAmount.Currency\"\n          },\n          \"Url\": {\n            \"type\": \"string\",\n            \"description\": \"URL to help remediate the problem, or provide more information, or to API Reference, or help etc\"\n          }\n        },\n        \"required\": [\n          \"Code\",\n          \"Message\"\n        ],\n        \"additionalProperties\": false\n      },\n      \"minItems\": 1\n    }\n  },\n  \"description\": \"An array of detail error codes, and messages, and URLs to documentation to help remediation.\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError500",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"GenericRecoverableError\",\n    \"GenericError\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/DiscoverConfirmationSourceRequestBodySigned",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"iss\",\n    \"exp\",\n    \"nbf\",\n    \"message\"\n  ],\n  \"properties\": {\n    \"iss\": {\n      \"type\": \"string\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.1)\"\n    },\n    \"exp\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.4)\"\n    },\n    \"nbf\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.5)\"\n    },\n    \"aud\": {\n      \"type\": \"string\",\n      \"description\": \"The identifier of the intended recipient of the JWT. A single StringOrURI per RFC 7519 §4.1.3 (single-audience form). [https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.3)\"\n    },\n    \"iat\": {\n      \"type\": \"number\",\n      \"description\": \"[https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6](https://www.rfc-editor.org/rfc/rfc7519#section-4.1.6)\"\n    },\n    \"message\": {\n      \"$ref\": \"#/components/schemas/AEConfirmationDiscoveryRequest\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEConfirmationDiscoveryRequest",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Data\"\n  ],\n  \"properties\": {\n    \"Data\": {\n      \"$ref\": \"#/components/schemas/AEConfirmationOfPayeeCreditorAccount\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEConfirmationOfPayeeCreditorAccount",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"SchemeName\",\n    \"Identification\"\n  ],\n  \"properties\": {\n    \"SchemeName\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"IBAN\"\n      ],\n      \"description\": \"Name of the identification scheme, in a coded form as published in an external list.\"\n    },\n    \"Identification\": {\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 34,\n      \"description\": \"Identification for the account assigned by the LFI based on the Account Scheme Name, as understood by the Debtor.\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

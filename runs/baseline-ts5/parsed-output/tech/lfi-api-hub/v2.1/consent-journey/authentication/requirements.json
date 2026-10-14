@@ -1,0 +1,312 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/consent-journey/authentication/requirements",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/consent-journey/authentication/requirements.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "ebf6b5057dc3ea82860b4cd4e517e0e2e89abac2ecade4cf86eae3cb31614744",
+    "dependencies": [
+      "@/data/requirements/lfi-api-hub-v2-1-consent-journey-authentication",
+      "src/data/requirements/lfi-api-hub-v2-1-consent-journey-authentication.ts"
+    ],
+    "assets": [
+      {
+        "file": "src/data/requirements/lfi-api-hub-v2-1-consent-journey-authentication.ts",
+        "hash": "32453970d5cfc8421d76ad5c4c640f239e5684b13593848e189bb71d236e9253"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Authentication Requirements",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/consent-journey/authentication/requirements",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Authentication Requirements",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "This page defines the required error handling behaviour when the end user fails to authenticate during the consent journey. The LFI MUST invoke POST /auth/{interactionId}/doFail\n with the exact error\n and error_description\n values specified below."
+      },
+      {
+        "type": "paragraph",
+        "text": "For the full doFail\n API specification, see the POST /auth/{interactionId}/doFail\n API Reference\n."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Error scenarios",
+        "anchor": "error-scenarios",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 1. End user fails initial authentication",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The end user does not successfully complete initial authentication — for example, by exceeding the maximum number of allowed attempts (e.g. 3 failed attempts)."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "access_denied"
+              ],
+              [
+                "error_description",
+                "user_failed_to_authenticate"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI MUST NOT PATCH the consent to Rejected\n in this scenario — the end user's identity has not been confirmed, so no end user identifiers are available."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 2. End user fails step-up authentication",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The end user authenticated successfully during initial login but fails the step-up authentication required for payment consent confirmation — for example, failing biometric verification or exceeding the maximum number of step-up attempts."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "access_denied"
+              ],
+              [
+                "error_description",
+                "user_failed_step_up_authentication"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI MUST PATCH the consent to Rejected\n before calling doFail\n — the end user was already identified during initial authentication."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 3. End user is blocked, suspended, or flagged",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The end user authenticates successfully but the LFI determines the customer account is blocked, suspended, or otherwise flagged — for example, due to a fraud hold, deceased marker, or sanctions screening."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "access_denied"
+              ],
+              [
+                "error_description",
+                "user_account_blocked"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI MUST NOT PATCH the consent to Rejected\n in this scenario — the LFI SHOULD NOT associate the consent with a blocked account in the API Hub."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 4. LFI internal technical error",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The LFI encounters an internal technical error during the authentication process — for example, an internal service failure or inability to retrieve customer data."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "server_error"
+              ],
+              [
+                "error_description",
+                "lfi_internal_error"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI MUST NOT PATCH the consent to Rejected\n — the end user's identity may not have been confirmed, and the failure is not attributable to the end user."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 5. LFI fails to communicate with API Hub",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When GET /auth itself fails: If GET /auth\n fails, the LFI has no interactionId\n and therefore cannot call doFail\n. In this case the LFI MUST render an error page to the end user explaining that the service is temporarily unavailable."
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI cannot communicate with the API Hub after the initial GET /auth\n call — for example, a failure when calling GET /consents/{consentId}\n to retrieve the consent details."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "server_error"
+              ],
+              [
+                "error_description",
+                "api_hub_communication_error"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI MUST NOT PATCH the consent to Rejected\n — the API Hub may be unreachable."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Error scenarios > 6. LFI temporarily unavailable",
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The LFI cannot complete authentication due to high load or temporary capacity constraints at the LFI's systems."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value"
+            ],
+            "rows": [
+              [
+                "error",
+                "temporarily_unavailable"
+              ],
+              [
+                "error_description",
+                "lfi_temporarily_unavailable"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI MUST NOT PATCH the consent to Rejected\n — the end user's identity may not have been confirmed."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Summary",
+        "anchor": "summary",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "FAPI error code validation: If the LFI submits an error\n code that is not supported by the FAPI 2.0 Security Profile, the API Hub will overwrite it with invalid_request\n."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Scenario",
+              "`error`",
+              "`error_description`",
+              "PATCH to Rejected?"
+            ],
+            "rows": [
+              [
+                "1",
+                "End user fails initial authentication",
+                "access_denied",
+                "user_failed_to_authenticate",
+                "No"
+              ],
+              [
+                "2",
+                "End user fails step-up authentication",
+                "access_denied",
+                "user_failed_step_up_authentication",
+                "Yes"
+              ],
+              [
+                "3",
+                "End user is blocked, suspended, or flagged",
+                "access_denied",
+                "user_account_blocked",
+                "No"
+              ],
+              [
+                "4",
+                "LFI internal technical error",
+                "server_error",
+                "lfi_internal_error",
+                "No"
+              ],
+              [
+                "5",
+                "LFI fails to communicate with API Hub",
+                "server_error",
+                "api_hub_communication_error",
+                "No"
+              ],
+              [
+                "6",
+                "LFI temporarily unavailable",
+                "temporarily_unavailable",
+                "lfi_temporarily_unavailable",
+                "No"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

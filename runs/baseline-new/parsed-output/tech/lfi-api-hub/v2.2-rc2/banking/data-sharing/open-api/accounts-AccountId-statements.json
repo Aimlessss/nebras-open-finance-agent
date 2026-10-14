@@ -1,0 +1,384 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-statements",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-statements.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "29686c81ddfdbd6a06f1de6624732f6de78dd46b7646de8e002de524e9da7dae",
+    "dependencies": [
+      "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+    ],
+    "assets": [
+      {
+        "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+        "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Get Statements for an Account",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-statements",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Get Statements for an Account",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "API /accounts/{accountId}/statements",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"info\": {\n    \"title\": \"Ozone Connect - Bank Data Sharing APIs\",\n    \"contact\": {\n      \"name\": \"Ozone Financial Technology Limited\"\n    },\n    \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor Bank Data Sharing APIs for Ozone Connect.\\n\\nThese APIs should be implemented by an financial institution so that Ozone\\ncan expose these end-points to TPPs.\\n\\n#### Implementer Notes\\n\\nImplementers should note that this API prescribes a positive response for correctly executed\\noperations including those where no data is returned. This is consistent with the general principles\\nof REST.\\nFor example, if the operation \\n`get /accounts/{accountId}/products` is invoked and no product data is found for the account\\nassociated with the value of `accountId` then the correct response is to return a `200` and an empty\\narray: `{ \\\"data\\\": [] }`.\\n\\nPlease refer to the API Hub documentation for details of test cases that are \\navailable for this API using the Ozone Connect test suite.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n**Please adhere to the deprecated flags in your implementation. Do not implement deprecated properties when** **implementing new functionality.**\\n\\n### v2.2.3\\n* Changed `emiratesId` on `CustomerPersonClaims` to carry\\n  `pattern: ^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$`, so the Emirates ID returned by `get /customer` and\\n  `get /accounts/{accountId}/customer` is well-formed. This is the pattern already used by the Insurance API\\n  description and, from v2.2, by `post /leads` in the Bank Products Data API description. Per OFP-009.\\n\\n* Changed `fullName`, `givenName`, `familyName`, `middleName` and `nickname` on `CustomerPersonClaims` to accept\\n  Latin letters, space, apostrophe, period and hyphen only, and `businessName` on `CustomerCorporateClaims` to\\n  accept those plus digits, ampersand, comma, parentheses and forward slash. Field lengths are unchanged.\\n  Per OFP-009.\\n\\n### v2.2.2\\n* Changed `transactionInformation` on `CbuaeTransaction` to be required, so every transaction returned by\\n  `get /accounts/{accountId}/transactions` carries a narrative by which the customer can recognise the entry.\\n  The field also gains `minLength: 1` and `maxLength: 500`, matching the bounds the TPP-facing\\n  `TransactionInformation` schema has carried since v2.1. The same requirement is applied to `AETransaction` in\\n  the Standards Account Information API description, since the API Hub can only return a narrative the LFI\\n  supplied.\\n\\n* Changed the `post /customers/action/cop-query` request to carry the account IBAN only. `data.account.name` is\\n  removed, along with the `PersonName` and `BusinessName` Schema Objects it referenced. The LFI performs no\\n  matching, so the name submitted by the TPP is no longer sent to it.\\n\\n* Changed the `post /customers/action/cop-query` response to carry the account holder's name directly. Each\\n  entry in `data` is now an `id` and a `name`, which is either a `CbuaeCopPersonName` (`fullName` required) or a\\n  `CbuaeCopBusinessName` (`businessName` required). The `verifiedClaims` / `verification` identity-assurance\\n  envelope is removed from this operation, along with the `CbuaeVerifiedCopClaim` and\\n  `ConfirmationOfPayeePersonClaims` Schema Objects and the wider customer data the latter carried — none of it\\n  is needed to compare two names, and Confirmation of Payee runs without a consent. `number` is dropped for the\\n  same reason; `id` is retained as the handle for investigating a disputed result. Structured name fields\\n  (`firstName`, `middleName`, `lastName`, `fullNameAr`, `alsoKnownAs`, `businessNameAr`) are retained as\\n  optional members so the matching algorithm can be improved without a further change to this contract.\\n  `get /accounts/{accountId}/customer` is unaffected: it has its own `CbuaeCustomer` / `CbuaeVerifiedClaim`\\n  Schema Objects.\\n\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards.\\n* Changed `get /accounts/{accountId}/products` to return `ExpectedProfitRates`, providing one-or-more deposit\\n  rates for Sharia-compliant products. Each rate carries `RateType` (`FixedProfit` or `VariableProfit`),\\n  `DepositRateType` (`ExpectedProfitRate` or `IndicativeProfitRate`), `ProfitSharingRatio`,\\n  `ProfitDistributionMethod`, `ProfitDistributionFrequency`, an optional `Description`, and `RateDetails`.\\n\\n* Changed `get /accounts/{accountId}/products` to return `ShariaFinanceRates`, providing one-or-more finance\\n  rates for Sharia-compliant products. As with `FinanceRates`, this can be provided in cleartext or as a JWE\\n  based on the preference of the LFI for sharing this information. Each cleartext rate is discriminated on\\n  `RateType` as a fixed profit rate, a variable profit rate or a hybrid profit rate, and carries\\n  `ProfitCalculationMethod` with the values `PrincipalBalance`, `OutstandingBalance`,\\n  `InitialDrawdownAmount`, `UnusedCreditLine` or `UtilizedLimit`.\\n\\n* Changed `get /accounts/{accountId}/products` to return `TakafulRequired`, indicating whether Takaful\\n  coverage is required for the product, and `TakafulDescription`, describing the type and purpose of the\\n  required coverage.\\n\\n* Changed `get /accounts/{accountId}/products` to return `ProfitCalculationMethod` on charge components, for\\n  use in place of `InterestCalculationMethod` where the product uses Islamic calculation methods.\\n\\n* Changed `InterestCalculationMethod` on charge components returned by\\n  `get /accounts/{accountId}/products` to apply to interest only. Islamic calculation methods are now\\n  described by `ProfitCalculationMethod`.\\n\\n* Changed `RateDetails` on the deposit rates returned by `get /accounts/{accountId}/products` to reference a\\n  shared Schema Object, so that the same rate structure is used by both `DepositRates` and\\n  `ExpectedProfitRates`. No change to the properties returned.\\n\\n* Changed `get /accounts/{accountId}/balances`, `get /accounts/{accountId}/transactions` and\\n  `get /accounts/{accountId}/statements` to return `BalanceDescription`, allowing a description of the\\n  balance to be provided identifying the specific Shari'ah compliant charges, payments and rewards made\\n  which can affect the balance.\\n\",\n    \"version\": \"v2.2.3\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://[Ozone_Connect_API]\"\n    }\n  ],\n  \"source_path\": \"/accounts/{accountId}/statements\",\n  \"operations\": {\n    \"get\": {\n      \"tags\": [\n        \"statements\"\n      ],\n      \"summary\": \"Get statements for a given account\",\n      \"description\": \"Return the statements for the account specified by the accountId, filtered on date range parameters as required.\\nStatements MUST be returned in descending `OpeningDate` order, newest first. Where two statements share the same `OpeningDate`, `StatementId` SHOULD be used as a descending tiebreaker so that the ordering is stable.\\nThe LFI must apply this ordering to the filtered result set before `page` and `page-size` are applied, so that page 1 always contains the most recent statements matching the request and a statement does not move between pages while a result set is being paged through.\\n\",\n      \"operationId\": \"getStatementsByAccountId\",\n      \"parameters\": [\n        {\n          \"$ref\": \"#/components/parameters/providerId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/aspspId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerOrgId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerClientId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerSoftwareStatementId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/apiUri\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/apiOperation\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/consentId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerInteractionId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/ozoneInteractionId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/psuIdentifier\"\n        },\n        {\n          \"name\": \"accountId\",\n          \"in\": \"path\",\n          \"description\": \"Id of the account to be queried\",\n          \"required\": true,\n          \"schema\": {\n            \"type\": \"string\"\n          }\n        },\n        {\n          \"$ref\": \"#/components/parameters/page\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/page-size\"\n        },\n        {\n          \"in\": \"query\",\n          \"name\": \"fromStatementDate\",\n          \"description\": \"Start date for filtering of the Statements on the OpeningDate field. If this is not populated, the start date will be open ended\",\n          \"schema\": {\n            \"type\": \"string\",\n            \"format\": \"date\"\n          }\n        },\n        {\n          \"in\": \"query\",\n          \"name\": \"toStatementDate\",\n          \"description\": \"End date for filtering of the Statements on the OpeningDate.  If this is not populated, the end date will be open ended\",\n          \"schema\": {\n            \"type\": \"string\",\n            \"format\": \"date\"\n          }\n        }\n      ],\n      \"responses\": {\n        \"200\": {\n          \"description\": \"successful operation\",\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"type\": \"object\",\n                \"properties\": {\n                  \"data\": {\n                    \"$ref\": \"#/components/schemas/AEStatements\"\n                  },\n                  \"meta\": {\n                    \"allOf\": [\n                      {\n                        \"$ref\": \"#/components/schemas/Meta\"\n                      },\n                      {\n                        \"type\": \"object\",\n                        \"properties\": {\n                          \"firstAvailableDateTime\": {\n                            \"allOf\": [\n                              {\n                                \"$ref\": \"#/components/schemas/AEDateTime\"\n                              },\n                              {\n                                \"description\": \"The first date and time for which statement data is available for the account\"\n                              }\n                            ]\n                          },\n                          \"lastAvailableDateTime\": {\n                            \"allOf\": [\n                              {\n                                \"$ref\": \"#/components/schemas/AEDateTime\"\n                              },\n                              {\n                                \"description\": \"The last date and time for which statement data is available for the account\"\n                              }\n                            ]\n                          }\n                        }\n                      }\n                    ]\n                  }\n                }\n              }\n            }\n          }\n        },\n        \"400\": {\n          \"$ref\": \"#/components/responses/BadRequestError\"\n        },\n        \"401\": {\n          \"$ref\": \"#/components/responses/UnauthorizedError\"\n        },\n        \"403\": {\n          \"$ref\": \"#/components/responses/ForbiddenError\"\n        },\n        \"500\": {\n          \"$ref\": \"#/components/responses/InternalServerError\"\n        },\n        \"default\": {\n          \"$ref\": \"#/components/responses/Error\"\n        }\n      }\n    }\n  },\n  \"security\": [\n    {},\n    {\n      \"OzoneConnectApiKey\": []\n    },\n    {\n      \"OzoneConnectClientCredentials\": [\n        \"placeholder\"\n      ]\n    },\n    {\n      \"OzoneConnectJwtAuth\": []\n    }\n  ],\n  \"securitySchemes\": {\n    \"OzoneConnectApiKey\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n      \"type\": \"apiKey\",\n      \"in\": \"header\",\n      \"name\": \"Authorization\"\n    },\n    \"OzoneConnectClientCredentials\": {\n      \"type\": \"oauth2\",\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n      \"flows\": {\n        \"clientCredentials\": {\n          \"tokenUrl\": \"https://example.lfi.ae/token\",\n          \"scopes\": {\n            \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n          }\n        }\n      }\n    },\n    \"OzoneConnectJwtAuth\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Ozone-Connect-JWT-Auth\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/providerId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-provider-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"Identifier for the financial institution that the request is targetted to\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/aspspId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-aspsp-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"deprecated\": true,\n  \"description\": \"Identifier for the financial institution that the request is targetted to. This header is deprecated and will be removed in a future version of Ozone Connect. Use `o3-provider-id` instead.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/callerOrgId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-org-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the organization calling the API\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/callerClientId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-client-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the OIDC clientId calling the API\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/callerSoftwareStatementId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-software-statement-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the software statement calling the API\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/apiUri",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-api-uri\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The parameterised URL of the API being called by the caller\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/apiOperation",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-api-operation\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/consentId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-consent-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The consentId for which this call is being made\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/callerInteractionId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-interaction-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": false,\n  \"description\": \"The interaction ID passed in by the caller, if any\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/ozoneInteractionId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-ozone-interaction-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/psuIdentifier",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-psu-identifier\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"A Base64 encoded representation of the psuIdentifier JSON object.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/page",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"page\",\n  \"in\": \"query\",\n  \"description\": \"Page of results to request (standard pagination)\",\n  \"required\": true,\n  \"schema\": {\n    \"default\": 1,\n    \"type\": \"integer\"\n  },\n  \"style\": \"form\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/page-size",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"page-size\",\n  \"in\": \"query\",\n  \"description\": \"Page size to request. Default is 100 to comply with the Operating Guidelines for the Open Finance Framework.\",\n  \"required\": true,\n  \"schema\": {\n    \"default\": 100,\n    \"type\": \"integer\"\n  },\n  \"style\": \"form\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEStatements",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"AccountId\",\n    \"AccountSubType\",\n    \"Statements\"\n  ],\n  \"properties\": {\n    \"AccountId\": {\n      \"description\": \"\\r\\nA unique and immutable identifier produced by the LFI to identify the account resource.This identifier has no meaning to the account owner.\",\n      \"type\": \"string\"\n    },\n    \"AccountSubType\": {\n      \"$ref\": \"#/components/schemas/AEExternalAccountSubTypeCode\"\n    },\n    \"Statements\": {\n      \"description\": \"Array containing details of periodic statements. Each statement includes key financial metrics, balances, summaries, and payment details for a specific statement cycle\",\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"StatementId\",\n          \"StatementDate\",\n          \"OpeningDate\",\n          \"ClosingDate\",\n          \"OpeningBalance\",\n          \"ClosingBalance\",\n          \"Summary\"\n        ],\n        \"properties\": {\n          \"StatementId\": {\n            \"description\": \"Unique identifier/reference for the statement\",\n            \"type\": \"string\"\n          },\n          \"StatementDate\": {\n            \"description\": \"Date the statement was issued/generated\",\n            \"type\": \"string\",\n            \"format\": \"date\"\n          },\n          \"OpeningDate\": {\n            \"description\": \"Start date of the statement period\",\n            \"type\": \"string\",\n            \"format\": \"date\"\n          },\n          \"ClosingDate\": {\n            \"description\": \"End date of the statement period\",\n            \"type\": \"string\",\n            \"format\": \"date\"\n          },\n          \"CreditLine\": {\n            \"$ref\": \"#/components/schemas/AEActiveOrHistoricCurrencyAndAmount_0\"\n          },\n          \"OpeningBalance\": {\n            \"allOf\": [\n              {\n                \"description\": \"Object containing opening balance details\",\n                \"type\": \"object\",\n                \"required\": [\n                  \"CreditDebitIndicator\"\n                ],\n                \"properties\": {\n                  \"CreditDebitIndicator\": {\n                    \"$ref\": \"#/components/schemas/AECreditDebitIndicator\"\n                  }\n                }\n              },\n              {\n                \"$ref\": \"#/components/schemas/AEBalanceWithCategorization\"\n              }\n            ]\n          },\n          \"ClosingBalance\": {\n            \"allOf\": [\n              {\n                \"description\": \"Object containing closing balance details\",\n                \"type\": \"object\",\n                \"required\": [\n                  \"CreditDebitIndicator\"\n                ],\n                \"properties\": {\n                  \"CreditDebitIndicator\": {\n                    \"$ref\": \"#/components/schemas/AECreditDebitIndicator\"\n                  }\n                }\n              },\n              {\n                \"$ref\": \"#/components/schemas/AEBalanceWithCategorization\"\n              }\n            ]\n          },\n          \"Summary\": {\n            \"description\": \"Array providing an aggregated summary of financial activities within the statement period, such as Purchase, Repayments, Fee, and Interest/Profit. Each object contains the total aggregated amount, currency, and the count of transactions for the corresponding SubTransactionType.\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"required\": [\n                \"CreditDebitIndicator\",\n                \"SubTransactionType\",\n                \"Amount\",\n                \"Count\"\n              ],\n              \"properties\": {\n                \"CreditDebitIndicator\": {\n                  \"$ref\": \"#/components/schemas/AECreditDebitIndicator\"\n                },\n                \"TransactionType\": {\n                  \"description\": \"Type of transaction activity.\",\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"POS\",\n                    \"ECommerce\",\n                    \"ATM\",\n                    \"BillPayments\",\n                    \"LocalBankTransfer\",\n                    \"SameBankTransfer\",\n                    \"InternationalTransfer\",\n                    \"Teller\",\n                    \"Cheque\",\n                    \"Other\"\n                  ]\n                },\n                \"SubTransactionType\": {\n                  \"$ref\": \"#/components/schemas/AESubTransactionType\"\n                },\n                \"Amount\": {\n                  \"$ref\": \"#/components/schemas/AEActiveOrHistoricCurrencyAndAmount_0\"\n                },\n                \"Count\": {\n                  \"description\": \"Number of transactions or occurrences for the transaction type\",\n                  \"type\": \"number\"\n                }\n              }\n            }\n          },\n          \"ExpectedNextStatement\": {\n            \"description\": \"Object containing projected finance charges or fees expected in the next statement cycle.\",\n            \"type\": \"array\",\n            \"minItems\": 1,\n            \"items\": {\n              \"type\": \"object\",\n              \"minProperties\": 1,\n              \"properties\": {\n                \"Type\": {\n                  \"description\": \"Statement type.\",\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"Purchase\",\n                    \"Reversal\",\n                    \"Refund\",\n                    \"Withdrawal\",\n                    \"WithdrawalReversal\",\n                    \"Deposit\",\n                    \"DepositReversal\",\n                    \"MoneyTransfer\",\n                    \"Repayments\",\n                    \"Interest\",\n                    \"Fee\",\n                    \"Charges\",\n                    \"Profit\",\n                    \"Disbursement\",\n                    \"Adjustment\",\n                    \"Tax\",\n                    \"Rewards\",\n                    \"NotApplicable\"\n                  ]\n                },\n                \"Amount\": {\n                  \"description\": \"Statement amount, according to `Type` value.\",\n                  \"type\": \"object\",\n                  \"required\": [\n                    \"Amount\",\n                    \"Currency\"\n                  ],\n                  \"properties\": {\n                    \"Amount\": {\n                      \"$ref\": \"#/components/schemas/AEActiveCurrencyAndAmount_SimpleType\"\n                    },\n                    \"Currency\": {\n                      \"$ref\": \"#/components/schemas/ActiveOrHistoricCurrencyCode_1\"\n                    }\n                  }\n                }\n              }\n            }\n          },\n          \"NextPayment\": {\n            \"description\": \"Object containing details related to the next payment due\",\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"object\",\n              \"required\": [\n                \"Date\",\n                \"Amount\"\n              ],\n              \"properties\": {\n                \"Date\": {\n                  \"description\": \"Payment due date\",\n                  \"type\": \"string\",\n                  \"format\": \"date\"\n                },\n                \"Amount\": {\n                  \"$ref\": \"#/components/schemas/AEActiveOrHistoricCurrencyAndAmount_0\"\n                },\n                \"Type\": {\n                  \"description\": \"Type of payment - minimum, scheduled, estimated, or other\",\n                  \"type\": \"string\",\n                  \"enum\": [\n                    \"Minimum\",\n                    \"Scheduled\",\n                    \"Estimated\",\n                    \"Other\"\n                  ]\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEExternalAccountSubTypeCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Specifies the sub type of account (product family group).\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"CurrentAccount\",\n    \"Savings\",\n    \"CreditCard\",\n    \"Mortgage\",\n    \"Finance\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEActiveOrHistoricCurrencyAndAmount_0",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Amount\",\n    \"Currency\"\n  ],\n  \"description\": \"A given amount value and currency\",\n  \"properties\": {\n    \"Amount\": {\n      \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n      \"type\": \"string\"\n    },\n    \"Currency\": {\n      \"$ref\": \"#/components/schemas/ActiveOrHistoricCurrencyCode_1\"\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/ActiveOrHistoricCurrencyCode_1",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Z]{3,3}$\",\n  \"example\": \"SAR\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AECreditDebitIndicator",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Indicates whether a given balance, transaction, or summarized amount is a credit or a debit.\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"Credit\",\n    \"Debit\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBalanceWithCategorization",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Amount\"\n  ],\n  \"properties\": {\n    \"Amount\": {\n      \"description\": \"The value of the balance on account, incorporating `Amount` and `Currency`.\",\n      \"type\": \"object\",\n      \"required\": [\n        \"Amount\",\n        \"Currency\"\n      ],\n      \"properties\": {\n        \"Amount\": {\n          \"$ref\": \"#/components/schemas/AEActiveCurrencyAndAmount_SimpleType\"\n        },\n        \"Currency\": {\n          \"$ref\": \"#/components/schemas/ActiveOrHistoricCurrencyCode_1\"\n        }\n      }\n    },\n    \"Components\": {\n      \"description\": \"Components of the stated balance, defined by the value of `BalanceCategory`, that reflects a portion of the stated balance.\",\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"$ref\": \"#/components/schemas/AEAmountWithCategorization\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEActiveCurrencyAndAmount_SimpleType",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n  \"type\": \"string\",\n  \"pattern\": \"^\\\\d{1,13}$|^\\\\d{1,13}\\\\.\\\\d{1,5}$\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEAmountWithCategorization",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"BalanceCategory\",\n    \"Amount\"\n  ],\n  \"properties\": {\n    \"BalanceCategory\": {\n      \"$ref\": \"#/components/schemas/AEBalanceCategory\"\n    },\n    \"BalanceDescription\": {\n      \"description\": \"Allows a description to provided of the balance to identify the specific Shari’ah compliant charges, payments, and rewards made which can affect the balance.\",\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 500\n    },\n    \"Amount\": {\n      \"description\": \"The value of the categorized balance, incorporating `Amount` and `Currency`.\",\n      \"type\": \"object\",\n      \"required\": [\n        \"Amount\",\n        \"Currency\"\n      ],\n      \"properties\": {\n        \"Amount\": {\n          \"$ref\": \"#/components/schemas/AEActiveCurrencyAndAmount_SimpleType\"\n        },\n        \"Currency\": {\n          \"$ref\": \"#/components/schemas/ActiveOrHistoricCurrencyCode_1\"\n        }\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBalanceCategory",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"Principal\",\n    \"Interest\",\n    \"FeesAndCharges\",\n    \"PastDue\",\n    \"Profit\",\n    \"Rental\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AESubTransactionType",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"Purchase\",\n    \"Reversal\",\n    \"Refund\",\n    \"Withdrawal\",\n    \"WithdrawalReversal\",\n    \"Deposit\",\n    \"DepositReversal\",\n    \"MoneyTransfer\",\n    \"Repayments\",\n    \"Interest\",\n    \"Fee\",\n    \"Charges\",\n    \"Profit\",\n    \"Disbursement\",\n    \"Adjustment\",\n    \"Tax\",\n    \"Rewards\",\n    \"NotApplicable\",\n    \"LeaseRepayment\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/Meta",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"totalPages\": {\n      \"type\": \"number\",\n      \"description\": \"The number of expected pages for the query.\\n\"\n    },\n    \"totalRecords\": {\n      \"type\": \"number\",\n      \"description\": \"The total number of records in the full set.\\n\"\n    }\n  },\n  \"description\": \"Metadata relevant to the resource.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEDateTime",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"title\": \"AEDateTime\",\n  \"description\": \"An instant in time, per ISO 8601 / RFC 3339, with a mandatory offset. Recipients MUST apply the offset, and\\nMUST NOT read the date and time components as local time. Encodings of the same instant are equivalent and MUST\\nbehave identically: `2027-07-22T00:00:00Z` and `2027-07-22T04:00:00+04:00` identify the same moment.\\n\\nIssuers SHOULD emit UTC, using `Z` or `+00:00`. The negative zero offset `-00:00` MUST NOT be used. Fractional\\nseconds are optional and carry no specified precision; implementations MUST accept both their presence and\\ntheir absence.\\n\",\n  \"type\": \"string\",\n  \"format\": \"date-time\",\n  \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}(\\\\.\\\\d+)?(Z|\\\\+\\\\d{2}:\\\\d{2}|-(?:0[1-9]|1[0-2]):\\\\d{2})$\",\n  \"example\": \"2027-07-22T00:00:00Z\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/BadRequestError",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Operation failed due to a invalid request parameter\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error400\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/Error400",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Default error response payload structure for Ozone Connect\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"Consent.Invalid\",\n            \"Consent.BusinessRuleViolation\",\n            \"Consent.FailsControlParameters\",\n            \"Consent.InvalidUserIdentifier\",\n            \"JWS.InvalidSignature\",\n            \"JWS.Malformed\",\n            \"JWS.InvalidClaim\",\n            \"JWS.InvalidHeader\",\n            \"JWE.DecryptionError\",\n            \"JWE.InvalidHeader\",\n            \"GenericRecoverableError\",\n            \"GenericError\",\n            \"Event.UnexpectedEvent\",\n            \"Body.InvalidFormat\",\n            \"Resource.InvalidFormat\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/ErrorMessage",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Message describing the problem that has occurred.\",\n  \"type\": \"string\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/UnauthorizedError",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Operation failed due to an invalid credential or missing token\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"errorCode\": {\n            \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n            \"type\": \"string\"\n          },\n          \"errorMessage\": {\n            \"$ref\": \"#/components/schemas/ErrorMessage\"\n          }\n        }\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/ForbiddenError",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Operation failed as access to the requested resource is forbidden\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error403\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/Error403",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"AccessToken.InvalidScope\",\n            \"Consent.TransientAccountAccessFailure\",\n            \"Consent.AccountTemporarilyBlocked\",\n            \"Consent.PermanentAccountAccessFailure\",\n            \"GenericRecoverableError\",\n            \"GenericError\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/InternalServerError",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Operation failed due to an internal server error\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error500\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/Error500",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"GenericRecoverableError\",\n            \"GenericError\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/Error",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Default error response\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"errorCode\": {\n            \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n            \"type\": \"string\"\n          },\n          \"errorMessage\": {\n            \"$ref\": \"#/components/schemas/ErrorMessage\"\n          }\n        }\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,307 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/api-hub",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/api-hub/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "6a36c38b4d856597d335ed7331a4ae4e3dd911fd11d6c9afe653a40651e1aabb",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "API Hub Overview",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/api-hub",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "API Hub Overview",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The API Hub — powered by Ozone — is the central Open Finance gateway that connects Licensed Financial Institutions (LFIs) to the ecosystem. It acts as both the OIDC Authorization Server and the Open Finance Gateway, managing all incoming TPP traffic on your behalf."
+      },
+      {
+        "type": "paragraph",
+        "text": "As an LFI, you connect your Ozone Connect base URL and authorization endpoint to the Hub once. The Hub then handles TPP credential verification, security enforcement, request routing, and consent management."
+      },
+      {
+        "type": "paragraph",
+        "text": "All TPP traffic MUST flow through the API Hub — TPPs never call LFI Ozone Connect endpoints directly."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "How the API Hub fits between TPPs and your LFI",
+        "level": 2,
+        "anchor": "architecture",
+        "category": "Architecture",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The canonical request path is: TPP → API Hub → LFI → API Hub → TPP. The API Hub validates the TPP's token and consent, enforces OpenAPI schemas, enriches the request with customer and consent context, then proxies it to the corresponding Ozone Connect endpoint on your LFI. Your Ozone Connect endpoint executes the operation and returns the response, which the Hub normalizes before delivering to the TPP."
+          },
+          {
+            "type": "paragraph",
+            "text": "Each LFI's Hub instance is a dedicated isolated tenant — your consent store, audit logs, and configuration are on completely separate infrastructure from every other LFI in the ecosystem."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Hub-side responsibilities",
+        "level": 2,
+        "anchor": "hub-responsibilities",
+        "category": "What the Hub handles",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Responsibility",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "TPP credential verification",
+                "Validates the TPP's certificate and software statement against the Trust Framework on every request"
+              ],
+              [
+                "FAPI 2.0 security",
+                "Enforces PAR, mTLS-bound access tokens, DPoP, and JWS message signing"
+              ],
+              [
+                "Consent lifecycle",
+                "Stores and enforces all consent records — data sharing and payment consents. The API Hub is the single source of truth for all consent state"
+              ],
+              [
+                "Token issuance",
+                "Issues all access tokens to TPPs after successful consent authorization. The API Hub is the sole token issuer — LFIs MUST NOT issue tokens to TPPs"
+              ],
+              [
+                "API routing",
+                "Routes inbound TPP requests to the correct Ozone Connect endpoint on your LFI, enriching each request with customerId, accountIds, and TPP information"
+              ],
+              [
+                "Participant discovery",
+                "Publishes your /.well-known/openid-configuration so TPPs can discover your endpoints"
+              ],
+              [
+                "Error mapping",
+                "Maps LFI error responses to the TPP-facing standard, normalizing response formats across the ecosystem"
+              ],
+              [
+                "Audit logging",
+                "Maintains a tamper-evident log of all API interactions for regulatory purposes"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "LFI-side responsibilities",
+        "level": 2,
+        "anchor": "lfi-responsibilities",
+        "category": "What you handle",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Responsibility",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "Ozone Connect endpoints",
+                "Expose your banking APIs (accounts, payments, CoP, etc.) via Ozone Connect. The API Hub routes verified requests to these endpoints"
+              ],
+              [
+                "End user authentication",
+                "Authenticate the customer when they are redirected to your authorization endpoint during consent flows. The API Hub handles the OIDC authorization protocol; your system authenticates the person"
+              ],
+              [
+                "Business logic & data retrieval",
+                "Execute the requested operation — retrieve account data, initiate payments, check balances — and return the response per the LFI OpenAPI specification"
+              ],
+              [
+                "Fraud & risk checks",
+                "Apply your institution's fraud detection and risk assessment on incoming requests"
+              ],
+              [
+                "Consent authorization UX",
+                "Present the consent details to the end user and capture their authorization decision via your application"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Hub as the single source of truth",
+        "level": 2,
+        "anchor": "consent-and-data",
+        "category": "Consent & data",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Hub is the source of truth for all consent records. Whether a customer revokes a consent through your CMI, or a TPP modifies a consent through their interface, both parties MUST patch the change to the Hub immediately. LFIs MUST NOT maintain independent consent state that diverges from the Hub's record. Any consent state held in your own systems must exactly match the Hub's record at all times."
+          },
+          {
+            "type": "paragraph",
+            "text": "The Hub never reads or stores request and response payload data. Account details, transaction records, payment instructions, and all other customer data returned by your Ozone Connect endpoints are routed through the Hub transparently — they are never inspected, logged, or retained. Only consent metadata and interaction audit events are stored by the Hub."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What the LFI delegates to the Hub",
+        "level": 2,
+        "anchor": "trust-model",
+        "category": "Trust model",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "LFIs trust the API Hub for token validation and consent validation. When the Hub forwards a request to your Ozone Connect endpoint, the token and consent have already been verified — you do not need to re-query consent state from a separate store."
+          },
+          {
+            "type": "paragraph",
+            "text": "Your Ozone Connect endpoints SHOULD validate the Bearer token signature and claims (issuer, audience, expiry, scope) as described in Application Layer Authentication, but MUST NOT independently re-validate consent state against a separate consent store. The Hub's consent record is authoritative."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Consent authorization and API request flows",
+        "level": 2,
+        "anchor": "request-lifecycle",
+        "category": "Request lifecycle",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Consent authorization",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "TPP initiates a consent request via Pushed Authorization Request (PAR) to the API Hub",
+                  "API Hub creates and stores the consent record",
+                  "End user is redirected to your authorization endpoint",
+                  "Your system authenticates the end user and presents the consent details for approval",
+                  "Your system calls the API Hub ( /doConfirm or /doFail ) with the authorization result",
+                  "API Hub issues an access token to the TPP"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "For full authorization server integration details, see Headless Heimdall."
+              }
+            ]
+          },
+          {
+            "heading": "API request",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "TPP sends an API request with its access token to the API Hub",
+                  "API Hub validates the token and consent, enforces the OpenAPI schema, and enriches the request with customer and consent context",
+                  "API Hub proxies the request to the corresponding Ozone Connect endpoint on your LFI",
+                  "Your Ozone Connect endpoint executes the operation and returns the response per the LFI OpenAPI specification",
+                  "API Hub normalizes the response and returns it to the TPP"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "For request authentication details, see Application Layer Authentication."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Two endpoints per environment",
+        "level": 2,
+        "anchor": "endpoints-you-register",
+        "category": "Endpoints you register",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Two endpoints you operate are registered with the Hub per environment:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Ozone Connect Base URL — your Ozone Connect base URL; the Hub forwards verified TPP requests here for accounts, payments, CoP, and other Open Finance APIs",
+              "Authorization Endpoint — customers are redirected here to authenticate and authorize consent requests; this is where your institution verifies the end user's identity"
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Pre-production and production",
+        "level": 2,
+        "anchor": "environments",
+        "category": "Environments",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Environment",
+              "Trust Framework",
+              "Purpose"
+            ],
+            "rows": [
+              [
+                "Pre-production",
+                "Sandbox",
+                "Register an application in the Sandbox Trust Framework and use it to act as a TPP against the pre-production Hub — complete consent journeys and call the APIs to verify your Ozone Connect implementation end-to-end"
+              ],
+              [
+                "Production",
+                "Production",
+                "Live customer traffic"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Both environments are structurally identical. The only differences are the mTLS certificates (issued from the production Trust Framework rather than Sandbox) and the environment-specific values for the Ozone Connect Base URL and Authorization Endpoint. See Environment Specific Configuration for the full details."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Operate your Hub instance",
+        "level": 2,
+        "anchor": "admin-portal",
+        "category": "Admin Portal",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Hub provides an Admin Portal where your team can:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Activate and manage TPP applications that have requested access to your APIs",
+              "View real-time and historical API traffic and audit logs",
+              "Manage your registered API resources and endpoint configuration",
+              "Monitor consent status across your customer base"
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

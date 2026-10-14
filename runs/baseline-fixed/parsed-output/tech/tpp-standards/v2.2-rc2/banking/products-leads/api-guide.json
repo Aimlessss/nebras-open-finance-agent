@@ -1,0 +1,353 @@
+{
+  "id": "tech/tpp-standards/v2.2-rc2/banking/products-leads/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/products-leads/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "db65ff3d8545f4d5f218ae4c8266beced77812c2d65afafbbba2d12777cd5962",
+    "dependencies": [
+      "./sign-jwt",
+      "node:crypto"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Products & Leads — API Guide",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/products-leads/api-guide",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Products & Leads — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Products & Leads API lets a TPP retrieve publicly available banking products from participating LFIs and present them to a user. Products are fetched from each LFI individually and aggregated for display. No user consent or redirect is required — the TPP authenticates directly with a client credentials grant."
+      },
+      {
+        "type": "paragraph",
+        "text": "Once the user selects a product they have two options: Apply Now, which directs them to the LFI using whichever application channel the LFI has configured, or Request contact from bank, which submits a lead to the LFI on the user's behalf."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before calling the Products & Leads API",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before calling the Products & Leads API, ensure the following requirements are met:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Registered Application — the application must be created within the Trust Framework and assigned the BDSP role as defined in Roles.",
+              "Valid Transport Certificate — an active transport certificate must be issued and registered in the Trust Framework to establish secure mTLS communication.",
+              "Valid Signing Certificate — an active signing certificate must be issued and registered in the Trust Framework for client authentication.",
+              "Understanding of Tokens & Assertions — you should understand how client authentication works with private_key_jwt before calling the token endpoint."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end Products & Leads",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Get an access token from every LFI you intend to query",
+        "level": 2,
+        "anchor": "steps-1-2-token-per-lfi",
+        "category": "Steps 1 & 2 — Token request per LFI (in parallel)",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Each LFI has its own authorisation server, so the TPP must obtain a separate access token for every LFI it intends to query. Because the token endpoint and aud claim differ per LFI, a new client assertion must also be built for each one."
+          },
+          {
+            "type": "paragraph",
+            "text": "These calls should all be made in parallel — do not wait for one LFI's token before requesting the next."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Client Assertion for the full claims reference."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Aggregate the LFI catalogues for display",
+        "level": 2,
+        "anchor": "step-3-get-products",
+        "category": "Step 3 — GET /products per LFI (in parallel)",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "With a token for each LFI, call GET /products for all of them simultaneously. Aggregate the results into a single list before presenting them to the user."
+          },
+          {
+            "type": "paragraph",
+            "text": "Include x-fapi-interaction-id and x-fapi-customer-ip-address on every request. The x-fapi-customer-ip-address header is required because GET /products can only be called while a customer is in a live session with the TPP. See Request Headers."
+          },
+          {
+            "type": "paragraph",
+            "text": "Each LFI's apiBase is its API Hub resource server — https://rs1.<lfiCode>.apihub.openfinance.ae (production) or https://rs1.<lfiCode>.sandbox.apihub.openfinance.ae (sandbox). Resolve the <lfiCode> from the Trust Framework Directory. See API Resources for the full endpoint format."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Query parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Type",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "ProductCategory",
+                    "string",
+                    "Filter by category — SavingsAccount, CurrentAccount, CreditCard, Finance, or Mortgage"
+                  ],
+                  [
+                    "IsShariaCompliant",
+                    "boolean",
+                    "Filter to Sharia-compliant products only"
+                  ],
+                  [
+                    "LastUpdatedDateTime",
+                    "date-time",
+                    "Return only products updated after this timestamp"
+                  ],
+                  [
+                    "SortField",
+                    "string",
+                    "Sort by LastUpdatedDateTime (default) or ProductId"
+                  ],
+                  [
+                    "SortOrder",
+                    "string",
+                    "asc (default) or desc"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response structure",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Products are returned grouped by LFI. The Data array groups products by LFIId:"
+              }
+            ]
+          },
+          {
+            "heading": "Application fields",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "At least one of the following fields must be returned by the LFI for every product. This determines how the TPP presents the page for the end user to apply for their selected product:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "ApplicationUri",
+                    "string <uri>",
+                    "A link to apply for the product."
+                  ],
+                  [
+                    "ApplicationPhoneNumber",
+                    "string",
+                    "A phone number to apply for the product."
+                  ],
+                  [
+                    "ApplicationEmail",
+                    "string",
+                    "An email address to apply for the product."
+                  ],
+                  [
+                    "ApplicationDescription",
+                    "string",
+                    "A free text description of the application process for the product, with ways to contact the LFI if applicable."
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Step 4 below covers how the TPP should respond to each of these fields when the user chooses to apply."
+              },
+              {
+                "type": "paragraph",
+                "text": "Use the LFI's logo and brand name from the Trust Framework Directory. Do not rank or order products based on commercial agreements with specific LFIs — ordering must reflect the user's own preferences."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /products API reference for the full response schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Channel the user to the LFI's application",
+        "level": 2,
+        "anchor": "step-4-apply-now",
+        "category": "Step 4 — Apply Now",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When a user selects a product and chooses to apply, the action depends on which application fields the LFI has populated. Check the fields in priority order:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Present",
+              "Action"
+            ],
+            "rows": [
+              [
+                "ApplicationUri",
+                "Yes",
+                "Redirect the user to this URL to complete the application on the LFI's own platform"
+              ],
+              [
+                "ApplicationPhoneNumber",
+                "Yes",
+                "Display the phone number for the user to call the LFI"
+              ],
+              [
+                "ApplicationEmail",
+                "Yes",
+                "Display the email address for the user to contact the LFI"
+              ],
+              [
+                "ApplicationDescription",
+                "Yes",
+                "Display the free-text description of the LFI's application process"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "An LFI may provide more than one of these fields. ApplicationUri is the preferred channel where available; the others provide fallback options for LFIs that do not have a direct online application."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Submit a lead on the user's behalf",
+        "level": 2,
+        "anchor": "step-5-post-leads",
+        "category": "Step 5 — POST /leads",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "If the user instead chooses to request that the LFI contact them, the TPP submits a lead. The API Hub forwards it to the LFI and does not retain the data."
+          },
+          {
+            "type": "paragraph",
+            "text": "As with GET /products, include x-fapi-customer-ip-address on every request — leads can only be submitted while a customer is in a live session with the TPP."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Lead request fields",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "Email",
+                    "Yes",
+                    "User's email address"
+                  ],
+                  [
+                    "EmiratesId",
+                    "Yes",
+                    "UAE Emirates ID number"
+                  ],
+                  [
+                    "MarketingOptOut",
+                    "Yes",
+                    "Whether the user has opted out of marketing communications"
+                  ],
+                  [
+                    "ProductCategories",
+                    "Yes",
+                    "One or more product categories the user is interested in"
+                  ],
+                  [
+                    "Name",
+                    "Yes",
+                    "User's name — GivenName + LastName, FullName, or BusinessName for business accounts"
+                  ],
+                  [
+                    "PhoneNumber",
+                    "No",
+                    "E.164 format, e.g. +971501234567"
+                  ],
+                  [
+                    "Nationality",
+                    "No",
+                    "ISO 3166-1 alpha-2 country code"
+                  ],
+                  [
+                    "ResidentialAddress",
+                    "No",
+                    "Structured address including AddressLine, Country, and optionally UAE CountrySubDivision"
+                  ],
+                  [
+                    "LeadInformation",
+                    "No",
+                    "Free-text notes about the lead"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Only submit a lead when the user has explicitly opted in to being contacted by the LFI. The MarketingOptOut field must accurately reflect the user's marketing preferences."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the POST /leads API reference for the full request and response schema."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

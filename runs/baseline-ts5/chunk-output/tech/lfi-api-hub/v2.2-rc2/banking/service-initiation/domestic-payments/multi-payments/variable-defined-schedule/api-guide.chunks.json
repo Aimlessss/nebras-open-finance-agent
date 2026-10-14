@@ -1,0 +1,1115 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+  "chunk_count": 35,
+  "chunks": [
+    {
+      "id": "cfad735b-3574-559f-bd8c-1b57f19de0d3",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "intro",
+      "text": "Variable Defined Schedule — API Guide\n\nVariable Defined Schedule lets a TPP initiate a series of domestic payments on a pre-agreed set of specific dates, where each scheduled entry carries its own amount, from a customer's account at your LFI via the API Hub. The TPP supplies an explicit schedule at consent time — each PaymentExecutionDate paired with the amount due on that date — and the customer authorises the full schedule once. On each scheduled date the TPP submits one payment without re-authorisation. Payments run on AANI as the primary rail with UAEFTS as the fallback. This guide covers the Ozone Connect endpoints your LFI MUST implement so the Hub can serve every scheduled payment under the consent from creation through to execution and status retrieval.\n\nThe behavioural rules for each endpoint — validation conditions, error mappings, post-execution lifecycle — are in the Variable Defined Schedule Requirements. This guide covers the request and response shape of each endpoint, with code walkthroughs for the parts that need them: decrypting the PII, validating the creditor, and matching the payment-time PII against the consent.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "6d037a502d1d6d825576029553adef78faea14c478e937ae19696692a8deb7a3",
+      "schema_version": 2
+    },
+    {
+      "id": "3219f176-bfe1-5ca9-969f-d73bba035c24",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "section",
+      "text": "Variable Defined Schedule — API Guide > Prerequisites > What must be in place before you implement\n\nBefore implementing Variable Defined Schedule, ensure the following are in place:\n\n- API Hub onboarded — Your API Hub instance is provisioned and your environment-specific configuration is complete.\n- Enc1 key pair generated and registered — The TPP encrypts PII to your LFI's Enc1 public key. Your LFI MUST hold the corresponding private key and be able to look it up by kid.\n- Consent Journey implemented — The Consent Journey API Guide MUST be implemented first. A payment cannot be initiated without an authorized consent.\n- Ozone Connect connectivity verified — Bidirectional mTLS connectivity is confirmed between the API Hub and your Ozone Connect base URL. See Connectivity & Certificates.\n- Variable Defined Schedule advertised — ApiMetadata.VariableDefinedSchedule.Supported is set to true on your authorisation server entry in the Trust Framework.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "What must be in place before you implement",
+        "category": "Prerequisites",
+        "anchor": "prerequisites",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"prerequisites\",\"\"]:0",
+      "content_hash": "57ec2d404222e66628e79591c64d279482c75b7f663c2e356b8bbd26660a33ba",
+      "schema_version": 2
+    },
+    {
+      "id": "c4d221f3-a1ec-5d65-a2b8-18e10d99fc39",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "section",
+      "text": "Variable Defined Schedule — API Guide > Consent Validation > Validate the consent before it is created\n\nWhen a TPP creates a payment consent, the API Hub calls your POST /consent/action/validate endpoint before the consent is created. Your LFI MUST validate the consent and respond with data.status: \"valid\" or data.status: \"invalid\". An invalid response prevents the consent being created and the TPP receives an error.\n\nThe full set of validation rules — standardVersion, Initiation.DebtorAccount, BaseConsentId, CurrencyRequest, payment-type support, PII conformance, creditor checks — is enumerated in Variable Defined Schedule Requirements — Consent Validation. The two parts that need a code walkthrough are decrypting the PII and validating the creditor; both are covered below.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"consent-validation\",\"\"]:0",
+      "content_hash": "b857f5956ef881efdb98660aac4953b624f19c80869bc13b719c8baf9432503a",
+      "schema_version": 2
+    },
+    {
+      "id": "c986b152-5596-5e5a-82db-be9b08667aa5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Consent Validation > Validate the consent before it is created > Decrypting and validating the PII\n\nThe consent.PersonalIdentifiableInformation field arrives as a JWE compact string encrypted by the TPP to your LFI's Enc1 public key. The API Hub passes it through unchanged — it cannot inspect the contents and has not validated them. Decryption, schema validation, and field-level checks are entirely the LFI's responsibility.\n\nThe end-to-end flow is:\n\n- Read the kid from the JWE protected header and look up the matching Enc1 private key\n- Decrypt the JWE → recover the inner JWS\n- Decode the JWS payload (signature verification is optional — the outer Ozone Connect request is itself a JWS that the API Hub has already verified, so the PII cannot have been tampered with in transit)\n- Validate the decoded payload against the consent-time PII schema — AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII in uae-api-hub-consent-manager-openapi.yaml. additionalProperties: false is set at every level, so any unexpected field fails validation\n\nHappy-path snippet:\n\nFor the per-step deep dive — kid lookup conventions, key import options, the optional JWS signature verification, building the ajv / jsonschema validator with all $ref schemas registered — see How to Decrypt PII.\n\nThe decrypted consent-time PII for a Variable Defined Schedule consent looks like:\n\nIf decryption fails, schema validation fails, or any required field is missing, respond with invalid per Rejecting an invalid consent.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Decrypting and validating the PII",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Decrypting and validating the PII\"]:0",
+      "content_hash": "17fe7e1a694749dccf345438537efea4fc225eb68fb36971cb8a403867a98464",
+      "schema_version": 2
+    },
+    {
+      "id": "01fe3a4b-158e-500e-a462-89cddfda26f4",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Consent Validation > Validate the consent before it is created > Validating the Creditor\n\nFor Variable Defined Schedule, Initiation.Creditor MUST be an array of exactly one entry — every scheduled payment under this consent pays the same creditor, only the amount per date varies. The full Creditor rules — cardinality, mandatory fields, BIC derivation — are in Creditor. This section walks through the validation in code.\n\nThe validation breaks into four parts:\n\n- Cardinality — exactly one entry\n- Mandatory fields — CreditorAccount.SchemeName == \"IBAN\", Identification is a syntactically valid UAE IBAN, at least one of Name.en or Name.ar is present\n- BIC consistency — derive the BIC from the IBAN; if CreditorAgent.Identification was supplied it MUST match\n- Domestic rail reachability — the receiving bank is reachable on AANI or UAEFTS, and (where the LFI can determine it) the receiving account is in a state that can accept a payment\n\nSteps 1–3 are universal. Step 4 depends on each LFI's BIC directory and rail integration — the snippet below uses a stubbed lookupRailReachability(bic) interface that your LFI replaces with its own implementation.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Validating the Creditor",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Validating the Creditor\"]:0",
+      "content_hash": "76792c9fff982407bc5cbae5d2bd0f511d61a843a21da62fd7d4007454517dd8",
+      "schema_version": 2
+    },
+    {
+      "id": "afec70d0-3416-5c2a-8093-eebf42057163",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Consent Validation > Validate the consent before it is created > Validating the DebtorAccount\n\nIf the TPP supplied Initiation.DebtorAccount in the consent PII, your LFI MUST also validate it before approving the consent: SchemeName is IBAN, the IBAN corresponds to an account held at this LFI and reachable through this API Hub integration, and the account is in a state that permits payment initiation (not blocked, dormant, or closed). Customer ownership of the account is not checked here — it is checked later during the authorisation journey, once the customer has authenticated.\n\nThe full check list and the invalid response shape (with code: InvalidDebtorAccount ) are in Debtor Account.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Validating the DebtorAccount",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Validating the DebtorAccount\"]:0",
+      "content_hash": "bf6d882d51efe93cb4bd29300e6d5dae678c35b5a1ff665cfddde79cf8ec9965",
+      "schema_version": 2
+    },
+    {
+      "id": "63b6c7e6-5560-5e0a-94da-871fe385bc8f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Consent Validation > Validate the consent before it is created > Returning the validate response\n\nIf validateCreditor (or the DebtorAccount checks) returns a non-null result, return it inside data on the validate response:\n\nSee Consent Events & Actions — API Guide for the full validate request and response schema.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Returning the validate response",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Returning the validate response\"]:0",
+      "content_hash": "47f2ae07d85aaa8ba9897194e852fd607f1dd4980cf4cd2e692bdfd4f451cf00",
+      "schema_version": 2
+    },
+    {
+      "id": "eba464b3-5cb2-5409-acce-075e449a82df",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "section",
+      "text": "Variable Defined Schedule — API Guide > Consent Flow > Authorize the customer once at your LFI\n\nAfter consent creation passes validation, the TPP redirects the customer to your LFI's authorization endpoint and your LFI runs the standard consent journey: authenticate the customer, retrieve the consent, present the debtor account selection screen subject to the rules in Authorization — Account Selection, patch the selected debtor account and customer identifier onto the consent, and redirect back to the Hub.\n\nThe endpoints your LFI implements against the API Hub for this flow are:\n\nEndpoint | Direction | Purpose\nGET /auth | LFI → API Hub | Initiate the authorization interaction\nGET /consents/{consentId} | LFI → API Hub | Retrieve the full consent details\nPATCH /consents/{consentId} | LFI → API Hub | Update consent status, customer identifiers, and the selected debtor account\nPOST /auth/{interactionId}/doConfirm | LFI → API Hub | Complete the interaction and redirect back to the TPP successfully\nPOST /auth/{interactionId}/doFail | LFI → API Hub | Complete the interaction and redirect back to the TPP with a failure\n\nFull details are in the Consent Journey API Guide.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "Authorize the customer once at your LFI",
+        "category": "Consent Flow",
+        "anchor": "consent-flow",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"consent-flow\",\"\"]:0",
+      "content_hash": "e140a14b1b59aeacd21ba6cc1dc11d43357552545f6ab263fdd8568351a0e5a3",
+      "schema_version": 2
+    },
+    {
+      "id": "f92f643b-79f6-523b-838f-d6fb0c326840",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Consent Flow > Authorize the customer once at your LFI > After the consent is authorized\n\nWhen the TPP submits a payment instruction to the API Hub's resource server, the API Hub validates the access token, checks the consent is Authorised, checks that a scheduled entry exists whose PaymentExecutionDate matches the submitted date and whose amount equals the submitted amount, confirms the entry has not yet been consumed, and validates the request against the OpenAPI schema — all before forwarding to your Ozone Connect POST /payments endpoint covered in the next section.\n\nThe Hub does not decrypt or inspect the PII. Re-validating the PII and matching it against the consent at payment time is the LFI's responsibility, covered below.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "Authorize the customer once at your LFI",
+        "category": "Consent Flow",
+        "subsection": "After the consent is authorized",
+        "anchor": "consent-flow",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-flow\",\"After the consent is authorized\"]:0",
+      "content_hash": "4bc52b9765f8c53ed6deb57a1e6f725b867eabd6f1a2c38e7eef2af9099c0899",
+      "schema_version": 2
+    },
+    {
+      "id": "cf6e29df-6ede-5063-a062-37196d82562b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "section",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments\n\nPOST /payments is the central endpoint your LFI implements for payment execution. The API Hub calls it each time the TPP submits a scheduled payment under an authorized Variable Defined Schedule consent. Your LFI MUST decrypt and validate the PII, match it against the consent, run the synchronous validations listed in POST /payments Requirements, create the payment record, and return 201 with the assigned PaymentId.\n\nScreening, rail submission, and status propagation happen after the 201 response — see After returning 201.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"post-payments\",\"\"]:0",
+      "content_hash": "adf27a8b92103b07e4c9d20eab6de0b3419e875df94dd942775671dd8bc9bb93",
+      "schema_version": 2
+    },
+    {
+      "id": "ea3b2b86-5604-5b08-924c-06774be27265",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > Common request headers\n\nHeader | Required | Description\no3-provider-id | Yes | Identifier for your LFI registered in the Hub\no3-aspsp-id | Yes (deprecated) | Deprecated alias for o3-provider-id. Will be removed in a future version — use o3-provider-id\no3-caller-org-id | Yes | Organisation ID of the TPP making the underlying request\no3-caller-client-id | Yes | OIDC client ID of the TPP application\no3-caller-software-statement-id | Yes | Software statement ID of the TPP application\no3-api-uri | Yes | The parameterised URL of the API being called by the TPP\no3-api-operation | Yes | The HTTP method of the operation carried out by the TPP ( POST )\no3-ozone-interaction-id | Yes | Hub-generated interaction ID. Equals o3-caller-interaction-id if the TPP provided one\no3-consent-id | Yes | The consentId for which this call is being made — the lookup key for the stored consent context\no3-psu-identifier | Yes | Base64-encoded customer identifier JSON object — the opaque LFI-issued reference patched onto the consent at authorization\no3-caller-interaction-id | No | Interaction ID passed in by the TPP, if present\n\nThe headers the TPP set on its original call to the API Hub — including x-fapi-interaction-id, x-fapi-auth-date, x-customer-user-agent, and x-idempotency-key — are forwarded to your LFI inside the request body as requestHeaders, not on the HTTP headers of the API Hub → LFI call. Scheduled payment types (Fixed Defined Schedule, Fixed Periodic Schedule, Variable Defined Schedule, Variable Periodic Schedule) do not require x-fapi-customer-ip-address — the customer is not present when the TPP triggers a scheduled payment.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Common request headers",
+        "anchor": "common-request-headers",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"common-request-headers\",\"Common request headers\"]:0",
+      "content_hash": "d7faf363d26af057f193abc6962fd64c53c554b6980bec0a95a3ab610d7ab444",
+      "schema_version": 2
+    },
+    {
+      "id": "42ec1015-7ba0-5da4-8829-58b131005a0e",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > Request body\n\nContent-Type: application/json. The Hub sends a plain JSON payload (not a JWS) containing the payment details, the headers the TPP supplied, and the TPP's directory record.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Request body",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Request body\"]:0",
+      "content_hash": "46f4046493feebab621f89d9ba3711ce264149243dc0f0d3e563f508c5b60ec0",
+      "schema_version": 2
+    },
+    {
+      "id": "024b2bb5-e385-50fb-b8b4-699ca51c3b12",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > Top-level fields\n\nField | Type | Required | Description\nrequestUrl | string | No | The TPP-facing resource URL the TPP called, e.g. https://rs1.[LFICode].apihub.openfinance.ae/open-finance/payment/v2.2/payments\npaymentType | string | Yes | The payment type. MUST be cbuae-payment for domestic Variable Defined Schedule\nrequest.Data | object | Yes | The payment payload — see request.Data below\nrequestHeaders | object | Yes | The complete set of HTTP headers the TPP sent to the API Hub. The TPP's FAPI headers live here\ntpp | object | Yes | The TPP's directory record ( clientId, orgId, tppId, tppName, softwareStatementId, decodedSsa, optional directoryRecord )\nsupplementaryInformation | object | No | Free-form pass-through context. The LFI MUST safely ignore unrecognised properties",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Top-level fields",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Top-level fields\"]:0",
+      "content_hash": "fc08554a8a3169be4d011922bf98450cad787724aa6cb225c4df2451bc91e698",
+      "schema_version": 2
+    },
+    {
+      "id": "2d416997-be77-5782-aff0-1fc73f4bc007",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > request.Data\n\nField | Type | Required | Description\nConsentId | string | Yes | The consent the payment is being executed under. MUST equal the o3-consent-id header\nInstruction.Amount.Amount | string | Yes | Decimal amount with two fraction digits. MUST equal the amount on the matching scheduled entry for this PaymentExecutionDate — the Hub enforces this before forwarding\nInstruction.Amount.Currency | string | Yes | ISO-4217 currency code. MUST be AED for domestic payments\nPaymentPurposeCode | string | Yes | 3-letter ISO 20022 purpose code, e.g. LOAN\nPersonalIdentifiableInformation | string | No | Encrypted PII payload as a JWE compact string. Required for the Creditor at payment time — see Reading the PII at payment time\nDebtorReference | string | No | Reference shown on the debtor's statement\nCreditorReference | string | No | Reference shown on the creditor's statement\nOpenFinanceBilling.Type | string | Yes | Billing type, e.g. Collection, PushP2P, PullP2P, Me2Me\nOpenFinanceBilling.MerchantId | string | No | Optional merchant identifier\n\nFor the full schema — including tpp and decodedSsa field-by-field — see the POST /payments API Reference.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "request.Data",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"request.Data\"]:0",
+      "content_hash": "6a22a6d037587b2060d0fea005712557f3cdbacfa2631c273692f49249b3077f",
+      "schema_version": 2
+    },
+    {
+      "id": "a63e52ef-ac1c-5dee-b73a-6ec45a001b0f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > Reading the PII at payment time\n\nThe payment-time PII follows a different shape from the consent-time PII:\n\n- Initiation.Creditor is a single object, not an array — the consent fixed exactly one creditor at consent time\n- DebtorAccount is absent — the debtor was selected and pinned during consent authorisation\n- The schema to validate against is AEBankServiceInitiation.AEDomesticPaymentPIIProperties in uae-ozone-connect-bank-service-initiation-openapi.yaml — not the consent-time schema\n\nThe decrypt + decode flow is identical to consent time — read the kid, decrypt with the matching Enc1 private key, decode the JWS payload. Re-use the helper from Decrypting and validating the PII; only swap the schema:\n\nIf decryption fails, reject with 400 JWE.DecryptionError. If schema validation fails (missing required field, wrong type, additional property), reject with 400 Body.InvalidFormat.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Reading the PII at payment time",
+        "anchor": "read-pii",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"read-pii\",\"Reading the PII at payment time\"]:0",
+      "content_hash": "8a39f8594658a35cfb5578c7006e1f4b9f742caf7ce89b705aa6a106a63be6c7",
+      "schema_version": 2
+    },
+    {
+      "id": "dc2f3b56-8f33-5ef6-9356-be235933c8bd",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > Matching the PII against the consent\n\nPer POST /payments Requirements rule 2, the submitted creditor at payment time MUST exactly match the single creditor entry that was on the consent at consent time. Mismatch → 400 Consent.FailsControlParameters.\n\nThe link between the payment and the consent is the o3-consent-id request header (also surfaced as request.Data.ConsentId in the body). Two implementation patterns are valid; pick whichever matches your LFI's persistence model:",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Matching the PII against the consent",
+        "anchor": "match-pii",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"match-pii\",\"Matching the PII against the consent\"]:0",
+      "content_hash": "14bf8a20c12eef1918f3616a10ea297a1de129eafb341fb30f575bcb89913929",
+      "schema_version": 2
+    },
+    {
+      "id": "8ac10225-c248-5ffa-8b5f-a93cd19df749",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > Pattern A — LFI persisted the decrypted creditor at consent time\n\nThe most common pattern. At consent validation, after you decrypted and validated the consent-time PII, you persisted the single creditor entry keyed by consentId. At payment time you fetch it and deep-compare against the payment-time creditor.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Pattern A — LFI persisted the decrypted creditor at consent time",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Pattern A — LFI persisted the decrypted creditor at consent time\"]:0",
+      "content_hash": "d615797b5577b980927681104e6b7ba846a72edae47f70f34e5a2f5c66229a2b",
+      "schema_version": 2
+    },
+    {
+      "id": "16d3b54f-d244-5dda-94e2-5703ac8acb07",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > Pattern B — LFI did not persist the consent-time PII\n\nIf your LFI did not persist the decrypted PII at consent time, fetch the consent from the API Hub via GET /consents/{consentId}, decrypt the consent's PersonalIdentifiableInformation field, and run the same isExactMatch comparison against Initiation.Creditor[0] (the consent-time creditor is an array of one).\n\nPattern B trades a stored creditor for a network round-trip and a second decryption on every payment. Choose Pattern A unless persistence is not an option for your LFI.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Pattern B — LFI did not persist the consent-time PII",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Pattern B — LFI did not persist the consent-time PII\"]:0",
+      "content_hash": "e210d910e85b014ad20f9a8f1c2885ea7bc2156e87eb196c57a88cb1ec4db451",
+      "schema_version": 2
+    },
+    {
+      "id": "c9763f9e-f886-567a-bacf-b63d15c24df4",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > Response\n\nContent-Type: application/json. Return 201 on successful payment record creation.\n\nField | Type | Required | Description\ndata.id | string | Yes | The LFI-assigned PaymentId. MUST be unique within your payment system, MUST NOT be reassigned, and MUST resolve to the same payment for the full 1-year GET /payments/{paymentId} sustain window\ndata.consentId | string | No | The consent under which the payment was created\ndata.paymentTransactionId | string | No | End-to-end identifier from the rail. Omit until AANI/UAEFTS has assigned one — do not return an empty string\ndata.status | string | Yes | One of Pending, AcceptedSettlementCompleted, AcceptedCreditSettlementCompleted, AcceptedWithoutPosting, Rejected, Received\ndata.statusUpdateDateTime | string | Yes | ISO 8601 timestamp of the last status update\ndata.creationDateTime | string | Yes | ISO 8601 timestamp the payment record was created\ndata.instruction.Amount.amount / Amount.currency | string | No | The payment amount and currency\ndata.paymentPurposeCode | string | Yes | The purpose code from the request\ndata.openFinanceBilling.Type | string | Yes | The billing type from the request\nmeta | object | No | Free-form metadata",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Response\"]:0",
+      "content_hash": "4c4ff14b641627adee4c9906024209d917d3e2d4ca000295ff18874fb2d25b94",
+      "schema_version": 2
+    },
+    {
+      "id": "b516a5ba-cf4a-5a16-9522-9fa6041a95cb",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > Error responses\n\nOnly return an error when the request is invalid or a server condition prevents you from responding. All error bodies MUST include errorCode and errorMessage. The errorCode values are drawn from the POST /payments OpenAPI schema Error400 / Error403 enums.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Error responses",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Error responses\"]:0",
+      "content_hash": "e37096f64b06e3ff0bcc41b6b1471c9871be5a3e903debce611908a9a21cdccd",
+      "schema_version": 2
+    },
+    {
+      "id": "1bac58a0-ee95-56ce-8857-6d1a88ceecc7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > 400 — Bad request\n\nerrorCode | When to use\nBody.InvalidFormat | Body is absent, not valid JSON, or fails schema validation\nResource.InvalidFormat | A field is present but not syntactically valid\nConsent.Invalid | The consent referenced by o3-consent-id is unknown to the LFI or has been revoked\nConsent.FailsControlParameters | The payment-time creditor does not match the consent-time creditor\nConsent.BusinessRuleViolation | An LFI-side business rule blocks the payment\nJWE.DecryptionError | PII JWE cannot be decrypted with any registered Enc1 key\nJWE.InvalidHeader | PII JWE header is malformed\nJWS.InvalidSignature / JWS.Malformed / JWS.InvalidClaim / JWS.InvalidHeader | PII inner JWS fails verification (only relevant if you have opted in to verifying the TPP's signature)\nGenericRecoverableError | Recoverable validation error not covered above — Hub may retry\nGenericError | Unrecoverable validation error not covered above (including insufficient funds — see requirements rule 3)",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "400 — Bad request",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"400 — Bad request\"]:0",
+      "content_hash": "160a5b76eed7d8f12bdefcc0e2578d900b64e7a249aee9eda7d0eef2ba10dfa2",
+      "schema_version": 2
+    },
+    {
+      "id": "788fe560-6328-5e04-9bdc-4089f499231c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > 403 — Forbidden\n\nerrorCode | When to use\nAccessToken.InvalidScope | The Hub's token does not include the required scope\nConsent.AccountTemporarilyBlocked | Debtor account is Inactive, Dormant, or Suspended\nConsent.PermanentAccountAccessFailure | Debtor account is Closed, Deceased, or Unclaimed\nConsent.TransientAccountAccessFailure | Debtor account temporarily inaccessible — Hub may retry after a delay\nGenericRecoverableError / GenericError | Other forbidden conditions",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "403 — Forbidden",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"403 — Forbidden\"]:0",
+      "content_hash": "cefe219be7827320fd93baade15fb8a078a9eb5cf89437f786e59dd32488f28c",
+      "schema_version": 2
+    },
+    {
+      "id": "757dcd9c-2316-5a66-9187-a4021f473923",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > POST /payments > 500\n\n500 for transient/unrecoverable server errors. Use GenericRecoverableError if the Hub may retry, GenericError otherwise.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "500",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"500\"]:0",
+      "content_hash": "1a5dca47369f73dd2f8c439447e23ccfdd5c0bbc2debca0e858c0eff9b9c58a4",
+      "schema_version": 2
+    },
+    {
+      "id": "d599b882-4630-55e0-bdd1-3424b591f96c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "section",
+      "text": "Variable Defined Schedule — API Guide > After returning 201 > Asynchronous lifecycle is the LFI's responsibility\n\nThe 201 returned to the API Hub means the payment record exists at your LFI; it does not mean the payment has settled. The lifecycle from here is asynchronous and is the LFI's responsibility:\n\nStage | LFI behaviour | Reference\nScreening | Run the LFI's standard fraud / sanctions / AML controls on the payment record. SHOULD complete within 3 seconds. On a screening failure, immediately PATCH the payment to Rejected with an LFI. -namespaced reject reason | Screening Checks\nRail submission | Submit to AANI as primary. Fall back to UAEFTS automatically if AANI is unavailable or the receiving bank cannot receive via AANI — no TPP/customer intervention | Rail Submission\nStatus propagation | On every rail status change that maps to an Open Finance status, call PATCH /payment-log/{id} on the API Hub Consent Manager. Every PATCH MUST carry paymentResponse.paymentRail. Once AANI/UAEFTS assigns the end-to-end identifier, include it as paymentTransactionId on the next PATCH | Payment Status\nRail rejection | If the rail rejects the payment, PATCH paymentResponse.status: Rejected with RejectReasonCode.Code namespaced to the rail named in paymentResponse.paymentRail ( AANI., FTS. or LFI. ) and a sanitised Message for relay to the TPP | Rail Submission\nStatus retrieval | Continue serving GET /payments/{paymentId} for at least 1 year, with Status and paymentTransactionId consistent with the most recent PATCH | GET /payments/{paymentId} rules below\n\nPATCH delivery is durable: retry transient 5xx /timeout failures with exponential backoff; raise 4xx failures for operational investigation rather than retrying.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "Asynchronous lifecycle is the LFI's responsibility",
+        "category": "After returning 201",
+        "anchor": "after-201",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"after-201\",\"\"]:0",
+      "content_hash": "6df036b355fc53f37a4c2635bf22b133f7a7d48231bad54974d7be3fd058bd3d",
+      "schema_version": 2
+    },
+    {
+      "id": "bcc1bb79-0ea1-52ba-957a-29295d850435",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "section",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > PATCH /payment-log/{id}\n\nThis endpoint updates the payment status on the API Hub. The Hub uses the update to send asynchronous notifications to TPPs and to maintain accurate state for billing and limit calculations. The LFI calls it for every Open Finance-relevant status transition after the 201 has been returned to the Hub on POST /payments.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "PATCH /payment-log/{id}",
+        "category": "Endpoint",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"patch-payment-log\",\"\"]:0",
+      "content_hash": "cbc6051b96365950dbb624a0a1d1a25d80ad3763c6b0ed2df2904434efba3ccd",
+      "schema_version": 2
+    },
+    {
+      "id": "b2aa0b97-7b4f-5ea5-b1f2-ac5f623129f5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > PATCH /payment-log/{id} > Request headers\n\nHeader | Required | Description\no3-provider-id | Yes | Identifier for your LFI registered in the Hub\no3-caller-org-id | Yes | Organisation ID of the TPP making the underlying request\no3-caller-client-id | Yes | OIDC client ID of the TPP application\no3-api-uri | Yes | The parameterised URL of the API being called by the TPP\no3-api-operation | Yes | The HTTP method of the operation carried out by the TPP ( PATCH )\no3-ozone-interaction-id | Yes | Hub-generated interaction ID. Equals o3-caller-interaction-id if the TPP provided one\no3-consent-id | Yes | The consent backing this payment\no3-psu-identifier | Yes | Base64-encoded psuIdentifier JSON object\no3-caller-interaction-id | No | Interaction ID passed in by the TPP, if present",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "PATCH /payment-log/{id}",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Request headers\"]:0",
+      "content_hash": "8b3923944c59657854e4fbebed1e20a871e30f1353144414525f493a7a802350",
+      "schema_version": 2
+    },
+    {
+      "id": "b92cb885-1e23-5614-aaac-e5dab70a1f02",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > PATCH /payment-log/{id} > Path parameters\n\nParameter | Type | Description\nid | string | Identifier of the payment log entry being updated — the data.id returned from POST /payments",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "PATCH /payment-log/{id}",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Path parameters\"]:0",
+      "content_hash": "959dc5517da83ae33ddc0a06d7443a8a2f3654606ebabc73a3b1ce174f60da0e",
+      "schema_version": 2
+    },
+    {
+      "id": "311d6998-3caf-5d20-b7ab-2467fa9d5c7c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > PATCH /payment-log/{id} > Request body\n\nContent-Type: application/json. The PATCH body uses literal flat-key JSON (the dots are part of the key, not nested objects):\n\nFrom v2.2 the rail selects the contract. paymentResponse.paymentRail is REQUIRED on every PATCH and chooses one of three request bodies. The rail determines which statuses the payment may move to, whether paymentTransactionId applies, and which reject reason code namespace is accepted. Pending is no longer patchable — a payment is Pending precisely because no rail has been selected yet — and paymentResponse.OpenFinanceBilling is no longer patchable through this operation. See changelog §2.\n\nOn AANI and FTS, AcceptedSettlementCompleted is not terminal: it records the payment having been handed to the rail. The LFI MUST PATCH a second time once the rail confirms — to AcceptedWithoutPosting on AANI, and to AcceptedCreditSettlementCompleted on FTS. On LFI, where both accounts are held at this LFI and the payment is booked on its own ledger, AcceptedCreditSettlementCompleted and Rejected are both terminal and no second PATCH follows.\n\nField | Type | Required | Description\npaymentResponse.paymentRail | string | Yes | AANI, FTS, or LFI for a payment settled on the LFI’s own ledger. REQUIRED on every PATCH from v2.2, and selects the request body: the rail determines the permitted statuses, whether paymentTransactionId applies, and which reject reason code namespace is accepted. Records how the payment was executed, not how it was requested\npaymentResponse.status | string | Yes | Constrained by the rail. AANI: AcceptedSettlementCompleted (not terminal), AcceptedWithoutPosting, Rejected. FTS: AcceptedSettlementCompleted (not terminal), AcceptedCreditSettlementCompleted, Rejected. LFI: AcceptedCreditSettlementCompleted, Rejected. Pending is NOT patchable from v2.2. See PATCH /payment-log/{id}\npaymentResponse.paymentTransactionId | string | Conditional | The end-to-end identifier issued by the rail. Applies on AANI and FTS only — it is not accepted on LFI, where nothing outside the LFI issues one. MUST be populated once the rail has issued it; once set, MUST NOT change\npaymentResponse.RejectReasonCode[] | array | Conditional | Required when paymentResponse.status is Rejected. Append new reasons rather than replacing — preserves history\npaymentResponse.RejectReasonCode[].Code | string | Yes (in array) | Namespaced to the rail named on this PATCH, and to that rail only: ^AANI\\.[A-Za-z0-9]+$, ^FTS\\.[A-Za-z0-9]+$, or ^LFI\\.[A-Za-z0-9]+$. A rejection raised at the LFI before submission — screening, for example — still carries the namespace of the rail the payment was routed to\npaymentResponse.RejectReasonCode[].Message | string | Yes (in array) | Sanitised, customer-relayable description. MUST NOT reveal detection logic, sanctions matches, or internal case identifiers",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "PATCH /payment-log/{id}",
+        "category": "Endpoint",
+        "subsection": "Request body",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Request body\"]:0",
+      "content_hash": "4f98dcdb285a237d94357a4be9be7a0422683d6872a65d5d3e271b15c8f73480",
+      "schema_version": 2
+    },
+    {
+      "id": "3f23ecea-8bea-53e9-97e7-3bb3b5a13602",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > PATCH /payment-log/{id} > Response\n\nContent-Type: application/json. A successful PATCH returns 204 No Content with no body. See the PATCH /payment-log/:id API Reference for the full schema.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "PATCH /payment-log/{id}",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Response\"]:0",
+      "content_hash": "359a710ea10aef1f08c3926beb49efc0ad202c09a7e29642d05b18f64d077af3",
+      "schema_version": 2
+    },
+    {
+      "id": "2e1f4543-c8aa-5426-b3c6-275ad7fb22c2",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "section",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > GET /payments/{paymentId}\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/payment/v2.2/payments/{PaymentId}.\n\nReturns the current state of a payment your LFI created via POST /payments. The TPP polls this to observe screening outcomes, rail settlement, and any subsequent rejection.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-payments-paymentid\",\"\"]:0",
+      "content_hash": "620c62b9064b209e8bafbb01cef91fa22cd1194b0175dba31a1b53d91914f535",
+      "schema_version": 2
+    },
+    {
+      "id": "a9715c0d-583a-5bad-af1a-21ec35381242",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > GET /payments/{paymentId} > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Request headers\"]:0",
+      "content_hash": "71dab1c529f0a126805b266b9bb6cadae04544d013b9994d6e71cff00db6e953",
+      "schema_version": 2
+    },
+    {
+      "id": "0a91da24-bb2f-56e4-ba21-cf1dc4813c3c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > GET /payments/{paymentId} > Path parameters\n\nParameter | Type | Description\npaymentId | string | The PaymentId your LFI returned from POST /payments",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Path parameters\"]:0",
+      "content_hash": "1055ff9d587ececba4b4e5dae8777da5cda1bc4bacc65b53f7c663800ccf22c2",
+      "schema_version": 2
+    },
+    {
+      "id": "e53a8472-e862-545d-bf26-b1449708dd28",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > GET /payments/{paymentId} > Response\n\nContent-Type: application/json. The response shape mirrors the POST /payments 201 response — same data envelope, with the current Status, paymentTransactionId (once assigned by the rail), and any rejection details.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Response\"]:0",
+      "content_hash": "2094b0e68b937d7efba5ead31194015ed4f5bd9664ba13df6243603341d87117",
+      "schema_version": 2
+    },
+    {
+      "id": "690a75b0-2cf1-5fb3-9216-56e95c0354e3",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > GET /payments/{paymentId} > Behavioural rules\n\nPer GET /payments/{paymentId} Requirements:\n\n# | Rule\n1 | Sustain period — Serve GET /payments/{paymentId} for at least 1 year from the payment's creation date. Within this window, the response MUST reflect the current status, including any later screening, rail, or reversal outcomes\n2 | Status consistency with the API Hub — The Status returned MUST exactly match the most recent value PATCHed to the API Hub Consent Manager via PATCH /payment-log/{id}. Any change in the LFI's systems MUST be reflected on both surfaces before it becomes observable to the TPP\n3 | paymentTransactionId consistency — Once the rail has assigned the end-to-end identifier and the LFI has PATCHed it to the Consent Manager, this endpoint MUST return the same value. Before assignment, omit the field entirely — do not return an empty string",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "subsection": "Behavioural rules",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Behavioural rules\"]:0",
+      "content_hash": "1c105f2440fb71542c4dd294aa7caae4723ab6e301c5e880dde6088a32b19435",
+      "schema_version": 2
+    },
+    {
+      "id": "d630bb31-2923-5981-aab9-c2e695cd870e",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+      "type": "subsection",
+      "text": "Variable Defined Schedule — API Guide > Endpoint > GET /payments/{paymentId} > Errors\n\nStatus | errorCode | When to use\n404 | Resource.NotFound | No payment exists for the supplied paymentId (or the payment exists but belongs to a different consent)\n403 | Consent.AccountTemporarilyBlocked / Consent.PermanentAccountAccessFailure | The debtor account has become inaccessible since the payment was created\n500 | GenericRecoverableError / GenericError | Transient or unrecoverable server error\n\nSee the GET /payments/{paymentId} API Reference for the full schema.",
+      "metadata": {
+        "title": "Variable Defined Schedule — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "subsection": "Errors",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "a16b40876ffaad145297932f4e9b095c18fac6d590c58436b9bcd167ab9cca33",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Errors\"]:0",
+      "content_hash": "f6ca03335a7ee4b3f655a462230f457220f2662f955b31668abf63616a7ad2f6",
+      "schema_version": 2
+    }
+  ]
+}

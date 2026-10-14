@@ -1,0 +1,182 @@
+{
+  "id": "tech/tpp-standards/security/fapi/message-encryption",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/security/fapi/message-encryption.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "390d0aef24c16c9ce0b824bef7b985a14530bad5358ad227c5baea8e568c6115",
+    "dependencies": [
+      "./encrypt-pii",
+      "./request-jwt",
+      "jose",
+      "node:crypto"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Message Encryption (JWE)",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/message-encryption",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Message Encryption (JWE)",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "A JWE (JSON Web Encryption — RFC 7516 ) is the cryptographic mechanism that encrypts a payload so that only the intended recipient can read it."
+      },
+      {
+        "type": "paragraph",
+        "text": "In UAE Open Finance, JWE is used specifically for payment consents — to encrypt the consent's PII payload (creditor and debtor names, account numbers, risk indicators) end-to-end with the LFI's public key. The encrypted blob is carried in the consent's pii field, nested inside the Request JWT 's authorization_details. The Request JWT itself is signed (JWS) but is not wrapped in a JWE; only the pii field is."
+      },
+      {
+        "type": "paragraph",
+        "text": "See Payment PII Encryption for the data privacy rationale and the LFI/TPP validation responsibilities that flow from this design."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Five base64url parts joined by dots",
+        "level": 2,
+        "anchor": "structure",
+        "category": "Structure of an Encrypted Payload",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "A compact-serialised JWE consists of five base64url-encoded parts joined by.:"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Key wrap, content encryption, and the LFI's key ID",
+        "level": 2,
+        "anchor": "header",
+        "category": "JOSE Header",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value",
+              "Description"
+            ],
+            "rows": [
+              [
+                "alg",
+                "RSA-OAEP-256",
+                "Key-wrapping algorithm — encrypts the content encryption key using the LFI's RSA public key"
+              ],
+              [
+                "enc",
+                "A256GCM",
+                "Content encryption algorithm — encrypts the actual payload using AES-256-GCM"
+              ],
+              [
+                "kid",
+                "string",
+                "Key ID of the LFI's encryption key, taken from their JWKS"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "JWKS URI and key selection",
+        "level": 2,
+        "anchor": "discover",
+        "category": "Discover the LFI's encryption key",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Step 1 — Discover the JWKS URI",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Each LFI publishes its public keys at a JWKS URI. You can find this URI by performing API Discovery via the.well-known endpoint."
+              },
+              {
+                "type": "paragraph",
+                "text": "The JWKS URI follows this format:"
+              }
+            ]
+          },
+          {
+            "heading": "Step 2 — Select the encryption key",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Fetch the JWKS and find a key where \"use\": \"enc\". This is the LFI's public key intended for encryption."
+              },
+              {
+                "type": "paragraph",
+                "text": "Example encryption key from a JWKS:"
+              },
+              {
+                "type": "paragraph",
+                "text": "If the JWKS contains multiple keys, always select the one where \"use\": \"enc\". Do not use a signing key ( \"use\": \"sig\" ) for encryption — the operations are not interchangeable."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Produce a compact JWE from the PII JSON",
+        "level": 2,
+        "anchor": "encrypt",
+        "category": "Encrypt the PII Payload",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The plaintext to encrypt is the PII JSON object — the Initiation and RiskIndicators structures defined by the consent schema. Encrypt it as a compact JWE before placing the result in the consent's pii field."
+          },
+          {
+            "type": "paragraph",
+            "text": "The sandbox provides an O3 Utility endpoint that accepts your PII payload and the LFI's JWKS URL and returns a ready-made encrypted PII token — useful for validating your payload structure before writing your own encryption code. See O3 Sandbox Utilities."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The JWE goes in the consent's pii field, then the Request JWT is signed around it",
+        "level": 2,
+        "anchor": "embed",
+        "category": "Embed the JWE in the Consent",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Once you have the JWE string, place it in the pii field of the consent inside the Request JWT's authorization_details. The surrounding Request JWT is signed (JWS) as usual — only the pii field is encrypted."
+          },
+          {
+            "type": "paragraph",
+            "text": "Each encryption is fresh: a new payload is produced and encrypted at consent creation, and a fresh payload is produced and encrypted again at each POST /payments. The two payloads are independently validated by the LFI after decryption."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Inbound encrypted webhooks from the API Hub",
+        "level": 2,
+        "anchor": "receiving",
+        "category": "Receiving a JWE",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "For guidance on receiving and decrypting inbound JWEs from the API Hub — including key selection by kid, signature verification, and FAPI-required security checks — see Receiving Event Notifications."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

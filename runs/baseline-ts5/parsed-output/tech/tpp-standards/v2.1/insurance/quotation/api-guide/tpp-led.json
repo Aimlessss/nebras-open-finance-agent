@@ -1,0 +1,169 @@
+{
+  "id": "tech/tpp-standards/v2.1/insurance/quotation/api-guide/tpp-led",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/insurance/quotation/api-guide/tpp-led.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "f60c29ad3353805481b8227da21f01f92760fab8f083afaca7a6a0bd8df0746e",
+    "dependencies": [
+      "node:crypto"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Insurance Quotation — TPP-Led Flow",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/insurance/quotation/api-guide/tpp-led",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Insurance Quotation — TPP-Led Flow",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "You collect quote inputs, KYC, and surface the LFI’s hosted payment URL to the customer inside your own app. Document delivery also lives with you. The LFI handles underwriting, payment hosting, and policy issuance; your TPP is the customer-facing surface for everything else."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "TPP-Led flow",
+        "level": 2,
+        "anchor": "flow",
+        "category": "End-to-end sequence",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Same as LFI-Led for quote creation",
+        "level": 2,
+        "anchor": "quote",
+        "category": "Steps 1–2 — Token & Quote",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Obtain a Client Credentials token ( insurance scope) and POST the quote request exactly as in LFI-Led. The mode is not declared on Create Quote — it’s determined by the LFI’s response to PATCH Accept."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Accept and discover PolicyIssuanceAllowed",
+        "level": 2,
+        "anchor": "accept",
+        "category": "Step 3 — PATCH Accept Quote",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Customer picks a quote; PATCH it with the accept data and your Subscription.Webhook. The LFI’s response signals whether the flow is TPP-Led: a 200 response with data.PolicyIssuanceAllowed means you are responsible for the steps listed as true."
+          },
+          {
+            "type": "paragraph",
+            "text": "All three flags true is the full TPP-Led mode. You MUST honour the declaration — do not perform a step set to false even if you can technically do so."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Collect KYC and submit to the LFI",
+        "level": 2,
+        "anchor": "kyc",
+        "category": "Step 4 — PATCH Submit KYC",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "After ApplicationPending arrives, collect the customer’s KYC in your app (see User Journeys — KYC capture for the screens to present). Submit by PATCHing the same quote endpoint a second time with the gathered data."
+          },
+          {
+            "type": "paragraph",
+            "text": "The body conforms to the sector’s accept-quote schema. Required fields vary by sector — consult the OpenAPI spec. If KYC fails, you receive 400 with a descriptive message; surface it to the customer and allow retry."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Redirect the customer to the LFI-hosted payment URL",
+        "level": 2,
+        "anchor": "payment-redirect",
+        "category": "Step 5 — ApplicationApproved event",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The LFI processes KYC asynchronously and, on success, emits ApplicationApproved with a BrokerInstructions[].Url pointing at its hosted payment page."
+          },
+          {
+            "type": "paragraph",
+            "text": "Redirect the customer to BrokerInstructions[0].Url. They pay on the LFI’s page; the LFI redirects them back to a return URL you nominated when configuring your webhook or out-of-band with the LFI."
+          },
+          {
+            "type": "paragraph",
+            "text": "Do not cache, log, or replay the URL. If the customer abandons and returns, request a fresh URL by asking the LFI to re-emit (typically via your support process or by re-triggering the flow). The LFI will emit a new PaymentRequired event."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Issue the policy",
+        "level": 2,
+        "anchor": "create-policy",
+        "category": "Step 6 — POST Create Policy",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "After payment confirmation (which you can correlate with the customer’s return from the LFI’s payment page or by waiting for the LFI’s next status event), call POST /{type}-insurance-policies with the QuoteId. The body is similar to the KYC submission but represents the formal policy creation request."
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI runs its issuance and responds 201. The InsurancePolicyId and policy documents arrive in the subsequent PolicyIssued event — not in this response body."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Verify and surface documents to the customer",
+        "level": 2,
+        "anchor": "documents",
+        "category": "Step 7 — PolicyIssued event",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "In TPP-Led mode the PolicyIssued event carries every customer-facing document the LFI would normally deliver itself. Verify each Hash against the decoded Content before presenting to the customer."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Hash verification",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If a document’s computed hash does not match the supplied Hash, treat the document as corrupt or tampered. Do not surface it to the customer. Log the x-fapi-interaction-id from the event delivery, raise a support ticket including that ID and the QuoteId, and request the LFI re-emit the event."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Surface final policy state and reconcile commission",
+        "level": 2,
+        "anchor": "completion",
+        "category": "Step 8 — Completed event",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "On Completed, finalise the policy in your records, surface it as live to the customer, and reconcile any commission against the event’s Commission block. PaymentMethod: ThroughAPIHub means the Hub will route payment to you; the commission and timing are governed by the AlTareq Commercial and Pricing Model."
+          },
+          {
+            "type": "paragraph",
+            "text": "No further events follow. You can let the subscription lapse, or explicitly PATCH the quote with IsActive: false if you prefer to clean up — though no further events would be sent regardless."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

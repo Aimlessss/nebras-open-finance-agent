@@ -1,0 +1,172 @@
+{
+  "id": "tech/tpp-standards/v2.1/insurance/quotation/api-guide/lfi-led",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/insurance/quotation/api-guide/lfi-led.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "693d4df51b54859cb31b419376408e758041519378817660025ca1b679dd9c35",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Insurance Quotation — LFI-Led Flow",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/insurance/quotation/api-guide/lfi-led",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Insurance Quotation — LFI-Led Flow",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "You collect quote inputs in your app and hand the customer to the LFI on accept. The LFI hosts customer verification, payment, and document delivery. Your role after acceptance is to observe status events — either via webhook subscription or polling — and surface progress to the customer."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "LFI-Led flow",
+        "level": 2,
+        "anchor": "flow",
+        "category": "End-to-end sequence",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Obtain an access token",
+        "level": 2,
+        "anchor": "token",
+        "category": "Step 1 — Client credentials",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Authenticate with the Client Credentials Grant using a signed client assertion. Request the insurance scope."
+          },
+          {
+            "type": "paragraph",
+            "text": "The returned access_token is valid for all Insurance Quotation calls until expiry. There is no per-customer token in this flow."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Request a quote",
+        "level": 2,
+        "anchor": "create-quote",
+        "category": "Step 2 — POST /{type}-insurance-quotes",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Send the quote request as an application/jwt signed Request JWT. The body carries a QuoteReference you generate (for your own tracking), a QuoteType of New, Renewal, or Switch, and sector-specific risk and policy holder data."
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI returns 201 with one or more quotes, or 204 if it declines to quote. Each entry includes a QuoteId (LFI-minted) you use for subsequent calls."
+          },
+          {
+            "type": "paragraph",
+            "text": "QuoteId is the LFI’s identifier — required for every subsequent call. QuoteReference is your own tracking identifier, echoed back by the LFI so you can correlate quotes to your internal session. Persist both."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Accept and subscribe to events",
+        "level": 2,
+        "anchor": "accept",
+        "category": "Step 3 — PATCH Accept Quote",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Customer picks a quote in your UI. PATCH the chosen QuoteId with the accept data and a Subscription.Webhook object if you want event notifications. Send as a signed application/jwt."
+          },
+          {
+            "type": "paragraph",
+            "text": "In LFI-Led mode the LFI responds 204 No Content. The customer is now in the LFI’s hosted journey. Your app should surface a \"your application is being processed\" state and wait for the first event."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Redirect the customer to the LFI",
+        "level": 2,
+        "anchor": "handoff",
+        "category": "Step 4 — Customer handoff",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The mechanism for handing the customer off depends on the LFI — typically a hosted application URL returned at quote creation time or out-of-band. From this point until the PolicyIssued event, the customer interacts with the LFI’s screens, not yours."
+          },
+          {
+            "type": "paragraph",
+            "text": "Your app receives ApplicationPending (and any interim status updates the LFI emits) through the webhook. Surface them in the customer’s timeline so they can re-enter your app and see where their application has reached."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Handle the status sequence",
+        "level": 2,
+        "anchor": "receive-events",
+        "category": "Step 5 — Receive lifecycle events",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Events arrive at your webhook in this typical order:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "ApplicationPending — LFI has registered the application.",
+              "(optional intermediate events with BrokerInstructions ) — LFI surfacing status the customer needs to see.",
+              "PolicyIssued — carries the InsurancePolicyId.",
+              "Completed — finalised premium, term, and commission. Terminal event."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Verify each event’s signature and dedupe by QuoteId. The PolicyIssued event in LFI-Led mode carries only InsurancePolicyId — the LFI has delivered the policy documents directly to the customer through its hosted journey."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Issue the policy",
+        "level": 2,
+        "anchor": "create-policy",
+        "category": "Step 6 — POST /{type}-insurance-policies",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "After the customer has progressed through the LFI’s hosted KYC and payment, your app calls POST to formally create the policy resource. In LFI-Led mode the body is minimal — just the QuoteId. The LFI runs its issuance and responds 201 Created."
+          },
+          {
+            "type": "paragraph",
+            "text": "The final InsurancePolicyId arrives via the PolicyIssued webhook event, not in this response body. Retries are safe: the LFI is required to return the same policy reference for the same QuoteId."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Surface the final policy to the customer",
+        "level": 2,
+        "anchor": "completion",
+        "category": "Step 7 — Completed",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "On the Completed event, finalise the customer-facing timeline: policy is live, documents are with the customer (delivered by the LFI), and any commission owed is being processed via Commission.PaymentMethod."
+          },
+          {
+            "type": "paragraph",
+            "text": "Manage subscription lifecycle in your own systems — you can let the subscription lapse (it’s tied to the QuoteId ) or PATCH with IsActive: false if you explicitly want to stop delivery (for example, before deprovisioning a webhook URL)."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

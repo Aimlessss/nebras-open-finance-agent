@@ -1,0 +1,222 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/api-guide/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "420571c46b5e077d351afa2269bf1c72990988bbe933f83e4452b83c339610bf",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Insurance Quotation — API Guide",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/api-guide",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Insurance Quotation — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "How your Ozone Connect server receives quote requests, accepts them, issues policies, and emits status events through the Hub. Unlike Insurance Data Sharing there is no consent journey — the TPP authenticates with Client Credentials. The flow forks into two modes on accept: LFI-Led (your LFI hosts the customer through completion) and TPP-Led (the TPP collects KYC and surfaces an LFI-hosted payment URL)."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Four endpoints per sector you underwrite",
+        "level": 2,
+        "anchor": "positioning",
+        "category": "Endpoints you implement",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "For each insurance sector your LFI underwrites, expose four endpoints on Ozone Connect:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Endpoint",
+              "Purpose"
+            ],
+            "rows": [
+              [
+                "POST /{type}-insurance-quotes",
+                "Underwrite the request and return one or more quotes (or 204 to decline)."
+              ],
+              [
+                "GET /{type}-insurance-quotes/{QuoteId}",
+                "Return the current state of a quote — used by TPPs polling between events."
+              ],
+              [
+                "PATCH /{type}-insurance-quotes/{QuoteId}",
+                "Accept the quote (declaring PolicyIssuanceAllowed ) and, in TPP-Led mode, receive KYC submissions."
+              ],
+              [
+                "POST /{type}-insurance-policies",
+                "Issue the policy from the accepted quote."
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Substitute the sector slug ( employment, health, home, life, motor, renters, travel ) for {type}. Mount only the sectors your LFI offers — the Hub returns 404 for unmounted sectors."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Drive the lifecycle through the Hub's quote-log",
+        "level": 2,
+        "anchor": "quote-log",
+        "category": "Status emission",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Every status transition between Accept Quote and the terminal state is announced to the Hub by the LFI via PATCH /insurance-quote-log/{logId} on the Consent Manager surface. The Hub records the event and, where the TPP subscribed via the Subscription object on PATCH Accept Quote, delivers it to the TPP\\'s webhook."
+          },
+          {
+            "type": "paragraph",
+            "text": "logId is the same value as the QuoteId. Each PATCH carries one of three body schemas drawn from the Hub spec — pending-completion, completed, or terminal."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "PATCH-to-event mapping",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Use this table to predict the event a TPP will receive for each PATCH you emit. The Hub forwards verbatim — the body you send is the body the webhook sees."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "When you emit",
+                  "QuoteStatus",
+                  "Required additional fields",
+                  "Resulting webhook event"
+                ],
+                "rows": [
+                  [
+                    "Immediately after Accept Quote",
+                    "ApplicationPending",
+                    "None",
+                    "Pending Completion event with QuoteStatus: ApplicationPending"
+                  ],
+                  [
+                    "After TPP submits KYC (TPP-Led only)",
+                    "ApplicationApproved",
+                    "BrokerInstructions[].Url — the LFI-hosted payment page",
+                    "Pending Completion event with BrokerInstructions"
+                  ],
+                  [
+                    "Premium adjustment requires re-pay",
+                    "PaymentRequired",
+                    "BrokerInstructions[].Url",
+                    "Pending Completion event with BrokerInstructions"
+                  ],
+                  [
+                    "Policy issued (LFI-Led)",
+                    "PolicyIssued",
+                    "InsurancePolicyId",
+                    "Pending Completion event with policy reference"
+                  ],
+                  [
+                    "Policy issued (TPP-Led)",
+                    "PolicyIssued",
+                    "Documents[] with SHA-256 hashes",
+                    "Pending Completion event with policy documents"
+                  ],
+                  [
+                    "Flow complete",
+                    "Completed",
+                    "PolicyTerm, Premium, CustomerPaidInFull, PolicyCountrySubDivision, (optional) Commission",
+                    "Completed Status event — final"
+                  ],
+                  [
+                    "Quote expired",
+                    "Expired",
+                    "(optional) Reason",
+                    "Terminal Status event — final"
+                  ],
+                  [
+                    "LFI declines mid-flow",
+                    "Rejected / LFICancelled",
+                    "(optional) Reason",
+                    "Terminal Status event — final"
+                  ],
+                  [
+                    "Customer abandons",
+                    "CustomerCancelled",
+                    "(optional) Reason",
+                    "Terminal Status event — final"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "The Hub MUST receive statuses in the order shown above — PolicyIssued before Completed, never the reverse. Once any terminal ( Completed, Expired, Rejected, CustomerCancelled, LFICancelled ) is emitted, no further PATCHes are accepted for that logId."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Pick the flow you're implementing",
+        "level": 2,
+        "anchor": "modes",
+        "category": "Mode-specific walkthroughs",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The two modes share the create/accept/issue skeleton but diverge in where customer KYC and payment happen. The walkthroughs below cover each end-to-end with the matching status events."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Your LFI hosts customer verification, payment, and documents",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Single-PATCH accept flow. TPP redirects the customer to your LFI on accept; you drive the rest. Status events fan back through the Hub to the TPP."
+              }
+            ]
+          },
+          {
+            "heading": "TPP collects KYC; LFI hosts only the payment page",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Two-PATCH flow on the same quote. The TPP submits KYC; you respond with an LFI-hosted payment URL. After the customer pays, you issue and emit policy documents."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "New, Renewal, and Switch differences",
+        "level": 2,
+        "anchor": "quote-types",
+        "category": "Per-quote-type rules",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The validation differences between New, Renewal, and Switch are documented in the shared Quote Types explainer — the same page the TPP standards link to. Read it before implementing the Create Quote validation in your Ozone Connect endpoint."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

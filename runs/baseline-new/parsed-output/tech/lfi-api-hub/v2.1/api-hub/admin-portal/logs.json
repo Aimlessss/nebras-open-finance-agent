@@ -1,0 +1,163 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/api-hub/admin-portal/logs",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/api-hub/admin-portal/logs.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "4ccff13169f187e0f72e8afb09c5ad5e7a51adf7b6fd5b728a2efc4da504f360",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Logs",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/api-hub/admin-portal/logs",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Logs",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Admin Portal provides two types of logs: Audit Logs that track all portal activity, and API Logs that trace every request processed by the API Hub."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Every action taken by every portal user",
+        "level": 2,
+        "anchor": "audit-logs",
+        "category": "Audit logs",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The audit log records every action taken by every user within the Admin Portal. This includes reading consent data, viewing TPP details, activating or blocking TPPs, and any other portal interaction."
+          },
+          {
+            "type": "paragraph",
+            "text": "Each audit log entry includes:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "User — the portal user who performed the action",
+              "Action — the operation performed (e.g. read, update, activate, block)",
+              "Target — the resource affected (e.g. TPP, client, consent)",
+              "Timestamp — when the action occurred"
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Audit logs are particularly important for tracking administrative changes. If a TPP is blocked or a configuration is changed, the audit log provides a complete record of who made the change and when."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Granular trace of every request through the Hub",
+        "level": 2,
+        "anchor": "api-logs",
+        "category": "API logs",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "API logs provide a complete, granular trace of every request that flows through the API Hub. This is the primary debugging tool for investigating API issues."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Searching by interaction ID",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Every API request carries an x-fapi-interaction-id header. To trace a request, enter this interaction ID in the API logs search field. The portal will return every log entry associated with that request — typically hundreds of entries covering every stage of processing."
+              }
+            ]
+          },
+          {
+            "heading": "What the logs show",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "For a single interaction ID, the API logs show the complete lifecycle of the request through the API Hub:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Inbound request — the TPP's request arriving at the API Hub, including headers, certificate details, and the original URL",
+                  "Validation and enrichment — each step of token validation, consent checking, schema enforcement, and request enrichment",
+                  "Outbound request to LFI — the request forwarded to the LFI's Ozone Connect endpoint",
+                  "LFI response — the response received from the LFI",
+                  "Response processing — normalization, error mapping, and response construction",
+                  "Outbound response to TPP — the final response returned to the TPP"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Each log entry contains detailed metadata. From the request headers alone you can identify:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Header / Field",
+                  "Information"
+                ],
+                "rows": [
+                  [
+                    "Host",
+                    "Which API Hub endpoint received the request (resource server, authorization server, etc.)"
+                  ],
+                  [
+                    "X-Original-URL",
+                    "The API path called, including the API version and resource (e.g. /account-information/v1.2/accounts/{AccountId}/beneficiaries )"
+                  ],
+                  [
+                    "X-Cert-DN",
+                    "The certificate distinguished name, identifying which TPP made the request"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Common scenarios and practical tips",
+        "level": 2,
+        "anchor": "debugging",
+        "category": "Debugging with API logs",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The log entries follow the same pattern for every request. After reviewing a few traces, you will quickly learn which entries correspond to which stage of processing. Common debugging scenarios:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Unexpected error response — search by interaction ID, locate the LFI response entry, and inspect the status code and body returned by your Ozone Connect endpoint",
+              "Schema validation failure — the log will show the validation step that rejected the request or response, with the specific schema error",
+              "Consent or token issue — the validation entries will indicate whether consent or token checks failed, and why"
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "When a TPP reports an issue, ask them for the x-fapi-interaction-id from the request. With this ID, you can trace the entire request lifecycle in the API logs and identify exactly where the issue occurred — whether in the API Hub's processing or in your LFI response."
+          },
+          {
+            "type": "paragraph",
+            "text": "API logs cover everything that happens within the API Hub. Once the request is forwarded to your Ozone Connect endpoint, any processing within your own systems is logged in your own infrastructure. The API logs show the request sent to you and the response received back."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,465 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/banking/data-sharing/api-guide/finance-rates",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "983de3c78ab531bdae81cd117930a3dbc4c789f8ad1ac5186d7a52156fb609e2",
+    "dependencies": [
+      "express",
+      "jose",
+      "node:crypto"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Bank Data Sharing — Encrypted FinanceRates",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/data-sharing/api-guide/finance-rates",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Bank Data Sharing — Encrypted FinanceRates",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "When a TPP holds the ReadProductFinanceRates permission and calls GET /accounts/{AccountId}/product for a credit card, finance, or mortgage product, the LFI MAY return the FinanceRates field as a JWE rather than a cleartext object. This guide covers how to generate the one-time code, deliver it to the customer, build the JWE, and rate-limit the endpoint so the customer's encrypted rates remain protected end-to-end."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Encryption is an LFI choice, scoped to one field",
+        "level": 2,
+        "anchor": "when-to-encrypt",
+        "category": "When to encrypt",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The FinanceRates field on GET /accounts/{AccountId}/product is defined as anyOf a structured AEProductFinanceRates object or an AEJwe compact string. LFIs MAY decide, per product, whether to return the rate in cleartext or as a JWE. Encryption is typically applied to credit cards, finance accounts, and mortgages where the finance rate is commercially sensitive; deposit account interest rates are returned in cleartext."
+          },
+          {
+            "type": "list",
+            "items": [
+              "The LFI MUST NOT encrypt any field other than FinanceRates on this endpoint. Charges, DepositRates, ProductName, Tenor, and every other property stay cleartext on both the encrypted and unencrypted shapes.",
+              "The LFI MUST NOT encrypt any data from any other Open Finance endpoint — this mechanism exists solely for FinanceRates on GET /accounts/{AccountId}/product.",
+              "A single LFI MAY choose to encrypt for some product types and not others. The TPP detects the shape at runtime by checking whether FinanceRates is an object or a string — the LFI does not need to advertise its choice ahead of time."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Three things happen on every encrypted call",
+        "level": 2,
+        "anchor": "flow-overview",
+        "category": "Flow overview",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "Generate a one-time code (OTP) — a fresh, cryptographically random numeric code, scoped to this single call.",
+              "Deliver the OTP to the customer — the LFI actively pushes the code to the customer on a channel it controls (SMS, email, or a push notification in the LFI's mobile banking app). The customer is sent the code; they never have to go and retrieve it.",
+              "Encrypt the cleartext FinanceRates as a JWE with the OTP as the password and substitute the JWE string for the cleartext object in the response body. The cleartext rates never leave the LFI."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Because the OTP is the decryption key, the customer reading the code the LFI sent them and typing it into the TPP application is exactly what makes the rate visible. The TPP server never sees the OTP, and the LFI never sees the TPP's decryption code. The customer is the only party that holds both the JWE (via the TPP) and the key (delivered by the LFI)."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "No ReadProductFinanceRates → omit the field entirely",
+        "level": 2,
+        "anchor": "step-1-permission",
+        "category": "Step 1 — Check the consent permission first",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before doing anything else — before deciding to encrypt, before generating an OTP, before delivering the code, before building a JWE — the LFI MUST check that the consent underlying this request includes ReadProductFinanceRates. If the permission is absent, the LFI MUST omit the FinanceRates field from the response entirely. The rest of the product payload ( Charges, DepositRates, ProductName, etc.) is returned as usual."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "How to read the permission",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The API Hub sets the o3-consent-id header on every Ozone Connect call made under a consent. That ID identifies the consent the customer authorised; the LFI's job is to retrieve the consent, read the Permissions array off it, and check that ReadProductFinanceRates is present. The LFI does NOT re-validate the access token — that is the Hub's responsibility."
+              },
+              {
+                "type": "paragraph",
+                "text": "There are two valid ways to obtain the consent record. Pick whichever fits your architecture; both are first-class:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Option",
+                  "How it works",
+                  "When to choose it"
+                ],
+                "rows": [
+                  [
+                    "A — Local consent store",
+                    "The LFI persists consent records locally as the Hub calls /consent/event/{operation} during the consent-events flow at authorization. At request time the LFI looks up the consent by ID in its own store.",
+                    "You already maintain a consent table for revocation handling, account-list patching, or customer attribution. Lowest per-request latency."
+                  ],
+                  [
+                    "B — Fetch from the Hub",
+                    "The LFI calls GET /consents/{consentId} on the Hub's Consent Manager ( https://cm.{LFICODE}.apihub.openfinance.ae ) to fetch the consent on demand. The response includes the Permissions array.",
+                    "You do not maintain a local consent store, or you do but treat the Hub as the source of truth. Adds one Hub round-trip per request unless you cache the response."
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Whichever option you use, the check itself is the same: permissions.includes('ReadProductFinanceRates'). If false — omit FinanceRates. If true — proceed to the cleartext or encrypted path based on LFI policy for the product type."
+              },
+              {
+                "type": "paragraph",
+                "text": "The Hub's GET /consents/{consentId} response is safe to cache for the lifetime of the consent — the Permissions array is set at authorization and never mutates. Cache invalidation comes from the consent-events flow: when the Hub notifies your /consent/event/{operation} endpoint that a consent has been revoked or modified, drop the cached entry. A short positive TTL (e.g. 5 minutes) is a reasonable defence against missed events."
+              },
+              {
+                "type": "list",
+                "items": [
+                  "The check applies equally to the cleartext and encrypted paths. If ReadProductFinanceRates is missing, the LFI MUST NOT return cleartext rates and MUST NOT trigger the code-generation, delivery, or JWE flow.",
+                  "When the field is omitted, do not substitute null, an empty object, or a placeholder JWE. The FinanceRates key simply does not appear on the Product object.",
+                  "The same o3-consent-id header is used to attribute the call for logging, rate-limit accounting ( Step 6 ), and audit. Read it once and carry it through the request handler."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Delivering an OTP for a request that should not have received FinanceRates in the first place is both wasteful and confusing for the customer (they receive a code for a value the TPP cannot legitimately show). Putting the permission check first eliminates this class of bug entirely."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "A fresh 6-digit code per request",
+        "level": 2,
+        "anchor": "step-2-otp",
+        "category": "Step 2 — Generate the OTP",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Each call to GET /accounts/{AccountId}/product that returns encrypted FinanceRates MUST mint a new OTP. The OTP is bound to a single JWE for the full 30-minute display window — the TPP MAY re-decrypt the same JWE multiple times with the same OTP within that window, but a new call to the endpoint MUST produce a fresh OTP and a fresh JWE."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Property",
+              "Requirement"
+            ],
+            "rows": [
+              [
+                "Format",
+                "6 digits, numeric. Leading zeros MUST be preserved in transit."
+              ],
+              [
+                "Source",
+                "Cryptographically secure RNG (e.g. crypto.randomInt in Node.js, secrets.randbelow in Python). MUST NOT use Math.random, the default random module, or any non-CSPRNG source."
+              ],
+              [
+                "Reusability",
+                "The OTP is reusable for decryption attempts within the 30-minute JWE window. A new call to GET /accounts/{AccountId}/product MUST issue a fresh OTP, even if the previous JWE has not yet expired."
+              ],
+              [
+                "Storage",
+                "The OTP MUST NOT be persisted in cleartext at the LFI after the JWE has been built. Hold it only long enough to use it as the PBES2 password and deliver it to the customer, then discard."
+              ],
+              [
+                "Logging",
+                "The OTP MUST NOT appear in application logs, audit trails, request traces, monitoring tools, or any other system the LFI operates."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The LFI delivers the code on a channel it controls",
+        "level": 2,
+        "anchor": "step-3-sms",
+        "category": "Step 3 — Deliver the OTP",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The LFI MUST deliver the OTP to the customer directly, through a channel the LFI controls and the customer can reach without involving the TPP. The LFI chooses the channel: an SMS to the customer's registered mobile number, an email to their registered address, or a push notification or message in the LFI's own mobile banking app are all acceptable. The LFI MUST NOT deliver the OTP through the TPP — the entire point is that the TPP never holds the decryption key."
+          },
+          {
+            "type": "paragraph",
+            "text": "Whichever channel the LFI uses, it MUST actively deliver the code to the customer — the customer must be sent the code, not asked to go and find it. A push notification that surfaces the code, or that deep-links the customer straight to it, meets this bar; a design that requires the customer to independently open the banking app and hunt for the code does not. The LFI provides the code to the customer; the customer never has to retrieve it."
+          },
+          {
+            "type": "paragraph",
+            "text": "The customer is mid-journey in the TPP application, waiting for a code to arrive. The delivery channel MUST push the code to them. A model where the customer must leave that journey, authenticate somewhere else, and locate the code themselves is not acceptable — it breaks the flow and the customer cannot reasonably complete it."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Message content requirements",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "The OTP itself.",
+                  "The LFI's brand name as a recognisable sender or in the first line of the body, so the customer can identify who sent the message.",
+                  "The TPP's TradingName (from the consent), so the customer knows which app to enter the code into. This is the part of the message the customer uses to bridge the LFI-sent message with the TPP-presented form.",
+                  "The product name or a short product description, so the customer understands which rate they are about to view.",
+                  "An expiry indication — \"Valid 30 min\" is the canonical wording.",
+                  "An explicit anti-fraud line for the customer who did not start this journey — \" If you didn't request this, ignore this message and never share this rate. \" The wording matters: it tells an unsuspecting customer to disregard the message, and warns every customer never to read the code aloud to anyone — while leaving them free to type it into the TPP form themselves."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "The message MUST NOT include the cleartext finance rate, any link inviting the customer to continue their journey somewhere other than the TPP application, or any other product data beyond the brand, code, TPP name, product description, and expiry."
+              }
+            ]
+          },
+          {
+            "heading": "Message template",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "A recommended template the LFI substitutes from the request context — the TPP_TRADING_NAME comes from the consent's TPP organisation registration, the PRODUCT_NAME from the product the call is for, and OTP from Step 2. The example is written for SMS; the same content requirements apply whatever channel the LFI delivers on:"
+              }
+            ]
+          },
+          {
+            "heading": "Example SMS as the customer receives it",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The wording is intentionally explicit about where the code is to be entered — the message arrives from the bank but the form sits inside the TPP application, and the customer needs to bridge those two contexts. Naming the TPP makes that connection."
+              },
+              {
+                "type": "paragraph",
+                "text": "The example above is English. LFIs SHOULD localise the message to the customer's registered language preference; in practice this usually means English alongside Arabic. The content requirements above apply to every localised variant."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "PBES2-HS512+A256KW with the OTP as the password",
+        "level": 2,
+        "anchor": "step-4-build-jwe",
+        "category": "Step 4 — Build the JWE",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The cleartext FinanceRates object is encrypted as a JOSE compact JWE using PBES2-HS512+A256KW for key wrapping and A256GCM for content encryption. PBES2 takes the OTP as a password and derives the content-encryption key inside the JWE library; the LFI never needs to handle key material directly."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "JWE parameter",
+              "Value",
+              "Notes"
+            ],
+            "rows": [
+              [
+                "alg",
+                "PBES2-HS512+A256KW",
+                "Key wrapping. PBES2 is the JOSE-native way to use a password (the OTP) as the input."
+              ],
+              [
+                "enc",
+                "A256GCM",
+                "AES-256-GCM content encryption with a 96-bit IV. Authenticated encryption — tampering is detected on decrypt."
+              ],
+              [
+                "p2c",
+                "600000 (minimum)",
+                "PBKDF2 iteration count. OWASP recommends at least 600,000 iterations for HMAC-SHA-512 as of 2023. Higher is acceptable."
+              ],
+              [
+                "p2s",
+                "Generated by the JWE library",
+                "PBKDF2 salt. The library generates a fresh 16-byte salt per call and emits it in the protected header."
+              ],
+              [
+                "kid",
+                "OneTimeCode",
+                "Signals to the TPP that the PBES2 password is the OTP entered by the customer, not a static key."
+              ]
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Resulting protected header (decoded)",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "JWT-style expiry inside the JWE payload",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The JWE's PBES2 envelope does not itself express an expiry, and the OTP does not stop working once 30 minutes have passed — a JWE and its OTP can technically be decrypted at any later time. The 30-minute limit is therefore not enforced by the cryptography. It is enforced by the exp claim the LFI embeds in the plaintext, which the TPP MUST honour, backed by the TPP's Access Encrypted Resource Data certification obligations. The LFI embeds iat and exp inside the JSON plaintext alongside the FinanceRates object — so the TPP can stop displaying the rate and show a \"this code has expired\" message once the window closes — and MUST set exp = iat + 1800 seconds exactly; longer windows are not permitted."
+              },
+              {
+                "type": "paragraph",
+                "text": "The cleartext rate is the very thing this scheme exists to protect from accidental disclosure. Encryption MUST happen in process memory; the cleartext rate, the OTP, and the derived key material MUST NOT be written to logs, traces, dumps, or any storage tier. Treat them with the same hygiene as a customer's password."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Swap the structured object for the JWE string",
+        "level": 2,
+        "anchor": "step-5-substitute",
+        "category": "Step 5 — Substitute FinanceRates in the response",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The OpenAPI schema makes the response trivial to assemble: FinanceRates is either an AEProductFinanceRates object or an AEJwe string. Replace the cleartext object with the compact JWE produced in Step 4 and leave every other field untouched."
+          },
+          {
+            "type": "paragraph",
+            "text": "See the corresponding TPP API guide for how the TPP detects the JWE shape, forwards it to the user's device, and decrypts using the OTP the customer types in."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Reject the whole request when the limits are exceeded",
+        "level": 2,
+        "anchor": "rate-limits",
+        "category": "Step 6 — Rate limits and the 429 response",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Every call to GET /accounts/{AccountId}/product that produces an encrypted FinanceRates mints a fresh OTP and triggers a customer-facing message. The LFI MUST rate-limit these calls per consent per account so an abusive or buggy TPP cannot spam the customer."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "The limits",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Rule",
+                  "Limit",
+                  "Behaviour when exceeded"
+                ],
+                "rows": [
+                  [
+                    "Minimum interval between fresh OTPs",
+                    "60 seconds per (consent, account) pair",
+                    "Reject the whole request with 429 Too Many Requests. The TPP surfaces a \"please wait\" message and lets the customer retry shortly."
+                  ],
+                  [
+                    "Rolling 24-hour cap",
+                    "12 fresh OTPs per (consent, account) pair",
+                    "Reject the whole request with 429 Too Many Requests until the rolling window admits a new call. Customer is told to try again later."
+                  ],
+                  [
+                    "Re-decryption of an existing JWE",
+                    "Not limited — decryption happens in the TPP browser and does not contact the LFI",
+                    "n/a"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "These limits are LFI-enforced and apply only to the FinanceRates -encryption path. Cleartext calls to GET /accounts/{AccountId}/product (for product types where the LFI does not encrypt) follow the standard rate limits documented elsewhere."
+              },
+              {
+                "type": "paragraph",
+                "text": "The 60-second minimum interval is the limit that matters most in practice: a delivered OTP can take a little while to reach the customer, so the interval simply stops a fresh code being minted before the previous one has had a chance to arrive. The rolling 24-hour cap leaves headroom for a TPP with a genuine reason to read a customer's finance rates several times through the day, and is kept under review as real-world usage patterns emerge. LFIs SHOULD treat it as a backstop against runaway message volume rather than a constraint legitimate traffic is expected to approach."
+              },
+              {
+                "type": "paragraph",
+                "text": "The counter is per (consent, account) pair, not per TPP and not per customer. A customer who holds multiple consents from different TPPs sees the limits applied independently per consent — one TPP's behaviour does not block another TPP's call. Within a single consent, a TPP that legitimately needs to read finance rates for several accounts gets a separate 24-hour budget per account."
+              }
+            ]
+          },
+          {
+            "heading": "The 429 response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "When either limit would be breached, the LFI MUST reject the entire request rather than returning a partial response with FinanceRates omitted. The customer is on the TPP's screen expecting a complete product view; the 429 is the signal the TPP needs to render a clear, actionable error rather than a silently degraded payload."
+              },
+              {
+                "type": "paragraph",
+                "text": "The response uses the same 429Error envelope already defined for GET /accounts/{AccountId}/product in the OpenAPI specification — HTTP 429, no response body, two headers:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Header",
+                  "Required",
+                  "Value"
+                ],
+                "rows": [
+                  [
+                    "Retry-After",
+                    "MUST",
+                    "Integer seconds until the next request would succeed. For the minimum-interval breach this is the seconds remaining in the 60-second cooldown; for the daily cap this is the seconds until the rolling window admits a new call."
+                  ],
+                  [
+                    "x-fapi-interaction-id",
+                    "MUST",
+                    "The same UUID the TPP sent on the request, echoed back so the TPP can correlate the rejection with its outbound call."
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "The API Hub forwards the LFI's 429 response (status, Retry-After, and x-fapi-interaction-id ) to the TPP without modification. There is no Hub-side translation step — the TPP receives the same response the LFI emitted. See the corresponding TPP API guide for the customer-facing handling on the other end of the pipe."
+              },
+              {
+                "type": "paragraph",
+                "text": "When the limit is breached, the LFI MUST NOT return 200 with the FinanceRates field omitted, an empty object, or a stale JWE. The 429 is the contract that lets the TPP distinguish \"you don't have this permission\" from \"you've called too often\" — collapsing the two would mislead the TPP about why the customer can't see the rate."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Logging, monitoring, and incident response",
+        "level": 2,
+        "anchor": "operational",
+        "category": "Operational requirements",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "No cleartext in logs — OTP, derived key material, and cleartext FinanceRates MUST be excluded from application logs, request traces, audit trails, monitoring dashboards, and crash dumps.",
+              "Audit the metadata, not the secret — the LFI SHOULD log the fact that an encrypted-rate response was issued (timestamp, consent ID, account ID, product ID, delivery channel) so abuse and operational issues are observable. The OTP and rate themselves MUST NOT be part of those records.",
+              "Delivery monitoring — the LFI MUST monitor delivery success rates for whichever channels it uses to send the code. A sustained dip in delivery to encrypted-rate customers degrades the entire product silently from the customer's point of view.",
+              "Treat the OTP like a password — on incident response, OTP exposure is reportable. There is no recovery path other than waiting for the 30-minute JWE window to close, so even a single leaked OTP costs at most one customer's encrypted rate."
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

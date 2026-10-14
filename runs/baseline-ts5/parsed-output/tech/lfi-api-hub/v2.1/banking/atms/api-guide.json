@@ -1,0 +1,481 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/banking/atms/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/banking/atms/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "ac545febb8f95aef2c90133f861aaa5032d65ed035c2d7d6b8251436168b3a9f",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "ATMs — API Guide",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/atms/api-guide",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "ATMs — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The ATM API exposes a single endpoint that returns all ATM records published by the LFI. This is open data — no customer consent is required. The Hub calls your Ozone Connect GET /atm endpoint whenever a TPP or public consumer requests ATM data for your institution."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "End-to-end ATM request",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Return all ATM records",
+        "level": 2,
+        "anchor": "get-atm",
+        "category": "GET /atm",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Header",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "o3-provider-id",
+                    "Yes",
+                    "Identifier for your LFI registered in the Hub"
+                  ],
+                  [
+                    "o3-caller-org-id",
+                    "Yes",
+                    "Organisation ID of the TPP making the underlying request"
+                  ],
+                  [
+                    "o3-caller-client-id",
+                    "Yes",
+                    "OIDC client ID of the TPP application"
+                  ],
+                  [
+                    "o3-caller-software-statement-id",
+                    "Yes",
+                    "Software statement ID of the TPP application"
+                  ],
+                  [
+                    "o3-api-uri",
+                    "Yes",
+                    "The parameterised URL of the API being called by the TPP"
+                  ],
+                  [
+                    "o3-api-operation",
+                    "Yes",
+                    "The HTTP method of the operation carried out by the TPP (e.g. GET )"
+                  ],
+                  [
+                    "o3-ozone-interaction-id",
+                    "Yes",
+                    "Hub-generated interaction ID. Equals o3-caller-interaction-id if the TPP provided one"
+                  ],
+                  [
+                    "o3-caller-interaction-id",
+                    "No",
+                    "Interaction ID passed in by the TPP, if present"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "Return 200 with a data array containing one record per ATM. Return an empty array if no ATMs are registered — do not return 404."
+              }
+            ]
+          },
+          {
+            "heading": "data[] — ATM record",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "LFIId",
+                    "string",
+                    "Your LFI identifier as registered in the Hub (1–36 characters)"
+                  ],
+                  [
+                    "LFIBrandId",
+                    "string",
+                    "Brand identifier for the LFI (1–140 characters)"
+                  ],
+                  [
+                    "ATMId",
+                    "string",
+                    "Unique identifier for the ATM (1–36 characters)"
+                  ],
+                  [
+                    "SupportedCurrencies",
+                    "string[]",
+                    "ISO 4217 currency codes the ATM dispenses or accepts (at least one required)"
+                  ],
+                  [
+                    "Location",
+                    "object",
+                    "Physical location of the ATM — see below"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Both PostalAddress and GeoLocation are required."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "PostalAddress",
+                    "object",
+                    "Yes",
+                    "Structured postal address — see below"
+                  ],
+                  [
+                    "GeoLocation",
+                    "object",
+                    "Yes",
+                    "GPS coordinates — see below"
+                  ],
+                  [
+                    "LocationCategory",
+                    "string[]",
+                    "No",
+                    "One or more of: BranchExternal, BranchInternal, BranchLobby, RetailerOutlet, RemoteUnit, DriveThru, Other"
+                  ],
+                  [
+                    "Site",
+                    "object",
+                    "No",
+                    "Identification and Name of the site"
+                  ]
+                ]
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "AddressLine",
+                    "string[]",
+                    "Yes",
+                    "1–7 free-form address lines"
+                  ],
+                  [
+                    "TownName",
+                    "string",
+                    "No",
+                    "City or town"
+                  ],
+                  [
+                    "CountrySubDivision",
+                    "string",
+                    "No",
+                    "UAE emirate: AbuDhabi, Dubai, Sharjah, Ajman, UmmAlQuwain, RasAlKhaimah, Fujairah"
+                  ],
+                  [
+                    "Country",
+                    "string",
+                    "No",
+                    "ISO 3166-1 alpha-2 country code (e.g. AE )"
+                  ],
+                  [
+                    "StreetName",
+                    "string",
+                    "No",
+                    "Street name"
+                  ],
+                  [
+                    "BuildingNumber",
+                    "string",
+                    "No",
+                    "Building number"
+                  ],
+                  [
+                    "BuildingName",
+                    "string",
+                    "No",
+                    "Building name"
+                  ],
+                  [
+                    "Floor",
+                    "string",
+                    "No",
+                    "Floor within the building"
+                  ],
+                  [
+                    "DistrictName",
+                    "string",
+                    "No",
+                    "District or neighbourhood"
+                  ],
+                  [
+                    "PostBox",
+                    "string",
+                    "No",
+                    "PO box"
+                  ],
+                  [
+                    "AddressType",
+                    "string",
+                    "No",
+                    "Business or Other"
+                  ]
+                ]
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "Latitude",
+                    "string",
+                    "Yes",
+                    "Latitude of the ATM"
+                  ],
+                  [
+                    "Longitude",
+                    "string",
+                    "Yes",
+                    "Longitude of the ATM"
+                  ]
+                ]
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "SupportedLanguages",
+                    "string[]",
+                    "Languages supported on the ATM interface"
+                  ],
+                  [
+                    "Services",
+                    "string[]",
+                    "Services available: Balance, BillPayments, CashDeposits, CharityDonation, ChequeDeposits, CashWithdrawal, EnvelopeDeposit, FastCash, MobileBankingRegistration, MobilePaymentRegistration, MobilePhoneTopUp, OrderStatement, PINActivation, PINChange, PINUnblock, MiniStatement, Other, or a namespaced extension value"
+                  ],
+                  [
+                    "Accessibility",
+                    "string[]",
+                    "Accessibility features: AudioCashMachine, AutomaticDoors, ExternalRamp, InductionLoop, InternalRamp, LevelAccess, LowerLevelCounter, WheelchairAccess, Other"
+                  ],
+                  [
+                    "IsAccess24Hour",
+                    "boolean",
+                    "Whether the ATM is accessible 24 hours"
+                  ],
+                  [
+                    "Availability",
+                    "object",
+                    "Status ( Available, Unavailable, UnderMaintenance ) and OperatingHours (array of Days, OpenTime, CloseTime )"
+                  ],
+                  [
+                    "MinimumPossibleAmount",
+                    "object",
+                    "Minimum transaction amount ( Amount and Currency )"
+                  ],
+                  [
+                    "MaximumPossibleAmount",
+                    "object",
+                    "Maximum transaction amount ( Amount and Currency )"
+                  ],
+                  [
+                    "Branch",
+                    "object",
+                    "Associated branch identifier ( SchemeName: BICFI or Other, and Identification )"
+                  ],
+                  [
+                    "ATMFee",
+                    "array",
+                    "Fee records — each requires Type; optionally includes Amount, Percentage, ApplicableNetworks, Conditions"
+                  ],
+                  [
+                    "Notes",
+                    "string[]",
+                    "Free-text notes about the ATM"
+                  ],
+                  [
+                    "Links",
+                    "object",
+                    "FeesUri — URL to a full fee schedule"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Withdrawal, BalanceInquiry, MiniStatement, PINChange, CashDeposit, CardlessWithdrawal, InternationalWithdrawal, CrossBankWithdrawal, OverLimit, DeclinedTransaction, EmergencyCashWithdrawal, ForeignATMUsage, ServiceDenial, FastCashWithdrawal, NetworkSurcharge, ForeignExchange, DomesticCrossBank, InternationalCrossBank, Other"
+              }
+            ]
+          },
+          {
+            "heading": "meta",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "LastUpdatedDateTime",
+                    "string (date-time)",
+                    "Yes",
+                    "Timestamp of the most recent update to the ATM data"
+                  ],
+                  [
+                    "TotalRecords",
+                    "integer",
+                    "Yes",
+                    "Total number of ATM records returned"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Example response",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Error responses",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Only return an error when the Hub's request itself is invalid or a server condition prevents you from responding. All error bodies must include errorCode and errorMessage."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "errorCode",
+                  "When to use"
+                ],
+                "rows": [
+                  [
+                    "Body.InvalidFormat",
+                    "Request is malformed or does not match the schema"
+                  ],
+                  [
+                    "Resource.InvalidFormat",
+                    "A request parameter is present but syntactically invalid"
+                  ],
+                  [
+                    "GenericRecoverableError",
+                    "Recoverable validation error not covered above — Hub may retry"
+                  ],
+                  [
+                    "GenericError",
+                    "Unrecoverable validation error not covered above"
+                  ]
+                ]
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "errorCode",
+                  "When to use"
+                ],
+                "rows": [
+                  [
+                    "AccessToken.InvalidScope",
+                    "The Hub's token does not include the required scope"
+                  ],
+                  [
+                    "GenericRecoverableError",
+                    "Recoverable access failure not covered above"
+                  ],
+                  [
+                    "GenericError",
+                    "Unrecoverable access failure not covered above"
+                  ]
+                ]
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "errorCode",
+                  "When to use"
+                ],
+                "rows": [
+                  [
+                    "GenericRecoverableError",
+                    "Transient server error — Hub may retry after a delay"
+                  ],
+                  [
+                    "GenericError",
+                    "Unrecoverable server error"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
