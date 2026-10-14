@@ -56,6 +56,12 @@ jobs:
             echo "Unexpected S3 listing result: $count" >&2
             exit 1
           fi
+          aws s3api list-objects-v2 --bucket "$STATE_BUCKET" --prefix state/current.json --output json > "$RUNNER_TEMP/state-list.json"
+          state_count="$(node -e 'const r=require(process.argv[1]);console.log((r.Contents||[]).filter(o=>o.Key==="state/current.json").length)' "$RUNNER_TEMP/state-list.json")"
+          if [ "$state_count" = "1" ]; then
+            aws s3 cp "s3://$STATE_BUCKET/state/current.json" "$RUNNER_TEMP/control.json" --only-show-errors
+            baseline_key="$(node -e 'const c=require(process.argv[1]);if(c.pending)throw Error("Resume the pending execution before preparing another preview");if(!c.baseline)throw Error("Missing baseline");console.log(c.baseline)' "$RUNNER_TEMP/control.json")"
+          fi
           mkdir -p "$RUNNER_TEMP/ingestion-baseline"
           aws s3 cp "s3://$STATE_BUCKET/$baseline_key" "$RUNNER_TEMP/baseline-restored.tar.gz" --only-show-errors
           tar -xzf "$RUNNER_TEMP/baseline-restored.tar.gz" -C "$RUNNER_TEMP/ingestion-baseline"
@@ -74,6 +80,12 @@ jobs:
             --source-root "$RUNNER_TEMP/community-standards" \
             --previous "$RUNNER_TEMP/ingestion-baseline/manifest.json" \
             --output "$RUNNER_TEMP/ingestion-preview"
+      - name: Record the exact comparison baseline
+        run: |
+          node - "$RUNNER_TEMP/ingestion-baseline/manifest.json" "$RUNNER_TEMP/ingestion-preview/baseline-fingerprint.txt" <<'NODE'
+          const fs = require('node:fs'); const {fingerprint} = require('./src/scripts/incremental');
+          fs.writeFileSync(process.argv[3], fingerprint(JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))));
+          NODE
       - name: Preview Qdrant changes (no writes or embeddings)
         run: |
           set -euo pipefail
@@ -81,6 +93,13 @@ jobs:
             --previous "$RUNNER_TEMP/ingestion-baseline/manifest.json" \
             --next "$RUNNER_TEMP/ingestion-preview/manifest.json" \
             | tee "$RUNNER_TEMP/ingestion-plan.json"
+          node - "$RUNNER_TEMP/ingestion-baseline/manifest.json" "$RUNNER_TEMP/ingestion-preview/manifest.json" "$RUNNER_TEMP/ingestion-preview/deletions.json" <<'NODE'
+          const fs=require('node:fs');const {loadPair,planChanges}=require('./src/scripts/incremental');const {validatePlan}=require('./src/scripts/execute-s3');
+          const {previous,next}=loadPair(process.argv[2],process.argv[3]);
+          const result=validatePlan(previous,next,planChanges(previous.chunks,next.chunks).delete.length);
+          fs.writeFileSync(process.argv[4],JSON.stringify(result.report,null,2));
+          console.log('Deletion reasons:',result.report.reduce((r,c)=>(r[c.reason]=(r[c.reason]||0)+1,r),{}));
+          NODE
           {
             echo '### Dry-run plan'
             echo '```json'
