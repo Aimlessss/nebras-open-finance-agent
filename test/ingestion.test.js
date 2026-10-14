@@ -52,7 +52,7 @@ test('actual parser/chunker runner: manifests, targeted runs, failures and stabl
     assert.equal(doc.chunks.length, 3)
     const data = JSON.parse(fs.readFileSync(path.join(first.out, doc.chunk_file)))
     assert.equal(data.chunks[0].metadata.doc_version, 'v2.1')
-    assert.equal(data.chunks[0].metadata.parser_version, '3')
+    assert.equal(data.chunks[0].metadata.parser_version, '4')
     const reused = run('reused', ['--previous', path.join(first.out, 'manifest.json')])
     assert.equal(reused.result.status, 0, reused.result.stderr)
     assert.equal(reused.manifest.reused_documents, 1)
@@ -149,4 +149,28 @@ test('long schema chunks are bounded, deterministic and unique across duplicate 
  assert.ok(first.every(c=>c.text.length<=6000))
  assert.equal(new Set(first.map(c=>c.id)).size,first.length)
  assert.deepEqual(first.map(c=>c.id),finalizeChunks(document,[long,long]).map(c=>c.id))
+})
+
+test('EndpointPage eyebrow reaches chunks and edits change content hashes', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'nebras-endpoint-'))
+  try {
+    const root = path.join(tmp, 'source')
+    const file = path.join(root, 'src/pages/tech/example.vue')
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    const run = (name, label) => {
+      fs.writeFileSync(file, '<template><EndpointPage eyebrow="' + label + '" title="API Families"><p>Nested endpoint explanation.</p></EndpointPage></template>')
+      const parsed = path.join(tmp, name + '.json')
+      const chunked = path.join(tmp, name + '.chunks.json')
+      const env = { ...process.env, SOURCE_ROOT: root, SOURCE_COMMIT: 'test' }
+      execFileSync(process.execPath, [path.join(scripts, 'parser.js'), file, parsed], { env, stdio: 'pipe' })
+      execFileSync(process.execPath, [path.join(scripts, 'chunker.js'), parsed, chunked], { env, stdio: 'pipe' })
+      return JSON.parse(fs.readFileSync(chunked, 'utf8')).chunks
+    }
+    const before = run('before', 'Trust Framework')
+    const after = run('after', 'Trust Framework of UAE')
+    assert.ok(after.some(c => c.text.includes('Trust Framework of UAE')))
+    assert.ok(after.some(c => c.text.includes('Nested endpoint explanation.')))
+    const old = new Map(before.map(c => [c.id, c]))
+    assert.ok(after.some(c => old.has(c.id) && old.get(c.id).content_hash !== c.content_hash))
+  } finally { fs.rmSync(tmp, { recursive: true, force: true }) }
 })
