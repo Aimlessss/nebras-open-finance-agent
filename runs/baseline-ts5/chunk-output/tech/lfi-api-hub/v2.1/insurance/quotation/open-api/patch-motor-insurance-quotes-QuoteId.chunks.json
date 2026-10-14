@@ -1,0 +1,1954 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+  "chunk_count": 57,
+  "chunks": [
+    {
+      "id": "7d080bc7-dafa-5e86-9cb8-91b18237c3c8",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > API /motor-insurance-quotes/{QuoteId}\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - UAE Insurance API Description\",\n \"description\": \"## Ozone Connect - UAE Insurance API Description\\n\\nThis document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html) for Insurance APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a financial institution to facilitate integration with the API Hub.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where: \\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n\\n### v2.1.4\\n\\n* Removed the CAAP-specific header `o3-is-caap-consent-operation` from the `get /{insurance-type}-insurance-policies`\\n operations, the CAAP-conditional `ProductName`, `BodyType`, and `PlateNumber` properties from the insurance\\n policy schemas, and related CAAP-conditional language. CAAP variants of these endpoints have been moved to the\\n CAAP Operations OpenAPI description. `PolicyEndDate` is retained on the insurance policy schemas but is no longer\\n CAAP-conditional: it is now an ordinary optional property, returnable for all consent types, matching the\\n `get /{insurance-type}-insurance-policies` response in the UAE Insurance API description.\\n\\n\\n* Removed the `maximum` of 100 from `AEInsuranceServiceRatingRateOrRatio`, which is referenced by the\\n `ServiceRating` properties `SolvencyRatio`, `ClaimsPaymentCapacityRatio`, `AverageClaimSettlementTime`, and\\n `CustomerComplaintRate`. None of these is a 0-100 percentage: both ratios routinely exceed 100% for a solvent\\n insurer, and the other two are measured in calendar days and in complaints per 1,000 active policies\\n respectively. The two genuine percentages, `ClaimSettlementRatio` and `ClaimRejectionRate`, now reference a new\\n `AEInsuranceServiceRatingPercentage` schema, which retains `maximum: 100` and adds `minimum: 0`.\\n\\n\\n* Changed the `get /{industryType}-insurance-policies/{InsurancePolicyId}` operation to return an optional\\n `CreditDebitIndicator` within `Premium.Adjustments`, indicating whether a premium adjustment is a credit,\\n reducing the premium payable, or a debit, increasing the premium payable. `AdjustmentAmount` is unsigned and\\n carries no direction of its own. Where `CreditDebitIndicator` is absent, the adjustment must be treated as a\\n `Debit`, which is the reading that matches existing v2.1 behaviour.\\n\\n\\n* Removed `format: uuid` from `AEInsurance.AEInsuranceResourceIdentifierType`, the schema behind the\\n `InsurancePolicyId` and `QuoteId` path parameters and the `QuoteId`, `InsurancePolicyId` and related identifier\\n properties. A uuid v4 remains recommended for consistency but is no longer mandatory, so LFIs may use their own\\n identifier scheme within the existing 1-128 character bounds. This matches UAE standards v2.1-errata3.\\n\\n\\n### v2.1.3\\n\\n\\n* Changed the `get /{insurance-type}-insurance-quotes/{QuoteId}` operation to return the correct type for `Pending`\\n `QuoteStatus` responses.\\n\\n\\n### v2.1.2\\n\\n\\n* Changed the `insurancePolicyIds` parameter from optional to mandatory for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n* Changed the guidance for `insurancePolicyIds` parameter for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n### v2.1.1\\n\\n\\n* Initial version that delivers v2.1 requirements (see separate, detailed changelog for changes from last v2.1.x version).\\n\\n\",\n \"version\": \"v2.1.4\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/motor-insurance-quotes/{QuoteId}\",\n \"operations\": {\n \"patch\": {\n \"operationId\": \"MotorInsuranceUpdateInsuranceQuoteByQuoteIdOperation\",\n \"summary\": \"Accept a motor insurance quote\",\n \"description\": \"Update the quote status to `Accepted` in readiness to send the quote data to \\ncreate a new insurance policy. The TPP must update the status to Accepted before\\nretrieving any additional data through their Data Sharing permissions, to include\\nin the new insurance policy request.\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.ozoneInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/AEInsurance.QuoteId\"\n }\n ],\n \"responses\": {\n \"200\": {\n \"description\": \"The request has succeeded.\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"type\": \"object\",\n \"properties\": {\n \"PolicyIssuanceAllowed\": {\n \"type\": \"object\",\n \"properties\": {\n \"CustomerVerification\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to complete capture of customer verification information and documents for this quote.\"\n },\n \"Payment\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to host payment checkout.\"\n },\n \"PolicyDocuments\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to provide policy documents to customer.\"\n }\n },\n \"required\": [\n \"CustomerVerification\",\n \"Payment\",\n \"PolicyDocuments\"\n ],\n \"description\": \"Broker requests to handle following steps of policy issuance process.\"\n }\n },\n \"minProperties\": 1,\n",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "API /motor-insurance-quotes/{QuoteId}",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /motor-insurance-quotes/{QuoteId}\"],\"\"]:0:part:0",
+      "content_hash": "992bd50d27b47d2ae197950de8497d42006886c45b74187fc617b47d99e02b55",
+      "schema_version": 2
+    },
+    {
+      "id": "79aa189a-1f11-597b-b0a2-84ed6ca387cc",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > API /motor-insurance-quotes/{QuoteId}\n\n \"description\": \"This response **MUST** only be used where there are instruction for TPP acting as a Broker. Please use a `204` response if Broker instructions are not required.\"\n },\n \"links\": {\n \"type\": \"object\",\n \"properties\": {\n \"PaymentUrl\": {\n \"type\": \"string\",\n \"format\": \"uri\",\n \"description\": \"Hosted payment URL for TPP to present to customer. Required when the Payment field is true.\"\n }\n },\n \"required\": [\n \"PaymentUrl\"\n ],\n \"description\": \"Links to other resources. Can be omitted where `PaymentUrl` is not returned.\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n },\n \"204\": {\n \"description\": \"No content\"\n },\n \"400\": {\n \"$ref\": \"#/components/responses/error400Response\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/error403Response\"\n },\n \"409\": {\n \"$ref\": \"#/components/responses/error409Response\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/error500Response\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n },\n \"tags\": [\n \"Motor Insurance\"\n ],\n \"requestBody\": {\n \"required\": true,\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEMotorInsuranceQuoteAcceptQuoteRequestProperties\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n },\n \"OzoneConnectServiceInitiationToken\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Bearer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "API /motor-insurance-quotes/{QuoteId}",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /motor-insurance-quotes/{QuoteId}\"],\"\"]:0:part:1",
+      "content_hash": "3b8c0b736d191b72d084bde36def9d18f81a5fcbdf3e26467972638709895570",
+      "schema_version": 2
+    },
+    {
+      "id": "b4506645-86af-53a4-8801-8625c8c18729",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targeted to\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.providerId\"],\"\"]:0",
+      "content_hash": "eac41deb3814a89f41929eb2966622171bc2a57f7df8424bdf6ba7a29daa5d40",
+      "schema_version": 2
+    },
+    {
+      "id": "824502c9-7609-546c-87be-aedc4db45abd",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\"],\"\"]:0",
+      "content_hash": "c0f67ef97b3610408a21c53a612e6bba25f7e6ec333080a8aa1db2cf60816c7a",
+      "schema_version": 2
+    },
+    {
+      "id": "e4ec8c01-51d2-5a99-aa3a-54c6c0d038be",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\"],\"\"]:0",
+      "content_hash": "f846d7f55d36b59357a307e78edbe1b30ba4f10f8d5736e436d704deb0f451fc",
+      "schema_version": 2
+    },
+    {
+      "id": "a254d489-8c22-5ba2-a644-38aff5745708",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "249d965cf1496cf64b67ee025777313c7476a85b1ce624194c1f751936373a62",
+      "schema_version": 2
+    },
+    {
+      "id": "fb13345b-114d-591c-8814-f8bce1f052f2",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The URL of the API being called by the caller\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiUri\"],\"\"]:0",
+      "content_hash": "998d46e918397f2356f8e0ca6787b38ef31c1e1bba3d979ea1bf36ea11061ff2",
+      "schema_version": 2
+    },
+    {
+      "id": "5926813c-b1d8-5e8e-afcc-c2e3f1e29c24",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\"],\"\"]:0",
+      "content_hash": "586fda857575bdf82589a291d5088cbf24be38f13d728cb924d64be2f374b34a",
+      "schema_version": 2
+    },
+    {
+      "id": "dca5a5bb-271d-5eaf-91ad-ca07e545188b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\"],\"\"]:0",
+      "content_hash": "f4b214e83849dc3ad87a3cb43bd61e58e54719e0796bf2d3f1d697e598669e08",
+      "schema_version": 2
+    },
+    {
+      "id": "5ca47e1b-24dd-567a-8fc7-07f09d3d3860",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "d02f1f33ef19360fbfce2ca906bade193cc8c0bb1e9238c7e18f54bd13fd47e8",
+      "schema_version": 2
+    },
+    {
+      "id": "8e617d25-37b9-5502-9ec8-9294e187b9f3",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/parameters/AEInsurance.QuoteId\n\n{\n \"name\": \"QuoteId\",\n \"in\": \"path\",\n \"required\": true,\n \"description\": \"Unique identifier for a quote created by an LFI\",\n \"schema\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/AEInsurance.QuoteId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/AEInsurance.QuoteId\"],\"\"]:0",
+      "content_hash": "47ec9d6827007d3db43285dd33beb3dbb197858e2a8a2ad0c1e98b625e0a71d3",
+      "schema_version": 2
+    },
+    {
+      "id": "9aa7d882-195f-5893-afae-116983b4c169",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 128,\n \"description\": \"Unique identifier for a given insurance policy. \\n\\nA uuid v4 is recommended for consistency but not mandatory.\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"],\"\"]:0",
+      "content_hash": "85a438e872f707b0ea30c3adcaacd6245a027de08624ac68187f1172f4636460",
+      "schema_version": 2
+    },
+    {
+      "id": "22d60f6e-97d4-536a-b592-ae53a3d0746d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/responses/error400Response\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error400Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error400Response\"],\"\"]:0",
+      "content_hash": "530f3f81cbd81d1bd126a004dc286676a720e182a6eb91bb63597645f517815d",
+      "schema_version": 2
+    },
+    {
+      "id": "8505d07a-f7f0-5f29-815f-9af9a4c85007",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error400\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError400Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Default error response payload structure for Ozone Connect\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error400\"],\"\"]:0",
+      "content_hash": "4c188018abaeefaec4814b477242fb8ebc4bcb9cb096ba4bc8b888c520a8740b",
+      "schema_version": 2
+    },
+    {
+      "id": "f0bf76c2-d1e3-5db2-9ae4-f6c155442ecf",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEError400Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWS.InvalidPayload\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError400Codes\"],\"\"]:0",
+      "content_hash": "6b5297c03bc1bc7f4e7bcccc37c40ebe513266386f104e1c2e4298c70630923d",
+      "schema_version": 2
+    },
+    {
+      "id": "1558f7c6-592a-52f8-8f84-8e9457c2c15b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AECustomErrorCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECustomErrorCode\"],\"\"]:0",
+      "content_hash": "2b60b3ac392691d735a806bad5fda902dedad8607d0067436a92da67842d82f4",
+      "schema_version": 2
+    },
+    {
+      "id": "0072571e-6a78-58f5-9348-9f7a3770ea82",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\n\n{\n \"type\": \"string\",\n \"description\": \"Custom error code without prefix, retained for compatibility with version 1.2.\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\"],\"\"]:0",
+      "content_hash": "4f49cab6cc43a8878c9eba53343b58631189ab7ce71a226781d5453496a6b294",
+      "schema_version": 2
+    },
+    {
+      "id": "ccaeb826-7b33-5817-9873-34bd6d9954bf",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/responses/error403Response\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error403Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error403Response\"],\"\"]:0",
+      "content_hash": "96560b30f065079b3f84cba7e99965e08045e7447397b3b71ebaa06a2189fdd1",
+      "schema_version": 2
+    },
+    {
+      "id": "e29f8925-3f41-5322-95b8-b6bf35e0b146",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error403\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError403Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n \\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error403\"],\"\"]:0",
+      "content_hash": "a5148252051e608958684637a4ebfdad7500620bba65a53960884d8004de16b6",
+      "schema_version": 2
+    },
+    {
+      "id": "ae312123-93ef-5428-8326-105a81b94c5a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEError403Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError403Codes\"],\"\"]:0",
+      "content_hash": "77adff79bb373c87779e63889b8275e66e796f40855c8df184bad46e734e1495",
+      "schema_version": 2
+    },
+    {
+      "id": "184b614d-d1cb-5bd7-b1cd-5eb4f3722185",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/responses/error409Response\n\n{\n \"description\": \"Operation failed due to a conflict\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error409\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error409Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error409Response\"],\"\"]:0",
+      "content_hash": "a18ed8d3a887bd78b1d5315203b5da58d2b313e2496e6fd24fe9c3d37c268766",
+      "schema_version": 2
+    },
+    {
+      "id": "bcda54e6-d8ef-58db-b18f-1d5695cb5174",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error409\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error409",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error409\"],\"\"]:0",
+      "content_hash": "25e758700c85bbbd2540083faa58c46f71a0efa943a7c0ce0a86679da64e9806",
+      "schema_version": 2
+    },
+    {
+      "id": "ba8d0b9e-32dc-549d-bfc8-79be2f65044b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEErrorGenericCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEErrorGenericCodes\"],\"\"]:0",
+      "content_hash": "9ebbd3fcf9419f8146b81eb51b5f1fd5d305f133cece1bf38c7c8d59a8875a05",
+      "schema_version": 2
+    },
+    {
+      "id": "cf958320-e719-520f-b8d2-9e9b537dd97b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/responses/error500Response\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error500Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error500Response\"],\"\"]:0",
+      "content_hash": "ce07d60dfd12957d55e0b8bfdb0774130efd55fa25a249e43d729b0d2e980d73",
+      "schema_version": 2
+    },
+    {
+      "id": "1cd7b0f0-616a-53df-be03-5f5b0edb1e4d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error500\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error500\"],\"\"]:0",
+      "content_hash": "e2bf46c4ef28d0b9712c6d4dd5871c618ac4b6049dbe6c7580703942d213f885",
+      "schema_version": 2
+    },
+    {
+      "id": "a4f985e0-1d6a-52ec-9d42-feb340d76a8e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/responses/errorResponse\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.DefaultError\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "d6a22bd1650f19ab07ffe50b256120e2874b6c03bf6a7db98503972866a8a6b1",
+      "schema_version": 2
+    },
+    {
+      "id": "014ef102-ed5e-593e-be7d-8873749e628b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Generic error code set by the LFI. Non-namespaced error codes are allowed for compatibility versions prior to v2.0.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.DefaultError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\"],\"\"]:0",
+      "content_hash": "e2fe4171e1149368f088c6b969eab57ee13b92a7ffa9ca750010a1d9b01bfcd6",
+      "schema_version": 2
+    },
+    {
+      "id": "237856a0-c6f8-5914-8b8b-e8c9a1b1b1ec",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteAcceptQuoteRequestProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"QuoteStatus\",\n \"QuoteReference\",\n \"InsuranceSubType\",\n \"Premium\",\n \"Commission\",\n \"QuoteCreationDateTime\"\n ],\n \"properties\": {\n \"QuoteStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\"\n }\n ],\n \"description\": \"Quote status.\"\n },\n \"QuoteReference\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"\n },\n \"InsuranceSubType\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Insurance sub-type, describing the insurance type specific to the sector.\"\n },\n \"Premium\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePremiumProperties\"\n }\n ],\n \"description\": \"Details of the quoted premium, as provided in the quote response.\"\n },\n \"Commission\": {\n \"type\": \"object\",\n \"properties\": {\n \"CommissionAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total monetary value of the commission paid to the TPP if the User proceeds with the quote application and purchases the policy based on the quote information provided.\"\n },\n \"PaymentMethod\": {\n \"type\": \"string\",\n \"enum\": [\n \"DirectToTPP\",\n \"ThroughAPIHub\"\n ],\n \"description\": \"The method to be used to pay the commission to the TPP if the User elects to proceed with the application and successfully purchases the policy.\"\n }\n },\n \"required\": [\n \"PaymentMethod\"\n ],\n \"description\": \"Details of the commission, as provided in the quote response.\"\n },\n \"CustomerSalary\": {\n \"type\": \"string\",\n \"enum\": [\n \"Under4K\",\n \"Over4K\"\n ],\n \"description\": \"Confirmation whether the customer monthly salary is less than or greater than AED 4,000 each month. Required for Health Insurance.\"\n },\n \"QuoteCreationDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"description\": \"The quote creation date and time, as supplied by the LFI in the property `CreationDateTime`.\"\n },\n \"ExpirationDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"description\": \"The expiration date of the quote, as provided in the quote response, if provided by the LFI.\"\n },\n \"PolicyIssuanceRequest\": {\n \"type\": \"object\",\n \"properties\": {\n \"CustomerVerification\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to complete capture of customer verification information and documents for this quote.\"\n },\n \"Payment\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to host payment checkout.\"\n },\n \"PolicyDocuments\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to provide policy documents to customer.\"\n }\n },\n \"required\": [\n \"CustomerVerification\",\n \"Payment\",\n \"PolicyDocuments\"\n ],\n \"description\": \"Broker requests to handle following steps of policy issuance process.\"\n },\n \"Documents\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n },\n \"description\": \"Customer documents encoded for submission to the LFI. Omitted if not required or quote status is `ApplicationPending`.\"\n },\n \"VerifiedDetails\": {\n \"type\": \"object\",\n \"properties\": {\n \"Policy\": {\n \"type\": \"object\",\n \"properties\": {\n \"Takaful\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the policy is Sharia compliant.\"\n },\n \"CoverType\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEMotorInsuranceQuoteCoverTypes\"\n },\n \"RegistrationType\": {\n \"type\": \"string\",\n \"enum\": [\n \"New\",\n \"RenewalOfExistingVehicle\"\n ],\n \"description\": \"Indicates whether the policy is for a brand new car, renewal of registration and insurance or a change of ownership (purchasing a pre-owned / 'second-hand' car)\"\n },\n \"PolicyStartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy start date\"\n },\n \"PolicyEndDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy end date\"\n },\n \"CarUsage\": {\n \"type\": \"string\",\n \"enum\": [\n \"Private\",\n \"Commercial\"\n ],\n \"description\": \"The primary purpose of the vehicle usage\"\n },\n \"CarValuation\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The assessed value of the insured vehicle\"\n },\n \"OptionalCoverAddOns\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEMotorInsuranceQuoteOptionalCoverAddOnsProperties\"\n }\n },\n \"required\": [\n \"OptionalCoverAddOns\"\n ],\n \"minProperties\": 1,\n \"description\": \"Revised details, verified by the TPP.\"\n },\n \"VehicleDetails\": {\n \"type\": \"object\",\n \"properties\": {\n \"EngineNumber\": {\n \"type\": \"string\",\n \"description\": \"The identification of the motor vehicle engine\"\n },\n \"ModelYear\": {\n \"type\": \"string\",\n \"pattern\": \"^[0-9]{4}$\",\n \"description\": \"The manufacturing year of the vehicle.\"\n },\n \"Make\": {\n \"type\": \"string\",\n \"description\": \"The brand or manufacturer of the vehicle.\"\n },\n \"Model\": {\n \"type\": \"string\",\n \"description\": \"The specific model name of the vehicle.\"\n },\n \"Trim\": {\n \"type\": \"string\",\n \"description\": \"The variant or trim level of the vehicle, indicating features and specifications\"\n },\n \"BodyType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Saloon\",\n \"4WD\",\n \"Pickup\",\n \"Truck\",\n \"TrailerHead\",\n \"Trailer\",\n \"Water\",\n \"Fuel Tanker\",\n \"Buses\",\n \"Dumper\",\n \"Agriculture\",\n \"Forklift\",\n \"Heavy Equipment\",\n \"Motorcycle\",\n \"Others\"\n ],\n \"description\": \"The type motor vehicle like saloon, Station/SUV, coupe \"\n },\n \"Color\": {\n \"type\": \"string\",\n \"description\": \"The exterior colour of the vehicle.\"\n },\n \"LoadingCapacity\": {\n \"type\": \"string\",\n \"description\": \"The maximum weight the vehicle can carry, including passengers and cargo\"\n },\n \"Weight\": {\n \"type\": \"integer\",\n \"description\": \"The total weight of the vehicle when empty to nearest kilograms\"\n },\n \"CountryOfOrigin\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3}$\",\n \"description\": \"The country where the vehicle was manufactured\"\n },\n \"NoOfPassengersIncDriver\": {\n \"type\": \"integer\",\n",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 3,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:0",
+      "content_hash": "150fd69490497909dcc6b9636c1db01abb47a454766280f42c6e83ca104500c3",
+      "schema_version": 2
+    },
+    {
+      "id": "5b68acde-7bee-5342-a74b-e61a7a4e85ae",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteAcceptQuoteRequestProperties\n\n \"description\": \"The number of passengers that can be carried in the car\"\n },\n \"Mileage\": {\n \"type\": \"integer\",\n \"description\": \"Vehicle mileage to nearest kilometre\"\n },\n \"EngineProperties\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEEngineProperties\"\n }\n ],\n \"description\": \"Properties of the vehicle engine.\"\n },\n \"ChassisNumber\": {\n \"type\": \"string\",\n \"minLength\": 17,\n \"maxLength\": 17,\n \"description\": \"The chassis number (Vehicle Identification Number - VIN) of the motor vehicle to be insured\"\n },\n \"PlateCode\": {\n \"type\": \"string\",\n \"description\": \"Plate code of the vehicle registration plate that identifies the Emirate where the vehicle is registered\"\n },\n \"PlateNumber\": {\n \"type\": \"string\",\n \"description\": \"Vehicle registration plate number\"\n },\n \"PlateSource\": {\n \"type\": \"string\",\n \"enum\": [\n \"AUH\",\n \"DXB\",\n \"SHJ\",\n \"AJM\",\n \"UAQ\",\n \"RAK\",\n \"FUJ\"\n ],\n \"description\": \"The abbreviation of the Emirate where a vehicle's license plate is registered\"\n },\n \"Transmission\": {\n \"type\": \"string\",\n \"enum\": [\n \"Automatic\",\n \"Manual\"\n ],\n \"description\": \"The type of transmission system in the vehicle\"\n },\n \"Specification\": {\n \"type\": \"string\",\n \"enum\": [\n \"GCC\",\n \"NonGCC\"\n ],\n \"description\": \"Confirm whether the car specification is a Gulf Cooperation Council (GCC) specification.\"\n }\n },\n \"required\": [\n \"ModelYear\",\n \"Make\",\n \"Model\",\n \"Trim\",\n \"BodyType\",\n \"Color\",\n \"CountryOfOrigin\",\n \"NoOfPassengersIncDriver\",\n \"EngineProperties\",\n \"Specification\"\n ]\n },\n \"CarRegistration\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEMotorInsuranceQuoteCarRegistrationProperties\"\n },\n \"MainDriver\": {\n \"type\": \"object\",\n \"properties\": {\n \"Salutation\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceSalutationCodes\"\n }\n ],\n \"description\": \"The salutation of the individual or customer.\"\n },\n \"FirstName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"First Name of the individual.\"\n },\n \"MiddleName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Middle Name of the individual.\"\n },\n \"LastName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Last Name (Surname) of the individual.\"\n },\n \"Gender\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceGender\"\n }\n ],\n \"description\": \"The gender of the customer\"\n },\n \"DateOfBirth\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date of birth of the individual.\"\n },\n \"MaritalStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceMaritalStatus\"\n }\n ],\n \"description\": \"The marital status of the individual.\"\n },\n \"ResidentialLocation\": {\n \"type\": \"string\",\n \"description\": \"Residential Location of the individual.\"\n },\n \"LandlineNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"\n }\n ],\n \"pattern\": \"^\\\\+?[1-9]\\\\d{1,14}$\",\n \"description\": \"The landline telephone number of the individual.\"\n },\n \"Nationality\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3}$\",\n \"description\": \"The nationality of the individual based on the ISO 3166-1 alpha-3 codes\"\n },\n \"PrimaryLanguage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AECustomerPrimaryLanguage\"\n }\n ],\n \"description\": \"Primary language spoken by the insurance policy customer\"\n },\n \"MobileNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"\n }\n ],\n \"description\": \"The mobile telephone number of the individual.\"\n },\n \"EmailAddress\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmailAddressType\"\n }\n ],\n \"description\": \"Email address of the individual.\"\n },\n \"Address\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddress\"\n },\n \"minItems\": 1,\n \"description\": \"Customer's address details\"\n },\n \"Identity\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\"\n }\n ],\n \"minProperties\": 1,\n \"description\": \"Revised identity details, verified by the TPP.\"\n },\n \"DrivingLicenseHistory\": {\n \"type\": \"object\",\n \"properties\": {\n \"DrivingLicenseNumber\": {\n \"type\": \"string\",\n \"description\": \"The policyholder or applicant driving license number.\"\n },\n \"DrivingLicenseIssuingEmirate\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n },\n \"TimeDrivingInUAE\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEDurationYearsAndMonths\"\n }\n ],\n \"description\": \"The total duration (in years and months) that the policyholder or applicant has been actively driving in the UAE\"\n },\n \"DrivingLicenseIssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The date when the policyholder or applicant UAE driving license was issued.\"\n },\n \"DrivingLicenseExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The date the driving license will expire\"\n },\n \"TCNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^[0-9]{8}$\",\n \"description\": \"Unique ID which links individual traffic file to driver and car registration\"\n },\n \"VCCNumber\": {\n \"type\": \"string\"\n },\n \"HiyazaCertificateNumber\": {\n \"type\": \"string\"\n }\n },\n \"required\": [\n \"TimeDrivingInUAE\",\n \"DrivingLicenseExpiryDate\",\n \"TCNumber\",\n \"VCCNumber\",\n \"HiyazaCertificateNumber\"\n ],\n \"description\": \"Confirmation of the main driver's driving license details and driving history\"\n },\n \"MotorClaims\": {\n \"type\": \"object\",\n \"properties\": {\n \"MotorClaimInLast24Months\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the insured has made a motor insurance claim in the last 24 months\"\n },\n \"MotorLastClaimMade\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The date when the most recent motor insurance claim was made\"\n },\n \"NoClaimsCertificate\": {\n \"type\": \"string\",\n \"enum\": [\n \"NoNCD\",\n \"1Year\",\n \"2Years\",\n \"3Years\",\n \"4Years\",\n \"5+Years\"\n ],\n",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 3,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:1",
+      "content_hash": "a66d405579dd3b76eea21b48f55d401296d20c3a2f312098500637b139289e2e",
+      "schema_version": 2
+    },
+    {
+      "id": "ddde4694-8786-5e86-8a4b-11f6df61ef09",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteAcceptQuoteRequestProperties\n\n \"description\": \"Confirmation whether the insured has a No Claim Certificate issued by the previous insurer confirming the insured's no-claims history. The customer must be advised that the No Claims Certificate will be required by the LFI if they decide to proceed with the application\"\n }\n },\n \"required\": [\n \"MotorClaimInLast24Months\",\n \"NoClaimsCertificate\"\n ],\n \"description\": \"Details of motor insurance claims made by the proposer.\"\n }\n },\n \"required\": [\n \"DateOfBirth\",\n \"Nationality\",\n \"Address\",\n \"DrivingLicenseHistory\",\n \"MotorClaims\"\n ]\n },\n \"AdditionalDrivers\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"RelationshipToMainDriver\": {\n \"type\": \"string\",\n \"enum\": [\n \"Spouse\",\n \"Parent\",\n \"Sibling\",\n \"Child\",\n \"Friend\",\n \"Employee\",\n \"Other\"\n ],\n \"description\": \"The additional driver's relationship to the main driver\"\n },\n \"FullName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Full name of the additional driver\"\n },\n \"DateOfBirth\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date of birth of the individual.\"\n },\n \"Gender\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceGender\"\n }\n ],\n \"description\": \"The gender of the customer\"\n },\n \"Nationality\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3}$\",\n \"description\": \"The nationality of the individual based on the ISO 3166-1 alpha-3 codes\"\n },\n \"DrivingLicenseNumber\": {\n \"type\": \"string\",\n \"description\": \"The policyholder or applicant driving license number.\"\n },\n \"DrivingLicenseIssuingEmirate\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n },\n \"TimeDrivingInUAE\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEDurationYearsAndMonths\"\n }\n ],\n \"description\": \"The total duration (in years and months) that the policyholder or applicant has been actively driving in the UAE\"\n },\n \"DrivingLicenseIssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The date when the policyholder or applicant UAE driving license was issued.\"\n },\n \"DrivingLicenseExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The date the driving license will expire\"\n },\n \"Identity\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\"\n }\n ],\n \"minProperties\": 1,\n \"description\": \"Revised identity details, verified by the TPP.\"\n }\n },\n \"required\": [\n \"RelationshipToMainDriver\",\n \"FullName\",\n \"DateOfBirth\",\n \"Nationality\",\n \"DrivingLicenseNumber\",\n \"DrivingLicenseIssueDate\",\n \"DrivingLicenseExpiryDate\"\n ]\n },\n \"minItems\": 1,\n \"description\": \"Required if additional drivers are to be covered under the motor insurance cover\"\n },\n \"ExistingPolicy\": {\n \"type\": \"object\",\n \"properties\": {\n \"InsurerName\": {\n \"type\": \"string\",\n \"description\": \"The Insurance Company Name when existing motor insurance cover is held\"\n },\n \"ExistingPolicyNumber\": {\n \"type\": \"string\",\n \"description\": \"The Insurance Policy Number when existing motor insurance cover is held\"\n },\n \"CurrentInsuranceActive\": {\n \"type\": \"boolean\",\n \"description\": \"Indicator to confirm the car is currently covered by an existing active insurance policy\"\n },\n \"TypeOfCurrentInsurance\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEMotorInsuranceQuoteCoverTypes\"\n },\n \"CurrentInsuranceExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The date the existing insurance cover will expire\"\n },\n \"AgencyRepairsIncluded\": {\n \"type\": \"boolean\",\n \"description\": \"Yes' / 'No' confirmation whether the existing policy includes repairs at the authorized dealer or manufacturers service centre\"\n },\n \"BreakdownCoverIncluded\": {\n \"type\": \"boolean\",\n \"description\": \"Yes' / 'No' confirmation whether the policy includes breakdown roadside assistance Cover\"\n }\n },\n \"required\": [\n \"InsurerName\",\n \"CurrentInsuranceActive\",\n \"TypeOfCurrentInsurance\",\n \"CurrentInsuranceExpiryDate\"\n ],\n \"description\": \"Required when the RegistrationType selected is Renewal\"\n },\n \"CarFinance\": {\n \"type\": \"object\",\n \"properties\": {\n \"BankName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Confirm the Bank or registered finance company providing the car finance.\"\n },\n \"FinanceAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The finance amount secured against the car.\"\n },\n \"FinanceStartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Finance start date\"\n },\n \"FinanceEndDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Finance end date\"\n },\n \"FinanceTerm\": {\n \"type\": \"integer\",\n \"description\": \"The finance term in months\"\n }\n },\n \"required\": [\n \"BankName\"\n ],\n \"description\": \"Confirmation whether a finance will be or is being used to purchase the car and the finance is secured by a mortgage over the car. This value can be omitted when the finance is for other purposes.\"\n }\n },\n \"required\": [\n \"Policy\",\n \"VehicleDetails\",\n \"CarRegistration\"\n ],\n \"description\": \"Verified details captured by the TPP, when the TPP is a Broker. Omitted if not required.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 2,
+      "part_count": 3,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:2",
+      "content_hash": "df9c72bb25d2aba36b283c8a630e5c25427a32ab01964630790363246c9355e1",
+      "schema_version": 2
+    },
+    {
+      "id": "5b031b95-40a4-584f-be1b-945deaeb3400",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"ApplicationPending\",\n \"KYCCaptured\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\"],\"\"]:0",
+      "content_hash": "00dbee1be825dd4133e46a0f33b9abc5790689bf8adf5ff8bebdad4208a7c84c",
+      "schema_version": 2
+    },
+    {
+      "id": "41f264dc-b48c-5aa3-8acf-c835f5216283",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\n\n{\n \"type\": \"string\",\n \"description\": \"The unique quote reference number generated by the TPP for tracking the quote\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"],\"\"]:0",
+      "content_hash": "8aacd643640c52abf8ce9a8cebf2a8670d8dbd5cd413b9537186cf09c792e6c6",
+      "schema_version": 2
+    },
+    {
+      "id": "f50ecafd-1b4b-5c8a-967b-561e2d4e3163",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"PremiumAmountExcludingVAT\",\n \"VATAmount\",\n \"TotalPremiumAmount\",\n \"PaymentFrequency\"\n ],\n \"properties\": {\n \"Status\": {\n \"type\": \"string\",\n \"enum\": [\n \"Initial\",\n \"StartingFrom\",\n \"Final\"\n ],\n \"description\": \"Confirmation whether the premium quoted is an initial premium, starting from, or final.\"\n },\n \"TotalDiscountAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total discount amount applied to the final premium amount\"\n },\n \"DiscountApplied\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\"\n },\n \"minItems\": 1,\n \"description\": \"Details of the discounts applied\"\n },\n \"PremiumAmountExcludingVAT\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The Premium Amount excluding any VAT amount\"\n },\n \"VATAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The Premium VAT amount.\"\n },\n \"VATPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceVATPercentage\"\n }\n ],\n \"description\": \"The VAT percentage rate charged to the premium.\"\n },\n \"TotalPremiumAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total Premium amount including VAT\"\n },\n \"PaymentFrequency\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"\n }\n ],\n \"description\": \"The payment frequency the calculated Premium has been based on.\"\n },\n \"InstallmentOptions\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"\n },\n \"minItems\": 1,\n \"description\": \"The possible Premium instalment frequency options available to the customer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties\"],\"\"]:0",
+      "content_hash": "69501dffc0bf856e0876bd3bb7f1bf5084daa8f6aeac7faedb60274898273c90",
+      "schema_version": 2
+    },
+    {
+      "id": "066e1171-2931-5f17-95cb-7103cb734462",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Currency\",\n \"Amount\"\n ],\n \"properties\": {\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n },\n \"Amount\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n }\n },\n \"description\": \"The Currency and Amount relating to the Payment, Refund or Request to Pay\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\"],\"\"]:0",
+      "content_hash": "a2ecb38bf9bfc7b312a9668d2b16760686f38f60974caf6a3c688cf4c8196077",
+      "schema_version": 2
+    },
+    {
+      "id": "728a48ee-1911-5bf1-a56f-799794b57f49",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n \"example\": \"AED\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"],\"\"]:0",
+      "content_hash": "591b0ba5371b6f6f6e1cec6d2a05188a33e653f3a09852a713422c435a18174a",
+      "schema_version": 2
+    },
+    {
+      "id": "0fc7c565-79a3-5a07-937d-9282e17a5a4d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\n\n{\n \"type\": \"string\",\n \"pattern\": \"^\\\\d{1,16}\\\\.\\\\d{2}$\",\n \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n \"example\": \"100.00\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"],\"\"]:0",
+      "content_hash": "25ae20318b4e0e0b5fea397086fd08498a80ed630d733e086aa112f3e4605e5c",
+      "schema_version": 2
+    },
+    {
+      "id": "fbd8737e-3aff-548a-a31f-dffc5662bfa0",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\n\n{\n \"type\": \"object\",\n \"required\": [\n \"DiscountName\",\n \"DiscountAmount\"\n ],\n \"properties\": {\n \"DiscountName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the discount applied to the insurance premium\"\n },\n \"DiscountPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePercentageValue\"\n }\n ],\n \"description\": \"The percentage reduction applied to the insurance premium as part of the discount.\"\n },\n \"DiscountAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The monetary value of the discount applied to the insurance premium\"\n }\n },\n \"description\": \"Details of discounts applied to the insurance premium\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\"],\"\"]:0",
+      "content_hash": "1d55b90aa7386409ca50b20d4158ef2554acd22dcb4c66014eefc98400d2e124",
+      "schema_version": 2
+    },
+    {
+      "id": "578d9914-419e-52a2-9fa4-30544479fff8",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue\n\n{\n \"type\": \"number\",\n \"format\": \"decimal\",\n \"minimum\": 0,\n \"maximum\": 100\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue\"],\"\"]:0",
+      "content_hash": "06c2527ebc7f78fd7e194382920572eaa19ec82bd03d18e491650a166f74a332",
+      "schema_version": 2
+    },
+    {
+      "id": "7d1ababb-cd4b-5490-8b6d-a1f995f21b8c",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage\n\n{\n \"type\": \"number\",\n \"format\": \"decimal\",\n \"minimum\": 0,\n \"maximum\": 100\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage\"],\"\"]:0",
+      "content_hash": "0f954b6c75ce01c205d71e8656b6a7bbf8b20349ed370adf81ac444a8977df28",
+      "schema_version": 2
+    },
+    {
+      "id": "22a4d396-e444-5532-ad09-64b0870d024d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Annually\",\n \"OneTime\",\n \"Monthly\",\n \"Quarterly\",\n \"BiAnnual\",\n \"Other\",\n \"Limited\"\n ],\n \"description\": \"Frequencies\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"],\"\"]:0",
+      "content_hash": "1b28f7fb9a7708729343384cf8850a475361316ab40bdbfaecb510d975a3d7a2",
+      "schema_version": 2
+    },
+    {
+      "id": "a00f05a4-858d-5fa7-b9ce-4e56b4fe9454",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Type\",\n \"FileName\",\n \"ContentType\",\n \"Content\",\n \"HashType\",\n \"Hash\"\n ],\n \"properties\": {\n \"Type\": {\n \"type\": \"string\",\n \"description\": \"The type of document that has been provided. For example, Policy Booklet, Terms & Conditions\"\n },\n \"FileName\": {\n \"type\": \"string\",\n \"description\": \"Original file name for operator reference (no paths). Should include a suitable extension (e.g., policy.pdf, terms.pdf).\"\n },\n \"ContentType\": {\n \"type\": \"string\",\n \"enum\": [\n \"application/pdf\",\n \"image/jpeg\",\n \"image/png\"\n ],\n \"description\": \"Content (MIME) type of the document, using IANA-registered media types, and based on types supported in the Open Finance Framework.\"\n },\n \"Content\": {\n \"type\": \"string\",\n \"format\": \"base64\",\n \"description\": \"Base64-encoded representation of the document content. The encoded string must be generated from the raw file bytes and decoded by the LFI to restore the original file.\"\n },\n \"HashType\": {\n \"type\": \"string\",\n \"enum\": [\n \"SHA256\"\n ],\n \"description\": \"Approach used to create checksum or hash of the file. SHA256 is supported.\"\n },\n \"Hash\": {\n \"type\": \"string\",\n \"description\": \"Checksum of the original file bytes created using the method indicated by `HashType`. Required to enable integrity verification by comparing with the hash or checksum calculated on the decoded file.\"\n },\n \"AdditionalInformation\": {\n \"type\": \"string\",\n \"maxLength\": 1000,\n \"description\": \"Optional free text notes providing context on the document.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\"],\"\"]:0",
+      "content_hash": "484e551f61ff744130e9d870e6f291ebb00c7000e4cb89f4ebe14e06a4993d35",
+      "schema_version": 2
+    },
+    {
+      "id": "67f4e669-f6e1-59e0-96cf-e872d2152843",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteCoverTypes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Comprehensive\",\n \"ThirdPartyLiability\"\n ],\n \"description\": \"Specifies whether the motor insurance policy is Comprehensive or Third Party Liability.\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteCoverTypes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteCoverTypes\"],\"\"]:0",
+      "content_hash": "cd35290df6de54af7eba2428011f07f5f80ad35bee7ff720f29aabc3589cac39",
+      "schema_version": 2
+    },
+    {
+      "id": "9b67186a-8137-59d1-9bac-595be98932bf",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteOptionalCoverAddOnsProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"DriverCover\",\n \"PassengerCover\",\n \"RoadsideAssistance\",\n \"ProtectedNoClaims\",\n \"AgencyRepairs\",\n \"LossOfKeys\",\n \"HireCar\",\n \"GCC\",\n \"OmanCover\"\n ],\n \"properties\": {\n \"DriverCover\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Customer wants to include personal accident cover for the driver in the motor insurance policy.\"\n },\n \"PassengerCover\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Customer wants to include personal accident cover for passengers in the insured vehicle. \"\n },\n \"RoadsideAssistance\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Customer wants to include roadside assistance services in the motor insurance policy.\"\n },\n \"ProtectedNoClaims\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Customer wants to protect their No Claims Discount (NCD) in the event of a claim. \"\n },\n \"AgencyRepairs\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Customer wants repairs to be carried out at the vehicle manufacturer’s authorized service center (agency repairs) rather than at non-agency garages. \"\n },\n \"LossOfKeys\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Customer wants Cover for the cost of replacing lost, stolen, or damaged car keys.\"\n },\n \"HireCar\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Customer wants to include a temporary replacement vehicle (rental car) in case their insured vehicle is under repair due to a covered claim.\"\n },\n \"GCC\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Customer wants to extend the motor insurance Cover to other Gulf Cooperation Council (GCC) countries.\"\n },\n \"OmanCover\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Customer wants to extend the motor insurance Cover to Oman\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteOptionalCoverAddOnsProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteOptionalCoverAddOnsProperties\"],\"\"]:0",
+      "content_hash": "b25740c0168a664d078d82eabf08e412a13b8641db682ac1a29140143c33cd16",
+      "schema_version": 2
+    },
+    {
+      "id": "8fcf0437-e092-564c-a7d5-3c3eee501b51",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEEngineProperties\n\n{\n \"anyOf\": [\n {\n \"type\": \"object\",\n \"properties\": {\n \"EngineType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Electric\"\n ],\n \"description\": \"Engine type for fully-electric vehicles.\"\n },\n \"BatteryCapacity\": {\n \"type\": \"string\",\n \"description\": \"The capacity of the battery.\"\n },\n \"MotorPower\": {\n \"type\": \"string\",\n \"description\": \"The power of the vehicle motor.\"\n }\n },\n \"required\": [\n \"EngineType\"\n ]\n },\n {\n \"type\": \"object\",\n \"properties\": {\n \"EngineType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Hybrid\"\n ],\n \"description\": \"Engine type for hybrid vehicles.\"\n },\n \"BatteryCapacity\": {\n \"type\": \"string\",\n \"description\": \"The capacity of the battery.\"\n },\n \"MotorPower\": {\n \"type\": \"string\",\n \"description\": \"The power of the vehicle motor.\"\n },\n \"EngineCapacity\": {\n \"type\": \"string\",\n \"description\": \"The engine displacement volume in cubic centimetres (cc).\"\n },\n \"CylinderCapacity\": {\n \"type\": \"string\",\n \"description\": \"The number of cylinders\"\n }\n },\n \"required\": [\n \"EngineType\",\n \"EngineCapacity\",\n \"CylinderCapacity\"\n ]\n },\n {\n \"type\": \"object\",\n \"properties\": {\n \"EngineType\": {\n \"type\": \"string\",\n \"enum\": [\n \"InternalCombustionEngine\"\n ],\n \"description\": \"Engine type for vehicles with an internal combustion engine.\"\n },\n \"EngineCapacity\": {\n \"type\": \"string\",\n \"description\": \"The engine displacement volume in cubic centimetres (cc).\"\n },\n \"CylinderCapacity\": {\n \"type\": \"string\",\n \"description\": \"The number of cylinders\"\n }\n },\n \"required\": [\n \"EngineType\",\n \"EngineCapacity\",\n \"CylinderCapacity\"\n ]\n }\n ],\n \"description\": \"Details of the engine type for the vehicle\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEEngineProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEEngineProperties\"],\"\"]:0",
+      "content_hash": "23465eaf17b13a3499b2f5cfab27fa5f35dd8c42fed076f60407adc9ec6822e6",
+      "schema_version": 2
+    },
+    {
+      "id": "2bb85db6-b3d1-5b03-a08c-c00d312a68ac",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteCarRegistrationProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"EmirateOfRegistration\"\n ],\n \"properties\": {\n \"EmirateOfRegistration\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"The Emirate where the insured motor vehicle was registered\"\n },\n \"DateOfFirstRegistration\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date the motor vehicle was first registered\"\n },\n \"RegistrationExpiry\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date when the current registration expires.\"\n },\n \"ValidMulkiyaHeld\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the Mulkiya (vehicle registration card) is held by the applicant/customer. The Mulkiya document is collected by the LFI if the Customer elects to proceed with the quote.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteCarRegistrationProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEMotorInsuranceQuoteCarRegistrationProperties\"],\"\"]:0",
+      "content_hash": "47bfc1b25fdc9fa74df1669c1f23d909f2b32669cffce4aed2bf7585f5bf7302",
+      "schema_version": 2
+    },
+    {
+      "id": "0eb3ba57-135c-500a-8774-b438cb59e679",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AbuDhabi\",\n \"Ajman\",\n \"Dubai\",\n \"Fujairah\",\n \"RasAlKhaimah\",\n \"Sharjah\",\n \"UmmAlQuwain\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\"],\"\"]:0",
+      "content_hash": "fe7f07f3fd7150226abcf2ae1efe499d6fbcb2bfe950e5827970d4bba92a9a6d",
+      "schema_version": 2
+    },
+    {
+      "id": "f96cd277-96b2-5ead-bb82-ce4baeb4897e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Mr\",\n \"Mrs\",\n \"Ms\",\n \"Miss\",\n \"Dr\",\n \"Prof\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes\"],\"\"]:0",
+      "content_hash": "1bc680e11005f740bc7d0dbe0ccbc7a0e24954d8330ebaa84b4448c69f1f4440",
+      "schema_version": 2
+    },
+    {
+      "id": "56a39ebd-7ecf-5cbd-a492-dc9c98ebbccd",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Male\",\n \"Female\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender\"],\"\"]:0",
+      "content_hash": "cbd49518b2199ca1f70edbafbb8bcfd7e384117538584df4bd550a3e47808e91",
+      "schema_version": 2
+    },
+    {
+      "id": "45bed0f9-e2cd-5fa5-b7e1-fce09580a771",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Single\",\n \"Married\",\n \"Divorced\",\n \"Widowed\",\n \"Separated\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus\"],\"\"]:0",
+      "content_hash": "2aebdbbe0d2884ca3f550b89fea7ebbe564e0c941156f2d5bbdccd1d3ca57b32",
+      "schema_version": 2
+    },
+    {
+      "id": "afe95337-40b0-5507-a5dc-665710e6372f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType\n\n{\n \"type\": \"string\",\n \"pattern\": \"^\\\\+?[1-9]\\\\d{1,14}$\",\n \"example\": \"+971501234567\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"],\"\"]:0",
+      "content_hash": "fed7f2b6c960996fa677ebc65d9eb99fa567d2a3fec46c9be9f3aef6a4391286",
+      "schema_version": 2
+    },
+    {
+      "id": "04f9b4f5-1cb8-50ac-9764-87271be40e78",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"English\",\n \"Arabic\",\n \"Other\"\n ],\n \"description\": \"Primary language spoken by the insurance policy customer\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage\"],\"\"]:0",
+      "content_hash": "1389808dac47fd4d61d7701fee6556a58fd7e2bcc5f1c73d4b92a7a3ebae2cea",
+      "schema_version": 2
+    },
+    {
+      "id": "3ca7cf5c-7a9b-5928-bbb4-64358328ce15",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\",\n \"example\": \"ali.hamad@example.openfinanceplatform.ae\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType\"],\"\"]:0",
+      "content_hash": "aeff6fd32805fc8f8d5ff7827fe81bbdf25a23c1c5477f7b40d61b12ca84e83b",
+      "schema_version": 2
+    },
+    {
+      "id": "a7440301-a171-547d-a66f-2ab157f36cf6",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddress\n\n{\n \"type\": \"object\",\n \"required\": [\n \"AddressLine\",\n \"Country\"\n ],\n \"properties\": {\n \"AddressType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Billing\",\n \"Business\",\n \"Correspondence\",\n \"DeliveryTo\",\n \"MailTo\",\n \"POBox\",\n \"Postal\",\n \"Permanent\",\n \"Residential\",\n \"Statement\",\n \"Other\"\n ],\n \"description\": \"The type of address.\"\n },\n \"AddressLine\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddressLine\"\n },\n \"minItems\": 1,\n \"maxItems\": 7,\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\\n\\nThis value should be used where the address is provided or stored as a single string.\"\n },\n \"BuildingNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The unit, apartment, or villa number within a building or community\"\n },\n \"BuildingName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of the building or house.\"\n },\n \"Floor\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Floor or storey within a building.\"\n },\n \"StreetName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the street or road where the property is located\"\n },\n \"DistrictName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The district, community, or neighbourhood where the property is located\"\n },\n \"PostBox\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery\"\n },\n \"TownName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of a built-up area, such as a town or city\"\n },\n \"CountrySubDivision\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Country subdivision, such as state or province. This is the Emirate where the address is registered.\"\n },\n \"Country\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCountryCode\"\n }\n ],\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddress",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddress\"],\"\"]:0",
+      "content_hash": "aa99f818f61b6c574f6bf9f0c95831922645c7ee3ca2cac0f146062c8c9968ed",
+      "schema_version": 2
+    },
+    {
+      "id": "7cbc363f-be52-5a93-94b4-971270c89c35",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine\"],\"\"]:0",
+      "content_hash": "d3410e00d6bb02e582d8b68c553622de3ebb0fbc10a4e2aa3c35fd584f14d357",
+      "schema_version": 2
+    },
+    {
+      "id": "e7e76a24-8a59-5505-99e6-1465b3405f6a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"[A-Z]{2}\",\n \"description\": \"Country code that conforms with ISO 3166, 3 character alpha code\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode\"],\"\"]:0",
+      "content_hash": "650171c79c65076335c01d6bfc679c00a515dff05d63b26f3d2a75739f778ec2",
+      "schema_version": 2
+    },
+    {
+      "id": "04de875b-d216-54dd-b2a7-50e2852a6b1a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"EmiratesId\": {\n \"type\": \"object\",\n \"properties\": {\n \"EmiratesIdNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$\",\n \"description\": \"Emirates identification number\"\n },\n \"EmiratesIdExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Emirates ID expiry date\"\n }\n },\n \"description\": \"Verified Emirates ID details, captured by the TPP.\"\n },\n \"Passport\": {\n \"type\": \"object\",\n \"properties\": {\n \"PassportNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z0-9]+$\",\n \"description\": \"Passport number\"\n },\n \"IssuingCountry\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"The country the passport is issued by.\"\n },\n \"NameOnPassport\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The applicant, policyholder or insured person name as detailed on their passport\"\n },\n \"IssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The passport issue date\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The passport expiry date\"\n }\n },\n \"description\": \"Verified Passport details, captured by the TPP.\"\n },\n \"Visa\": {\n \"type\": \"object\",\n \"properties\": {\n \"VisaType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Employment\",\n \"Residence\",\n \"Business\",\n \"Investor\",\n \"Freelance\",\n \"VirtualWork\",\n \"Retirement\",\n \"Student\",\n \"Family\",\n \"Green\",\n \"Golden\",\n \"Blue\"\n ],\n \"description\": \"The type of visa issues, based on an available code list\"\n },\n \"VisaNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^[0-9]+$\",\n \"description\": \"Visa number\"\n },\n \"IssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The visa issue date\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The visa expiry date\"\n },\n \"IssuingEmirate\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Emirate that issued the visa\"\n }\n },\n \"description\": \"Verified Passport details, captured by the TPP.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\"],\"\"]:0",
+      "content_hash": "735be1d091ba80a124e23c26de5f81c5556366e03938085cb603b2e8383840c5",
+      "schema_version": 2
+    },
+    {
+      "id": "f64b71cf-03dd-5835-a22e-a1697534aaa6",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Motor Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEDurationYearsAndMonths\n\n{\n \"type\": \"string\",\n \"pattern\": \"^P(\\\\d+Y)?(\\\\d+M)?$\",\n \"format\": \"duration\",\n \"example\": \"P2Y3M\"\n}",
+      "metadata": {
+        "title": "Accept a Motor Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEDurationYearsAndMonths",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "01299608aaf696c633110a84113af184e93d093c3c5a851ab0baf03be05ad472",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-motor-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEDurationYearsAndMonths\"],\"\"]:0",
+      "content_hash": "9cf101e98403612421614f638d3436e3a4a1020e79dcf5cf1c21a8ba261b796a",
+      "schema_version": 2
+    }
+  ]
+}

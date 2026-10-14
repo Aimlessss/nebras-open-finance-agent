@@ -1,0 +1,393 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "a9b98cf827f46354d18e3d838decb0c6fcd2cbf504783af81288ec5bee9a8eb1",
+    "dependencies": [
+      "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+    ],
+    "assets": [
+      {
+        "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+        "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "PII Schema — Consent (Consent Manager)",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/api-schema/pii-par",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "PII Schema — Consent (Consent Manager)",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The schema below shows the full structure of the decrypted PersonalIdentifiableInformation payload as received during consent authorisation via the Consent Manager. This is the PII the LFI MUST decrypt and validate before authorising a payment consent."
+      },
+      {
+        "type": "paragraph",
+        "text": "At this stage, the PII includes the Initiation.Creditor array (1–10 entries, or omitted for open beneficiary) and optionally Initiation.DebtorAccount. See the Overview for decryption steps."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Schema AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"info\": {\n    \"title\": \"Consent Manager API\",\n    \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor the Consent Manager API.\\n\\nThese APIs are implemented by Ozone and should be called by the financial institution to find, modify and delete consents.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.1.10\\n* Added a character-set `pattern` (`^[A-Za-z0-9 \\\\/?:().,'+-]+$`, the ISO 20022 / SWIFT \\\"x\\\" set) to the\\n  current (free-text, 35-char) branch of the Creditor and Debtor references\\n  (`AEServiceInitiationCreditorReference` / `AEServiceInitiationDebtorReference`), so every LFI knows\\n  exactly which characters it must accept and store. The deprecated structured (120-char) branch is\\n  unchanged. Per OFP-003.\\n\\n### v2.1.9\\n* Restructured the international Creditor PII (`PersonalIdentifiableInformation.Initiation.Creditor`) for\\n  SWIFT SR2026: the Creditor party is now a `oneOf` of Individual and Organization variants, discriminated\\n  by `IdentityType`.\\n\\n\\n* The Individual variant carries object-valued `FirstName` / `MiddleName` / `LastName` (`en` / `ar` / `ls`),\\n  `RelationshipToSender`, `DateOfBirth`, `Occupation`, `Nationality`, `Gender`, `CountryOfBirth`,\\n  `SourceOfIncome`, `SourceOfFunds`, and `Evidence`. The Organization variant carries `AnyBIC`, `LEI`, and\\n  `Identification` + `SchemeName`. Both variants share `MobileNumber` / `Email` and an object-valued `Name`\\n  (`en` / `ar` / `ls`).\\n\\n\\n* Added SWIFT SR2026 fields to the international `PostalAddress` (`PostCode`, `Room`, `Department`,\\n  `SubDepartment`, `TownLocationName`, and now-mandatory `TownName`). It is now a single\\n  `AEInternationalAddress` schema shared by both the Creditor and the Creditor Agent (the Creditor Agent\\n  previously used the legacy `AEAddress`).\\n\\n\\n* Added a `CreditorAgent.Branch` object and `CreditorAccount.AccountType` (Savings / Current / Checking /\\n  Prepaid). Domestic Creditor schemas are unchanged.\\n\\n\\n### v2.1.8\\n* Aligned `AEBankServiceInitiationRichAuthorizationRequests.AECreditorIndicators.AccountType` enum with Standards (Retail / SME / Corporate), replacing the previous product-category enum (CurrentAccount / Savings / CreditCard / Mortgage / Finance) that diverged from the Standards PAR + Payments specs.\\n\\n* Aligned the `Risk` object with Standards: tightened `AERisk` and its descendants on the payment-initiation side with `additionalProperties: false` throughout, carved out the three `SupplementaryData` blocks on the RAR-shape (`AEBankServiceInitiationRichAuthorizationRequests.AE*Indicators.SupplementaryData`) to be open extension points (no `additionalProperties: false`), and added `minLength: 1` / `maxLength: 70` to `AddressLine` items inside the legacy `AEAddress` variant.\\n\\n* Added `ReadStatements` and `ReadProductFinanceRates` to `AEAccountAccessConsentPermissionCodes`, which were present in the v2.1 Standards Bank Data Sharing permission set but missing from the Consent Manager. The Consent Manager must accept every permission code from all supported Standards versions.\\n\\n* Closed the three `ConsentManager.AE*ConsentUpdateProperties` schemas with `additionalProperties: false`. The `PATCH /consents/{consentId}` request body is an `anyOf` of one schema per consent type (Bank Data Sharing, Bank Service Initiation, Insurance Data Sharing); without this, unknown properties were silently accepted, so a field belonging to one consent type could be patched onto another. The schemas now enforce the per-type field separation they describe.\\n\\n* Reverted the payment-log reject reason code to match the v2.0.x Consent Manager: the top-level property is `rejectReasonCode` (not `RejectReasonCode`) on the `GET /payment-log` response and `PATCH /payment-log/{id}` request body, and the `code` / `message` fields inside `CbuaePaymentLogRejectReasonCode` items are lower-case again (not `Code` / `Message`). The PascalCase variants were introduced in error and broke LFIs built against the v2.0.x payment-log contract.\\n\\n### v2.1.7\\n* Added `SME` to `AEExternalAccountTypeCode`.\\n\\n* Changed the `Amount` schema `pattern` regex, which was over-escaped in YAML and failed to validate decimal \\n  monetary values.\\n\\n\\n* Removed the unused `AEBankServiceInitiationRichAuthorizationRequests.AERiskExternalAccountIdentificationCode` \\n  schema, which duplicated `AERiskExternalAccountIdentificationCode` and was never referenced.\\n\\n\\n### v2.1.6\\n* Added revised PII properties compatible with version 2.1.\\n\\n* Changed DebtorReference and CreditorReference to reflect v2.0 properties.\\n\\n* Changed Rich Authorization Request `type` values to reflect exactly the consent type they are describing.\\n\\n* Removed changelog before v2.1.4 to reduce bloat of API description.\\n### v2.1.5\\n* Changed Account Opening Statuses to provide correct status codes for `patch /account-opening-log/{logId}`.\\n### v2.1.4\\n* Added `FromDate` and `ToDate` in Bank Data Sharing Consents.\\n* Changed `TransactionFromDateTime` and `TransactionToDateTime` to `deprecated` in Bank Data Sharing Consents in\\n  line with changes in v2.1 Pushed Authorization Requests.\\n\",\n    \"version\": \"v2.1.10\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://<your-ozone-cm-server>\"\n    }\n  ],\n  \"display_path\": \"/consent.PersonalIdentifiableInformation\",\n  \"schema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"Initiation\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"DebtorAccount\": {\n            \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEBankServiceInitiationDebtorAccountProperties\"\n          },\n          \"Creditor\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditor\"\n            },\n            \"minItems\": 1,\n            \"description\": \"List of Creditors for a domestic payment consent.\"\n          }\n        },\n        \"description\": \"The Initiation payload is sent by the initiating party to the LFI. It is used to request movement of funds from the Debtor Account to a Creditor for one-or-more domestic payments.\",\n        \"additionalProperties\": false\n      },\n      \"Risk\": {\n        \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AERisk\"\n      }\n    },\n    \"description\": \"Elements of Personal Identifiable Information for a Domestic Payment.\",\n    \"additionalProperties\": false,\n    \"title\": \"Domestic Payment PII Schema Object\"\n  },\n  \"security\": [\n    {},\n    {\n      \"OzoneConnectJwtAuth\": []\n    }\n  ],\n  \"securitySchemes\": {\n    \"OzoneConnectJwtAuth\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Ozone-Connect-JWT-Auth\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEBankServiceInitiationDebtorAccountProperties",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"SchemeName\",\n    \"Identification\"\n  ],\n  \"properties\": {\n    \"SchemeName\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"IBAN\"\n      ],\n      \"description\": \"Scheme name for the Debtor Account. The Debtor Account must be an IBAN.\"\n    },\n    \"Identification\": {\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"description\": \"The Identification of the Debtor Account.\"\n    },\n    \"Name\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"en\": {\n          \"type\": \"string\",\n          \"maxLength\": 70\n        },\n        \"ar\": {\n          \"type\": \"string\",\n          \"maxLength\": 70\n        }\n      },\n      \"minProperties\": 1,\n      \"description\": \"The Debtor Account, which can be provided in both English and Arabic. Omitted if not held by the TPP.\",\n      \"additionalProperties\": false\n    }\n  },\n  \"description\": \"Details of the Debtor Account when provided at the TPP. Omitted if not available at the TPP or the User chooses to select the Debtor Account at the LFI.\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditor",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"CreditorAccount\"\n  ],\n  \"properties\": {\n    \"CreditorAgent\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAgentProperties\"\n    },\n    \"Creditor\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorProperties\"\n    },\n    \"CreditorAccount\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditorAccountProperties\"\n    },\n    \"ConfirmationOfPayeeResponse\": {\n      \"type\": \"string\",\n      \"pattern\": \"^.+\\\\..+\\\\..+$\",\n      \"description\": \"Response from Confirmation of Payee operation, when executed for the Creditor Account.\\n\\nThis is JSON Web Signature returned by the Payee Confirmation operation at the Confirmation of Payee API.\\n\\nThe value must be the full JWS string, including the header and signature, without decoding to an object.\\n\\nIf Confirmation of Payee is not performed this property can be omitted\"\n    }\n  },\n  \"description\": \"Identification elements for a Creditor for a domestic payment instruction.\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAgentProperties",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"SchemeName\",\n    \"Identification\"\n  ],\n  \"properties\": {\n    \"SchemeName\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"BICFI\",\n        \"Other\"\n      ]\n    },\n    \"Identification\": {\n      \"type\": \"string\"\n    },\n    \"Name\": {\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 140\n    },\n    \"PostalAddress\": {\n      \"$ref\": \"#/components/schemas/AEAddress\"\n    }\n  },\n  \"description\": \"Properties of the Creditor Agent, which provides information on the Financial Institution that holds the Creditor Account.\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEAddress",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"anyOf\": [\n    {\n      \"description\": \"(Array) Address information that locates and identifes a specific address, as defined by a national or international postal service.\\\"\\n**v1.2 version of address format marked as deprecated, replaced at v2.0**\\n\",\n      \"type\": \"array\",\n      \"minItems\": 1,\n      \"items\": {\n        \"type\": \"object\",\n        \"required\": [\n          \"AddressType\",\n          \"Country\"\n        ],\n        \"properties\": {\n          \"AddressType\": {\n            \"$ref\": \"#/components/schemas/AEAddressTypeCode\"\n          },\n          \"ShortAddress\": {\n            \"$ref\": \"#/components/schemas/AEShortAddress\"\n          },\n          \"UnitNumber\": {\n            \"$ref\": \"#/components/schemas/AEUnitNumber\"\n          },\n          \"FloorNumber\": {\n            \"$ref\": \"#/components/schemas/AEFloorNumber\"\n          },\n          \"BuildingNumber\": {\n            \"$ref\": \"#/components/schemas/AEBuildingNumber\"\n          },\n          \"StreetName\": {\n            \"$ref\": \"#/components/schemas/AEStreetName\"\n          },\n          \"SecondaryNumber\": {\n            \"$ref\": \"#/components/schemas/AESecondaryNumber\"\n          },\n          \"District\": {\n            \"$ref\": \"#/components/schemas/AEDistrict\"\n          },\n          \"PostalCode\": {\n            \"$ref\": \"#/components/schemas/AEPostalCode\"\n          },\n          \"POBox\": {\n            \"$ref\": \"#/components/schemas/AEPOBox\"\n          },\n          \"ZipCode\": {\n            \"$ref\": \"#/components/schemas/AEZipCode\"\n          },\n          \"City\": {\n            \"$ref\": \"#/components/schemas/AECity\"\n          },\n          \"Region\": {\n            \"$ref\": \"#/components/schemas/AERegion\"\n          },\n          \"Country\": {\n            \"$ref\": \"#/components/schemas/AECountryCode\"\n          }\n        },\n        \"additionalProperties\": false\n      }\n    },\n    {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"AddressType\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"Billing\",\n              \"Business\",\n              \"Correspondence\",\n              \"DeliveryTo\",\n              \"MailTo\",\n              \"POBox\",\n              \"Postal\",\n              \"Permanent\",\n              \"Residential\",\n              \"Statement\",\n              \"Other\"\n            ]\n          },\n          \"AddressLine\": {\n            \"type\": \"array\",\n            \"items\": {\n              \"type\": \"string\",\n              \"minLength\": 1,\n              \"maxLength\": 70\n            },\n            \"minItems\": 1,\n            \"maxItems\": 7\n          },\n          \"BuildingNumber\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 16\n          },\n          \"BuildingName\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 140\n          },\n          \"Floor\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 70\n          },\n          \"StreetName\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 140\n          },\n          \"DistrictName\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 140\n          },\n          \"PostBox\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 16\n          },\n          \"TownName\": {\n            \"type\": \"string\",\n            \"minLength\": 1,\n            \"maxLength\": 140\n          },\n          \"CountrySubDivision\": {\n            \"anyOf\": [\n              {\n                \"type\": \"string\",\n                \"enum\": [\n                  \"AbuDhabi\",\n                  \"Ajman\",\n                  \"Dubai\",\n                  \"Fujairah\",\n                  \"RasAlKhaimah\",\n                  \"Sharjah\",\n                  \"UmmAlQuwain\"\n                ]\n              },\n              {\n                \"type\": \"string\"\n              }\n            ]\n          },\n          \"Country\": {\n            \"type\": \"string\",\n            \"pattern\": \"^[A-Z]{2}$\"\n          }\n        },\n        \"required\": [\n          \"AddressType\",\n          \"AddressLine\",\n          \"Country\"\n        ],\n        \"additionalProperties\": false\n      },\n      \"minItems\": 1,\n      \"description\": \"One-or-more addresses related to a given subject.\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEAddressTypeCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Specifies the nature of the Address.\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"Business\",\n    \"Correspondence\",\n    \"Residential\"\n  ],\n  \"example\": \"Residential\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEShortAddress",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A short address consists of four letters: region code, branch code, division code, unique code and a four-digit number for the building.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 8,\n  \"example\": \"ABCD1234\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEUnitNumber",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Identifies the unit or apartment number.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 10,\n  \"example\": \"6\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEFloorNumber",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Identifies the building floor number.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 10,\n  \"example\": \"2\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBuildingNumber",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Identifies the building number.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 10,\n  \"example\": \"34\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEStreetName",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Identifies the street name or road.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 70,\n  \"example\": \"Omar Bin Hassan Street\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AESecondaryNumber",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"4 numbers representing the accurate location coordinates of the address\",\n  \"type\": \"string\",\n  \"minLength\": 4,\n  \"maxLength\": 4,\n  \"example\": \"1233\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEDistrict",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Identifies the district of a city.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 35,\n  \"example\": \"Olaya Dist.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEPostalCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \" Identifies the postal code; a unique code assigned to a specific geographic area for efficient mail sorting and delivery purposes.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 10,\n  \"example\": \"12345\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEPOBox",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \" Identifies the POBox.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 10,\n  \"example\": \"11562\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEZipCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Identifies the ZIP code; a unique code assigned to a specific geographic area for efficient mail sorting and delivery purposes.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 10,\n  \"example\": \"12366\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AECity",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Identifies the name of the city or town where the address is situated.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 35,\n  \"example\": \"Riyadh\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AERegion",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Identifies the region.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 35,\n  \"example\": \"North\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AECountryCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Indicates the country code in which the address is located (References ISO 3166-1 alpha-2).\",\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Z]{2,2}$\",\n  \"example\": \"SA\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorProperties",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"Name\": {\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 140\n    },\n    \"PostalAddress\": {\n      \"$ref\": \"#/components/schemas/AEAddress\"\n    }\n  },\n  \"description\": \"Party to which an amount of money is due.\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditorAccountProperties",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"SchemeName\",\n    \"Identification\",\n    \"Name\"\n  ],\n  \"properties\": {\n    \"SchemeName\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"IBAN\"\n      ],\n      \"description\": \"Domestic payment scheme, restricted to `IBAN`\"\n    },\n    \"Identification\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIdentification\"\n    },\n    \"Name\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEName\"\n    },\n    \"TradingName\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName\"\n    },\n    \"Type\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAccountTypeCodes\"\n    }\n  },\n  \"description\": \"Unambiguous identification of the account of the creditor to which a credit entry will be posted.\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIdentification",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"description\": \"Identification for the account assigned by the LFI based on the Account Scheme Name.\\nThis identification is known by the User account owner.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEName",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"en\": {\n      \"type\": \"string\",\n      \"maxLength\": 70,\n      \"description\": \"English value of the string\"\n    },\n    \"ar\": {\n      \"type\": \"string\",\n      \"maxLength\": 70,\n      \"description\": \"Arabic value of the string\"\n    }\n  },\n  \"description\": \"The Account Holder Name is the name or names of the Account owner(s) represented at the account level\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"en\": {\n      \"type\": \"string\",\n      \"maxLength\": 70,\n      \"description\": \"English value of the string\"\n    },\n    \"ar\": {\n      \"type\": \"string\",\n      \"maxLength\": 70,\n      \"description\": \"Arabic value of the string\"\n    }\n  },\n  \"description\": \"The Trading Brand Name (if applicable) for the Creditor.\\nApplicable to Payments.\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAccountTypeCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"Individual\",\n    \"Merchant\",\n    \"Business\",\n    \"Charity\",\n    \"GovernmentBody\",\n    \"Other\"\n  ],\n  \"description\": \"The Creditor (Payee) Type, based on an allowed list. This value is populated by TPPs to inform the User of the type of Creditor being authorized, which facilitates providing information during the Consent journey.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AERisk",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"DebtorIndicators\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDebtorIndicators\"\n    },\n    \"DestinationDeliveryAddress\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"RecipientType\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"Individual\",\n            \"Corporate\"\n          ]\n        },\n        \"RecipientName\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"en\": {\n              \"type\": \"string\"\n            },\n            \"ar\": {\n              \"type\": \"string\"\n            }\n          },\n          \"additionalProperties\": false\n        },\n        \"NationalAddress\": {\n          \"$ref\": \"#/components/schemas/AEAddress\"\n        }\n      },\n      \"description\": \"Destination Delivery Address\",\n      \"additionalProperties\": false\n    },\n    \"TransactionIndicators\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETransactionIndicators\"\n    },\n    \"CreditorIndicators\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorIndicators\"\n    }\n  },\n  \"description\": \"The Risk section is sent by the TPP to the LFI. It is used to specify additional details for risk/fraud scoring regarding Payments.\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDebtorIndicators",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"Authentication\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"AuthenticationChannel\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"App\",\n            \"Web\"\n          ]\n        },\n        \"PossessionFactor\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"IsUsed\": {\n              \"type\": \"boolean\"\n            },\n            \"Type\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"FIDO2SecurityKey\",\n                \"Passkey\",\n                \"OTPDevice\",\n                \"OTPApp\",\n                \"SMSOTP\",\n                \"EmailOTP\",\n                \"PushNotification\",\n                \"WebauthnToken\",\n                \"SecureEnclaveKey\",\n                \"HardwareOTPKey\",\n                \"TrustedDevice\",\n                \"Other\"\n              ]\n            }\n          },\n          \"additionalProperties\": false\n        },\n        \"KnowledgeFactor\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"IsUsed\": {\n              \"type\": \"boolean\"\n            },\n            \"Type\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"PIN\",\n                \"Password\",\n                \"SecurityQuestion\",\n                \"SMSOTP\",\n                \"EmailOTP\",\n                \"OTPPush\",\n                \"Other\"\n              ]\n            }\n          },\n          \"additionalProperties\": false\n        },\n        \"InherenceFactor\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"IsUsed\": {\n              \"type\": \"boolean\"\n            },\n            \"Type\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"Biometric\",\n                \"Fingerprint\",\n                \"FaceRecognition\",\n                \"IrisScan\",\n                \"VoiceRecognition\",\n                \"FIDOBiometric\",\n                \"DeviceBiometrics\",\n                \"Other\"\n              ]\n            }\n          },\n          \"additionalProperties\": false\n        },\n        \"ChallengeOutcome\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"Pass\",\n            \"Fail\",\n            \"NotPerformed\"\n          ]\n        },\n        \"AuthenticationFlow\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"MFA\",\n            \"Other\"\n          ]\n        },\n        \"AuthenticationValue\": {\n          \"type\": \"string\"\n        },\n        \"ChallengeDateTime\": {\n          \"type\": \"string\",\n          \"format\": \"date-time\"\n        }\n      },\n      \"description\": \"The authentication method used by the User to access their account with the TPP\",\n      \"additionalProperties\": false\n    },\n    \"UserName\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"en\": {\n          \"type\": \"string\"\n        },\n        \"ar\": {\n          \"type\": \"string\"\n        }\n      },\n      \"description\": \"The Name of the User initiating the Payment\",\n      \"additionalProperties\": false\n    },\n    \"GeoLocation\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"Latitude\": {\n          \"type\": \"string\"\n        },\n        \"Longitude\": {\n          \"type\": \"string\"\n        }\n      },\n      \"required\": [\n        \"Latitude\",\n        \"Longitude\"\n      ],\n      \"description\": \"GPS to identify and track the whereabouts of the connected electronic device.\",\n      \"additionalProperties\": false\n    },\n    \"DeviceInformation\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"DeviceId\": {\n          \"type\": \"string\"\n        },\n        \"AlternativeDeviceId\": {\n          \"type\": \"string\"\n        },\n        \"DeviceOperatingSystem\": {\n          \"type\": \"string\"\n        },\n        \"DeviceOperatingSystemVersion\": {\n          \"type\": \"string\"\n        },\n        \"DeviceBindingId\": {\n          \"type\": \"string\"\n        },\n        \"LastBindingDateTime\": {\n          \"type\": \"string\",\n          \"format\": \"date-time\"\n        },\n        \"BindingDuration\": {\n          \"type\": \"string\",\n          \"format\": \"duration\"\n        },\n        \"BindingStatus\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"Active\",\n            \"Expired\",\n            \"Revoked\",\n            \"Suspended\"\n          ]\n        },\n        \"DeviceType\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"Mobile\",\n            \"Desktop\",\n            \"Tablet\",\n            \"Wearable\",\n            \"Other\"\n          ]\n        },\n        \"DeviceManufacturer\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"Model\": {\n              \"type\": \"string\",\n              \"maxLength\": 50\n            },\n            \"Manufacturer\": {\n              \"type\": \"string\",\n              \"maxLength\": 50\n            }\n          },\n          \"additionalProperties\": false\n        },\n        \"DeviceLanguage\": {\n          \"type\": \"string\"\n        },\n        \"DeviceLocalDateTime\": {\n          \"type\": \"string\"\n        },\n        \"ConnectionType\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"WiFi\",\n            \"Cellular\",\n            \"Other\"\n          ]\n        },\n        \"ScreenInformation\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"PixelDensity\": {\n              \"type\": \"number\"\n            },\n            \"Orientation\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"Portrait\",\n                \"Landscape\"\n              ]\n            }\n          },\n          \"additionalProperties\": false\n        },\n        \"BatteryStatus\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"Level\": {\n              \"type\": \"number\",\n              \"minimum\": 0,\n              \"maximum\": 100\n            },\n            \"IsCharging\": {\n              \"type\": \"boolean\"\n            }\n          },\n          \"additionalProperties\": false\n        },\n        \"TouchSupport\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"Supported\": {\n              \"type\": \"boolean\"\n            },\n            \"MaxTouchPoints\": {\n              \"type\": \"integer\",\n              \"minimum\": 0\n            }\n          },\n          \"additionalProperties\": false\n        },\n        \"MotionSensors\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"Status\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"InMotion\",\n                \"Stationary\"\n              ]\n            },\n            \"Accelerometer\": {\n              \"type\": \"boolean\"\n            },\n            \"Gyroscope\": {\n              \"type\": \"boolean\"\n            }\n          },\n          \"additionalProperties\": false\n        },\n        \"DeviceEnvironmentContext\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"VPNDetected\",\n              \"EmulatorDetected\"\n            ]\n          }\n        }\n      },\n      \"description\": \"Detailed device information\",\n      \"additionalProperties\": false\n    },\n    \"BiometricCapabilities\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"SupportsBiometric\": {\n          \"type\": \"boolean\"\n        },\n        \"BiometricTypes\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"Fingerprint\",\n              \"FacialRecognition\",\n              \"Iris\",\n              \"VoicePrint\",\n              \"Other\"\n            ]\n          }\n        }\n      },\n      \"description\": \"Device biometric capabilities\",\n      \"additionalProperties\": false\n    },\n    \"AppInformation\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"AppVersion\": {\n          \"type\": \"string\"\n        },\n        \"PackageName\": {\n          \"type\": \"string\"\n        },\n        \"BuildNumber\": {\n          \"type\": \"string\"\n        }\n      },\n      \"description\": \"Mobile application specific information\",\n      \"additionalProperties\": false\n    },\n    \"BrowserInformation\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"UserAgent\": {\n          \"type\": \"string\"\n        },\n        \"IsCookiesEnabled\": {\n          \"type\": \"boolean\"\n        },\n        \"AvailableFonts\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        },\n        \"Plugins\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        },\n        \"PixelRatio\": {\n          \"type\": \"number\"\n        }\n      },\n      \"description\": \"Browser-specific information\",\n      \"additionalProperties\": false\n    },\n    \"UserBehavior\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"ScrollBehavior\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"Direction\": {\n              \"type\": \"string\",\n              \"enum\": [\n                \"Up\",\n                \"Down\",\n                \"Both\"\n              ]\n            },\n            \"Speed\": {\n              \"type\": \"number\"\n            },\n            \"Frequency\": {\n              \"type\": \"number\"\n            }\n          },\n          \"additionalProperties\": false\n        }\n      },\n      \"description\": \"User behavior indicators\",\n      \"additionalProperties\": false\n    },\n    \"AccountRiskIndicators\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"UserOnboardingDateTime\": {\n          \"type\": \"string\",\n          \"format\": \"date-time\"\n        },\n        \"LastAccountChangeDate\": {\n          \"type\": \"string\",\n          \"format\": \"date\"\n        },\n        \"LastPasswordChangeDate\": {\n          \"type\": \"string\",\n          \"format\": \"date\"\n        },\n        \"SuspiciousActivity\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"NoSuspiciousActivity\",\n            \"SuspiciousActivityDetected\"\n          ]\n        },\n        \"TransactionHistory\": {\n          \"type\": \"object\",\n          \"properties\": {\n            \"LastDay\": {\n              \"type\": \"integer\",\n              \"minimum\": 0\n            },\n            \"LastYear\": {\n              \"type\": \"integer\",\n              \"minimum\": 0\n            }\n          },\n          \"additionalProperties\": false\n        }\n      },\n      \"description\": \"Risk indicators related to the account\",\n      \"additionalProperties\": false\n    },\n    \"SupplementaryData\": {\n      \"type\": \"object\",\n      \"description\": \"Additional information that cannot be captured in the structured fields and/or any other specific block This\\nmay include information that is not available in the structured fields, such as a user's behavioural data\\nlike their typing speed and typing patterns.\"\n    }\n  },\n  \"description\": \"Debtor (User) Indicators\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETransactionIndicators",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"IsCustomerPresent\": {\n      \"type\": \"boolean\",\n      \"description\": \"This field differentiates between automatic and manual payment initiation.\"\n    },\n    \"IsContractPresent\": {\n      \"type\": \"boolean\",\n      \"description\": \"Indicates if the Creditor has a contractual relationship with the TPP.\"\n    },\n    \"Channel\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Web\",\n        \"Mobile\"\n      ],\n      \"description\": \"Where the payment has been initiated from.\"\n    },\n    \"ChannelType\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"ECommerce\",\n        \"InStore\",\n        \"InApp\",\n        \"Telephone\",\n        \"Mail\",\n        \"RecurringPayment\",\n        \"Other\"\n      ],\n      \"description\": \"The channel through which the transaction is being conducted\"\n    },\n    \"SubChannelType\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"WebBrowser\",\n        \"MobileApp\",\n        \"SmartTV\",\n        \"WearableDevice\",\n        \"POSTerminal\",\n        \"ATM\",\n        \"KioskTerminal\",\n        \"Other\"\n      ],\n      \"description\": \"More specific classification of the transaction channel\"\n    },\n    \"PaymentProcess\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"TotalDuration\": {\n          \"type\": \"integer\",\n          \"minimum\": 0\n        },\n        \"CurrentSessionAttempts\": {\n          \"type\": \"integer\",\n          \"minimum\": 1\n        },\n        \"CurrentSessionFailedAttempts\": {\n          \"type\": \"integer\",\n          \"minimum\": 0\n        },\n        \"Last24HourAttempts\": {\n          \"type\": \"integer\",\n          \"minimum\": 0\n        },\n        \"Last24HourFailedAttempts\": {\n          \"type\": \"integer\",\n          \"minimum\": 0\n        }\n      },\n      \"description\": \"Metrics related to the payment process duration and attempts\",\n      \"additionalProperties\": false\n    },\n    \"MerchantRisk\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"DeliveryTimeframe\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"ElectronicDelivery\",\n            \"SameDayShipping\",\n            \"OvernightShipping\",\n            \"MoreThan1DayShipping\"\n          ]\n        },\n        \"ReorderItemsIndicator\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"FirstTimeOrder\",\n            \"Reorder\"\n          ]\n        },\n        \"PreOrderPurchaseIndicator\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"MerchandiseAvailable\",\n            \"FutureAvailability\"\n          ]\n        },\n        \"IsGiftCardPurchase\": {\n          \"type\": \"boolean\"\n        },\n        \"IsDeliveryAddressMatchesBilling\": {\n          \"type\": \"boolean\"\n        },\n        \"AddressMatchLevel\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"FullMatch\",\n            \"PartialMatch\",\n            \"NoMatch\",\n            \"NotApplicable\"\n          ]\n        }\n      },\n      \"description\": \"Risk indicator details provided by the merchant\",\n      \"additionalProperties\": false\n    },\n    \"SupplementaryData\": {\n      \"type\": \"object\",\n      \"description\": \"Additional information that cannot be captured in the structured fields and/or any other specific block\"\n    }\n  },\n  \"description\": \"Transaction Indicators\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorIndicators",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"AccountType\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Retail\",\n        \"SME\",\n        \"Corporate\"\n      ],\n      \"description\": \"Specifies the type of account (Retail, SME or Corporate).\"\n    },\n    \"IsCreditorPrePopulated\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsCreditorPrePopulated\"\n    },\n    \"TradingName\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName\"\n    },\n    \"IsVerifiedByTPP\": {\n      \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsVerifiedbyTPP\"\n    },\n    \"AdditionalAccountHolderIdentifiers\": {\n      \"$ref\": \"#/components/schemas/AEAdditionalAccountHolderIdentifiers\"\n    },\n    \"MerchantDetails\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"MerchantId\": {\n          \"type\": \"string\",\n          \"minLength\": 8,\n          \"maxLength\": 20\n        },\n        \"MerchantName\": {\n          \"type\": \"string\",\n          \"minLength\": 1,\n          \"maxLength\": 350\n        },\n        \"MerchantSICCode\": {\n          \"type\": \"string\",\n          \"minLength\": 3,\n          \"maxLength\": 4\n        },\n        \"MerchantCategoryCode\": {\n          \"type\": \"string\",\n          \"minLength\": 3,\n          \"maxLength\": 4\n        }\n      },\n      \"description\": \"Details of the Merchant involved in the transaction.\\nMerchant Details are specified only for those merchant categories that are generally expected to originate retail financial transactions\",\n      \"additionalProperties\": false\n    },\n    \"IsCreditorConfirmed\": {\n      \"type\": \"boolean\",\n      \"description\": \"Creditor account details have been confirmed successfully using Confirmation of Payee\"\n    },\n    \"SupplementaryData\": {\n      \"type\": \"object\",\n      \"description\": \"Additional information that cannot be captured in the structured fields and/or any other specific block\"\n    }\n  },\n  \"description\": \"Creditor Indicators\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsCreditorPrePopulated",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"boolean\",\n  \"description\": \"Is Creditor populated\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIsVerifiedbyTPP",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"boolean\",\n  \"description\": \"The TPP has onboarded the Creditor\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEAdditionalAccountHolderIdentifiers",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"array\",\n  \"items\": {\n    \"type\": \"object\",\n    \"description\": \"Provides the details to identify an account.\",\n    \"required\": [\n      \"SchemeName\",\n      \"Identification\"\n    ],\n    \"properties\": {\n      \"SchemeName\": {\n        \"$ref\": \"#/components/schemas/AERiskExternalAccountIdentificationCode\"\n      },\n      \"Identification\": {\n        \"$ref\": \"#/components/schemas/AEIdentification\"\n      },\n      \"Name\": {\n        \"$ref\": \"#/components/schemas/AEName\"\n      }\n    },\n    \"additionalProperties\": false\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AERiskExternalAccountIdentificationCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Name of the identification scheme, in a coded form as published in an external list.\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"EmiratesID\",\n    \"TradeLicenceNumber\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEIdentification",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Identification for the account assigned by the LFI based on the Account Scheme Name.\\nThis identification is known by the User account owner.\\n\",\n  \"type\": \"string\",\n  \"minLength\": 1\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEName",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"description\": \"The Account Holder Name is the name or names of the Account owner(s) represented at the account level\\n\",\n  \"properties\": {\n    \"en\": {\n      \"type\": \"string\",\n      \"description\": \"English value of the string\",\n      \"maxLength\": 70\n    },\n    \"ar\": {\n      \"type\": \"string\",\n      \"description\": \"Arabic value of the string\",\n      \"maxLength\": 70\n    }\n  },\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

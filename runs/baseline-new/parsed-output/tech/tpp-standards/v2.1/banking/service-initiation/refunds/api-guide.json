@@ -1,0 +1,207 @@
+{
+  "id": "tech/tpp-standards/v2.1/banking/service-initiation/refunds/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/banking/service-initiation/refunds/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "5af1f7421a217071b72acf028f5f3f272c7d27fbfcab85815b41fdda5de6255a",
+    "dependencies": [
+      "./sign-jwt",
+      "node:crypto"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Payment Refunds — API Guide",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/service-initiation/refunds/api-guide",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Payment Refunds — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Refunds API lets a TPP retrieve the debtor's payment account details from the LFI after a payment has been made, so a merchant can initiate a refund back to the original payer. This guide starts after a payment consent has been created with the ReadRefundAccount permission and the underlying payment has been authorised."
+      },
+      {
+        "type": "paragraph",
+        "text": "Unlike the payment consent flow, retrieving refund details does not require a user redirect — the TPP authenticates directly using a client credentials grant."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before retrieving refund details",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before calling the Refunds API, ensure the following requirements are met:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Completed payment consent with ReadRefundAccount permission — the original payment consent must have been created with ReadRefundAccount in the Permissions array, and the payment must have been authorised by the user. See the Payment Consent API Guide.",
+              "Registered Application — the application must be assigned the BSIP role in the Trust Framework. See Roles.",
+              "Valid Transport Certificate — an active transport certificate for mTLS communication with the LFI.",
+              "Valid Signing Certificate — an active signing certificate for signing client assertions.",
+              "LFI token endpoint — you should already hold the LFI's token_endpoint and ResourceServerUrl from the original payment consent flow. If not, fetch the LFI's.well-known/openid-configuration to resolve them.",
+              "Understanding of Tokens & Assertions — familiarise yourself with private_key_jwt client authentication before calling the token endpoint."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end refund account retrieval",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Prove your application's identity",
+        "level": 2,
+        "anchor": "step-1-client-assertion",
+        "category": "Step 1 — Build a Client Assertion",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Retrieving refund details uses the OAuth 2.0 client credentials grant — no user consent or redirect is required."
+          },
+          {
+            "type": "paragraph",
+            "text": "Use the signJWT() helper to build a client assertion proving your application's identity:"
+          },
+          {
+            "type": "paragraph",
+            "text": "See Client Assertion for the full claims reference."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Exchange the assertion for an access token",
+        "level": 2,
+        "anchor": "step-2-token-request",
+        "category": "Step 2 — Token Request",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "POST to the LFI's token endpoint with scope=payments:"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "GET /payment-consents/{ConsentId}/refund",
+        "level": 2,
+        "anchor": "step-3-retrieve-refund-account",
+        "category": "Step 3 — Retrieve the Refund Account",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Call the LFI's refund endpoint using the ConsentId from the original payment consent. Include x-fapi-interaction-id on every request. See Request Headers."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The response is a signed JWT. Decode the payload to read the refund account details:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "Data.ConsentId",
+                    "string",
+                    "The ConsentId of the original payment consent"
+                  ],
+                  [
+                    "Data.BaseConsentId",
+                    "string",
+                    "The BaseConsentId, if the consent was part of a multi-payment arrangement"
+                  ],
+                  [
+                    "Data.RefundAccount.SchemeName",
+                    "enum",
+                    "Account identifier type — always IBAN"
+                  ],
+                  [
+                    "Data.RefundAccount.Identification",
+                    "string",
+                    "The debtor's IBAN"
+                  ],
+                  [
+                    "Data.RefundAccount.Name",
+                    "object",
+                    "The debtor's account name"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Example decoded payload",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Decoding the JWS",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The response body is a compact JWS — three base64url-encoded segments separated by.:"
+              },
+              {
+                "type": "paragraph",
+                "text": "Verify the signature using the LFI's public key (from their JWKS endpoint), then base64url-decode the payload:"
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /payment-consents/{ConsentId}/refund API reference for the full request and response schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Reuse the debtor's account as the creditor",
+        "level": 2,
+        "anchor": "initiate-refund",
+        "category": "Using the Refund Account to Initiate a Refund",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Once you have the debtor's RefundAccount details, use the returned IBAN and name as the creditor in a new payment consent to initiate the refund. The refund payment follows the same initiation flow as any other payment."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Creditor PII for how to populate the creditor fields using the retrieved account details."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

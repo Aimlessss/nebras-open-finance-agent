@@ -1,0 +1,205 @@
+{
+  "id": "tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "0e6601b95e2b36a203d45af26bd08443966405263fc8e0202d33ba4cde1d1ae0",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Insurance Quote Status Event — API Guide",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/webhooks/insurance-status/api-guide",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Insurance Quote Status Event — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "When you accept an insurance quote with a Subscription.Webhook attached, the API Hub delivers an Insurance Quote Status Event to your registered URL each time the LFI emits a quote-log update. Events flow through the full lifecycle from ApplicationPending to a terminal state."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before events can be delivered",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before receiving an Insurance Quote Status Event, ensure the following requirements are met:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Registered Application — the application must be created within the Trust Framework and assigned the ISP role as defined in Roles.",
+              "Valid Encryption Certificate — an active encryption certificate must be issued and registered in the Trust Framework to receive the event as an encrypted JWE.",
+              "Accepted quote with a Subscription.Webhook — the webhook is registered per-quote on PATCH Accept (see Insurance Quotation API Guide )."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Push delivery on every quote-log status change",
+        "level": 2,
+        "anchor": "how-it-works",
+        "category": "How It Works",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Insurance Quotation does not use a per-customer consent. The webhook subscription is attached to the quote itself when you PATCH Accept. From that point, every time the LFI emits a status to PATCH /insurance-quote-log/{logId}, the Hub delivers an Insurance Quote Status Event to your registered Webhook.Url as a JWE-encrypted POST."
+          },
+          {
+            "type": "paragraph",
+            "text": "The JWE is encrypted using your public Encryption Certificate. You must respond with 202 Accepted immediately and decrypt the event payload asynchronously."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Subscribe on PATCH Accept Quote",
+        "level": 2,
+        "anchor": "step-1",
+        "category": "Step 1",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Attach a Subscription.Webhook object to the PATCH Accept Quote body. The subscription covers the entire lifecycle of the quote — you do not need to re-subscribe for each status. Update or pause delivery mid-flow by PATCHing again with only a Subscription object (omit Data )."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Receive and acknowledge the event",
+        "level": 2,
+        "anchor": "step-2",
+        "category": "Step 2",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Hub POSTs the event to your Webhook.Url with Content-Type: application/jwe. Respond 202 Accepted with an empty body immediately — process the payload asynchronously."
+          },
+          {
+            "type": "paragraph",
+            "text": "Failure to respond with 202 promptly may cause the Hub to retry delivery. Treat events as idempotent — the same event may arrive more than once."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Decrypt the JWE and verify the inner JWS",
+        "level": 2,
+        "anchor": "step-3",
+        "category": "Step 3",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The event is a JWE compact serialisation encrypted with your registered Encryption Certificate. The JWE header contains a kid that identifies which of your keys to use — decode the header first to select the correct private key, then decrypt."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Receiving Event Notifications for the full FAPI-aligned guidance: key selection by kid, JWS signature verification, and required security checks."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Envelope metadata",
+        "level": 2,
+        "anchor": "payload-meta",
+        "category": "Event Payload — Meta",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Type",
+              "Description"
+            ],
+            "rows": [
+              [
+                "EventDateTime",
+                "string (date-time)",
+                "When the event was generated."
+              ],
+              [
+                "EventResource",
+                "string",
+                "The resource URI that triggered the event — e.g. /motor-insurance-quotes/{QuoteId}."
+              ],
+              [
+                "EventType",
+                "string",
+                "One of: Resource.Created, Resource.Updated, Resource.Deleted."
+              ],
+              [
+                "QuoteId",
+                "string (UUID)",
+                "The identifier of the quote the status change applies to."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "One of three event shapes per QuoteStatus",
+        "level": 2,
+        "anchor": "payload-data",
+        "category": "Event Payload — Data",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Data object conforms to one of three schemas drawn from AEInsurance.AEInsuranceEvent:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Pending Completion Status — QuoteStatus is one of ApplicationPending, ApplicationApproved, PaymentRequired, PolicyIssued. May include BrokerInstructions[] (typically a payment URL) and Documents[] (on PolicyIssued in TPP-Led mode).",
+              "Completed Status — QuoteStatus: Completed. Carries the finalised Premium, PolicyTerm, CustomerPaidInFull, PolicyCountrySubDivision, and (where applicable) the Commission due to the TPP.",
+              "Terminal Status — QuoteStatus is one of Expired, Rejected, CustomerCancelled, LFICancelled. May include a Reason string."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The full schema is documented in Insurance Quotation API Guide — Event Schema and surfaced as an OpenAPI viewer in Insurance Quote Status Change Event."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Decrypted Pending Completion event (ApplicationApproved)",
+        "level": 2,
+        "anchor": "example-pending",
+        "category": "Example",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Decrypted Completed Status event",
+        "level": 2,
+        "anchor": "example-completed",
+        "category": "Example",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Decrypted Terminal Status event",
+        "level": 2,
+        "anchor": "example-terminal",
+        "category": "Example",
+        "blocks": [],
+        "subsections": []
+      }
+    ]
+  }
+}

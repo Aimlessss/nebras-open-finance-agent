@@ -1,0 +1,224 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "b0ce32ca0467b7eca774e30c28d23fe9fc80e2bdca0848fa8398578e461cb038",
+    "dependencies": [
+      "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+    ],
+    "assets": [
+      {
+        "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+        "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Patch Insurance Quote Log",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Patch Insurance Quote Log",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "API /insurance-quote-log/{logId}",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"info\": {\n    \"title\": \"Consent Manager API\",\n    \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor the Consent Manager API.\\n\\nThese APIs are implemented by Ozone and should be called by the financial institution to find, modify and delete consents.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.1.10\\n* Added a character-set `pattern` (`^[A-Za-z0-9 \\\\/?:().,'+-]+$`, the ISO 20022 / SWIFT \\\"x\\\" set) to the\\n  current (free-text, 35-char) branch of the Creditor and Debtor references\\n  (`AEServiceInitiationCreditorReference` / `AEServiceInitiationDebtorReference`), so every LFI knows\\n  exactly which characters it must accept and store. The deprecated structured (120-char) branch is\\n  unchanged. Per OFP-003.\\n\\n### v2.1.9\\n* Restructured the international Creditor PII (`PersonalIdentifiableInformation.Initiation.Creditor`) for\\n  SWIFT SR2026: the Creditor party is now a `oneOf` of Individual and Organization variants, discriminated\\n  by `IdentityType`.\\n\\n\\n* The Individual variant carries object-valued `FirstName` / `MiddleName` / `LastName` (`en` / `ar` / `ls`),\\n  `RelationshipToSender`, `DateOfBirth`, `Occupation`, `Nationality`, `Gender`, `CountryOfBirth`,\\n  `SourceOfIncome`, `SourceOfFunds`, and `Evidence`. The Organization variant carries `AnyBIC`, `LEI`, and\\n  `Identification` + `SchemeName`. Both variants share `MobileNumber` / `Email` and an object-valued `Name`\\n  (`en` / `ar` / `ls`).\\n\\n\\n* Added SWIFT SR2026 fields to the international `PostalAddress` (`PostCode`, `Room`, `Department`,\\n  `SubDepartment`, `TownLocationName`, and now-mandatory `TownName`). It is now a single\\n  `AEInternationalAddress` schema shared by both the Creditor and the Creditor Agent (the Creditor Agent\\n  previously used the legacy `AEAddress`).\\n\\n\\n* Added a `CreditorAgent.Branch` object and `CreditorAccount.AccountType` (Savings / Current / Checking /\\n  Prepaid). Domestic Creditor schemas are unchanged.\\n\\n\\n### v2.1.8\\n* Aligned `AEBankServiceInitiationRichAuthorizationRequests.AECreditorIndicators.AccountType` enum with Standards (Retail / SME / Corporate), replacing the previous product-category enum (CurrentAccount / Savings / CreditCard / Mortgage / Finance) that diverged from the Standards PAR + Payments specs.\\n\\n* Aligned the `Risk` object with Standards: tightened `AERisk` and its descendants on the payment-initiation side with `additionalProperties: false` throughout, carved out the three `SupplementaryData` blocks on the RAR-shape (`AEBankServiceInitiationRichAuthorizationRequests.AE*Indicators.SupplementaryData`) to be open extension points (no `additionalProperties: false`), and added `minLength: 1` / `maxLength: 70` to `AddressLine` items inside the legacy `AEAddress` variant.\\n\\n* Added `ReadStatements` and `ReadProductFinanceRates` to `AEAccountAccessConsentPermissionCodes`, which were present in the v2.1 Standards Bank Data Sharing permission set but missing from the Consent Manager. The Consent Manager must accept every permission code from all supported Standards versions.\\n\\n* Closed the three `ConsentManager.AE*ConsentUpdateProperties` schemas with `additionalProperties: false`. The `PATCH /consents/{consentId}` request body is an `anyOf` of one schema per consent type (Bank Data Sharing, Bank Service Initiation, Insurance Data Sharing); without this, unknown properties were silently accepted, so a field belonging to one consent type could be patched onto another. The schemas now enforce the per-type field separation they describe.\\n\\n* Reverted the payment-log reject reason code to match the v2.0.x Consent Manager: the top-level property is `rejectReasonCode` (not `RejectReasonCode`) on the `GET /payment-log` response and `PATCH /payment-log/{id}` request body, and the `code` / `message` fields inside `CbuaePaymentLogRejectReasonCode` items are lower-case again (not `Code` / `Message`). The PascalCase variants were introduced in error and broke LFIs built against the v2.0.x payment-log contract.\\n\\n### v2.1.7\\n* Added `SME` to `AEExternalAccountTypeCode`.\\n\\n* Changed the `Amount` schema `pattern` regex, which was over-escaped in YAML and failed to validate decimal \\n  monetary values.\\n\\n\\n* Removed the unused `AEBankServiceInitiationRichAuthorizationRequests.AERiskExternalAccountIdentificationCode` \\n  schema, which duplicated `AERiskExternalAccountIdentificationCode` and was never referenced.\\n\\n\\n### v2.1.6\\n* Added revised PII properties compatible with version 2.1.\\n\\n* Changed DebtorReference and CreditorReference to reflect v2.0 properties.\\n\\n* Changed Rich Authorization Request `type` values to reflect exactly the consent type they are describing.\\n\\n* Removed changelog before v2.1.4 to reduce bloat of API description.\\n### v2.1.5\\n* Changed Account Opening Statuses to provide correct status codes for `patch /account-opening-log/{logId}`.\\n### v2.1.4\\n* Added `FromDate` and `ToDate` in Bank Data Sharing Consents.\\n* Changed `TransactionFromDateTime` and `TransactionToDateTime` to `deprecated` in Bank Data Sharing Consents in\\n  line with changes in v2.1 Pushed Authorization Requests.\\n\",\n    \"version\": \"v2.1.10\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://cm.[LFICODE].apihub.openfinance.ae\"\n    },\n    {\n      \"url\": \"https://cm.[LFICODE].preprod.apihub.openfinance.ae\"\n    }\n  ],\n  \"source_path\": \"/insurance-quote-log/{logId}\",\n  \"operations\": {\n    \"patch\": {\n      \"operationId\": \"UpdateInsuranceQuoteLog\",\n      \"tags\": [\n        \"resource-log\"\n      ],\n      \"summary\": \"Patch the status of an insurance quote.\",\n      \"description\": \"Patch the status of an Insurance quote request. Insurance quote requests are not associated with a consent, but always use an `QuoteId` value, which is the value of `logId`.\",\n      \"parameters\": [\n        {\n          \"$ref\": \"#/components/parameters/logId\"\n        }\n      ],\n      \"requestBody\": {\n        \"description\": \"Properties of the patch. `Premium` and `Commission` are only included when the status is\",\n        \"content\": {\n          \"application/json\": {\n            \"schema\": {\n              \"oneOf\": [\n                {\n                  \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventTerminalStatus\"\n                },\n                {\n                  \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventPendingCompletionStatus\"\n                },\n                {\n                  \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventCompletedStatus\"\n                }\n              ]\n            }\n          }\n        }\n      },\n      \"responses\": {\n        \"204\": {\n          \"$ref\": \"#/components/responses/noContentResponse\"\n        },\n        \"400\": {\n          \"description\": \"Failed to patch the log\",\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/error400Response\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"security\": [\n    {},\n    {\n      \"OzoneConnectJwtAuth\": []\n    }\n  ],\n  \"securitySchemes\": {\n    \"OzoneConnectJwtAuth\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Ozone-Connect-JWT-Auth\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/logId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"logId\",\n  \"description\": \"Unique identifier for a given log entry, which relates to the original unique identifier created for resource. For example, for an FX Quote this will be the `FxQuoteId` value.\",\n  \"in\": \"path\",\n  \"required\": true,\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventTerminalStatus",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"title\": \"Terminal Status\",\n  \"type\": \"object\",\n  \"required\": [\n    \"QuoteStatus\"\n  ],\n  \"properties\": {\n    \"QuoteStatus\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteNegativeTerminalStatusCodes\"\n        }\n      ],\n      \"description\": \"Terminal quote status.\"\n    },\n    \"Reason\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteStatusUpdateReason\"\n        }\n      ],\n      \"description\": \"Optional explanation for the unsuccessful completion of the quote.\"\n    }\n  },\n  \"description\": \"Quote status updates indicating a terminal state.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteNegativeTerminalStatusCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"Expired\",\n    \"Rejected\",\n    \"CustomerCancelled\",\n    \"LFICancelled\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteStatusUpdateReason",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 1000\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventPendingCompletionStatus",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"title\": \"Pending Completion Status\",\n  \"type\": \"object\",\n  \"required\": [\n    \"QuoteStatus\"\n  ],\n  \"properties\": {\n    \"QuoteStatus\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEventCompletionPendingStatusCodes\"\n        }\n      ],\n      \"description\": \"Pending completion quote status.\"\n    },\n    \"BrokerInstructions\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventBrokerInstructions\"\n      },\n      \"minItems\": 1,\n      \"description\": \"Instructions and actions required by the Broker to allow the application to proceed.\"\n    },\n    \"Documents\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n      },\n      \"minItems\": 1,\n      \"description\": \"Policy documents to be issued to the Customer via the TPP.\"\n    }\n  },\n  \"description\": \"Quote status updates indicating a pending state, with optional instructions for TPPs.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEventCompletionPendingStatusCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"ApplicationPending\",\n    \"ApplicationApproved\",\n    \"PaymentRequired\",\n    \"PolicyIssued\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventBrokerInstructions",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"minProperties\": 1,\n  \"properties\": {\n    \"ActionRequired\": {\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 1000,\n      \"description\": \"Free-text description that provides confirmation of the action required by the Broker.\"\n    },\n    \"Reason\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteStatusUpdateReason\"\n        }\n      ],\n      \"description\": \"Free-text explanation of why the action must be performed by the Broker.\"\n    },\n    \"Url\": {\n      \"type\": \"string\",\n      \"format\": \"uri\",\n      \"description\": \"URL provided by the LFI for the Broker to collect a one-off premium payment or set up recurring premium payments.\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Type\",\n    \"FileName\",\n    \"ContentType\",\n    \"Content\",\n    \"HashType\",\n    \"Hash\"\n  ],\n  \"properties\": {\n    \"Type\": {\n      \"type\": \"string\",\n      \"description\": \"The type of document that has been provided.  For example, Policy Booklet, Terms & Conditions\"\n    },\n    \"FileName\": {\n      \"type\": \"string\",\n      \"description\": \"Original file name for operator reference (no paths). Should include  a suitable extension (e.g., policy.pdf, terms.pdf).\"\n    },\n    \"ContentType\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"application/pdf\",\n        \"image/jpeg\",\n        \"image/png\"\n      ],\n      \"description\": \"Content (MIME) type of the document, using IANA-registered media types, and based on types supported in the Open Finance Framework.\"\n    },\n    \"Content\": {\n      \"type\": \"string\",\n      \"format\": \"base64\",\n      \"description\": \"Base64-encoded representation of the document content.  The encoded string must be generated from the raw file bytes and decoded by the LFI to restore the original file.\"\n    },\n    \"HashType\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"SHA256\"\n      ],\n      \"description\": \"Approach used to create checksum or hash of the file. SHA256 is supported.\"\n    },\n    \"Hash\": {\n      \"type\": \"string\",\n      \"description\": \"Checksum of the original file bytes created using the method indicated by `HashType`. Required to enable integrity verification by comparing with the hash or checksum calculated on the decoded file.\"\n    },\n    \"AdditionalInformation\": {\n      \"type\": \"string\",\n      \"maxLength\": 1000,\n      \"description\": \"Optional free text notes providing context on the document.\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventCompletedStatus",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"title\": \"Completed Status\",\n  \"type\": \"object\",\n  \"required\": [\n    \"QuoteStatus\",\n    \"PolicyTerm\",\n    \"Premium\",\n    \"CustomerPaidInFull\",\n    \"PolicyCountrySubDivision\"\n  ],\n  \"properties\": {\n    \"QuoteStatus\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Completed\"\n      ],\n      \"description\": \"Completed status.\"\n    },\n    \"PolicyStartDate\": {\n      \"type\": \"string\",\n      \"format\": \"date\",\n      \"description\": \"Policy start date\"\n    },\n    \"PolicyEndDate\": {\n      \"type\": \"string\",\n      \"format\": \"date\",\n      \"description\": \"Policy end date\"\n    },\n    \"PolicyTerm\": {\n      \"type\": \"string\",\n      \"pattern\": \"^P(\\\\d+Y)?(\\\\d+M)?$\",\n      \"format\": \"duration\",\n      \"description\": \"The insurance policy term in years and months, using ISO 8601 compatible duration format\",\n      \"example\": \"P2Y3M\"\n    },\n    \"Premium\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"OneYearPremiumExcludingVAT\": {\n          \"allOf\": [\n            {\n              \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n            }\n          ],\n          \"description\": \"The details of the final insurance premium, reflecting the total value of premiums excluding VAT payable either annually or over the life of the policy when the coverage period is less than one year.\"\n        },\n        \"VATAmount\": {\n          \"allOf\": [\n            {\n              \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n            }\n          ],\n          \"description\": \"The Premium VAT amount.\"\n        },\n        \"TotalOneYearPremium\": {\n          \"allOf\": [\n            {\n              \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n            }\n          ],\n          \"description\": \"The details of the final insurance premium, reflecting the total value of premiums including VAT payable either annually or over the life of the policy when the coverage period is less than one year.\"\n        },\n        \"TotalPolicyPremium\": {\n          \"allOf\": [\n            {\n              \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n            }\n          ],\n          \"description\": \"The total value of premiums, including VAT, payable over the life of the policy.\"\n        }\n      },\n      \"required\": [\n        \"OneYearPremiumExcludingVAT\",\n        \"VATAmount\",\n        \"TotalOneYearPremium\"\n      ],\n      \"description\": \"Details for the policy premium.\"\n    },\n    \"CustomerSalary\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Under4K\",\n        \"Over4K\"\n      ],\n      \"description\": \"Confirmation whether the customer monthly salary is less than or greater than AED 4,000 each month. Required for Health Insurance.\"\n    },\n    \"Commission\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"CommissionAmount\": {\n          \"allOf\": [\n            {\n              \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n            }\n          ],\n          \"description\": \"The total monetary value of the commission paid to the TPP if the User proceeds with the quote application and purchases the policy based on the quote information provided.\"\n        },\n        \"PaymentMethod\": {\n          \"type\": \"string\",\n          \"enum\": [\n            \"DirectToTPP\",\n            \"ThroughAPIHub\"\n          ],\n          \"description\": \"The method to be used to pay the commission to the TPP if the User elects to proceed with the application and successfully purchases the policy.\"\n        }\n      },\n      \"required\": [\n        \"PaymentMethod\"\n      ],\n      \"description\": \"Commission amount, where the LFI is responsible for calculating the value.\"\n    },\n    \"Documents\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n      },\n      \"minItems\": 1,\n      \"description\": \"Policy documents to be issued to the Customer via the TPP.\"\n    },\n    \"CustomerPaidInFull\": {\n      \"type\": \"boolean\",\n      \"description\": \"Indicates the Customer has paid for the policy in full.\"\n    },\n    \"PolicyCountrySubDivision\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n        }\n      ],\n      \"description\": \"The Emirate state where the policy was issued.\"\n    }\n  },\n  \"description\": \"Quote has been Completed.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Currency\",\n    \"Amount\"\n  ],\n  \"properties\": {\n    \"Currency\": {\n      \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n    },\n    \"Amount\": {\n      \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n    }\n  },\n  \"description\": \"The Currency and Amount relating to the Payment, Refund or Request to Pay\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Z]{3,3}$\",\n  \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n  \"example\": \"AED\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"pattern\": \"^\\\\d{1,16}\\\\.\\\\d{2}$\",\n  \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n  \"example\": \"100.00\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"AbuDhabi\",\n    \"Ajman\",\n    \"Dubai\",\n    \"Fujairah\",\n    \"RasAlKhaimah\",\n    \"Sharjah\",\n    \"UmmAlQuwain\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/noContentResponse",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Indicates a successful operation. The response does not have a body.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/error400Response",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"$ref\": \"#/components/schemas/errorReasonCodes\"\n    },\n    \"errorMessage\": {\n      \"type\": \"string\",\n      \"description\": \"Message describing what problem has occurred\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/errorReasonCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed error code(s), a  code that observes the namespaced pattern, or a custom error codes specific to the API Hub.\",\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/standardErrorCodes\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/standardErrorCodePattern\"\n    },\n    {\n      \"type\": \"string\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/standardErrorCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Standardized error codes used across open finance components\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"AccessToken.InvalidScope\",\n    \"Body.InvalidFormat\",\n    \"Consent.AccountTemporarilyBlocked\",\n    \"Consent.BusinessRuleViolation\",\n    \"Consent.FailsControlParameters\",\n    \"Consent.Invalid\",\n    \"Consent.InvalidUserIdentifier\",\n    \"Consent.PermanentAccountAccessFailure\",\n    \"Consent.TransientAccountAccessFailure\",\n    \"Event.UnexpectedEvent\",\n    \"JWE.DecryptionError\",\n    \"JWE.InvalidHeader\",\n    \"JWS.InvalidClaim\",\n    \"JWS.InvalidHeader\",\n    \"JWS.InvalidSignature\",\n    \"JWS.Malformed\",\n    \"Resource.InvalidFormat\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/standardErrorCodePattern",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Namespaced error codes, indicating the source of the error code prior to the period, and the error code itself after the period e.g. `AANI.AM04` indicates insufficient funds.\",\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

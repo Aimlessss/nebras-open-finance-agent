@@ -1,0 +1,690 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+  "chunk_count": 20,
+  "chunks": [
+    {
+      "id": "0e584ef9-0464-54b0-9040-434f80ed556c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > API /users/actions/challenge/complete\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - UAE CAAP Operations API Description\",\n \"description\": \"## Ozone Connect - UAE CAAP Operations API Description\\n\\nThis document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html) for CAAP Operations API for Ozone Connect that support interactions with services hosted on the API Hub.\\n\\nThese APIs should be implemented by a financial institution to facilitate integration with the API Hub.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where: \\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards\\n* Changed every date-time field to reference the shared `AEDateTime` Schema Object. `AEDateTime` states that a\\n date-time value identifies an instant, that the offset is part of the value and must be applied by the\\n recipient, and that two encodings of the same instant are equivalent and must behave identically. It carries\\n a `pattern` requiring an offset and forbidding `-00:00`; all other offsets remain conformant. Each field\\n description now states only what is specific to that field. Per OFP-014.\\n\\n### v2.1.5\\n\\n* Added `ReadStatements` and `ReadProductFinanceRates` to\\n `OzoneConnectConsentEventActionAPIs.AEAccountAccessConsentPermissionCodes`, matching the same addition to the\\n Consent Manager and the Consent Events and Actions API. Both codes are in the v2.1 Standards Bank Data Sharing\\n permission set, so the Hub can forward them on a consent event.\\n\\n\\n### v2.1.4\\n\\n* Renamed API from User Operations to CAAP Operations.\\n\\n* Added `get /accounts` and `get /accounts/{accountId}` operations (previously on Bank Data Sharing), carrying the\\n CAAP-specific `o3-is-caap-consent-operation` and `o3-caap-consent-use-case` headers and the `availableBalance`\\n property on the account.\\n\\n\\n* Added `get /{insurance-type}-insurance-policies` operations for Employment, Health, Home, Life, Motor, Renters,\\n and Travel insurance (previously on Insurance), carrying the CAAP-specific `o3-is-caap-consent-operation` header\\n and CAAP-only response properties (`PolicyEndDate`, `ProductName`, `BodyType`, `PlateNumber`).\\n\\n\\n### v2.1.3\\n* Changed `pattern` regexes on the `AEActiveOrHistoricAmount`, `ControlSum`, and `Amount` schemas, which were\\n over-escaped in YAML and failed to validate decimal monetary values.\\n\\n\\n### v2.1.2\\n\\n* Added Validate API operation for executing BAU processes at LFI based on Consent and user identification.\\n\\n* Added Augment API operation for updating the Consent with authorization properties.\\n\\n### v2.1.1\\n\\n* Added initial version for compatibility with v2.1-rc2 of standards.\\n\",\n \"version\": \"v2.2.1\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/users/actions/challenge/complete\",\n \"operations\": {\n \"post\": {\n \"operationId\": \"CompleteUserChallenge_completeUserChallenge\",\n \"summary\": \"Complete a user challenge\",\n \"description\": \"Complete the User Challenge.\\n\\nThis operation does not require a consent, as the challenge may be requested\\nduring onboarding before a consent is granted. \\n\\nThis is implemented as an RPC operation to remove any requirement for LFIs \\nto implement a REST model for their Users, which is subject to significant variance across\\nproviders.\\n\\nIf the challenge data is not matched an error response MUST not be returned. The response\\ndata MUST be returned as a 200 response. All other error conditions should be returned based\\non Ozone Connect guidance using an appropriate HTTP return code.\",\n \"parameters\": [],\n \"responses\": {\n \"200\": {\n \"description\": \"The request has succeeded.\",\n \"headers\": {\n \"x-fapi-interaction-id\": {\n \"required\": false,\n \"description\": \"An RFC4122 UID used as a correlation ID.\",\n \"schema\": {\n \"type\": \"string\"\n }\n }\n },\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"type\": \"object\",\n \"properties\": {\n \"challengeId\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnectUserChallengeIdType\"\n }\n ],\n \"description\": \"A unique identifier that allows the challenge to be tracked in the application.\"\n },\n \"challengeType\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"The challenge type, set by the LFI.\"\n },\n \"status\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnectUserChallengeStatusCodes\"\n }\n ],\n \"description\": \"The status of the challenge. Supported values are as follows:\\n\\n* Pending: The challenge has not been sent or returned.\\n\\n* Sent: The challenge has been sent or returned.\\n\\n* Passed: The challenge has been verified.\\n\\n* TransmissionFailed: The challenge failed to be sent due a business or technical failure.\\n\\n* VerificationFailed: Verification of the challenge failed.\\n\"\n },\n \"lastStatusUpdateDateTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"The last status update to the challenge by the LFI.\"\n }\n ]\n },\n \"message\": {\n \"type\": \"string\",\n \"description\": \"Optional diagnostic message indicating failure reason.\"\n }\n },\n \"required\": [\n \"challengeId\",\n \"challengeType\",\n \"status\",\n \"lastStatusUpdateDateTime\"\n ],\n \"description\": \"Properties of the user challenge.\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n },\n \"400\": {\n \"$ref\": \"#/components/responses/error400Response\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/error403Response\"\n },\n \"409\": {\n",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "API /users/actions/challenge/complete",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /users/actions/challenge/complete\"],\"\"]:0:part:0",
+      "content_hash": "02c5259d7ef3c462aeb2b0cbfae0260539b25d0e5b10e06427cc818ca26b77fb",
+      "schema_version": 2
+    },
+    {
+      "id": "beee4d4f-9c06-5161-87e2-19b151252c6c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > API /users/actions/challenge/complete\n\n \"$ref\": \"#/components/responses/error409Response\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/error500Response\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n },\n \"tags\": [\n \"User Verification\"\n ],\n \"requestBody\": {\n \"required\": true,\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"type\": \"object\",\n \"properties\": {\n \"userId\": {\n \"type\": \"string\",\n \"description\": \"A user identifier value that uniquely identifies a given User at the LFI.\"\n },\n \"challengeId\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnectUserChallengeIdType\"\n }\n ],\n \"description\": \"A unique identifier that allows the challenge to be tracked in the application.\"\n },\n \"challengeResponseData\": {\n \"type\": \"string\",\n \"description\": \"Challenge data as entered in OzoneConnect. Format is non-specific to accommodate variations between LFIs.\"\n }\n },\n \"required\": [\n \"userId\",\n \"challengeId\",\n \"challengeResponseData\"\n ],\n \"description\": \"Properties of the challenge data submitted by the User.\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n },\n \"description\": \"Response data supplied by the User at the API Hub\"\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n },\n \"OzoneConnectServiceInitiationToken\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Bearer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "API /users/actions/challenge/complete",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /users/actions/challenge/complete\"],\"\"]:0:part:1",
+      "content_hash": "c96057b4bafe1d47af70f2394c91bb2d159e4d326a7df70093e40d9cc4f1e496",
+      "schema_version": 2
+    },
+    {
+      "id": "48cf6d7e-df20-5737-a397-33860775e98a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/OzoneConnectUserChallengeIdType\n\n{\n \"type\": \"string\",\n \"format\": \"uuid\"\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnectUserChallengeIdType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnectUserChallengeIdType\"],\"\"]:0",
+      "content_hash": "6b8aff6e8b9f3d652323fe78f7b92efe03aa284e1cf1025a4ae27f9574182aaa",
+      "schema_version": 2
+    },
+    {
+      "id": "4bd1cd0d-a4ce-53cb-8825-b53af6813a53",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/OzoneConnectUserChallengeStatusCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Pending\",\n \"Sent\",\n \"Passed\",\n \"TransmissionFailed\",\n \"VerificationFailed\"\n ]\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnectUserChallengeStatusCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnectUserChallengeStatusCodes\"],\"\"]:0",
+      "content_hash": "08e0d30221872b2eb10583e9fef71ab910280387ca3bab700ad3e65ec1d33d85",
+      "schema_version": 2
+    },
+    {
+      "id": "8639b91c-7f28-51d8-accd-2e94775f0216",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/AEDateTime\n\n{\n \"title\": \"AEDateTime\",\n \"description\": \"An instant in time, per ISO 8601 / RFC 3339, with a mandatory offset. Recipients MUST apply the offset, and\\nMUST NOT read the date and time components as local time. Encodings of the same instant are equivalent and MUST\\nbehave identically: `2027-07-22T00:00:00Z` and `2027-07-22T04:00:00+04:00` identify the same moment.\\n\\nIssuers SHOULD emit UTC, using `Z` or `+00:00`. The negative zero offset `-00:00` MUST NOT be used. Fractional\\nseconds are optional and carry no specified precision; implementations MUST accept both their presence and\\ntheir absence.\\n\",\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}(\\\\.\\\\d+)?(Z|\\\\+\\\\d{2}:\\\\d{2}|-(?:0[1-9]|1[0-2]):\\\\d{2})$\",\n \"example\": \"2027-07-22T00:00:00Z\"\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/AEDateTime",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDateTime\"],\"\"]:0",
+      "content_hash": "7d8505c034b34c0ddaba1b63b5973732b002134239dd5766fac9d89bb9d5c73d",
+      "schema_version": 2
+    },
+    {
+      "id": "38fe8c78-e369-5296-ba03-d16eb3b94c76",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/responses/error400Response\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/responses/error400Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error400Response\"],\"\"]:0",
+      "content_hash": "11eff39281b9508c4356eaf07450acb6545052e453daa3a7be8fa0d8b9d8d90d",
+      "schema_version": 2
+    },
+    {
+      "id": "00cd95ce-6bd5-54e7-96d8-11b9dba5f652",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/OzoneConnect.Error400\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError400Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Default error response payload structure for Ozone Connect\"\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error400\"],\"\"]:0",
+      "content_hash": "dbac92d2e38333ad88118a3e3b300494dd8a75d74d86e6a076b285cdfcdcebea",
+      "schema_version": 2
+    },
+    {
+      "id": "1690bc33-534d-57a7-99a0-19fd67e543f6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/AEError400Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWS.InvalidPayload\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError400Codes\"],\"\"]:0",
+      "content_hash": "5aa21ab201044503dd39a7e17ef7695719df955b916cd8461f524a89039e7660",
+      "schema_version": 2
+    },
+    {
+      "id": "feadb8db-aa33-52fd-8516-f2862e5c87d5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/AECustomErrorCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECustomErrorCode\"],\"\"]:0",
+      "content_hash": "21465ee8b019bdaae08631d829602113074e345a6c32301fbc7203b14c9cbbe8",
+      "schema_version": 2
+    },
+    {
+      "id": "cbe2d979-6b21-51d3-815a-774841bff2de",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\n\n{\n \"type\": \"string\",\n \"description\": \"Custom error code without prefix, retained for compatibility with version 1.2.\"\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\"],\"\"]:0",
+      "content_hash": "aafebc3dd387a40ece40d2c3c976755c4191d20597047fc1456b479d6ea9f0bb",
+      "schema_version": 2
+    },
+    {
+      "id": "fbcfb774-e863-5a95-ab71-4b766cde08af",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/responses/error403Response\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/responses/error403Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error403Response\"],\"\"]:0",
+      "content_hash": "8695f813c708269a59c451af3af85bb591e14253e3a7bdedda680a4515ca0111",
+      "schema_version": 2
+    },
+    {
+      "id": "f7720613-995b-5e90-823e-5c081bcfc1bc",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/OzoneConnect.Error403\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError403Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n \\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error403\"],\"\"]:0",
+      "content_hash": "2c31ba8ae2b7bca10f3423d63391bdc95b9712d42d59fb9e68bb676f991fa312",
+      "schema_version": 2
+    },
+    {
+      "id": "4ae5c6a4-f66d-56cf-bbee-a91a10bea41f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/AEError403Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError403Codes\"],\"\"]:0",
+      "content_hash": "5821c25b26dfa907eb77621df856291cc8195955745222202aeeb0763446ec5c",
+      "schema_version": 2
+    },
+    {
+      "id": "2118f6f9-0bea-5123-a3c1-50451c7ddc8b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/responses/error409Response\n\n{\n \"description\": \"Operation failed due to a conflict\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error409\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/responses/error409Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error409Response\"],\"\"]:0",
+      "content_hash": "bf8e5f87bc79bef8860c86d262c16289ba7416d5e6961ffe63ad18b985b808e2",
+      "schema_version": 2
+    },
+    {
+      "id": "176d8c69-5e00-5326-a7bf-269a159a9301",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/OzoneConnect.Error409\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error409",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error409\"],\"\"]:0",
+      "content_hash": "3ba6f6780660ef03b14928639e87895a30db73a975770b9d5b66afdc27959530",
+      "schema_version": 2
+    },
+    {
+      "id": "f5cd0a6d-023e-5bda-a56b-d9676ba01116",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/AEErrorGenericCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEErrorGenericCodes\"],\"\"]:0",
+      "content_hash": "2f6c60636b929119e042c5ab8da5e39a86d9126862ea8563100b595b251dfa6a",
+      "schema_version": 2
+    },
+    {
+      "id": "c6ebf6fa-8e29-57e7-a51c-51442a668536",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/responses/error500Response\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/responses/error500Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error500Response\"],\"\"]:0",
+      "content_hash": "126aca64882b6ec4876019d98be229cd2a12ad115bba0c28f38511f9f3f85846",
+      "schema_version": 2
+    },
+    {
+      "id": "7d79d68f-7d41-5cb0-8168-ff1a45ea6f16",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/OzoneConnect.Error500\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error500\"],\"\"]:0",
+      "content_hash": "21a8353255fde97575fcc9c0368f040c73b2dc52b6bf39ee745d47911facb8ee",
+      "schema_version": 2
+    },
+    {
+      "id": "6088eb3e-a44e-5187-a37c-d205a2514c21",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/responses/errorResponse\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.DefaultError\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "81b10c1295dfb829710216fdf25aa3f3def42554c629e0d41a29c71d1fdd5977",
+      "schema_version": 2
+    },
+    {
+      "id": "69c507fe-5d87-57e4-97e7-cb63150385e9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+      "type": "section",
+      "text": "Complete a User Challenge > OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Generic error code set by the LFI. Non-namespaced error codes are allowed for compatibility versions prior to v2.0.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n }\n}",
+      "metadata": {
+        "title": "Complete a User Challenge",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.DefaultError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "055d8e0bf540364fa38909a6ccc45b25203037eb4e63fba3338ab8fa9ed0acbd",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/users-challenge-complete",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\"],\"\"]:0",
+      "content_hash": "30e5f8d06a97383f232cbb9db7845fe69f71bd503906fc3f9695a8e72bd2d492",
+      "schema_version": 2
+    }
+  ]
+}

@@ -1,0 +1,305 @@
+{
+  "id": "knowledge-base/articles/pii-signature-verification",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/knowledge-base/articles/pii-signature-verification.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "bdbf53a340181fa79df6f64d2999c743794c7c6e4bc6215f4fe5e2e123cf723f",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS",
+    "description": "The TPP signature on a payment consent's PII is as long-lived as the consent. The key that made it is not — TPPs rotate signing keys freely, and a rotated key leaves the active JWKS. Where you verify decides which key sets you have to look in.",
+    "category": "Security",
+    "readTime": "6 min",
+    "updated": "2026-09-15",
+    "tags": [
+      "PII",
+      "JWS",
+      "Trust Framework"
+    ],
+    "url": "https://nebras-open-finance.com/knowledge-base/articles/pii-signature-verification",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "One signature, two clocks",
+        "level": 2,
+        "anchor": "problem",
+        "category": "The problem",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The PersonalIdentifiableInformation field arrives inside a request that the API Hub has already verified was signed by the authenticated TPP, so verifying the inner JWS is not required — it is a defence-in-depth measure. See Verifying the TPP JWS Signature for when an LFI might choose to. Nothing here makes it mandatory."
+          },
+          {
+            "type": "paragraph",
+            "text": "This article is the signing-key half of Pattern B on the decryption guide — the pattern you need whenever you handle the PII anywhere other than at consent creation. That guide also covers the other two consequences of the same drift: your own Enc1 key, and the timing claims."
+          },
+          {
+            "type": "paragraph",
+            "text": "The PII on a payment consent is a JWE that encapsulates a JWS. The TPP builds the PII object, signs it with its signing key, encrypts it to your Enc1 public key, and submits it at PAR. That signature is made exactly once and never changes."
+          },
+          {
+            "type": "paragraph",
+            "text": "The consent, however, can be long-lived. A multi-payment consent stays usable until its ExpirationDateTime, and each payment made under it carries the same PII — the same bytes, signed at the same original moment."
+          },
+          {
+            "type": "paragraph",
+            "text": "Meanwhile the key that made the signature is on its own, entirely independent schedule:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Every Trust Framework signing certificate expires after 13 months.",
+              "A TPP may rotate whenever it likes — after an incident, on internal policy, or as routine hygiene. It does not need a reason and it does not tell you.",
+              "Rotation issues a new certificate with a new kid. It does not re-sign anything.",
+              "Once the old certificate is retired, its kid leaves the active JWKS."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "So the two clocks drift apart. The signature stays fixed at the moment of consent creation while the TPP's published key set moves on without it. A consent authorised in March and paid against in October may have been signed with a key that stopped being active in June."
+          },
+          {
+            "type": "paragraph",
+            "text": "This is not a sandbox concern. Checked against the production keystore, ADCB already holds four active application keys and four retired ones — real rotations, on live organisations, while long-lived consents signed under the older keys remain in force."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The point of verification decides which keys you need",
+        "level": 2,
+        "anchor": "when",
+        "category": "Where you verify",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Where you verify",
+              "Age of the signature",
+              "Key set you need",
+              "Pattern"
+            ],
+            "rows": [
+              [
+                "POST /consent/action/validate",
+                "Seconds",
+                "Active JWKS only",
+                "A"
+              ],
+              [
+                "POST /consent/event/post",
+                "Seconds",
+                "Active JWKS only",
+                "A"
+              ],
+              [
+                "The consent authorisation journey",
+                "Minutes to hours",
+                "Active and inactive",
+                "B"
+              ],
+              [
+                "POST /consent/event/patch",
+                "Minutes to hours",
+                "Active and inactive",
+                "B"
+              ],
+              [
+                "POST /payments",
+                "Up to the consent lifetime",
+                "Active and inactive",
+                "B"
+              ]
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "The one safe moment: consent validate",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "/consent/action/validate is called by the API Hub before the consent is created — synchronously, inside the TPP's PAR request. The signature is at most seconds old. A key cannot have been rotated out between the TPP signing the PII and the Hub calling you about it."
+              },
+              {
+                "type": "paragraph",
+                "text": "If you verify here, the active JWKS is sufficient. This is the conventional fresh-signature case, and the straightforward createRemoteJWKSet pattern works correctly. The same holds for the post consent event, which fires at the same moment in the lifecycle."
+              }
+            ]
+          },
+          {
+            "heading": "Everywhere else is “later”",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The authorisation journey is already later. It is tempting to treat consent authorisation as still “at creation” — it is usually the same session, after all. It is not. Between the TPP creating the consent and the customer actually authenticating on your platform there can be a redirect the customer does not follow immediately, an app switch, a login they abandon and resume, a re-authentication, a device handover."
+              },
+              {
+                "type": "paragraph",
+                "text": "Payment execution is much later. A single instant payment follows authorisation closely, but a multi-payment consent may execute against the same PII for as long as the consent lives. That is the case with no upper bound short of ExpirationDateTime."
+              },
+              {
+                "type": "paragraph",
+                "text": "The most common way to get this wrong is to reason “the customer authorises seconds after the TPP creates the consent, so the key must still be active”. Usually true; not reliably true. If you verify anywhere other than the creation-time hooks, you MUST be prepared for a key that is no longer active."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Retired keys are published at a parallel path",
+        "level": 2,
+        "anchor": "jwks",
+        "category": "Active & inactive JWKS",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "The URL format",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Sandbox uses the same shape on its own host:"
+              },
+              {
+                "type": "paragraph",
+                "text": "The inactive/ segment sits between the identifier and the filename — not appended to the filename, and not prefixed to the path."
+              },
+              {
+                "type": "paragraph",
+                "text": "For the PII signature, {id} is the TPP's software statement ID, which arrives on every relevant call in the o3-caller-software-statement-id header — including /consent/action/validate and POST /payments. You do not need to look it up."
+              },
+              {
+                "type": "paragraph",
+                "text": "The same inactive/ convention applies to transport.jwks, though that is not relevant to signature verification."
+              }
+            ]
+          },
+          {
+            "heading": "What is in the inactive set",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The response is an ordinary JWKS — the same format as the active set, with retired keys instead of current ones. Sampling a production organisation:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Endpoint",
+                  "Keys"
+                ],
+                "rows": [
+                  [
+                    "application.jwks",
+                    "4"
+                  ],
+                  [
+                    "inactive/application.jwks",
+                    "4"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Every certificate sampled from an inactive/ set had a notAfter in the past, consistent with keys retired by expiry or rotation."
+              },
+              {
+                "type": "paragraph",
+                "text": "The set does not distinguish a certificate that expired normally, one superseded by a routine rotation, and one revoked for key compromise. If a revocation reason is material to your risk decision, obtain it from the certificate record in the Trust Framework — it cannot be inferred from which JWKS the key appeared in."
+              }
+            ]
+          },
+          {
+            "heading": "Pin the algorithm yourself",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Published JWKS entries carry kty, use, kid and x5c — and no alg. Your verifier must therefore pin the algorithm itself: PS256, the only algorithm in the UAE Open Finance FAPI profile. Do not accept whatever the JWS header proposes."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Resolve the kid across both sets",
+        "level": 2,
+        "anchor": "how",
+        "category": "Verifying later",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "If you verify anywhere other than the creation-time hooks, resolve the kid across both sets:"
+          },
+          {
+            "type": "ordered_list",
+            "items": [
+              "Read the kid from the JWS header of the decrypted PII.",
+              "Look it up in the TPP's active JWKS.",
+              "If it is not there, look it up in the TPP's inactive JWKS.",
+              "Verify the signature against whichever key matched, pinning PS256."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "A kid found in the inactive set is the expected outcome for an older consent. It means the TPP rotated its signing key at some point after creating the consent, which is routine and entirely permitted. It is a key-lifecycle event, not a signature defect, and on its own it says nothing adverse about the signature or the TPP."
+          },
+          {
+            "type": "paragraph",
+            "text": "Most consents you verify will be recent, so the active set will almost always hit. Treat the inactive lookup as the fallback, and cache both sets as you would any JWKS rather than fetching per request."
+          },
+          {
+            "type": "paragraph",
+            "text": "The straightforward pattern shown in the API guide resolves the active JWKS only:"
+          },
+          {
+            "type": "paragraph",
+            "text": "That is correct at /consent/action/validate. Used at payment execution it will work for months and then begin failing on long-lived consents — with no change at either end, and in a way that presents as a signature error when the signature is fine."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The same default catches exp, iat and nbf",
+        "level": 2,
+        "anchor": "timing",
+        "category": "Timing claims",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "exp, iat and nbf are set by the TPP at the instant it signs the PII — the same instant, and for the same reason, that fixes the kid. They bound the PAR submission window, not the moment you happen to be verifying. At payment execution on a long-lived consent they will normally have lapsed."
+          },
+          {
+            "type": "paragraph",
+            "text": "jwtVerify and its equivalents enforce exp and nbf against the current time by default, so this fails exactly where the active-JWKS-only lookup fails, and on the same consents."
+          },
+          {
+            "type": "paragraph",
+            "text": "If you verify the PII signature at a later point, evaluate its timing claims against the consent's CreationDateTime rather than against now, or do not evaluate them at all. iat is still worth checking for consistency with CreationDateTime. Whether the consent is still usable today is answered by the API Hub's consent validation on every request, not by a claim inside the PII."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

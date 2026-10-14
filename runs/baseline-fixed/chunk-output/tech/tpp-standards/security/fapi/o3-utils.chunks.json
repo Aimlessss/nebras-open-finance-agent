@@ -1,0 +1,508 @@
+{
+  "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+  "chunk_count": 17,
+  "chunks": [
+    {
+      "id": "203f3a07-4210-53f9-bc07-8604faa0f178",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "intro",
+      "text": "O3 Sandbox Utilities\n\nThe Nebras Open Finance sandbox exposes a small set of O3 Utility endpoints to help you verify that your signing and encryption logic is correct before wiring everything together in your own application. You send a signing key (and, for encryption, a JWKS URL) in the request body, and the utility returns the signed or encrypted token directly — so you can validate output at any stage of the flow without having to build the full cryptographic pipeline first.\n\nThese endpoints accept raw private key material in the request body. They exist exclusively for development and testing on the sandbox. They are not available in any production environment, and you should never send real private keys to any external service.",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "ed15e400edd3dd6ab8e56132678a9b58d50d0370afc407431c391b62953fb73c",
+      "schema_version": 2
+    },
+    {
+      "id": "ca6b70f8-ac26-565b-84d9-0b13952f5209",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Prerequisites > Base URL and Postman environment variables > Base URL\n\nAll O3 Utility requests target the sandbox resource server:",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Base URL and Postman environment variables",
+        "category": "Prerequisites",
+        "subsection": "Base URL",
+        "anchor": "prerequisites",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"prerequisites\",\"Base URL\"]:0",
+      "content_hash": "6f79f0a508ea108f75ee48afcec073b4e5618bb0d33027c3bde70f667ee7516f",
+      "schema_version": 2
+    },
+    {
+      "id": "bbdf7fd1-e758-5d79-8dec-3556adf18287",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Prerequisites > Base URL and Postman environment variables > Required environment variables\n\nEach example below references Postman environment variables. Set these before running:\n\nVariable | Description\nkid-local | The Key ID ( kid ) of your signing certificate, from the Trust Framework\npem-local | Your signing private key in PEM format (PKCS#8, stripped of newlines — see Message Signing )\n_clientId | Your application's client_id, from the Trust Framework\njwksUrl | The LFI's JWKS URI (required for encryption only) — e.g. https://keystore.sandbox.directory.openfinance.ae/{lfi-uuid}/application.jwks\n\nPostman environment variables cannot contain literal newlines. Strip them with:",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Base URL and Postman environment variables",
+        "category": "Prerequisites",
+        "subsection": "Required environment variables",
+        "anchor": "prerequisites",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"prerequisites\",\"Required environment variables\"]:0",
+      "content_hash": "a91ac3e526f2e6cf5c2b28b234fc0b40ee562517c8440cb69e53a27247b58ed0",
+      "schema_version": 2
+    },
+    {
+      "id": "6ddd232e-11ce-559e-8a1e-b44d51ca415a",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "section",
+      "text": "O3 Sandbox Utilities > Example 1 > Prepare Encrypted PII\n\nEndpoint: GET /o3/v1.0/message-encryption\n\nProduces an encrypted PII token (JWE) from a structured payload containing creditor and risk data. The output is stored in encryptedPII and is used directly as the PersonalIdentifiableInformation field in a consent's authorization_details.\n\nThis utility signs the PII payload with your private key and then encrypts it using the LFI's public encryption key (fetched from jwksUrl ), producing a Nested JWT (JWS wrapped inside a JWE) — exactly as described in Message Encryption.",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare Encrypted PII",
+        "category": "Example 1",
+        "anchor": "example-1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"example-1\",\"\"]:0",
+      "content_hash": "0b114bae1252cc1a0a6e57a2d1f071ac42ddacc6a6291179f90c7120a935410f",
+      "schema_version": 2
+    },
+    {
+      "id": "67beb65e-5718-5693-8ef5-2182c2502848",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Example 1 > Prepare Encrypted PII > Pre-request script\n\nGenerates a PKCE code pair and sets timing claims:",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare Encrypted PII",
+        "category": "Example 1",
+        "subsection": "Pre-request script",
+        "anchor": "example-1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"example-1\",\"Pre-request script\"]:0",
+      "content_hash": "1f0eca4f5b6472e5257c7c59c012117c21ff9df8dda5e61a61513a5582c8ff3b",
+      "schema_version": 2
+    },
+    {
+      "id": "57b0147a-72c8-5e9c-a0d5-f4da57f4695c",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Example 1 > Prepare Encrypted PII > Test script\n\nSaves the encrypted PII for use in subsequent requests:",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare Encrypted PII",
+        "category": "Example 1",
+        "subsection": "Test script",
+        "anchor": "example-1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"example-1\",\"Test script\"]:0",
+      "content_hash": "1e4dd5dd4609d7c15d14e7cdddede85ea6cdc711d69b3b265ef6c4e41d81eb66",
+      "schema_version": 2
+    },
+    {
+      "id": "fe4f7896-df5f-50f7-a7dc-6b2dce0122e6",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Example 1 > Prepare Encrypted PII > Request body\n\nOutput: A compact JWE string (five base64url-encoded segments separated by. ). Use the saved variable as PersonalIdentifiableInformation in your consent's authorization_details.\n\nSee Message Encryption for a full explanation of the JWE structure, algorithm choices, and how to produce this token in your own code.",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare Encrypted PII",
+        "category": "Example 1",
+        "subsection": "Request body",
+        "anchor": "example-1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"example-1\",\"Request body\"]:0",
+      "content_hash": "d87286369ca6d561f056ac72459d30929a122147bd8a0101a29e2e8d7fafa000",
+      "schema_version": 2
+    },
+    {
+      "id": "15fc622e-9590-5229-81b3-64951274b120",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "section",
+      "text": "O3 Sandbox Utilities > Example 2 > Prepare private key JWT for PAR endpoint\n\nEndpoint: GET /o3/v1.0/message-signature\n\nProduces a Client Assertion JWT for use as client_assertion when calling /par. The client assertion proves your application's identity to the Authorization Server without a shared secret — it is signed with your private key and verified by the LFI using your public key from the Trust Framework JWKS.",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare private key JWT for PAR endpoint",
+        "category": "Example 2",
+        "anchor": "example-2",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"example-2\",\"\"]:0",
+      "content_hash": "5b8f1d63b2811874da3f48f8e590fa70fb25862d1382f0f5e8e80a3f0c28a370",
+      "schema_version": 2
+    },
+    {
+      "id": "cd17bca9-9ab4-5092-b39f-4039c9eb015d",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Example 2 > Prepare private key JWT for PAR endpoint > Pre-request script\n\nSets timing claims:",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare private key JWT for PAR endpoint",
+        "category": "Example 2",
+        "subsection": "Pre-request script",
+        "anchor": "example-2",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"example-2\",\"Pre-request script\"]:0",
+      "content_hash": "dfba2e3cdff19c276c25949113291b0f3c36389433083b52b53a942e158365df",
+      "schema_version": 2
+    },
+    {
+      "id": "0795a277-9a12-5ef7-84ce-df410ac98cb8",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Example 2 > Prepare private key JWT for PAR endpoint > Test script\n\nSaves the client assertion for use in the PAR request:",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare private key JWT for PAR endpoint",
+        "category": "Example 2",
+        "subsection": "Test script",
+        "anchor": "example-2",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"example-2\",\"Test script\"]:0",
+      "content_hash": "f51ff8187cfbad5a478d9121bfeb312550c33e456f7e26d395cfad72a0a6c873",
+      "schema_version": 2
+    },
+    {
+      "id": "fac04deb-ce46-55a9-b820-245cb4c2621c",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Example 2 > Prepare private key JWT for PAR endpoint > Request body\n\nOutput: A compact JWS string. Pass it as client_assertion in your /par request body, alongside client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer.\n\nSee Client Assertion for the full claim set requirements and Message Signing for how to produce this token in your own code.",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare private key JWT for PAR endpoint",
+        "category": "Example 2",
+        "subsection": "Request body",
+        "anchor": "example-2",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"example-2\",\"Request body\"]:0",
+      "content_hash": "bc16d8d655163f8ee0fad38b072779b90fdf63a606e01e8cee6738dfc7f63705",
+      "schema_version": 2
+    },
+    {
+      "id": "27fc3a0c-3e5c-5a0f-8dd0-3af55d7a91b6",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "section",
+      "text": "O3 Sandbox Utilities > Example 3 > Prepare private key JWT for /token\n\nEndpoint: GET /o3/v1.0/message-signature\n\nProduces the same Client Assertion JWT as Example 2, but intended for use at the /token endpoint — for exchanging an authorization code for tokens, refreshing an access token, or obtaining a client credentials token. A fresh assertion with a new jti must be generated for every request.",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare private key JWT for /token",
+        "category": "Example 3",
+        "anchor": "example-3",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"example-3\",\"\"]:0",
+      "content_hash": "d7d26e658f1d18e148c781c5c0f4ceff0ef8f0bc69b982c9939f1c80f37400cc",
+      "schema_version": 2
+    },
+    {
+      "id": "11866e12-6078-5483-bb93-4eb7d9e36a4b",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Example 3 > Prepare private key JWT for /token > Request body\n\nOutput: A compact JWS string. Pass it as client_assertion in your /token request body:\n\nThe jti claim must be a fresh UUID on every call. The Authorization Server tracks seen jti values and will reject replayed assertions. Postman's variable generates a new UUID on each request automatically.\n\nSee Client Assertion for the full claim set and Message Signing for code examples.",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare private key JWT for /token",
+        "category": "Example 3",
+        "subsection": "Request body",
+        "anchor": "example-3",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"example-3\",\"Request body\"]:0",
+      "content_hash": "c945376be9611c0a8db66c790ddacf736c52b94ad4c25c13fc798bae40f4efc2",
+      "schema_version": 2
+    },
+    {
+      "id": "b34d9000-eafd-58e6-a429-fdfa5b673777",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "section",
+      "text": "O3 Sandbox Utilities > Example 4 > Prepare request object JWT for PAR endpoint\n\nEndpoint: GET /o3/v1.0/message-signature\n\nProduces a signed Request Object JWT (JWS) for use as the request parameter in a /par call. The request object contains the full authorization intent — scope, PKCE code challenge, redirect_uri, and authorization_details — signed with your private key so the Authorization Server can verify it has not been tampered with.",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare request object JWT for PAR endpoint",
+        "category": "Example 4",
+        "anchor": "example-4",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"example-4\",\"\"]:0",
+      "content_hash": "d30652fb18a9bec13fe851adc58738b46ba8568b24d565348d98add76b571ce7",
+      "schema_version": 2
+    },
+    {
+      "id": "d3107d7b-a9f0-5427-8250-f15d10e87f6e",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Example 4 > Prepare request object JWT for PAR endpoint > Pre-request script\n\nGenerates a PKCE pair and timestamps:",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare request object JWT for PAR endpoint",
+        "category": "Example 4",
+        "subsection": "Pre-request script",
+        "anchor": "example-4",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"example-4\",\"Pre-request script\"]:0",
+      "content_hash": "ef0e4412857ab5a78cdab00d37798e161716284c8a8fee28fec9e18cad36e99c",
+      "schema_version": 2
+    },
+    {
+      "id": "3f0227f9-358b-59db-b017-a73ac3cb3b0d",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Example 4 > Prepare request object JWT for PAR endpoint > Test script\n\nSaves the signed request object and extracts the consent ID:",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare request object JWT for PAR endpoint",
+        "category": "Example 4",
+        "subsection": "Test script",
+        "anchor": "example-4",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"example-4\",\"Test script\"]:0",
+      "content_hash": "6318634bf81fc30480ad688f2c9b16140480051f65b951ac266fd7c7246a981c",
+      "schema_version": 2
+    },
+    {
+      "id": "9e149f74-6dd9-5213-a956-ad034e83657f",
+      "document_id": "tech/tpp-standards/security/fapi/o3-utils",
+      "type": "subsection",
+      "text": "O3 Sandbox Utilities > Example 4 > Prepare request object JWT for PAR endpoint > Request body\n\nService initiation example — adapt authorization_details for your consent type:\n\nOutput: A compact JWS string. Pass it as request in your /par request body.\n\nFor a complete payment flow, run the utilities in this order:\n\n1. Example 1 — Prepare Encrypted PII → saves encryptedPII\n2. Example 2 — Prepare private key JWT for PAR → saves private_key_jwt (client assertion)\n3. Example 4 — Prepare request object JWT for PAR → saves requestObject (using encryptedPII )\n4. POST /par — using requestObject and private_key_jwt\n5. Redirect user to bank → receive authorization code\n6. Example 3 — Prepare private key JWT → saves fresh private_key_jwt for /token\n7. POST /token — exchange authorization code for tokens\n\nSee Message Signing for how to produce signed JWTs in your own code.",
+      "metadata": {
+        "title": "O3 Sandbox Utilities",
+        "section": "Prepare request object JWT for PAR endpoint",
+        "category": "Example 4",
+        "subsection": "Request body",
+        "anchor": "example-4",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/security/fapi/o3-utils.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "7083b1a077757891d91380c554b6d4fd74ff971a830aa909a8fdc036512ac3d5",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/o3-utils",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"example-4\",\"Request body\"]:0",
+      "content_hash": "85e2b46d12cc39d325099c4cc0a18fe6d9dc9a4fbe691744aef205add115f1c3",
+      "schema_version": 2
+    }
+  ]
+}

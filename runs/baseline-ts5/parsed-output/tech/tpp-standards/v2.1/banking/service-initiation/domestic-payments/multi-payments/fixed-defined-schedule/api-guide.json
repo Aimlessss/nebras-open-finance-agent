@@ -1,0 +1,455 @@
+{
+  "id": "tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/fixed-defined-schedule/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/fixed-defined-schedule/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "c01199631c5a53f0b1d8ad0ccb71b1be83c938f80d1056a738d919527009dd78",
+    "dependencies": [
+      "./pkce",
+      "./request-jwt",
+      "jose",
+      "node:crypto"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Fixed Defined Schedule — API Guide",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/fixed-defined-schedule/api-guide",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Fixed Defined Schedule — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "A Fixed Defined Schedule consent authorises a TPP to initiate payments on a pre-agreed set of specific dates, each with a fixed exact amount. Rather than a recurring period, the TPP supplies an explicit schedule at consent time — listing each PaymentExecutionDate alongside the precise amount to be collected on that date. The user authorises once, approving the full schedule, and the TPP submits one payment per scheduled date without requiring re-authorisation."
+      },
+      {
+        "type": "paragraph",
+        "text": "Common use cases include fixed instalment plans, structured loan repayments, and membership or subscription billing where both the dates and exact amounts are known upfront."
+      },
+      {
+        "type": "paragraph",
+        "text": "Fixed Defined Schedule is the locked-amount variant of Variable Defined Schedule — same schedule shape, but each entry carries an exact Amount rather than a MaximumIndividualAmount ceiling."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before initiating a Fixed Defined Schedule payment",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before initiating a Fixed Defined Schedule payment, ensure the following requirements are met:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Registered Application — the application must be created within the Trust Framework and assigned the BSIP role as defined in Roles.",
+              "Valid Transport Certificate — an active transport certificate must be issued and registered in the Trust Framework to establish secure mTLS communication.",
+              "Valid Signing Certificate — an active signing certificate must be issued and registered in the Trust Framework. This certificate is used to sign request objects and client assertions.",
+              "Registration with the relevant API Hub (Authorisation Server) — the application must be registered with the API Hub (Server) of the LFI with which you intend to initiate payments.",
+              "Understanding of the FAPI Security Profile and Tokens & Assertions — you should understand how request object signing, client authentication, and access token validation underpin secure API interactions.",
+              "Understanding of Message Encryption — PII (creditor name and account details) must be encrypted as a JWE before being embedded in the consent. You will need the LFI's public encryption key from their JWKS."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end Fixed Defined Schedule",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Sign and encrypt the consent PII",
+        "level": 2,
+        "anchor": "step-1-encrypt-pii",
+        "category": "POST /par · Step 1 — Encrypting PII",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Build the consent payload",
+        "level": 2,
+        "anchor": "step-2-authorization-details",
+        "category": "POST /par · Step 2 — Constructing Authorization Details",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "With the encrypted PII ready, construct the authorization_details of type urn:openfinanceuae:service-initiation-consent:v2.1. Set PeriodicSchedule.Type to \"FixedDefinedSchedule\". Unlike a Periodic Schedule, there is no recurring period — instead, the Schedule array lists each specific PaymentExecutionDate alongside the exact amount to be collected on that date. The TPP submits one POST /payments per scheduled entry for exactly the amount defined in the schedule."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "authorization_details",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description",
+                  "Example"
+                ],
+                "rows": [
+                  [
+                    "type *",
+                    "enum",
+                    "Must be urn:openfinanceuae:service-initiation-consent:v2.1",
+                    "urn:openfinanceuae:service-initiation-consent:v2.1"
+                  ],
+                  [
+                    "consent *",
+                    "object",
+                    "Consent properties agreed by the User with the TPP. Described below.",
+                    "—"
+                  ],
+                  [
+                    "subscription",
+                    "object",
+                    "Optional subscription to Event Notifications via Webhook. Described below.",
+                    "—"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "consent (Required) | authorization_details.consent",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description",
+                  "Example"
+                ],
+                "rows": [
+                  [
+                    "ConsentId *",
+                    "string (uuid)",
+                    "Unique ID assigned by the TPP (1–128 chars)",
+                    "b8f42378-10ac-46a1-8d20-4e020484216d"
+                  ],
+                  [
+                    "IsSingleAuthorization *",
+                    "boolean",
+                    "Whether the payment requires only one authorizing party",
+                    "true"
+                  ],
+                  [
+                    "ExpirationDateTime *",
+                    "date-time",
+                    "Consent expiry (ISO 8601 with timezone, max 1 year). All scheduled dates must fall before this value.",
+                    "2027-03-02T00:00:00+00:00"
+                  ],
+                  [
+                    "AuthorizationExpirationDateTime",
+                    "date-time",
+                    "Deadline by which the consent must reach Authorized. Applies whether IsSingleAuthorization is true or false: SHOULD be set when false, so a consent cannot sit part-authorized; MAY be set when true to cap how long the single authorizer has. MUST NOT be in the past or after ExpirationDateTime.",
+                    "2026-03-03T10:00:00+00:00"
+                  ],
+                  [
+                    "BaseConsentId",
+                    "string (uuid)",
+                    "Links to prior consent if renewing — see Base Consent ID",
+                    "—"
+                  ],
+                  [
+                    "Permissions",
+                    "array<enum>",
+                    "Optional access permissions granted alongside the payment consent",
+                    "ReadAccountsBasic, ReadBalances"
+                  ],
+                  [
+                    "ControlParameters *",
+                    "object",
+                    "Payment controls — see below",
+                    "—"
+                  ],
+                  [
+                    "PersonalIdentifiableInformation *",
+                    "string (JWE)",
+                    "Encrypted creditor and risk data — the encryptedPII string from Step 1",
+                    "eyJhbGci..."
+                  ],
+                  [
+                    "PaymentPurposeCode *",
+                    "string (3 chars)",
+                    "AANI payment purpose code",
+                    "ACM"
+                  ],
+                  [
+                    "DebtorReference",
+                    "string",
+                    "Reference shown on the debtor's statement",
+                    "Invoice 2026-08"
+                  ],
+                  [
+                    "CreditorReference",
+                    "string",
+                    "Reference shown on the creditor's statement",
+                    "Invoice 2026-08"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "ControlParameters — Fixed Defined Schedule",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "ControlParameters.ConsentSchedule.MultiPayment carries the control definition. Set PeriodicSchedule.Type to \"FixedDefinedSchedule\". The Schedule array defines every execution date and its exact payment amount — the TPP submits a payment on each date for precisely the Amount specified in that entry."
+              },
+              {
+                "type": "paragraph",
+                "text": "Cumulative Control Parameters — apply across the entire consent lifetime:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Required",
+                  "Description",
+                  "Example"
+                ],
+                "rows": [
+                  [
+                    "MaximumCumulativeValueOfPayments.Amount",
+                    "No",
+                    "Maximum total value of all payments over the consent lifetime",
+                    "6000.00"
+                  ],
+                  [
+                    "MaximumCumulativeValueOfPayments.Currency",
+                    "No",
+                    "ISO 4217 currency code",
+                    "AED"
+                  ],
+                  [
+                    "MaximumCumulativeNumberOfPayments",
+                    "No",
+                    "Maximum total number of payments over the consent lifetime",
+                    "12"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Schedule Parameters — the explicit list of execution dates, set inside PeriodicSchedule.Schedule:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Required",
+                  "Description",
+                  "Example"
+                ],
+                "rows": [
+                  [
+                    "PeriodicSchedule.Type",
+                    "Yes",
+                    "Must be \"FixedDefinedSchedule\"",
+                    "FixedDefinedSchedule"
+                  ],
+                  [
+                    "PeriodicSchedule.Schedule",
+                    "Yes",
+                    "Array of schedule entries. Must be non-empty.",
+                    "—"
+                  ],
+                  [
+                    "PeriodicSchedule.Schedule[*].PaymentExecutionDate",
+                    "Yes",
+                    "The date on which the TPP intends to submit a payment. Must be unique within the schedule, today or in the future, and before ExpirationDateTime.",
+                    "2026-08-01"
+                  ],
+                  [
+                    "PeriodicSchedule.Schedule[*].Amount.Amount",
+                    "Yes",
+                    "The exact amount to be collected on this date. The POST /payments call must use this exact value.",
+                    "500.00"
+                  ],
+                  [
+                    "PeriodicSchedule.Schedule[*].Amount.Currency",
+                    "Yes",
+                    "ISO 4217 currency code",
+                    "AED"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Each entry in the Schedule array corresponds to exactly one POST /payments call. Once a payment has been submitted for a given PaymentExecutionDate, the LFI will reject further payments for that date."
+              }
+            ]
+          },
+          {
+            "heading": "Example request",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          }
+        ]
+      },
+      {
+        "heading": "Bind PKCE and authorization details into a signed JWT",
+        "level": 2,
+        "anchor": "step-3-request-jwt",
+        "category": "POST /par · Step 3 — Constructing the Request JWT",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Save codeVerifier in your server-side session or an httpOnly cookie — you will need it in Step 8 to exchange the authorization code for tokens."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Preparing the Request JWT for the full JWT claim reference and PKCE helpers."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Prove the application's identity to the API Hub",
+        "level": 2,
+        "anchor": "step-4-client-assertion",
+        "category": "POST /par · Step 4 — Creating a Client Assertion",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Push the request to the API Hub",
+        "level": 2,
+        "anchor": "step-5-par-request",
+        "category": "POST /par · Step 5 — Sending the /par Request",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Send the user to the LFI to authenticate",
+        "level": 2,
+        "anchor": "step-6-authorization-url",
+        "category": "Redirecting the User · Step 6 — Building the Authorization URL",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The authorization_endpoint is found in the LFI's.well-known/openid-configuration — not constructed from the issuer URL directly."
+          },
+          {
+            "type": "paragraph",
+            "text": "After redirecting, the user will see the bank's authorization screen showing:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "The TPP name and purpose.",
+              "The full payment schedule — each date alongside its exact amount.",
+              "Any lifetime cumulative caps.",
+              "The consent expiry date."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "See User Experience for screen mockups of the Fixed Defined Schedule Consent and Authorization pages the user sees at the bank."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Validate state and issuer on the redirect",
+        "level": 2,
+        "anchor": "step-7-callback",
+        "category": "Handling the Callback · Step 7 — Extracting the Authorization Code",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Swap the auth code for an access and refresh token",
+        "level": 2,
+        "anchor": "step-8-post-token-authorization-code",
+        "category": "Exchanging the Code for Tokens · Step 8 — POST /token (Authorization Code)",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Re-encrypt the creditor PII for each payment",
+        "level": 2,
+        "anchor": "payment-encrypt-pii",
+        "category": "Initiating Payments on the Defined Schedule · Encrypt PII for Payment Initiation",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Submit one payment per scheduled date",
+        "level": 2,
+        "anchor": "step-9-post-payments",
+        "category": "Initiating Payments on the Defined Schedule · Step 9 — POST /payments",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Include x-fapi-interaction-id and x-idempotency-key. If the customer is present at this point in the flow, also send x-fapi-customer-ip-address, x-customer-user-agent and x-fapi-auth-date if the customer has been authenticated. See Request Headers."
+          },
+          {
+            "type": "paragraph",
+            "text": "Submit one payment per scheduled date under this consent. On or around each PaymentExecutionDate, call POST /payments with the amount defined for that entry in the schedule. The API Hub will reject any payment that does not match the scheduled amount, duplicates a date already paid, or is submitted after the consent has expired."
+          },
+          {
+            "type": "paragraph",
+            "text": "Unlike Single Instant Payment, multi-payment consents do not require PaymentPurposeCode, DebtorReference, CreditorReference, or OpenFinanceBilling to match the consent exactly. Only ConsentId must match the authorized consent. Instruction.Amount must be within the parameters the consent allows for this payment type."
+          },
+          {
+            "type": "paragraph",
+            "text": "Each PaymentExecutionDate in the schedule may only be used for a single POST /payments call. Submitting a second payment for the same date will be rejected, regardless of the amount."
+          },
+          {
+            "type": "paragraph",
+            "text": "The API Hub will reject a payment if Instruction.Amount does not match the Amount defined for the corresponding PaymentExecutionDate in the schedule, if that date has already been paid, or if any lifetime cumulative cap has been reached."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Use the refresh_token to keep the session alive",
+        "level": 2,
+        "anchor": "token-refresh",
+        "category": "Token refresh for subsequent payments",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "201 Created — signed JWT response",
+        "level": 2,
+        "anchor": "payment-response",
+        "category": "A successful POST /payments",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "After each successful payment, the consent remains in the Authorized state. You do not need to re-initiate the authorization flow between scheduled dates — use the token refresh flow to maintain a valid access token."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

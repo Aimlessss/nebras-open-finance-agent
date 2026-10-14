@@ -1,0 +1,249 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/banking/service-initiation/refunds/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/refunds/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "e890cf1f2dd77a8520d9578983ec846a378a33fd2d7526ea40ff592eccb8ffe5",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Payment Refunds — API Guide",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/refunds/api-guide",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Payment Refunds — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Payment Refunds endpoint lets the API Hub retrieve the debtor's payment account details from your LFI after a payment has been made. The TPP uses those details to initiate a refund back to the original payer. This endpoint does not execute the refund itself — it only returns the account details needed to initiate one."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "End-to-end refund account retrieval",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Return the debtor's refund account",
+        "level": 2,
+        "anchor": "get-refund",
+        "category": "GET /payment-consents/{consentId}/refund",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Header",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "o3-provider-id",
+                    "Yes",
+                    "Identifier for your LFI registered in the Hub"
+                  ],
+                  [
+                    "o3-aspsp-id",
+                    "Yes (deprecated)",
+                    "Deprecated alias for o3-provider-id. Will be removed in a future version — use o3-provider-id"
+                  ],
+                  [
+                    "o3-caller-org-id",
+                    "Yes",
+                    "Organisation ID of the TPP making the underlying request"
+                  ],
+                  [
+                    "o3-caller-client-id",
+                    "Yes",
+                    "OIDC client ID of the TPP application"
+                  ],
+                  [
+                    "o3-caller-software-statement-id",
+                    "Yes",
+                    "Software statement ID of the TPP application"
+                  ],
+                  [
+                    "o3-api-uri",
+                    "Yes",
+                    "The parameterised URL of the API being called by the TPP"
+                  ],
+                  [
+                    "o3-api-operation",
+                    "Yes",
+                    "The HTTP method of the operation carried out by the TPP (e.g. GET )"
+                  ],
+                  [
+                    "o3-ozone-interaction-id",
+                    "Yes",
+                    "Hub-generated interaction ID. Equals o3-caller-interaction-id if the TPP provided one"
+                  ],
+                  [
+                    "o3-caller-interaction-id",
+                    "No",
+                    "Interaction ID passed in by the TPP, if present"
+                  ],
+                  [
+                    "o3-psu-identifier",
+                    "Yes",
+                    "Base64-encoded representation of the customer identifier JSON object"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Path parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "consentId",
+                    "Yes",
+                    "The consent ID of the original payment consent"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "Return 200 with the debtor's refund account details. The Hub wraps the response in a signed JWS before returning it to the TPP — your LFI returns plain JSON."
+              }
+            ]
+          },
+          {
+            "heading": "200 — Refund account found",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Return the debtor's account details under data.refundAccount. The refundAccount object is required and must contain the debtor's IBAN and name."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "schemeName",
+                    "string",
+                    "Yes",
+                    "Account identifier scheme — always IBAN"
+                  ],
+                  [
+                    "identification",
+                    "string",
+                    "Yes",
+                    "The debtor's IBAN"
+                  ],
+                  [
+                    "name",
+                    "object",
+                    "Yes",
+                    "The account holder name"
+                  ],
+                  [
+                    "name.en",
+                    "string",
+                    "Yes",
+                    "Account holder name in English (max 70 characters)"
+                  ],
+                  [
+                    "name.ar",
+                    "string",
+                    "No",
+                    "Account holder name in Arabic (max 70 characters)"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Error responses",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "All error bodies must include errorCode and errorMessage."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "errorCode",
+                  "errorMessage",
+                  "When to use"
+                ],
+                "rows": [
+                  [
+                    "Consent.AccountTemporarilyBlocked",
+                    "The debtor account is blocked from receiving payments.",
+                    "The account is blocked from receiving payments for a temporary reason — e.g. account status is Suspended, or the account is otherwise unable to receive a credit transaction refund on a transient basis"
+                  ],
+                  [
+                    "Consent.PermanentAccountAccessFailure",
+                    "The debtor account is blocked from receiving payments.",
+                    "The account is blocked from receiving payments permanently — e.g. account status is Closed, Deceased, or Unclaimed"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Full request and response schema",
+        "level": 2,
+        "anchor": "api-reference",
+        "category": "API Reference",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "See the GET /payment-consents/{consentId}/refund API Reference for the full request and response schema."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

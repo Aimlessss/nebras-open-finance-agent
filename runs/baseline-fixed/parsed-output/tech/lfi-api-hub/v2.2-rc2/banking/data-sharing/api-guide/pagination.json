@@ -1,0 +1,283 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/api-guide/pagination",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/api-guide/pagination.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "4671a474a997087c9246e8545494a75c12845fe8ef7192689328c62853d0ba63",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Bank Data Sharing — Pagination",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/api-guide/pagination",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Bank Data Sharing — Pagination",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Pagination for Bank Data Sharing endpoints is page-based on the LFI (Ozone Connect) side. The API Hub converts the LFI's page/meta response into the Links envelope returned to the TPP."
+      },
+      {
+        "type": "paragraph",
+        "text": "For the end-to-end picture — including how the Hub converts LFI meta into TPP Links — see Pagination — LFI meta to TPP Links."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Required vs optional pagination",
+        "level": 2,
+        "anchor": "which-paginate",
+        "category": "Which endpoints require pagination",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Endpoint",
+              "Pagination"
+            ],
+            "rows": [
+              [
+                "GET /accounts/{accountId}/transactions",
+                "Required"
+              ],
+              [
+                "GET /accounts/{accountId}/statements",
+                "Required"
+              ],
+              [
+                "GET /accounts",
+                "Optional"
+              ],
+              [
+                "GET /accounts/{accountId}/balances",
+                "Optional"
+              ],
+              [
+                "GET /accounts/{accountId}/beneficiaries",
+                "Optional"
+              ],
+              [
+                "GET /accounts/{accountId}/direct-debits",
+                "Optional"
+              ],
+              [
+                "GET /accounts/{accountId}/scheduled-payments",
+                "Optional"
+              ],
+              [
+                "GET /accounts/{accountId}/standing-orders",
+                "Optional"
+              ],
+              [
+                "GET /accounts/{accountId}/products",
+                "Optional"
+              ],
+              [
+                "GET /accounts/{accountId}/customer",
+                "Optional"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Transactions and statements span long history (at least two years) and routinely produce large result sets — pagination is required so responses remain bounded. For other list endpoints, LFIs MAY paginate where result sets warrant it, or return all matching records in a single response."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "page / page-size",
+        "level": 2,
+        "anchor": "request",
+        "category": "Request",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Hub sends page and page-size as query parameters on every paginated request:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Parameter",
+              "Type",
+              "Default",
+              "Description"
+            ],
+            "rows": [
+              [
+                "page",
+                "integer",
+                "1",
+                "1-indexed page number"
+              ],
+              [
+                "page-size",
+                "integer",
+                "100",
+                "Number of records per page"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI MUST return the slice of the result set that corresponds to page and page-size. Three steps, in that order: filtering (e.g. fromBookingDateTime / toBookingDateTime for transactions) is applied first, the filtered result set is then ordered, and the page is cut from the ordered set last. See Ordering and stability for the order transactions and statements MUST use."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "meta — paginated, totalPages, totalRecords",
+        "level": 2,
+        "anchor": "response-meta",
+        "category": "Response",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The LFI indicates the pagination state in the response meta object:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Type",
+              "Description"
+            ],
+            "rows": [
+              [
+                "paginated",
+                "boolean",
+                "true if the response is paginated. false or omitted if the full result set is returned in a single response"
+              ],
+              [
+                "totalPages",
+                "integer",
+                "The total number of pages in the full result set, given the current page-size"
+              ],
+              [
+                "totalRecords",
+                "integer",
+                "The total number of records in the full result set across all pages"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "totalPages and totalRecords MUST reflect the filtered result set — not the whole table. If a transaction query filters by date range, totalRecords is the count of transactions in that range, and totalPages is ceil(totalRecords / page-size)."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Example — transactions, page 2 of 12",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Request:"
+              },
+              {
+                "type": "paragraph",
+                "text": "Response:"
+              },
+              {
+                "type": "paragraph",
+                "text": "The Hub uses totalPages to construct Links.First, Links.Prev, Links.Next, and Links.Last on the TPP-facing response, and surfaces totalPages in the TPP's Meta. See the Pagination KB article for the full conversion."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Walking pages end-to-end",
+        "level": 2,
+        "anchor": "api-sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The diagram below traces a three-page transactions query between the TPP, Hub, and your Ozone Connect endpoint. The TPP makes a single unparameterised request and follows Links.Next on each response; the Hub translates each call into a page / page-size request sent to your Ozone Connect GET /accounts/{accountId}/transactions endpoint and converts your meta back into the TPP's Links envelope."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Empty matches return 200, not 404",
+        "level": 2,
+        "anchor": "empty-results",
+        "category": "Empty result sets",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "If filtering yields no records, return 200 with an empty data array and:"
+          },
+          {
+            "type": "paragraph",
+            "text": "Do not return 404 for an empty filtered result."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Newest first, applied before the page is cut",
+        "level": 2,
+        "anchor": "ordering",
+        "category": "Ordering and stability",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "From v2.2 the order is specified rather than left to the LFI. Transactions and statements MUST be returned newest first:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Endpoint",
+              "Order (MUST)",
+              "Tiebreaker (SHOULD)"
+            ],
+            "rows": [
+              [
+                "GET /accounts/{accountId}/transactions",
+                "bookingDateTime descending",
+                "transactionId descending"
+              ],
+              [
+                "GET /accounts/{accountId}/statements",
+                "OpeningDate descending",
+                "StatementId descending"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Transactions order on bookingDateTime and tiebreak on transactionId, matching the camelCase used across most of Ozone Connect. The statement fields are OpeningDate and StatementId — PascalCase, as they appear in the statement schema. OpeningDate is also not the same field as StatementDate, which the schema carries separately."
+          },
+          {
+            "type": "paragraph",
+            "text": "The date field is a MUST and the tiebreaker a SHOULD, but apply both — the tiebreaker is what makes the order stable rather than merely correct. Transactions routinely share a bookingDateTime, and OpeningDate is a date rather than a timestamp, so ties are common on both endpoints. Ordering on the date alone lets two tied records swap places between one page request and the next, which can return the same record on two pages and omit another entirely."
+          },
+          {
+            "type": "paragraph",
+            "text": "The ordering MUST be applied to the filtered result set before page and page-size are applied — that is where the page is cut. Page 1 then always contains the most recent records matching the request, and a record does not move between pages while a TPP is paging through a result set."
+          },
+          {
+            "type": "paragraph",
+            "text": "fromBookingDateTime / toBookingDateTime and fromStatementDate / toStatementDate filter the result set. They have no effect on the order of what remains."
+          },
+          {
+            "type": "paragraph",
+            "text": "There is no sort parameter on either endpoint — a TPP cannot request ascending order, so the order above is the only one your Ozone Connect GET /accounts/{accountId}/transactions and GET /accounts/{accountId}/statements endpoints ever need to produce. If new records arrive between page requests, the LFI SHOULD ensure the same record is not returned on two different pages of the same logical query."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

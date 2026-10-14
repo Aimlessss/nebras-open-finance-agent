@@ -1,0 +1,130 @@
+{
+  "id": "tech/tpp-standards/v2.2-rc2/webhooks",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.2-rc2/webhooks/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "82dbeb715107136f403b0f2a52f9880c33b6e91a50c565599ab5cad4c014d3e2",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Webhooks — Event Notifications",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/webhooks",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Webhooks — Event Notifications",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Rather than requiring TPPs to poll for status changes, UAE Open Finance supports push-based event notifications. When a relevant event occurs — such as a consent being authorized or revoked, or a payment status changing — the API Hub can deliver a notification directly to your registered webhook endpoint."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "HTTP POST of an encrypted, signed payload",
+        "level": 2,
+        "anchor": "how-delivered",
+        "category": "How Events Are Delivered",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Events are delivered as an HTTP POST to the webhook URL you provide along with the consent. The request body is a JWE compact serialisation encrypted using the public Encryption Certificate registered in the Trust Framework and in the Application that created the Consent. Inside the JWE is a signed JWT (JWS) containing the event payload."
+          },
+          {
+            "type": "paragraph",
+            "text": "You must respond with 202 Accepted and an empty body immediately upon receipt. Decrypt and process the payload asynchronously — the Hub may retry delivery if it does not receive a timely acknowledgement."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Receiving Event Notifications for the full decryption, signature-verification, and FAPI-required claim-validation flow — including how to use the kid in the JWE header to select the correct private key."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What you need before events can be delivered",
+        "level": 2,
+        "anchor": "requirements",
+        "category": "Requirements",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "A webhook URL registered on your Application in the Trust Framework",
+              "A valid Encryption Certificate on your Application — events cannot be delivered without one"
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What the API Hub will push to you",
+        "level": 2,
+        "anchor": "available-events",
+        "category": "Available Events",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Event",
+              "Trigger",
+              "Guide"
+            ],
+            "rows": [
+              [
+                "Consent Status",
+                "Any consent status change ( Authorized, Revoked, Expired, etc.)",
+                "Consent Status Event"
+              ],
+              [
+                "Payment Status",
+                "Payment status update on a consent with subscription.Webhook.IsActive: true",
+                "Payment Status Event"
+              ],
+              [
+                "Insurance Quote Status",
+                "Quote lifecycle event on a quote with Subscription.Webhook.IsActive: true ( ApplicationPending, ApplicationApproved, PolicyIssued, Completed, terminal states)",
+                "Insurance Quote Status Event"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  },
+  "navigation": [
+    {
+      "category": "Sub-section",
+      "title": "Consent Status",
+      "url": "/tech/tpp-standards/v2.2-rc2/webhooks/consent-status/api-guide",
+      "description": "How consent state changes ( Authorized, Revoked, Expired ) are pushed to your webhook."
+    },
+    {
+      "category": "Sub-section",
+      "title": "Payment Status",
+      "url": "/tech/tpp-standards/v2.2-rc2/webhooks/payment-status/api-guide",
+      "description": "Per-payment status updates on consents that opted into webhook delivery."
+    },
+    {
+      "category": "Sub-section",
+      "title": "Insurance Quote Status",
+      "url": "/tech/tpp-standards/v2.2-rc2/webhooks/insurance-status/api-guide",
+      "description": "Quote lifecycle updates delivered when a TPP attaches a Subscription.Webhook to an accepted insurance quote."
+    },
+    {
+      "category": "Reference",
+      "title": "Receiving Event Notifications",
+      "url": "/tech/tpp-standards/security/fapi/receiving-events",
+      "description": "FAPI-aligned decryption, signature verification, and replay protection for inbound JWE events."
+    }
+  ]
+}

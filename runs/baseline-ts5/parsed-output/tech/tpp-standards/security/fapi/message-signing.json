@@ -1,0 +1,188 @@
+{
+  "id": "tech/tpp-standards/security/fapi/message-signing",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/security/fapi/message-signing.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "3c7677f5a099794671b46a89015fcc6b4e6d3c7d684fc7c64724990862955df0",
+    "dependencies": [
+      "jose",
+      "node:fs"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Message Signing (JWS)",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/security/fapi/message-signing",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Message Signing (JWS)",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "A JWS (JSON Web Signature — RFC 7515 ) is the cryptographic mechanism that signs a JSON payload to prove two things:"
+      },
+      {
+        "type": "list",
+        "items": [
+          "Authenticity — it genuinely came from the holder of the private key",
+          "Integrity — the content has not been modified since it was signed"
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "In UAE Open Finance, signing is required whenever your application sends a JWT to an Authorization Server:"
+      },
+      {
+        "type": "list",
+        "items": [
+          "The Request Object sent to /par",
+          "The Client Assertion sent to /token"
+        ]
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Three base64url parts joined by dots",
+        "level": 2,
+        "anchor": "structure",
+        "category": "Structure of a Signed JWT",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "A signed JWT consists of three base64url-encoded parts joined by.:"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Algorithm and signing key identifier",
+        "level": 2,
+        "anchor": "header",
+        "category": "JOSE Header",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Value",
+              "Description"
+            ],
+            "rows": [
+              [
+                "alg",
+                "PS256",
+                "RSA-PSS with SHA-256. The only algorithm supported by the UAE Open Finance FAPI profile"
+              ],
+              [
+                "kid",
+                "string",
+                "The Key ID of your signing certificate, as registered in the Trust Framework"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Your kid is assigned by the Trust Framework when your signing certificate is issued. Find it on the certificate detail page: Application → App Certificates → select the certificate. See Finding Your Key ID for a screenshot."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Domain claims plus FAPI-required timing claims",
+        "level": 2,
+        "anchor": "payload",
+        "category": "Payload",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The payload is a JSON object of claims. The structure depends on the use case — see Request JWT and Client Assertion for the specific claim sets."
+          },
+          {
+            "type": "paragraph",
+            "text": "All signed JWTs must include timing claims to prevent replay attacks:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Claim",
+              "Description"
+            ],
+            "rows": [
+              [
+                "iat",
+                "Issued At — current Unix timestamp"
+              ],
+              [
+                "nbf",
+                "Not Before — slightly before iat to allow for clock skew (e.g. iat - 10 )"
+              ],
+              [
+                "exp",
+                "Expiry — short-lived; typically 5 minutes ( iat + 300 )"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What you need before signing",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "An application registered in the Trust Framework with an appropriate role",
+              "A valid signing certificate and its corresponding private key",
+              "The Key ID ( kid ) of your signing certificate from the Trust Framework"
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Reusable signer for FAPI-compliant JWS",
+        "level": 2,
+        "anchor": "signing",
+        "category": "Signing a JWT",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Node.js example uses the jose library (available for Node.js, browsers, Deno, and Cloudflare Workers); the Python example uses PyJWT."
+          },
+          {
+            "type": "paragraph",
+            "text": "Some environments require the PEM key to have no line breaks when passed as an environment variable. Strip them with:"
+          },
+          {
+            "type": "paragraph",
+            "text": "The sandbox provides O3 Utility endpoints that accept your private key and return ready-made signed JWTs — useful for validating your signing setup before writing your own code. See O3 Sandbox Utilities."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Useful for testing your own setup",
+        "level": 2,
+        "anchor": "verifying",
+        "category": "Verifying a Signature",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "LFIs will verify your signatures using your public key fetched from your application's JWKS URI in the Trust Framework. You do not need to implement verification yourself, but it is useful for testing:"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,414 @@
+{
+  "id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+    "dependencies": [
+      "./sign-jwt",
+      "node:crypto"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Confirmation of Payee — API Guide",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Confirmation of Payee — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Confirmation of Payee (CoP) lets a TPP verify that an IBAN belongs to the named individual or business before initiating a payment. Unlike payment flows, CoP does not require user authorization — the TPP authenticates directly using a client credentials grant and the LFI responds with a match result in seconds."
+      },
+      {
+        "type": "paragraph",
+        "text": "CoP is served by each participating LFI independently. Before calling an LFI directly, the TPP first calls the API Hub's discovery endpoint to identify which LFI holds the destination account and retrieve its endpoint URLs."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before calling the CoP API",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before calling the CoP API, ensure the following requirements are met:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Registered Application — the application must be created within the Trust Framework and assigned the BSIP role as defined in Roles.",
+              "Valid Transport Certificate — an active transport certificate must be issued and registered in the Trust Framework to establish secure mTLS communication.",
+              "Valid Signing Certificate — an active signing certificate must be issued and registered in the Trust Framework. This certificate is used to sign the confirmation request JWT and client assertions.",
+              "Registration with the relevant API Hub (Authorisation Server) — the application must be registered with the API Hub (Server) of the LFI that holds the destination account.",
+              "Understanding of Tokens & Assertions — you should understand how client authentication works with private_key_jwt before calling the token endpoint."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end Confirmation of Payee",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Resolve the IBAN to a specific LFI",
+        "level": 2,
+        "anchor": "step-1-discover-lfi",
+        "category": "Step 1 — Discover the LFI",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "CoP is served by individual LFIs — the /discovery endpoint resolves a payee IBAN to the correct LFI and returns two URLs you will need for the rest of the flow:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Description"
+            ],
+            "rows": [
+              [
+                "DiscoveryEndpointUrl",
+                "The.well-known endpoint for the LFI's Authorisation Server. Fetch this to obtain the token_endpoint and issuer used in later steps."
+              ],
+              [
+                "ResourceServerUrl",
+                "The base URL of the LFI's API Hub resource server. Use this as the base URL when calling /confirmation."
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Before calling /discovery you must obtain an access token from any LFI you are registered with using a client credentials grant. The API Hub does not make any requests to the LFI when processing /discovery — it resolves the IBAN centrally — so the response is the same regardless of which LFI you authenticate with. You only need to perform discovery once, and the POST /discovery request must be sent to the LFI whose token you are using."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Prove your application's identity",
+        "level": 2,
+        "anchor": "step-2-client-assertion",
+        "category": "Step 2 — Build a Client Assertion",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Use the signJWT() helper to build a client assertion proving your application's identity:"
+          },
+          {
+            "type": "paragraph",
+            "text": "See Client Assertion for the full claims reference."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Exchange the assertion for an access token",
+        "level": 2,
+        "anchor": "step-3-token-request",
+        "category": "Step 3 — Token Request",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "POST to any LFI's token endpoint with scope=confirmation-of-payee:"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Sign the IBAN-lookup payload",
+        "level": 2,
+        "anchor": "step-4-discovery-request",
+        "category": "Step 4 — Build a signed discovery request",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The request body is a signed JWT containing the IBAN, signed with your signing key:"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Resolve the LFI for an IBAN",
+        "level": 2,
+        "anchor": "step-5-post-discovery",
+        "category": "Step 5 — POST /discovery",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Include x-fapi-interaction-id on the request. See Request Headers."
+          },
+          {
+            "type": "paragraph",
+            "text": "See the POST /discovery API reference for the full request and response schema."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Read the LFI's OpenID configuration",
+        "level": 2,
+        "anchor": "step-6-resolve-token-endpoint",
+        "category": "Step 6 — Resolve the LFI token endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Fetch the DiscoveryEndpointUrl directly to read the LFI's OpenID configuration. This gives you the token_endpoint and issuer needed for the next steps:"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Build a fresh assertion for the resolved LFI",
+        "level": 2,
+        "anchor": "step-7-client-assertion",
+        "category": "Step 7 — Build a Client Assertion",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Use the signJWT() helper to build a client assertion proving your application's identity:"
+          },
+          {
+            "type": "paragraph",
+            "text": "See Client Assertion for the full claims reference."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get an access token from the resolved LFI",
+        "level": 2,
+        "anchor": "step-8-token-request",
+        "category": "Step 8 — Token Request",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "POST to the token endpoint (resolved in Step 6) with scope=confirmation-of-payee:"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "POST /confirmation — request payload",
+        "level": 2,
+        "anchor": "step-9-build-confirmation-request",
+        "category": "Step 9 — Build and Sign the Confirmation Request",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The confirmation request is sent as a signed JWT ( Content-Type: application/jwt ). Build the JWT payload containing the account details you want to verify, then sign it with your signing key."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request payload fields",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description",
+                  "Example"
+                ],
+                "rows": [
+                  [
+                    "Data.SchemeName *",
+                    "enum",
+                    "Account identifier type — always IBAN",
+                    "IBAN"
+                  ],
+                  [
+                    "Data.Identification *",
+                    "string",
+                    "The IBAN to verify",
+                    "AE070331234567890123456"
+                  ],
+                  [
+                    "Data.Name.FullName *",
+                    "string",
+                    "Full name of the account holder",
+                    "Ibrahim Al Suwaidi"
+                  ],
+                  [
+                    "Data.Name.GivenName",
+                    "string",
+                    "Given (first) name — individual accounts",
+                    "Ibrahim"
+                  ],
+                  [
+                    "Data.Name.LastName",
+                    "string",
+                    "Family name — individual accounts",
+                    "Al Suwaidi"
+                  ],
+                  [
+                    "Data.Name.BusinessName",
+                    "string",
+                    "Registered business name — use instead of personal name fields for business accounts",
+                    "Business Inc."
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Provide GivenName + LastName for personal accounts, or BusinessName for business accounts. Do not mix both."
+              }
+            ]
+          },
+          {
+            "heading": "Example payload (inside the JWT message claim)",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Signing the request",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Use the signJWT() helper, wrapping the payload in a message claim:"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Send the signed JWT and decode the response",
+        "level": 2,
+        "anchor": "step-10-post-confirmation",
+        "category": "Step 10 — POST /confirmation",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Send the signed JWT to the LFI's CoP endpoint using the ResourceServerUrl resolved in Step 5. Both the request body and the response are JWTs. Include x-fapi-interaction-id on every request. See Request Headers."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The response is a signed JWT. Decode the payload to read the match result:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "Data.NameMatchIndicator",
+                    "string",
+                    "The result of the name match check — see enum below"
+                  ],
+                  [
+                    "Data.MaskedName",
+                    "string",
+                    "The account holder's name, partially masked. Returned on ConfirmationOfPayee.Partial and ConfirmationOfPayee.No"
+                  ]
+                ]
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "NameMatchIndicator",
+                  "Meaning"
+                ],
+                "rows": [
+                  [
+                    "ConfirmationOfPayee.Yes",
+                    "Name and account match — safe to proceed"
+                  ],
+                  [
+                    "ConfirmationOfPayee.Partial",
+                    "Name partially matches — present the MaskedName to the payer"
+                  ],
+                  [
+                    "ConfirmationOfPayee.No",
+                    "Name does not match — present the MaskedName to the payer"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "A ConfirmationOfPayee.Partial or ConfirmationOfPayee.No result must be surfaced to the payer — along with the MaskedName — before initiating a payment. Proceeding without informing the user may increase the risk of authorised push payment fraud."
+              }
+            ]
+          },
+          {
+            "heading": "Decoding the JWS",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The /confirmation response body is a compact JWS — three base64url-encoded segments separated by.:"
+              },
+              {
+                "type": "paragraph",
+                "text": "Verify the signature using the LFI's public key, then base64url-decode the payload:"
+              },
+              {
+                "type": "paragraph",
+                "text": "The decoded payload contains a message object with the CoP result under message.Data:"
+              },
+              {
+                "type": "paragraph",
+                "text": "See the POST /confirmation API reference for the full request and response schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Using the CoP Response in a Payment Consent",
+        "level": 2,
+        "anchor": "cop-in-payment-consent",
+        "category": "Embedding the result",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Where Confirmation of Payee has been performed for a creditor, include the full raw JWS response string returned by the /confirmation endpoint in the ConfirmationOfPayeeResponse field of the creditor entry inside the payment consent PII."
+          },
+          {
+            "type": "paragraph",
+            "text": "This gives the LFI confidence that the creditor account details have been verified before the payment consent was created. The value must be the complete compact JWS string — do not decode it to an object before embedding."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Creditor for the full PII creditor schema and the creditor models (single, multiple, and open beneficiary)."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Confirmation of Payee — User Experience for consent and authorisation page examples across different match results."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

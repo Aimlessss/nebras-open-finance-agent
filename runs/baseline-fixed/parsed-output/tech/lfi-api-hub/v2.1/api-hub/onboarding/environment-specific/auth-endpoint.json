@@ -1,0 +1,428 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/api-hub/onboarding/environment-specific/auth-endpoint",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/api-hub/onboarding/environment-specific/auth-endpoint.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+    "hash": "65a56296f931c7dc46b72d15975a2a0e3580d46517679ea3fa1beb8796feaf5b",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Authorization Endpoint",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/api-hub/onboarding/environment-specific/auth-endpoint",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Authorization Endpoint",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Authorization Endpoint is the HTTPS URL to which the end user (customer) is redirected during consent authorisation flows. It is the entry point to the LFI's authentication and consent authorisation experience."
+      },
+      {
+        "type": "paragraph",
+        "text": "The TPP constructs the redirect URL and sends the end user there directly — the API Hub does not perform this redirect. The URL MUST therefore be a stable, publicly accessible HTTPS endpoint that works reliably across all devices and browsers."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "One Authorization Endpoint per Hub instance, per environment",
+        "level": 2,
+        "anchor": "what-you-provide",
+        "category": "What you provide",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "You MUST provide one Authorization Endpoint URL per API Hub instance, per environment:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Environment",
+              "Example"
+            ],
+            "rows": [
+              [
+                "Pre-production",
+                "https://openbanking-uat.example.com/authorize"
+              ],
+              [
+                "Production",
+                "https://openbanking.example.com/authorize"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "There is exactly one Authorization Endpoint URL per API Hub instance."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The consent authorisation flow",
+        "level": 2,
+        "anchor": "how-it-is-used",
+        "category": "How it is used",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "During the consent authorisation flow:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "A TPP initiates a consent request via Pushed Authorization Request (PAR) to the API Hub.",
+              "The API Hub creates the consent and returns a request_uri to the TPP.",
+              "The TPP constructs the authorization URL and redirects the end user to your Authorization Endpoint.",
+              "Your system calls GET /auth on the Headless Heimdall Auth Server, passing through the query parameters received from the redirect.",
+              "Headless Heimdall validates the FAPI/OIDC request and returns the interaction context and decoded consent details.",
+              "Your system authenticates the end user and presents the consent for approval.",
+              "Your system calls doConfirm or doFail on the Headless Heimdall Auth Server with the result.",
+              "The end user is redirected back to the TPP."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The API Hub handles all FAPI 2.0 and OIDC protocol complexity through the Headless Heimdall Auth Server. Your Authorization Endpoint does not need to implement FAPI validation, token binding, or OIDC protocol logic directly — these are handled when you call GET /auth. Your endpoint's role is to receive the redirect, invoke GET /auth, authenticate the end user, and complete the consent journey."
+          },
+          {
+            "type": "paragraph",
+            "text": "For full details on the authorization flow, see the Consent Journey API Guide."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "HTTPS, no query parameters, public, stable",
+        "level": 2,
+        "anchor": "url-format",
+        "category": "URL format requirements",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Authorization Endpoint URL MUST:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Use HTTPS — HTTP is not permitted",
+              "Be a clean base URL with no query parameters — the TPP appends OIDC query parameters ( client_id, response_type, request_uri ) during the redirect",
+              "Be accessible to end user browsers over the public internet",
+              "Resolve to infrastructure owned and operated by the LFI",
+              "Be stable — the URL MUST NOT change without coordinated reconfiguration of the API Hub instance"
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The TPP constructs the full redirect URL in the following format:"
+          },
+          {
+            "type": "paragraph",
+            "text": "Where request_uri is the value returned from the API Hub's /par response."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Universal Links and App Links — no custom schemes",
+        "level": 2,
+        "anchor": "deep-linking",
+        "category": "App invocation via deep linking",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Authorization Endpoint URL MUST be configured as a deep link that opens the LFI's native mobile app when it is installed on the end user's device. This is the primary authentication channel — most end users will authenticate via the LFI's mobile banking app."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Required approach: Universal Links and App Links",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "LFIs MUST use platform-verified deep linking mechanisms to associate the Authorization Endpoint URL with their native app:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Platform",
+                  "Mechanism",
+                  "Verification file"
+                ],
+                "rows": [
+                  [
+                    "iOS",
+                    "Universal Links",
+                    "/.well-known/apple-app-site-association"
+                  ],
+                  [
+                    "Android",
+                    "Android App Links",
+                    "/.well-known/assetlinks.json"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "These mechanisms allow the operating system to verify that the LFI owns both the domain and the app, and to open the app directly when the end user navigates to the URL — without showing an intermediate browser page or disambiguation dialog."
+              },
+              {
+                "type": "paragraph",
+                "text": "Custom URL schemes (e.g. mybank://authorize ) MUST NOT be used. Custom schemes are not verified by the operating system, meaning any app can register to handle the scheme. This creates a redirect interception risk where a malicious app could capture the authorization request. Only HTTPS-based verified deep links (Universal Links and App Links) are permitted."
+              }
+            ]
+          },
+          {
+            "heading": "How verified deep linking works",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Both Universal Links (iOS) and App Links (Android) follow the same principle:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "The LFI hosts a verification file on the Authorization Endpoint domain, proving ownership of both the domain and the app.",
+                  "The LFI's mobile app declares that it handles URLs for the Authorization Endpoint domain.",
+                  "The operating system verifies the association at app install time by fetching the verification file from the domain.",
+                  "When the end user navigates to the URL, the OS opens the LFI app directly — no browser page is loaded, no disambiguation dialog is shown."
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "iOS — Apple App Site Association",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The LFI MUST host an apple-app-site-association file at the root of the Authorization Endpoint domain:"
+              },
+              {
+                "type": "paragraph",
+                "text": "This JSON file declares which paths on the domain should open the app. It MUST be served over HTTPS without redirects, and MUST NOT require authentication."
+              }
+            ]
+          },
+          {
+            "heading": "Android — Digital Asset Links",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The LFI MUST host an assetlinks.json file at the root of the Authorization Endpoint domain:"
+              },
+              {
+                "type": "paragraph",
+                "text": "This JSON file establishes a cryptographic link between the domain and the app using the app's signing certificate fingerprint. The app's AndroidManifest.xml MUST declare an intent filter with android:autoVerify=\"true\" for the Authorization Endpoint domain."
+              },
+              {
+                "type": "paragraph",
+                "text": "The operating system fetches and verifies the association file when the app is installed or updated. If verification fails (e.g. the file is missing, malformed, or the certificate fingerprint doesn't match), the OS will fall back to opening the URL in the browser — which defeats the purpose of deep linking. LFIs MUST ensure the verification files are correctly configured and accessible before publishing the app."
+              }
+            ]
+          },
+          {
+            "heading": "Fallback when the app is not installed",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If the LFI app is not installed on the end user's device, the URL opens in the device's browser. In this case, the Authorization Endpoint MUST serve a mobile-optimised web page that allows the end user to complete authentication. See the Authentication Implementation Guide for the detailed fallback flows, including browser-based authentication, app handoff via push notification, and QR code handoff from desktop."
+              },
+              {
+                "type": "paragraph",
+                "text": "The same URL MUST work in both cases — app invocation and browser fallback — without requiring the TPP or end user to do anything differently."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "QR handoff, push handoff, or browser-based auth",
+        "level": 2,
+        "anchor": "desktop-browser",
+        "category": "Desktop browser behaviour",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When the end user is on a desktop device, the Authorization Endpoint URL opens in the desktop browser. There is no native app to deep link to. In this case, the endpoint MUST render a web page that enables the end user to complete the consent journey. Common approaches include:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "QR code handoff — the page displays a QR code that the end user scans with their mobile device, opening the LFI app to complete authentication",
+              "Push notification handoff — the page collects identifying information and triggers a push notification to the end user's bound device",
+              "Browser-based authentication — if the LFI supports web-based authentication in its existing digital channels, the end user MUST be able to complete the entire journey in the desktop browser"
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The desktop page MUST poll for completion and redirect the end user back to the TPP once the consent journey concludes."
+          },
+          {
+            "type": "paragraph",
+            "text": "For implementation details, see the Authentication Implementation Guide."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Works regardless of device, OS, browser, or TPP redirect method",
+        "level": 2,
+        "anchor": "cross-device",
+        "category": "Cross-device and cross-browser compatibility",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Authorization Endpoint is invoked by a TPP that the LFI does not control. The LFI cannot predict which device, operating system, browser, or redirect method the TPP will use. The endpoint MUST therefore work reliably across all common combinations."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "What the LFI MUST support",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The Authorization Endpoint MUST function correctly:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Across mobile platforms — iOS and Android, including current and recent OS versions",
+                  "Across mobile browsers — Safari, Chrome, Samsung Internet, Firefox, and any other browser with meaningful market share in the UAE. The deep link MUST open the app regardless of which browser the TPP is using. If the app is not installed, the browser fallback MUST render correctly in all of these browsers.",
+                  "Across desktop browsers — Chrome, Safari, Edge, and Firefox on Windows, macOS, and common Linux distributions",
+                  "Regardless of how the TPP opens the redirect — the endpoint MUST work whether the TPP opens the URL in the current browser tab, a new browser tab, or a system browser view (e.g. SFSafariViewController on iOS, Chrome Custom Tabs on Android). The behaviour MUST be seamless in all cases.",
+                  "On both mobile and desktop — the same URL serves the appropriate experience based on the device context"
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "What the LFI MUST test",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "LFIs are responsible for comprehensive testing of the Authorization Endpoint across the full range of devices, operating systems, and browsers their end users may use. This includes verifying that:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Deep linking correctly opens the native app on both iOS and Android when the app is installed, across all major browsers",
+                  "The browser fallback renders and functions correctly on both iOS and Android when the app is not installed, across all major browsers",
+                  "The desktop experience works across all major desktop browsers",
+                  "The flow completes successfully regardless of whether the TPP opens the redirect in the current tab, a new tab, or a system browser view",
+                  "Navigation behaviour is sensible — for example, pressing the device back button during the flow does not leave the end user stranded on a blank page",
+                  "The flow works on devices with different screen sizes, orientations, and accessibility settings"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Any failure of the Authorization Endpoint to function on a device or browser that end users commonly use will be treated as a certification failure. The LFI is responsible for ensuring broad compatibility. The CX certification process, managed by Nebras, will verify this as part of production readiness."
+              }
+            ]
+          },
+          {
+            "heading": "App disambiguation",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "On Android, if multiple apps are registered to handle the same domain (for example, a production app and a development build), the OS may display a disambiguation dialog asking the end user to choose which app to open. This MUST NOT occur in production — it confuses the end user and undermines trust."
+              },
+              {
+                "type": "paragraph",
+                "text": "LFIs MUST ensure that only the production app is verified against the production Authorization Endpoint domain. Development and staging builds MUST use separate domains (e.g. openbanking-dev.example.com ) and MUST NOT be registered against the production domain's assetlinks.json."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "The full checklist",
+        "level": 2,
+        "anchor": "summary",
+        "category": "Summary of requirements",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Requirement"
+            ],
+            "rows": [
+              [
+                "1",
+                "HTTPS only — no HTTP, no custom URL schemes"
+              ],
+              [
+                "2",
+                "No query parameters in the base URL"
+              ],
+              [
+                "3",
+                "Publicly accessible over the internet"
+              ],
+              [
+                "4",
+                "Universal Links (iOS) and App Links (Android) configured for the domain"
+              ],
+              [
+                "5",
+                "apple-app-site-association and assetlinks.json hosted and verified"
+              ],
+              [
+                "6",
+                "App opens directly when installed — no intermediate pages or disambiguation dialogs"
+              ],
+              [
+                "7",
+                "Mobile-optimised web fallback when app is not installed"
+              ],
+              [
+                "8",
+                "Desktop web experience with handoff to mobile app (QR, push) or browser-based auth"
+              ],
+              [
+                "9",
+                "Works across all major browsers on iOS, Android, and desktop"
+              ],
+              [
+                "10",
+                "Works regardless of TPP redirect method (current tab, new tab, system browser view)"
+              ],
+              [
+                "11",
+                "Production app disambiguation resolved — only one app handles the production domain"
+              ],
+              [
+                "12",
+                "CX certified by Nebras as part of production readiness"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

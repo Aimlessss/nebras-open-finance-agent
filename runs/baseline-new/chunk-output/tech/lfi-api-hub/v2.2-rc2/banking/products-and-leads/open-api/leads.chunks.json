@@ -1,0 +1,1030 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+  "chunk_count": 30,
+  "chunks": [
+    {
+      "id": "8431619c-0419-5a3f-9699-59d10552666b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > API /leads\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - Bank Products Data\",\n \"contact\": {\n \"name\": \"Ozone Financial Technology Limited\"\n },\n \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor Bank Product Data APIs for Ozone Connect.\\n\\nThese APIs should be implemented by an financial institution so that Ozone\\ncan expose the API operations to TPPs.\\n\\n#### Implementer Notes\\n\\nImplementers should note that this API prescribes a positive response for correctly executed\\noperations including those where no data is returned. This is consistent with the general principles\\nof REST.\\n\\nPlease refer to the API Hub documentation for details of test cases that are \\navailable for this API using the Ozone Connect test suite.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n**Please adhere to the deprecated flags in your implementation. Do not implement deprecated properties when** **implementing new functionality.**\\n### v2.2.2\\n* Changed `post /leads` to constrain the personal-data fields it accepts. `Data.EmiratesId` on both the request\\n and the response now carries `pattern: ^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$`, matching the Emirates ID pattern\\n already used by the Insurance API descriptions. Per OFP-009.\\n\\n* Changed `GivenName`, `LastName` and `FullName` on `AEUserName` to accept Latin letters, space, apostrophe,\\n period and hyphen only, and `BusinessName` to accept those plus digits, ampersand, comma, parentheses and\\n forward slash. Field lengths are unchanged. Per OFP-009.\\n\\n* Changed `AddressLine` on `AEResidentialAddress` to accept the ISO 20022 `PostalAddress27` `x` character set,\\n as already applied to the reference fields in the Bank Service Initiation API description. Field lengths and\\n item counts are unchanged. Per OFP-009.\\n\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards\\n* Changed `get /products` to return `ExpectedProfitRates`, providing one-or-more deposit rates for\\n Sharia-compliant products. Each rate carries `RateType` (`FixedProfit` or `VariableProfit`),\\n `DepositRateType` (`ExpectedProfitRate` or `IndicativeProfitRate`), `ProfitSharingRatio`,\\n `ProfitDistributionMethod`, `ProfitDistributionFrequency`, an optional `Description`, and `RateDetails`.\\n\\n* Changed `get /products` to return `ShariaFinanceRates`, providing one-or-more finance rates for\\n Sharia-compliant products. Each rate is discriminated on `RateType` as a fixed profit rate, a variable\\n profit rate or a hybrid profit rate, and carries `ProfitCalculationMethod` with the values\\n `PrincipalBalance`, `OutstandingBalance`, `InitialDrawdownAmount`, `UnusedCreditLine` or `UtilizedLimit`.\\n\\n* Changed `get /products` to return `TakafulRequired`, indicating whether Takaful coverage is required for\\n the product, and `TakafulDescription`, describing the type and purpose of the required coverage.\\n\\n* Changed `get /products` to return `ProfitCalculationMethod` on charge components, for use in place of\\n `InterestCalculationMethod` where the product uses Islamic calculation methods.\\n\\n* Changed `InterestCalculationMethod` on charge components returned by `get /products` to apply to interest\\n only. Islamic calculation methods are now described by `ProfitCalculationMethod`.\\n\\n* Changed `RateDetails` on the deposit rates returned by `get /products` to reference a shared Schema Object,\\n so that the same rate structure is used by both `DepositRates` and `ExpectedProfitRates`. No change to the\\n properties returned.\\n\",\n \"version\": \"v2.2.2\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/leads\",\n \"operations\": {\n \"post\": {\n \"tags\": [\n \"Leads\"\n ],\n \"summary\": \"Create a Lead\",\n \"description\": \"Create a Lead\\n\",\n \"operationId\": \"CreateLead\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/ozoneInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/x-fapi-customer-ip-address\"\n }\n ],\n \"requestBody\": {\n \"description\": \"Request Body\\n\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/LeadRequest\"\n }\n }\n }\n },\n \"responses\": {\n \"201\": {\n \"$ref\": \"#/components/responses/201LeadResponse\"\n },\n \"400\": {\n \"$ref\": \"#/components/responses/BadRequestResponse\"\n },\n \"401\": {\n \"$ref\": \"#/components/responses/NotAuthorizedResponse\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/ForbiddenResponse\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/InternalServerErrorResponse\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "API /leads",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /leads\"],\"\"]:0:part:0",
+      "content_hash": "e460ed125aba3205a241268bb707d973671a0010bcee007b164fed2a04113287",
+      "schema_version": 2
+    },
+    {
+      "id": "786c0725-0396-5784-85ac-c261e7900aa1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > API /leads\n\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "API /leads",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /leads\"],\"\"]:0:part:1",
+      "content_hash": "6b6c2bf0e5adc4ab791ca265196e8ab50313b41c2a34418c7c86066a319be63c",
+      "schema_version": 2
+    },
+    {
+      "id": "44c377d7-2c47-5fa2-b99d-5eea00430b2f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/parameters/providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targeted to\"\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/parameters/providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/providerId\"],\"\"]:0",
+      "content_hash": "6d5e9e989ac44ea917340de0317d4de4abed708a5714f18012010383d61ef79b",
+      "schema_version": 2
+    },
+    {
+      "id": "635eb19e-55ea-56cb-8d56-797ab16af69f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/parameters/callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\"\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/parameters/callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerOrgId\"],\"\"]:0",
+      "content_hash": "f253a937fb8178efd9ecd392a72ca2cff0c7af42b199b6028049e270aef9772c",
+      "schema_version": 2
+    },
+    {
+      "id": "c4584766-ef31-50e5-b8f6-b0efb522b1d2",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/parameters/callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\"\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/parameters/callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerClientId\"],\"\"]:0",
+      "content_hash": "4deefb650f6c832735a060ad07ea9899fd389d6cd39ad821937e8f07915ed9d2",
+      "schema_version": 2
+    },
+    {
+      "id": "888502c6-244c-5a65-8a5d-f90ae96a9089",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/parameters/callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\"\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/parameters/callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "d86c35198b669c113598dd37c986c22e68223b59229643244fcf5218e460c648",
+      "schema_version": 2
+    },
+    {
+      "id": "10605e41-fb98-5de5-923e-b966c44db531",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/parameters/apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The parameterised URL of the API being called by the caller\"\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/parameters/apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiUri\"],\"\"]:0",
+      "content_hash": "7e791811304405bbba37192703e43a2f2efc437bf8d00b8a3451a249b6f61726",
+      "schema_version": 2
+    },
+    {
+      "id": "103e4497-118c-586e-b41e-2b0265d88c3c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/parameters/apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\"\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/parameters/apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiOperation\"],\"\"]:0",
+      "content_hash": "161e2b8f0f3ec09b9a1f961be9a89d570b686f9255fe3b89f062fdff148091ee",
+      "schema_version": 2
+    },
+    {
+      "id": "70ca78b8-352d-5a29-b34b-f4ac7c422471",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/parameters/callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\"\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/parameters/callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerInteractionId\"],\"\"]:0",
+      "content_hash": "b53eb589e77215d6b8024198435b8240c260401206e8fb955ba459dd04fcd89b",
+      "schema_version": 2
+    },
+    {
+      "id": "338acb78-42d3-5a7d-80b8-748e7eb5bbf2",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/parameters/ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\"\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/parameters/ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "9df8544a343217f7fb63f88e2d6d063a41ec28ece20da4466fce671f3fde404c",
+      "schema_version": 2
+    },
+    {
+      "id": "cc4042c7-d466-5c44-9d14-b509ebc70172",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/parameters/x-fapi-customer-ip-address\n\n{\n \"in\": \"header\",\n \"name\": \"x-fapi-customer-ip-address\",\n \"required\": true,\n \"description\": \"The User's IP address if the User is currently logged in with the TPP.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/parameters/x-fapi-customer-ip-address",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/x-fapi-customer-ip-address\"],\"\"]:0",
+      "content_hash": "e36407203771f31c5d6e25607d735125212cddf615cd47d1cb255204c36d6b5b",
+      "schema_version": 2
+    },
+    {
+      "id": "6deef90d-3614-5fcb-9a06-dc87fbb81589",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/LeadRequest\n\n{\n \"type\": \"object\",\n \"additionalProperties\": false,\n \"description\": \"The request to create a lead.\\n\",\n \"properties\": {\n \"data\": {\n \"type\": \"object\",\n \"additionalProperties\": false,\n \"description\": \"The data for the lead request.\\n\",\n \"required\": [\n \"Name\",\n \"Email\",\n \"EmiratesId\",\n \"MarketingOptOut\",\n \"ProductCategories\"\n ],\n \"properties\": {\n \"Email\": {\n \"type\": \"string\",\n \"format\": \"email\",\n \"description\": \"Email address of the account holder\"\n },\n \"PhoneNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^\\\\+[1-9]\\\\d{1,14}$\",\n \"description\": \"Phone number in E.164 format\"\n },\n \"Name\": {\n \"$ref\": \"#/components/schemas/AEUserName\"\n },\n \"EmiratesId\": {\n \"type\": \"string\",\n \"pattern\": \"^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$\",\n \"description\": \"Emirates ID number of the Party\"\n },\n \"Nationality\": {\n \"type\": \"string\",\n \"description\": \"Nationality of the Party\"\n },\n \"ResidentialAddress\": {\n \"$ref\": \"#/components/schemas/AEResidentialAddress\"\n },\n \"LeadInformation\": {\n \"type\": \"string\",\n \"description\": \"Free text information about the lead.\\n\"\n },\n \"MarketingOptOut\": {\n \"type\": \"boolean\",\n \"description\": \"Whether the lead has opted out of marketing communications.\"\n },\n \"ProductCategories\": {\n \"$ref\": \"#/components/schemas/AEProductCategories\"\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/LeadRequest",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/LeadRequest\"],\"\"]:0",
+      "content_hash": "326ecea881b33ca2ca1906a0a347301b0a3930e8b0c7dc9e5f99c05fd3afcf64",
+      "schema_version": 2
+    },
+    {
+      "id": "c5868103-3bcf-5ea6-be6b-26cffe4876bd",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/AEUserName\n\n{\n \"oneOf\": [\n {\n \"$ref\": \"#/components/schemas/AEPersonalAccountName\"\n },\n {\n \"$ref\": \"#/components/schemas/AEPersonalAccountFullName\"\n },\n {\n \"$ref\": \"#/components/schemas/AEBusinessAccountName\"\n }\n ],\n \"description\": \"The name of the account holder.\\n\"\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/AEUserName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEUserName\"],\"\"]:0",
+      "content_hash": "82acab527b06bae332ac3aa6af7e0c1a31e0973e8e63463e55494eca59e1be0d",
+      "schema_version": 2
+    },
+    {
+      "id": "9631726d-0745-5d85-8560-60816cbd8133",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/AEPersonalAccountName\n\n{\n \"type\": \"object\",\n \"required\": [\n \"GivenName\",\n \"LastName\"\n ],\n \"properties\": {\n \"GivenName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"pattern\": \"^[A-Za-z '.-]+$\",\n \"description\": \"The given or first name of the lead\"\n },\n \"LastName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"pattern\": \"^[A-Za-z '.-]+$\",\n \"description\": \"The family or surname of the lead\"\n }\n },\n \"description\": \"The name of a personal account\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/AEPersonalAccountName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPersonalAccountName\"],\"\"]:0",
+      "content_hash": "0de4dc630eb49687501e3a93bf234ca9c77165db4dddeb94797b0f3cb048794c",
+      "schema_version": 2
+    },
+    {
+      "id": "0dcd0683-9242-5ebf-8b61-13fc1726e0d9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/AEPersonalAccountFullName\n\n{\n \"type\": \"object\",\n \"required\": [\n \"FullName\"\n ],\n \"properties\": {\n \"FullName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"pattern\": \"^[A-Za-z '.-]+$\",\n \"description\": \"The full name of the lead\"\n }\n },\n \"description\": \"The full name of a personal account\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/AEPersonalAccountFullName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPersonalAccountFullName\"],\"\"]:0",
+      "content_hash": "799da24907a311c38eb982fad64facb08b76c536424bd48e324235e20d0beeb3",
+      "schema_version": 2
+    },
+    {
+      "id": "bed46e0d-eca7-552e-b4d0-05095aed18fc",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/AEBusinessAccountName\n\n{\n \"type\": \"object\",\n \"required\": [\n \"BusinessName\"\n ],\n \"properties\": {\n \"BusinessName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"pattern\": \"^[A-Za-z0-9 &'.,()\\\\/-]+$\",\n \"description\": \"The business name of the lead\"\n }\n },\n \"description\": \"The name of a business account\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/AEBusinessAccountName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBusinessAccountName\"],\"\"]:0",
+      "content_hash": "ffa5f8c38adfa21caecf8ec3096bf82aaec0cbace28e504054547b3290ac464b",
+      "schema_version": 2
+    },
+    {
+      "id": "8cd3f24c-bbc5-5571-a611-5e2527ca52b0",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/AEResidentialAddress\n\n{\n \"description\": \"Address properties based on ISO 20022 `PostalAddress27` definition\",\n \"type\": \"object\",\n \"required\": [\n \"AddressLine\",\n \"Country\"\n ],\n \"properties\": {\n \"AddressType\": {\n \"description\": \"The type of address. Defaults to `Residential`. Omitted if not held.\",\n \"type\": \"string\",\n \"enum\": [\n \"Residential\"\n ]\n },\n \"AddressLine\": {\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\",\n \"type\": \"array\",\n \"minItems\": 1,\n \"maxItems\": 7,\n \"items\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"pattern\": \"^[A-Za-z0-9 \\\\/?:().,'+-]+$\"\n }\n },\n \"BuildingNumber\": {\n \"description\": \"The unit, apartment, or villa number within a building or community\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"BuildingName\": {\n \"description\": \"Name of the building or house.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"Floor\": {\n \"description\": \"Floor or storey within a building.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"StreetName\": {\n \"description\": \"The name of the street or road where the property is located.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"DistrictName\": {\n \"description\": \"The district, community, or neighbourhood where the property is located.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"PostBox\": {\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"TownName\": {\n \"description\": \"Name of a built-up area, such as a town or city.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"CountrySubDivision\": {\n \"description\": \"Country subdivision, such as state or province. This is the Emirate where the address is registered.\",\n \"type\": \"string\",\n \"enum\": [\n \"AbuDhabi\",\n \"Ajman\",\n \"Dubai\",\n \"Fujairah\",\n \"RasAlKhaimah\",\n \"Sharjah\",\n \"UmmAlQuwain\"\n ]\n },\n \"Country\": {\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{2}$\"\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/AEResidentialAddress",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEResidentialAddress\"],\"\"]:0",
+      "content_hash": "c107e9fbe517180e7ab442f4152da21d4a62de9952061848185e0f6738453ac1",
+      "schema_version": 2
+    },
+    {
+      "id": "ddfff94f-a8bf-51ef-a512-ac166ec2167b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/AEProductCategories\n\n{\n \"type\": \"array\",\n \"description\": \"The categories of products that are provided or which the lead is interested in.\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEProductCategoryCodes\"\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/AEProductCategories",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEProductCategories\"],\"\"]:0",
+      "content_hash": "177707db53dabeb5fc94a9d8edfc5be7bd65e420950d32e99f9130f3a4189af5",
+      "schema_version": 2
+    },
+    {
+      "id": "cef3b185-46e6-5588-a243-c07b0315cc8a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/AEProductCategoryCodes\n\n{\n \"description\": \"The supported product category codes for banking products.\",\n \"type\": \"string\",\n \"enum\": [\n \"SavingsAccount\",\n \"CurrentAccount\",\n \"CreditCard\",\n \"Finance\",\n \"Mortgage\"\n ]\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/AEProductCategoryCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEProductCategoryCodes\"],\"\"]:0",
+      "content_hash": "1c2ea0bc65b2b9c1fe5a1aa80fff504ac7564ace29a97f8dfa5da15d4c10330b",
+      "schema_version": 2
+    },
+    {
+      "id": "9180df31-a087-5e4b-ba9b-d2860c88706b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/responses/201LeadResponse\n\n{\n \"description\": \"Lead Response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/LeadResponse\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/responses/201LeadResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/201LeadResponse\"],\"\"]:0",
+      "content_hash": "393102649a348666b6f85a260e877123b297e5757c09ffa122cec7c9441b12be",
+      "schema_version": 2
+    },
+    {
+      "id": "d0953eeb-397b-5336-8518-1c7cf8a2c3c6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/LeadResponse\n\n{\n \"type\": \"object\",\n \"additionalProperties\": false,\n \"properties\": {\n \"data\": {\n \"type\": \"object\",\n \"description\": \"The data for the lead response.\\n\",\n \"additionalProperties\": false,\n \"required\": [\n \"LeadId\",\n \"Name\",\n \"Email\",\n \"EmiratesId\",\n \"MarketingOptOut\"\n ],\n \"properties\": {\n \"LeadId\": {\n \"type\": \"string\",\n \"description\": \"Unique identifier for the lead\"\n },\n \"Email\": {\n \"type\": \"string\",\n \"format\": \"email\",\n \"description\": \"Email address of the account holder\"\n },\n \"PhoneNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^\\\\+[1-9]\\\\d{1,14}$\",\n \"description\": \"Phone number in E.164 format\"\n },\n \"Name\": {\n \"$ref\": \"#/components/schemas/AEUserName\"\n },\n \"EmiratesId\": {\n \"type\": \"string\",\n \"pattern\": \"^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$\",\n \"description\": \"Emirates ID number of the Party\"\n },\n \"Nationality\": {\n \"type\": \"string\"\n },\n \"ResidentialAddress\": {\n \"$ref\": \"#/components/schemas/AEResidentialAddress\"\n },\n \"LeadInformation\": {\n \"type\": \"string\"\n },\n \"MarketingOptOut\": {\n \"type\": \"boolean\",\n \"description\": \"Whether the lead has opted out of marketing communications.\"\n },\n \"ProductCategories\": {\n \"$ref\": \"#/components/schemas/AEProductCategories\"\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/LeadResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/LeadResponse\"],\"\"]:0",
+      "content_hash": "bc7e5942a68480c6df62e89d2d6eae7d9334a5650a565fc5ec27557e53b7cd49",
+      "schema_version": 2
+    },
+    {
+      "id": "220f31ee-fb09-53b2-bb95-1057d80b9fd1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/responses/BadRequestResponse\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/responses/BadRequestResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/BadRequestResponse\"],\"\"]:0",
+      "content_hash": "ef061c125d0b208fae25d691a30b58976b97559237227cfde50cfdb1dbebd679",
+      "schema_version": 2
+    },
+    {
+      "id": "73b4c7f6-c3f9-58ba-acb7-836659d97e45",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/Error400\n\n{\n \"description\": \"Default error response payload structure for Ozone Connect\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error400\"],\"\"]:0",
+      "content_hash": "dcde16ae73d0c2a269e97f23eedfeb7a374418b5a36d517c2a14848833779825",
+      "schema_version": 2
+    },
+    {
+      "id": "1bfe9978-8e6d-5abb-893e-e8f71fb2a5d8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/ErrorMessage\n\n{\n \"description\": \"Message describing what problem has occurred\",\n \"type\": \"string\"\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/ErrorMessage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ErrorMessage\"],\"\"]:0",
+      "content_hash": "e2a5d394732b314e31650087c7212d999ddf09a10d6a2f2c33b64baf7fcda56c",
+      "schema_version": 2
+    },
+    {
+      "id": "005f43c9-6a39-55d1-a06e-95cae9b88b7a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/responses/NotAuthorizedResponse\n\n{\n \"description\": \"The operation failed due to an invalid credential being presented\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n \"type\": \"string\"\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/responses/NotAuthorizedResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/NotAuthorizedResponse\"],\"\"]:0",
+      "content_hash": "14d486c961b3b924e0cfdaae5a4d9ff9520bcef3962c06921ee03e843316c217",
+      "schema_version": 2
+    },
+    {
+      "id": "82b8e621-d39e-5dc1-a74c-b018b2a0f034",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/responses/ForbiddenResponse\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/responses/ForbiddenResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/ForbiddenResponse\"],\"\"]:0",
+      "content_hash": "6914639b2a5f02d9f02c59751baa53a83bcdf4e4656709f306e9b7fe5f1b0bde",
+      "schema_version": 2
+    },
+    {
+      "id": "102ed3b4-a1cb-56e8-920b-416459d56d19",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/Error403\n\n{\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error403\"],\"\"]:0",
+      "content_hash": "793e3efa46c65b5252312d2941018aff72115d0d8acfc3f0bc6cf241e131613e",
+      "schema_version": 2
+    },
+    {
+      "id": "212114c8-21b4-536e-aba7-1389075cb1ea",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/responses/InternalServerErrorResponse\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/responses/InternalServerErrorResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/InternalServerErrorResponse\"],\"\"]:0",
+      "content_hash": "3b894322cbde8fb332960d8f68e34be5a1626269f987ea1cd1fef0578123aa91",
+      "schema_version": 2
+    },
+    {
+      "id": "de93213f-72a1-5fe2-be9f-a59e7958d419",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/schemas/Error500\n\n{\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/schemas/Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error500\"],\"\"]:0",
+      "content_hash": "6cf5dc605edee1e04c89042196eb1bb865d27ce6fd1e8bfb62b766c43cc8d92c",
+      "schema_version": 2
+    },
+    {
+      "id": "321383bf-46af-57e5-b243-b67527488844",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+      "type": "section",
+      "text": "Submit Lead > OpenAPI definition #/components/responses/errorResponse\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n \"type\": \"string\"\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Submit Lead",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "69826d3273ad18fb9d01a788202732c2b0c6e27f97e31036c0a8c216587c5178",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/products-and-leads/open-api/leads",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-products-data-openapi.yaml",
+            "hash": "4db99e12e02bb5d8161207b9d391adf8d77e0b8f45b29b0ad42b442771d59db5"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "7c4bda5d5795d4366cf28855c013d50bcba6ebcb37d5a660bb98f6eca8f0e331",
+      "schema_version": 2
+    }
+  ]
+}

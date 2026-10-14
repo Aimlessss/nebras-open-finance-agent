@@ -1,0 +1,1784 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+  "chunk_count": 52,
+  "chunks": [
+    {
+      "id": "7e9ca0b1-3034-5101-89cc-7a224e08b99c",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > API /renters-insurance-quotes/{QuoteId}\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - UAE Insurance API Description\",\n \"description\": \"## Ozone Connect - UAE Insurance API Description\\n\\nThis document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html) for Insurance APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a financial institution to facilitate integration with the API Hub.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where: \\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n\\n### v2.1.4\\n\\n* Removed the CAAP-specific header `o3-is-caap-consent-operation` from the `get /{insurance-type}-insurance-policies`\\n operations, the CAAP-conditional `ProductName`, `BodyType`, and `PlateNumber` properties from the insurance\\n policy schemas, and related CAAP-conditional language. CAAP variants of these endpoints have been moved to the\\n CAAP Operations OpenAPI description. `PolicyEndDate` is retained on the insurance policy schemas but is no longer\\n CAAP-conditional: it is now an ordinary optional property, returnable for all consent types, matching the\\n `get /{insurance-type}-insurance-policies` response in the UAE Insurance API description.\\n\\n\\n* Removed the `maximum` of 100 from `AEInsuranceServiceRatingRateOrRatio`, which is referenced by the\\n `ServiceRating` properties `SolvencyRatio`, `ClaimsPaymentCapacityRatio`, `AverageClaimSettlementTime`, and\\n `CustomerComplaintRate`. None of these is a 0-100 percentage: both ratios routinely exceed 100% for a solvent\\n insurer, and the other two are measured in calendar days and in complaints per 1,000 active policies\\n respectively. The two genuine percentages, `ClaimSettlementRatio` and `ClaimRejectionRate`, now reference a new\\n `AEInsuranceServiceRatingPercentage` schema, which retains `maximum: 100` and adds `minimum: 0`.\\n\\n\\n* Changed the `get /{industryType}-insurance-policies/{InsurancePolicyId}` operation to return an optional\\n `CreditDebitIndicator` within `Premium.Adjustments`, indicating whether a premium adjustment is a credit,\\n reducing the premium payable, or a debit, increasing the premium payable. `AdjustmentAmount` is unsigned and\\n carries no direction of its own. Where `CreditDebitIndicator` is absent, the adjustment must be treated as a\\n `Debit`, which is the reading that matches existing v2.1 behaviour.\\n\\n\\n* Removed `format: uuid` from `AEInsurance.AEInsuranceResourceIdentifierType`, the schema behind the\\n `InsurancePolicyId` and `QuoteId` path parameters and the `QuoteId`, `InsurancePolicyId` and related identifier\\n properties. A uuid v4 remains recommended for consistency but is no longer mandatory, so LFIs may use their own\\n identifier scheme within the existing 1-128 character bounds. This matches UAE standards v2.1-errata3.\\n\\n\\n### v2.1.3\\n\\n\\n* Changed the `get /{insurance-type}-insurance-quotes/{QuoteId}` operation to return the correct type for `Pending`\\n `QuoteStatus` responses.\\n\\n\\n### v2.1.2\\n\\n\\n* Changed the `insurancePolicyIds` parameter from optional to mandatory for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n* Changed the guidance for `insurancePolicyIds` parameter for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n### v2.1.1\\n\\n\\n* Initial version that delivers v2.1 requirements (see separate, detailed changelog for changes from last v2.1.x version).\\n\\n\",\n \"version\": \"v2.1.4\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/renters-insurance-quotes/{QuoteId}\",\n \"operations\": {\n \"patch\": {\n \"operationId\": \"RentersInsuranceUpdateInsuranceQuoteByQuoteIdOperation\",\n \"summary\": \"Accept a renters insurance quote\",\n \"description\": \"Update the quote status to `Accepted` in readiness to send the quote data to \\ncreate a new insurance policy. The TPP must update the status to Accepted before\\nretrieving any additional data through their Data Sharing permissions, to include\\nin the new insurance policy request.\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.ozoneInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/AEInsurance.QuoteId\"\n }\n ],\n \"responses\": {\n \"200\": {\n \"description\": \"The request has succeeded.\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"type\": \"object\",\n \"properties\": {\n \"PolicyIssuanceAllowed\": {\n \"type\": \"object\",\n \"properties\": {\n \"CustomerVerification\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to complete capture of customer verification information and documents for this quote.\"\n },\n \"Payment\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to host payment checkout.\"\n },\n \"PolicyDocuments\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to provide policy documents to customer.\"\n }\n },\n \"required\": [\n \"CustomerVerification\",\n \"Payment\",\n \"PolicyDocuments\"\n ],\n \"description\": \"Broker requests to handle following steps of policy issuance process.\"\n }\n },\n \"minProperties\": 1,\n",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "API /renters-insurance-quotes/{QuoteId}",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /renters-insurance-quotes/{QuoteId}\"],\"\"]:0:part:0",
+      "content_hash": "32049794f3f5b942950133a0fee67b1ad1cf2517ed663fd79f9d5fbb70ee42ad",
+      "schema_version": 2
+    },
+    {
+      "id": "6b1fc146-34a9-5143-8cc9-730594a6146f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > API /renters-insurance-quotes/{QuoteId}\n\n \"description\": \"This response **MUST** only be used where there are instruction for TPP acting as a Broker. Please use a `204` response if Broker instructions are not required.\"\n },\n \"links\": {\n \"type\": \"object\",\n \"properties\": {\n \"PaymentUrl\": {\n \"type\": \"string\",\n \"format\": \"uri\",\n \"description\": \"Hosted payment URL for TPP to present to customer. Required when the Payment field is true.\"\n }\n },\n \"required\": [\n \"PaymentUrl\"\n ],\n \"description\": \"Links to other resources. Can be omitted where `PaymentUrl` is not returned.\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n },\n \"204\": {\n \"description\": \"No content\"\n },\n \"400\": {\n \"$ref\": \"#/components/responses/error400Response\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/error403Response\"\n },\n \"409\": {\n \"$ref\": \"#/components/responses/error409Response\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/error500Response\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n },\n \"tags\": [\n \"Renters Insurance\"\n ],\n \"requestBody\": {\n \"required\": true,\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AERentersInsuranceQuoteAcceptQuoteRequestProperties\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n },\n \"OzoneConnectServiceInitiationToken\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Bearer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "API /renters-insurance-quotes/{QuoteId}",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /renters-insurance-quotes/{QuoteId}\"],\"\"]:0:part:1",
+      "content_hash": "d07df311fff14455fdf294dd5cf4510228618c8bde7b32a8c03f8f9a74f1436c",
+      "schema_version": 2
+    },
+    {
+      "id": "92410b6a-3a66-5aba-9a78-fc8bbf4101ca",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targeted to\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.providerId\"],\"\"]:0",
+      "content_hash": "ab8cbad48d5567534d9b1a3ae74edabb6b032050cb4dc394fb7a0cb45ec1ee86",
+      "schema_version": 2
+    },
+    {
+      "id": "a06ca07f-81a8-5808-8f61-fb9ce62c233a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\"],\"\"]:0",
+      "content_hash": "ba7f05893cbb01b05ab51c9337dced00e42f7113b34e68b9419fbe385ca962ff",
+      "schema_version": 2
+    },
+    {
+      "id": "08356aee-8f8b-5848-8f00-e8b5bed80780",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\"],\"\"]:0",
+      "content_hash": "3bdd942596e83e47c9022ba554449f2eef661ac43333f83d06be264903c4ce33",
+      "schema_version": 2
+    },
+    {
+      "id": "a1856833-5c58-5668-9753-8ac610451cd8",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "0de8407df2b3af07d3ca1c8c3fefbf9fabee315b1227336dc5d525dd801beb92",
+      "schema_version": 2
+    },
+    {
+      "id": "ae2b014a-1687-578a-83c5-d8515127b392",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The URL of the API being called by the caller\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiUri\"],\"\"]:0",
+      "content_hash": "068b240141ee776aa88ada9dc2b766ff41f1f688e6d10f81772a36d7abbea86f",
+      "schema_version": 2
+    },
+    {
+      "id": "f2556864-fd62-5c55-b337-1fdd59f094a9",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\"],\"\"]:0",
+      "content_hash": "9a95c50f804638eebc5e9401958fcd2e794d5bba25abbd21097e664a7d746e30",
+      "schema_version": 2
+    },
+    {
+      "id": "f86540ef-e3b2-584c-80c7-5cd435eb122a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\"],\"\"]:0",
+      "content_hash": "1176e466f65d2522c712221547982823444100e645e9ea66ea1b5bffe872b6ea",
+      "schema_version": 2
+    },
+    {
+      "id": "91c72c8b-f849-54a2-aa57-75cb53a78934",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "bcd88eb4211fc3bcd17c1defcf9b3f7763b95836f5160d3a9e75b66f1039eb25",
+      "schema_version": 2
+    },
+    {
+      "id": "6ebc302c-929e-5c74-a0f0-4674d11a98dc",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/parameters/AEInsurance.QuoteId\n\n{\n \"name\": \"QuoteId\",\n \"in\": \"path\",\n \"required\": true,\n \"description\": \"Unique identifier for a quote created by an LFI\",\n \"schema\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/AEInsurance.QuoteId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/AEInsurance.QuoteId\"],\"\"]:0",
+      "content_hash": "75915457804cbc927f8a902ce1fb5c654ecd6ccddf8f2754d4ef19f4b65fbd8f",
+      "schema_version": 2
+    },
+    {
+      "id": "718a5801-48cf-51ce-a681-fd30141ea204",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 128,\n \"description\": \"Unique identifier for a given insurance policy. \\n\\nA uuid v4 is recommended for consistency but not mandatory.\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"],\"\"]:0",
+      "content_hash": "e1bbb7a96da19301ff5c3204d781c4d63f0c73e770d6797609dec36273509a78",
+      "schema_version": 2
+    },
+    {
+      "id": "297a44d8-d92e-5b20-b774-ebbd69404b2f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/responses/error400Response\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error400Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error400Response\"],\"\"]:0",
+      "content_hash": "db123534bc1e93f722513290ead3716bca9968b94fc458fd7e3a17dbbb84ba64",
+      "schema_version": 2
+    },
+    {
+      "id": "b523d2c4-c7f6-5bec-be8b-123531d05263",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error400\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError400Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Default error response payload structure for Ozone Connect\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error400\"],\"\"]:0",
+      "content_hash": "4631f7600e5db9262f9cf7e15eee09d78654791df98d969b4388ba6dbb8822d0",
+      "schema_version": 2
+    },
+    {
+      "id": "aea29846-77bc-570e-9269-f6fc755768f9",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEError400Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWS.InvalidPayload\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError400Codes\"],\"\"]:0",
+      "content_hash": "43a36531df65cdea8e0fb7818be4bd5cfcbb0c7a05b40073261688fefefa4033",
+      "schema_version": 2
+    },
+    {
+      "id": "c5b4f0a5-490a-5182-9038-fb293e120af3",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AECustomErrorCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECustomErrorCode\"],\"\"]:0",
+      "content_hash": "81f3a48b114ac7fae64a6400a332cd98c8c3a5db8df7f64f9bc69aa43210d736",
+      "schema_version": 2
+    },
+    {
+      "id": "a2b4d642-e769-51c0-87ac-78d38ec50def",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\n\n{\n \"type\": \"string\",\n \"description\": \"Custom error code without prefix, retained for compatibility with version 1.2.\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\"],\"\"]:0",
+      "content_hash": "20701118d0792a711343bc9f9cac85dfb6714171d7109df035c103046b613ebb",
+      "schema_version": 2
+    },
+    {
+      "id": "1e4c379d-a1ca-5ca4-8ac9-326a0e9cfd40",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/responses/error403Response\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error403Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error403Response\"],\"\"]:0",
+      "content_hash": "56f48eb0d0485e9ca1e074ba7b5926efce87a8bd78b43c970eea842599ea9fea",
+      "schema_version": 2
+    },
+    {
+      "id": "1a58d714-4ab4-5611-8a27-48ed30762d11",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error403\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError403Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n \\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error403\"],\"\"]:0",
+      "content_hash": "6cb139ca999bb4708b5a102db345bd0d349bfbc6f50514065fd57eb3da1c8fbb",
+      "schema_version": 2
+    },
+    {
+      "id": "a54dbb09-887c-5a9a-8d48-609d9323f58f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEError403Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError403Codes\"],\"\"]:0",
+      "content_hash": "7457a1c8699b08c2201eb9f4fd5cf83c2e88e43abf2c2e4d57479b5480566a65",
+      "schema_version": 2
+    },
+    {
+      "id": "1f71f7cb-7aa8-5ec7-bf12-c1fb38b2653d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/responses/error409Response\n\n{\n \"description\": \"Operation failed due to a conflict\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error409\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error409Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error409Response\"],\"\"]:0",
+      "content_hash": "411f7285b5b0d5efdc8d9abd12fb9035e955742a877c670115b15582d3d3fc89",
+      "schema_version": 2
+    },
+    {
+      "id": "68269f0f-8a45-55a2-9d98-c6ea83ee1749",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error409\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error409",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error409\"],\"\"]:0",
+      "content_hash": "3268606566c527c2a8a904c775742acf8d0319262c1b0e92170970d4df3126d3",
+      "schema_version": 2
+    },
+    {
+      "id": "9f1bf46c-44b6-56a6-b08c-d6e30cf8258f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEErrorGenericCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEErrorGenericCodes\"],\"\"]:0",
+      "content_hash": "5d72124f0e8ea90bd41057d37450fcdc51c9754297b20ab23704b9ff9e6c6d6f",
+      "schema_version": 2
+    },
+    {
+      "id": "309951b8-48f5-599c-b518-357c7ebb24b6",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/responses/error500Response\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error500Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error500Response\"],\"\"]:0",
+      "content_hash": "b56c8e6820192e761c26f8c3090f7e886c36ffbce2869e191b588550db25bf03",
+      "schema_version": 2
+    },
+    {
+      "id": "9dc3c686-ea03-5491-83ba-be734ee9cea8",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error500\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error500\"],\"\"]:0",
+      "content_hash": "ad2a8c8501d7013068aabd9552e03d215709702326fc0cae292269c2b29c32eb",
+      "schema_version": 2
+    },
+    {
+      "id": "bb980de0-517b-523e-9e2d-9e9f2f7278f7",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/responses/errorResponse\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.DefaultError\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "9b3c91d7256bd82d128bd63161bd03d383f49ccd548eb8971e159047c69c0ba9",
+      "schema_version": 2
+    },
+    {
+      "id": "8043d3d0-e9b9-5e1d-a214-b6be08b3ac63",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Generic error code set by the LFI. Non-namespaced error codes are allowed for compatibility versions prior to v2.0.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.DefaultError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\"],\"\"]:0",
+      "content_hash": "7fb73e8fe2ea037b2417b74e244566735d7e2d90829bef0cddc6d4c2f195c9cc",
+      "schema_version": 2
+    },
+    {
+      "id": "3dcd39b2-541e-5f49-8c06-cd27a5268d2e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AERentersInsuranceQuoteAcceptQuoteRequestProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"QuoteStatus\",\n \"QuoteReference\",\n \"InsuranceSubType\",\n \"Premium\",\n \"Commission\",\n \"QuoteCreationDateTime\"\n ],\n \"properties\": {\n \"QuoteStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\"\n }\n ],\n \"description\": \"Quote status.\"\n },\n \"QuoteReference\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"\n },\n \"InsuranceSubType\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Insurance sub-type, describing the insurance type specific to the sector.\"\n },\n \"Premium\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePremiumProperties\"\n }\n ],\n \"description\": \"Details of the quoted premium, as provided in the quote response.\"\n },\n \"Commission\": {\n \"type\": \"object\",\n \"properties\": {\n \"CommissionAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total monetary value of the commission paid to the TPP if the User proceeds with the quote application and purchases the policy based on the quote information provided.\"\n },\n \"PaymentMethod\": {\n \"type\": \"string\",\n \"enum\": [\n \"DirectToTPP\",\n \"ThroughAPIHub\"\n ],\n \"description\": \"The method to be used to pay the commission to the TPP if the User elects to proceed with the application and successfully purchases the policy.\"\n }\n },\n \"required\": [\n \"PaymentMethod\"\n ],\n \"description\": \"Details of the commission, as provided in the quote response.\"\n },\n \"CustomerSalary\": {\n \"type\": \"string\",\n \"enum\": [\n \"Under4K\",\n \"Over4K\"\n ],\n \"description\": \"Confirmation whether the customer monthly salary is less than or greater than AED 4,000 each month. Required for Health Insurance.\"\n },\n \"QuoteCreationDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"description\": \"The quote creation date and time, as supplied by the LFI in the property `CreationDateTime`.\"\n },\n \"ExpirationDateTime\": {\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"description\": \"The expiration date of the quote, as provided in the quote response, if provided by the LFI.\"\n },\n \"PolicyIssuanceRequest\": {\n \"type\": \"object\",\n \"properties\": {\n \"CustomerVerification\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to complete capture of customer verification information and documents for this quote.\"\n },\n \"Payment\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to host payment checkout.\"\n },\n \"PolicyDocuments\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to provide policy documents to customer.\"\n }\n },\n \"required\": [\n \"CustomerVerification\",\n \"Payment\",\n \"PolicyDocuments\"\n ],\n \"description\": \"Broker requests to handle following steps of policy issuance process.\"\n },\n \"Documents\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n },\n \"description\": \"Customer documents encoded for submission to the LFI. Omitted if not required or quote status is `ApplicationPending`.\"\n },\n \"VerifiedDetails\": {\n \"type\": \"object\",\n \"properties\": {\n \"Policy\": {\n \"type\": \"object\",\n \"properties\": {\n \"Takaful\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the policy is Sharia compliant.\"\n },\n \"ContentsCover\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the customer wishes to include Contents cover \"\n },\n \"AccidentalDamageCover\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the customer wishes to include Accidental Damage cover.\"\n },\n \"PersonalBelongingsCover\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the customer wishes to include Personal Belongings cover.\"\n },\n \"LiabilityCover\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the customer wishes to include Liability cover.\"\n },\n \"AlternativeAccommodation\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation whether the customer wishes to include cover for temporary housing expenses if the rented property becomes uninhabitable due to an insured peril.\"\n },\n \"PolicyStartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy start date\"\n },\n \"PolicyEndDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy end date\"\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n },\n \"PolicyHolder\": {\n \"type\": \"object\",\n \"properties\": {\n \"Salutation\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceSalutationCodes\"\n }\n ],\n \"description\": \"The salutation of the individual or customer.\"\n },\n \"FirstName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"First Name of the individual.\"\n },\n \"MiddleName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Middle Name of the individual.\"\n },\n \"LastName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Last Name (Surname) of the individual.\"\n },\n \"Gender\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceGender\"\n }\n ],\n \"description\": \"The gender of the customer\"\n },\n \"DateOfBirth\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date of birth of the individual.\"\n },\n \"MaritalStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceMaritalStatus\"\n }\n ],\n \"description\": \"The marital status of the individual.\"\n },\n \"ResidentialLocation\": {\n \"type\": \"string\",\n \"description\": \"Residential Location of the individual.\"\n },\n \"LandlineNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"\n }\n ],\n \"pattern\": \"^\\\\+?[1-9]\\\\d{1,14}$\",\n \"description\": \"The landline telephone number of the individual.\"\n },\n \"Nationality\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3}$\",\n \"description\": \"The nationality of the individual based on the ISO 3166-1 alpha-3 codes\"\n },\n \"PrimaryLanguage\": {\n \"allOf\": [\n {\n",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AERentersInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 3,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AERentersInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:0",
+      "content_hash": "80068750dc84cadc21105d42f66b51ded8ae73e2dae72132c201450cdd730fdd",
+      "schema_version": 2
+    },
+    {
+      "id": "1673a313-d024-51d0-8b73-c9aab13d727e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AERentersInsuranceQuoteAcceptQuoteRequestProperties\n\n \"$ref\": \"#/components/schemas/AEInsurance.AECustomerPrimaryLanguage\"\n }\n ],\n \"description\": \"Primary language spoken by the insurance policy customer\"\n },\n \"MobileNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"\n }\n ],\n \"description\": \"The mobile telephone number of the individual.\"\n },\n \"EmailAddress\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmailAddressType\"\n }\n ],\n \"description\": \"Email address of the individual.\"\n },\n \"Address\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"AddressType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Billing\",\n \"Business\",\n \"Correspondence\",\n \"DeliveryTo\",\n \"MailTo\",\n \"POBox\",\n \"Postal\",\n \"Permanent\",\n \"Residential\",\n \"Statement\",\n \"Other\"\n ],\n \"description\": \"The type of address.\"\n },\n \"AddressLine\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddressLine\"\n },\n \"minItems\": 1,\n \"maxItems\": 7,\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\\n\\nThis value should be used where the address is provided or stored as a single string.\"\n },\n \"BuildingNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The unit, apartment, or villa number within a building or community\"\n },\n \"BuildingName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of the building or house.\"\n },\n \"Floor\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Floor or storey within a building.\"\n },\n \"StreetName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the street or road where the property is located\"\n },\n \"DistrictName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The district, community, or neighbourhood where the property is located\"\n },\n \"PostBox\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery\"\n },\n \"TownName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of a built-up area, such as a town or city\"\n },\n \"CountrySubDivision\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Country subdivision, such as state or province. This is the Emirate where the address is registered.\"\n },\n \"Country\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCountryCode\"\n }\n ],\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\"\n }\n },\n \"description\": \"The template for adding optional properties.\"\n },\n \"minItems\": 1,\n \"description\": \"Address details\"\n },\n \"Identity\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\"\n }\n ],\n \"description\": \"Identification details of the policyholder.\"\n },\n \"EmployerName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Employer name.\"\n },\n \"Profession\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"The individuals profession.\"\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n },\n \"DomesticHelpers\": {\n \"type\": \"object\",\n \"properties\": {\n \"NumberOfDomesticHelpers\": {\n \"type\": \"integer\",\n \"description\": \"Required when Domestic Helpers cover is required. Confirms the number of Domestic Helpers to be covered\"\n },\n \"IndividualDetails\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"FirstName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"First Name of the individual.\"\n },\n \"LastName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Last Name (Surname) of the individual.\"\n },\n \"Nationality\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3}$\",\n \"description\": \"The nationality of the individual based on the ISO 3166-1 alpha-3 codes\"\n },\n \"DateOfBirth\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date of birth of the individual.\"\n },\n \"PassportNumber\": {\n \"type\": \"string\",\n \"description\": \"Passport number\"\n }\n },\n \"description\": \"The template for adding optional properties.\"\n },\n \"description\": \"Domestic Helpers details when included in the insurance cover\"\n }\n },\n \"minProperties\": 1,\n \"description\": \"Revised details, verified by the TPP.\"\n },\n \"LeaseDetails\": {\n \"type\": \"object\",\n \"properties\": {\n \"TermType\": {\n \"type\": \"string\",\n \"description\": \"Confirmation whether the lease duration is a short-term lease, one-year lease or long-term lease when greater than one year.\"\n },\n \"StartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The date when the lease agreement for the rented property begins.\"\n },\n \"EndDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The date when the lease agreement for the rented property ends.\"\n },\n \"FurnishingStatus\": {\n \"type\": \"string\",\n \"enum\": [\n \"Furnished\",\n \"SemiFurnished\",\n \"Unfurnished\"\n ],\n \"description\": \"Furnishing status at start of lease\"\n },\n \"LandlordFullName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The Landlord's full name\"\n },\n \"LandlordTelephoneNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"\n }\n ],\n \"description\": \"Phone number of the property Landlord\"\n },\n \"LandlordEmailAddress\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmailAddressType\"\n }\n ],\n \"description\": \"Email address of the property Landlord\"\n },\n \"MonthlyRentAmount\": {\n \"type\": \"object\",\n \"properties\": {\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n },\n \"Amount\": {\n",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AERentersInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 3,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AERentersInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:1",
+      "content_hash": "5686fe1b2dfdb183c3ad1d04a51ca33e3487cf364bdda99497d6e2cf83024f34",
+      "schema_version": 2
+    },
+    {
+      "id": "612ea235-a704-5a96-9190-ccf1f0833d8c",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AERentersInsuranceQuoteAcceptQuoteRequestProperties\n\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n }\n },\n \"description\": \"The agreed monthly rental amount for the leased property.\"\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n },\n \"ExistingInsurance\": {\n \"type\": \"object\",\n \"properties\": {\n \"CoverType\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteTypeOfCover\"\n }\n ],\n \"description\": \"The type of existing insurance cover held\"\n },\n \"ProviderName\": {\n \"type\": \"string\",\n \"description\": \"The name of the existing home insurance provider\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"description\": \"The expiry date of the existing home insurance cover\"\n },\n \"ReplacementCover\": {\n \"type\": \"boolean\",\n \"description\": \"Confirmation of whether this proposal will replace the existing insurance cover\"\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n }\n },\n \"description\": \"Verified details captured by the TPP, when the TPP is a Broker. Omitted if not required.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AERentersInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 2,
+      "part_count": 3,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AERentersInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:2",
+      "content_hash": "4a35a27473cd83431213b2c51822b5b7e3417c33dcb5ac220e7e9c448c185a8f",
+      "schema_version": 2
+    },
+    {
+      "id": "b88c1776-575e-5bd2-a63a-30428927f2ac",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"ApplicationPending\",\n \"KYCCaptured\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\"],\"\"]:0",
+      "content_hash": "8f7eae3630da2ea1776d4d5f3537e55172f7687f9a65fc4ceb69b80e22f16115",
+      "schema_version": 2
+    },
+    {
+      "id": "e316dab5-dda7-5f36-81b1-079f442e2bef",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\n\n{\n \"type\": \"string\",\n \"description\": \"The unique quote reference number generated by the TPP for tracking the quote\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"],\"\"]:0",
+      "content_hash": "5d39f2f874d822421dfccd2e17c714c78b23bacaae79c18238c6d5b4d472243a",
+      "schema_version": 2
+    },
+    {
+      "id": "f97b9dfa-aafd-59ac-b4ad-a9102ec2f507",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"PremiumAmountExcludingVAT\",\n \"VATAmount\",\n \"TotalPremiumAmount\",\n \"PaymentFrequency\"\n ],\n \"properties\": {\n \"Status\": {\n \"type\": \"string\",\n \"enum\": [\n \"Initial\",\n \"StartingFrom\",\n \"Final\"\n ],\n \"description\": \"Confirmation whether the premium quoted is an initial premium, starting from, or final.\"\n },\n \"TotalDiscountAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total discount amount applied to the final premium amount\"\n },\n \"DiscountApplied\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\"\n },\n \"minItems\": 1,\n \"description\": \"Details of the discounts applied\"\n },\n \"PremiumAmountExcludingVAT\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The Premium Amount excluding any VAT amount\"\n },\n \"VATAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The Premium VAT amount.\"\n },\n \"VATPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceVATPercentage\"\n }\n ],\n \"description\": \"The VAT percentage rate charged to the premium.\"\n },\n \"TotalPremiumAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total Premium amount including VAT\"\n },\n \"PaymentFrequency\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"\n }\n ],\n \"description\": \"The payment frequency the calculated Premium has been based on.\"\n },\n \"InstallmentOptions\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"\n },\n \"minItems\": 1,\n \"description\": \"The possible Premium instalment frequency options available to the customer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties\"],\"\"]:0",
+      "content_hash": "4c05d8a42c9bc5968d1dfa0914a6870d099baa6662a92414530f42358904444d",
+      "schema_version": 2
+    },
+    {
+      "id": "4c841662-c163-5e29-b274-590aaedc4745",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Currency\",\n \"Amount\"\n ],\n \"properties\": {\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n },\n \"Amount\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n }\n },\n \"description\": \"The Currency and Amount relating to the Payment, Refund or Request to Pay\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\"],\"\"]:0",
+      "content_hash": "d15af1d1078151b3277c08924950fa40f2f69a2f191d9e2b8273151d0fcabc16",
+      "schema_version": 2
+    },
+    {
+      "id": "6aabb05e-f449-5759-a2f6-c9a39d8b942f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n \"example\": \"AED\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"],\"\"]:0",
+      "content_hash": "f64ee0b1c2db757a489b0eba1dc4238ada1c8ea24ec108dbe243659e50459d0e",
+      "schema_version": 2
+    },
+    {
+      "id": "4e3ff734-0499-5327-9eb1-2f15c6687671",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\n\n{\n \"type\": \"string\",\n \"pattern\": \"^\\\\d{1,16}\\\\.\\\\d{2}$\",\n \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n \"example\": \"100.00\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"],\"\"]:0",
+      "content_hash": "031d320d5e621aa07be5d5f161bca97b51c25df4f628adf82b0f6b40943d65ba",
+      "schema_version": 2
+    },
+    {
+      "id": "744b384e-d32a-5998-8eaf-a6a438ab0708",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\n\n{\n \"type\": \"object\",\n \"required\": [\n \"DiscountName\",\n \"DiscountAmount\"\n ],\n \"properties\": {\n \"DiscountName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the discount applied to the insurance premium\"\n },\n \"DiscountPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePercentageValue\"\n }\n ],\n \"description\": \"The percentage reduction applied to the insurance premium as part of the discount.\"\n },\n \"DiscountAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The monetary value of the discount applied to the insurance premium\"\n }\n },\n \"description\": \"Details of discounts applied to the insurance premium\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\"],\"\"]:0",
+      "content_hash": "391277684eaf6d27cb89b7f03a66b2f8be92ea8f6dce839899dbb4f0e8c60ad0",
+      "schema_version": 2
+    },
+    {
+      "id": "dedfaa4b-a5a0-583c-9d32-2972689fd50d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue\n\n{\n \"type\": \"number\",\n \"format\": \"decimal\",\n \"minimum\": 0,\n \"maximum\": 100\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue\"],\"\"]:0",
+      "content_hash": "f1155b628caa39d99201f53f2c224a97fc886758f028ecc6d60dbff8dcafa26a",
+      "schema_version": 2
+    },
+    {
+      "id": "1f109b95-26a9-5fe4-8d60-1ad29c9a4b9e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage\n\n{\n \"type\": \"number\",\n \"format\": \"decimal\",\n \"minimum\": 0,\n \"maximum\": 100\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage\"],\"\"]:0",
+      "content_hash": "780b068e70d429e357f0e45a31e1c07334ef77ac6a80b289954c2edb0fe7680b",
+      "schema_version": 2
+    },
+    {
+      "id": "8328d621-d4be-51e4-844c-a90ea537c9f2",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Annually\",\n \"OneTime\",\n \"Monthly\",\n \"Quarterly\",\n \"BiAnnual\",\n \"Other\",\n \"Limited\"\n ],\n \"description\": \"Frequencies\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"],\"\"]:0",
+      "content_hash": "f7ba61e3bd109a73e21f89d664b7e808d0bad34a16e5740b762ac00dc3951488",
+      "schema_version": 2
+    },
+    {
+      "id": "fd9f248b-1274-5f78-a909-407c6f55523a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Type\",\n \"FileName\",\n \"ContentType\",\n \"Content\",\n \"HashType\",\n \"Hash\"\n ],\n \"properties\": {\n \"Type\": {\n \"type\": \"string\",\n \"description\": \"The type of document that has been provided. For example, Policy Booklet, Terms & Conditions\"\n },\n \"FileName\": {\n \"type\": \"string\",\n \"description\": \"Original file name for operator reference (no paths). Should include a suitable extension (e.g., policy.pdf, terms.pdf).\"\n },\n \"ContentType\": {\n \"type\": \"string\",\n \"enum\": [\n \"application/pdf\",\n \"image/jpeg\",\n \"image/png\"\n ],\n \"description\": \"Content (MIME) type of the document, using IANA-registered media types, and based on types supported in the Open Finance Framework.\"\n },\n \"Content\": {\n \"type\": \"string\",\n \"format\": \"base64\",\n \"description\": \"Base64-encoded representation of the document content. The encoded string must be generated from the raw file bytes and decoded by the LFI to restore the original file.\"\n },\n \"HashType\": {\n \"type\": \"string\",\n \"enum\": [\n \"SHA256\"\n ],\n \"description\": \"Approach used to create checksum or hash of the file. SHA256 is supported.\"\n },\n \"Hash\": {\n \"type\": \"string\",\n \"description\": \"Checksum of the original file bytes created using the method indicated by `HashType`. Required to enable integrity verification by comparing with the hash or checksum calculated on the decoded file.\"\n },\n \"AdditionalInformation\": {\n \"type\": \"string\",\n \"maxLength\": 1000,\n \"description\": \"Optional free text notes providing context on the document.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\"],\"\"]:0",
+      "content_hash": "083f450ff1838325e827605625353438192714239a6bab28b8730dd1e0671261",
+      "schema_version": 2
+    },
+    {
+      "id": "07d2a29f-31fb-54c3-b963-c82bb372bd0a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Mr\",\n \"Mrs\",\n \"Ms\",\n \"Miss\",\n \"Dr\",\n \"Prof\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes\"],\"\"]:0",
+      "content_hash": "b60193cef2426c6bdec76b0a40009f5bcd50b156a46a7e83cbe4d1d6c37baff5",
+      "schema_version": 2
+    },
+    {
+      "id": "9ec673e1-483f-536b-986c-001917d3f3fb",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Male\",\n \"Female\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender\"],\"\"]:0",
+      "content_hash": "b234ad8e816fb73e8c6c16370df42ad6befbab4b04293dba01949d17e4f61eb6",
+      "schema_version": 2
+    },
+    {
+      "id": "2c2abf5d-5119-529b-893c-5b978b7041a9",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Single\",\n \"Married\",\n \"Divorced\",\n \"Widowed\",\n \"Separated\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus\"],\"\"]:0",
+      "content_hash": "e9e17c486d40ec494bd2d66a8bcf4d6e8fb67314d5258f1ce42a184e7e203ea6",
+      "schema_version": 2
+    },
+    {
+      "id": "9e0c3b2a-b314-5baf-b211-04fe72bb7158",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType\n\n{\n \"type\": \"string\",\n \"pattern\": \"^\\\\+?[1-9]\\\\d{1,14}$\",\n \"example\": \"+971501234567\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"],\"\"]:0",
+      "content_hash": "4ce4a23e81ca29eeeee0498efe323cf7cc325bd33c267e1b0ee077aa677952ee",
+      "schema_version": 2
+    },
+    {
+      "id": "080f8032-5329-509c-9ccc-8954c2aa44e5",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"English\",\n \"Arabic\",\n \"Other\"\n ],\n \"description\": \"Primary language spoken by the insurance policy customer\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage\"],\"\"]:0",
+      "content_hash": "105bdc8a91fb0ca15c9094fb9d465a624ddb7d90ce8594e858069205259f54ae",
+      "schema_version": 2
+    },
+    {
+      "id": "28484bb9-c9db-59fb-9753-443e9e83417f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\",\n \"example\": \"ali.hamad@example.openfinanceplatform.ae\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType\"],\"\"]:0",
+      "content_hash": "b9134b83e27955b771754bd0522c3056c420ea93510e2190935c6b0997ab9a49",
+      "schema_version": 2
+    },
+    {
+      "id": "4a157ba0-7ad3-50f7-bb20-80ffeb129206",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine\"],\"\"]:0",
+      "content_hash": "08bc49fcc15262f9dab46a5c33f8381fd1f667ed050a9e42ed1d22ddf14fdef0",
+      "schema_version": 2
+    },
+    {
+      "id": "151b02a2-71b1-5a1b-871e-b167177dd42b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AbuDhabi\",\n \"Ajman\",\n \"Dubai\",\n \"Fujairah\",\n \"RasAlKhaimah\",\n \"Sharjah\",\n \"UmmAlQuwain\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\"],\"\"]:0",
+      "content_hash": "b6f579cff012fd332e543bebb55e0c02e86932da2bd46ce679190af2963b80f1",
+      "schema_version": 2
+    },
+    {
+      "id": "fac5207e-cd82-5660-964c-2b7c176fa80e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"[A-Z]{2}\",\n \"description\": \"Country code that conforms with ISO 3166, 3 character alpha code\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode\"],\"\"]:0",
+      "content_hash": "67988a96b219b18ff9c2ec30434af3fff1e940c38f73e22da4b6294b69a3f943",
+      "schema_version": 2
+    },
+    {
+      "id": "1e43d03d-1203-59c5-87ea-b000e64c407e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"EmiratesId\": {\n \"type\": \"object\",\n \"properties\": {\n \"EmiratesIdNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$\",\n \"description\": \"Emirates identification number\"\n },\n \"EmiratesIdExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Emirates ID expiry date\"\n }\n },\n \"description\": \"Verified Emirates ID details, captured by the TPP.\"\n },\n \"Passport\": {\n \"type\": \"object\",\n \"properties\": {\n \"PassportNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z0-9]+$\",\n \"description\": \"Passport number\"\n },\n \"IssuingCountry\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"The country the passport is issued by.\"\n },\n \"NameOnPassport\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The applicant, policyholder or insured person name as detailed on their passport\"\n },\n \"IssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The passport issue date\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The passport expiry date\"\n }\n },\n \"description\": \"Verified Passport details, captured by the TPP.\"\n },\n \"Visa\": {\n \"type\": \"object\",\n \"properties\": {\n \"VisaType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Employment\",\n \"Residence\",\n \"Business\",\n \"Investor\",\n \"Freelance\",\n \"VirtualWork\",\n \"Retirement\",\n \"Student\",\n \"Family\",\n \"Green\",\n \"Golden\",\n \"Blue\"\n ],\n \"description\": \"The type of visa issues, based on an available code list\"\n },\n \"VisaNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^[0-9]+$\",\n \"description\": \"Visa number\"\n },\n \"IssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The visa issue date\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The visa expiry date\"\n },\n \"IssuingEmirate\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Emirate that issued the visa\"\n }\n },\n \"description\": \"Verified Passport details, captured by the TPP.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\"],\"\"]:0",
+      "content_hash": "23d23f35c1ea958b327636b90777afd34179f4d2abe5f7f607f36864e03bac64",
+      "schema_version": 2
+    },
+    {
+      "id": "44fb6b9a-3ca1-5762-a28b-51ad6c9bc482",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Renters Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteTypeOfCover\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"BuildingsOnly\",\n \"ContentsOnly\",\n \"BuildingsAndContents\"\n ],\n \"description\": \"The type of Home or Renter insurance cover required\"\n}",
+      "metadata": {
+        "title": "Accept a Renters Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteTypeOfCover",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "47e1bd934a4a01f755a228b39169cdb1da4a13d1",
+        "source_hash": "f802e2d1bbb5edcabae0b781bccc3ec39e54adca63422fd591ac7ef0ac881e7d",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/open-api/patch-renters-insurance-quotes-QuoteId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteTypeOfCover\"],\"\"]:0",
+      "content_hash": "c29b99fbd92da88343bfed55395666846684ba10df8548d101d8754a5d1ec911",
+      "schema_version": 2
+    }
+  ]
+}
