@@ -1,0 +1,241 @@
+{
+  "id": "knowledge-base/articles/on-behalf-of",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/knowledge-base/articles/on-behalf-of.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "33ff041478240e8828ef20eb2de9f2c4a7a3bed34446fdcb3a168590a76c2f16",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "OnBehalfOf — When to Use It and When Not To",
+    "description": "When to populate OnBehalfOf in PAR requests, which consent types support it, and how payment (service initiation) consents handle merchant identity via creditor fields instead.",
+    "category": "Consents",
+    "readTime": "5 min",
+    "updated": "2026-04-21",
+    "tags": [
+      "Consents",
+      "OnBehalfOf",
+      "Data Sharing"
+    ],
+    "url": "https://nebras-open-finance.com/knowledge-base/articles/on-behalf-of",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "OnBehalfOf — When to Use It and When Not To",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "Acting for another regulated entity",
+        "level": 2,
+        "anchor": "when",
+        "category": "When to use",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Populate OnBehalfOf when the caller (TPP) is requesting authorisation for bank or insurance data sharing only, but is doing so on behalf of another legal or regulated entity:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "A TPP provides technology services to an LFI and stages the PAR on behalf of that LFI.",
+              "A licensed aggregator or reseller acts as the technical integration layer for another regulated entity."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "If the TPP is representing itself (no other regulated entity is involved), OnBehalfOf is not required."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Field shape",
+        "level": 2,
+        "anchor": "object",
+        "category": "The object",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Description"
+            ],
+            "rows": [
+              [
+                "TradingName",
+                "The trading name of the entity being represented."
+              ],
+              [
+                "LegalName",
+                "The registered legal name of the entity."
+              ],
+              [
+                "IdentifierType",
+                "Identifier scheme — currently \"Other\" in the published schema."
+              ],
+              [
+                "Identifier",
+                "The identifier value for the represented entity."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Per consent type",
+        "level": 2,
+        "anchor": "where",
+        "category": "Where it applies",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Consent type",
+              "OnBehalfOf supported?",
+              "Notes"
+            ],
+            "rows": [
+              [
+                "Bank Data Sharing",
+                "Yes",
+                "Declare the legal entity the TPP is acting for within the rich authorisation request."
+              ],
+              [
+                "Insurance Data Sharing",
+                "Yes",
+                "References a common AEOnBehalfOf object — same intent and fields."
+              ],
+              [
+                "Bank Service Initiation (payments)",
+                "No",
+                "Not used. Merchant identity is carried via the creditor fields in the payment consent."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Use creditor fields instead",
+        "level": 2,
+        "anchor": "payments",
+        "category": "Payments",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "For payment consents, the user must be shown who the payment is going to. This information is provided via the creditor fields in the payment consent — not via OnBehalfOf."
+          },
+          {
+            "type": "paragraph",
+            "text": "Populate the creditor fields so the LFI can display the recipient (merchant/payee) to the user:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Prefer Creditor.Name when it is provided.",
+              "If Creditor.Name is not present, fall back to CreditorAccount.Name.en or CreditorAccount.Name.ar as applicable."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "This ensures the user sees a meaningful recipient name when authorising the payment."
+          },
+          {
+            "type": "paragraph",
+            "text": "Do not attempt to carry merchant identity in an OnBehalfOf object for payment consents — it is not part of the service initiation schema and will be ignored or rejected."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Merchant Name on the authorisation page",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If the TPP populates Risk.CreditorIndicators.MerchantDetails.MerchantName in the PII payload, the LFI must reflect this on the authorisation page by displaying the merchant name in the permission header:"
+              },
+              {
+                "type": "paragraph",
+                "text": "[TPP trading name] needs your permission on-behalf of [MerchantName] to make the payment below:"
+              },
+              {
+                "type": "paragraph",
+                "text": "When MerchantName is not present, the standard wording is shown:"
+              },
+              {
+                "type": "paragraph",
+                "text": "[TPP trading name] needs your permission to make the payment below:"
+              },
+              {
+                "type": "paragraph",
+                "text": "This allows TPPs acting as a payment facilitator or aggregator on behalf of a sub-merchant to surface that merchant's identity clearly to the user at the point of authorisation."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Concrete payloads",
+        "level": 2,
+        "anchor": "examples",
+        "category": "Examples",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Bank Data Sharing PAR (with OnBehalfOf)",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Use this structure when the TPP is staging the PAR on behalf of another regulated entity:"
+              }
+            ]
+          },
+          {
+            "heading": "Bank Service Initiation PAR (payment) — creditor fields for merchant identity",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Use the creditor fields to identify the payment recipient — not OnBehalfOf:"
+              },
+              {
+                "type": "paragraph",
+                "text": "In production, PersonalIdentifiableInformation is a JWE encrypted with the LFI's encryption key. The structure above shows the decrypted payload for illustration."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Practical rules of thumb",
+        "level": 2,
+        "anchor": "checklist",
+        "category": "Implementation checklist",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "If acting on behalf of another regulated entity, include OnBehalfOf in Bank Data Sharing or Insurance Data Sharing PARs.",
+              "For payment consents, populate Creditor.Name — or CreditorAccount.Name.en / CreditorAccount.Name.ar if Creditor.Name is not available — so the LFI can display the recipient to the user.",
+              "If the TPP is acting as a payment facilitator for a sub-merchant, populate Risk.CreditorIndicators.MerchantDetails.MerchantName in the PII payload so the LFI can display the merchant name on the authorisation page.",
+              "Do not use OnBehalfOf in service initiation (payment) PARs."
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

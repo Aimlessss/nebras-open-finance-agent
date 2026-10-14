@@ -1,0 +1,116 @@
+{
+  "id": "knowledge-base/articles/mtls-endpoint-aliases",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/knowledge-base/articles/mtls-endpoint-aliases.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "e17325412e077949c9e9999694544bfbfe119b9bcc7429c10b17c4d598447aeb",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "mtls_endpoint_aliases — what it is and when it matters",
+    "description": "FYI explainer for the mtls_endpoint_aliases object returned by .well-known/openid-configuration. Today the aliases match the top-level endpoints, but the FAPI 2.0 spec allows them to diverge — preferring the alias keeps your client future-proof.",
+    "category": "Security",
+    "readTime": "5 min",
+    "updated": "2026-04-21",
+    "tags": [
+      "mTLS",
+      "Discovery",
+      "FAPI 2.0"
+    ],
+    "url": "https://nebras-open-finance.com/knowledge-base/articles/mtls-endpoint-aliases",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "mtls_endpoint_aliases — what it is and when it matters",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "This is an FYI article. On the current sandbox the values inside mtls_endpoint_aliases are identical to the top-level endpoints, so a TPP that ignores this object will work today. The article exists so that the day an LFI separates the two, you already know what to look for."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What discovery returns",
+        "level": 2,
+        "anchor": "discovery",
+        "category": "Discovery",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "An operational option for splitting mTLS surfaces",
+        "level": 2,
+        "anchor": "why",
+        "category": "Why the aliases exist",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "mtls_endpoint_aliases comes from RFC 8705 §5 — OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens."
+          },
+          {
+            "type": "paragraph",
+            "text": "The motivation is operational: an Authorization Server may want to offer the same logical endpoint at two URLs — one that requires mTLS and one that does not. For example, the introspection endpoint may be reachable without mTLS for some operations but bound to a different host for the cert-bound flows."
+          },
+          {
+            "type": "paragraph",
+            "text": "When tls_client_certificate_bound_access_tokens: true is set (as it is in UAE Open Finance), all token-related calls — /par, /token, /introspection, /revocation — must be made with your transport certificate so the issued token can be cryptographically bound to the cert. The aliases let the AS publish a separate URL set for those mTLS-bound calls if it ever needs to."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Why this is currently a non-issue",
+        "level": 2,
+        "anchor": "today",
+        "category": "Today",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "In UAE Open Finance today, the values inside mtls_endpoint_aliases are identical to the top-level values. Posting your PAR or token request to either URL works equivalently and produces the same cert-bound token."
+          },
+          {
+            "type": "paragraph",
+            "text": "The two only diverge if an LFI deliberately splits its mTLS surface from its non-mTLS surface — a configuration change that is not currently planned."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Future-proof with an alias-fallback",
+        "level": 2,
+        "anchor": "pattern",
+        "category": "Safe pattern",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The same pattern applies to introspection_endpoint and revocation_endpoint."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Where the aliases don't apply",
+        "level": 2,
+        "anchor": "no-need",
+        "category": "What you don't need",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "The authorization_endpoint is browser-driven (the end user is redirected there) — it is not an mTLS call and does not appear in mtls_endpoint_aliases. Always use the top-level value.",
+              "You do not need to call discovery twice or maintain two endpoint sets in code. One discovery fetch with the alias-fallback pattern above is enough."
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,2015 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+  "chunk_count": 59,
+  "chunks": [
+    {
+      "id": "4a98601d-d848-566b-b710-f3fef571dda0",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "intro",
+      "text": "Retrieve Accounts (CAAP)\n\nLFI · CAAP · Accounts",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "f93fdd41bb6cea1a9a0d9a4a9d11aaf12f63e6e1909c3152cb269ae5edac24c9",
+      "schema_version": 2
+    },
+    {
+      "id": "a7264764-32ec-59a7-8480-3dbadab5e358",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > API /accounts\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - UAE CAAP Operations API Description\",\n \"description\": \"## Ozone Connect - UAE CAAP Operations API Description\\n\\nThis document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html) for CAAP Operations API for Ozone Connect that support interactions with services hosted on the API Hub.\\n\\nThese APIs should be implemented by a financial institution to facilitate integration with the API Hub.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where: \\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards\\n* Changed every date-time field to reference the shared `AEDateTime` Schema Object. `AEDateTime` states that a\\n date-time value identifies an instant, that the offset is part of the value and must be applied by the\\n recipient, and that two encodings of the same instant are equivalent and must behave identically. It carries\\n a `pattern` requiring an offset and forbidding `-00:00`; all other offsets remain conformant. Each field\\n description now states only what is specific to that field. Per OFP-014.\\n\\n### v2.1.5\\n\\n* Added `ReadStatements` and `ReadProductFinanceRates` to\\n `OzoneConnectConsentEventActionAPIs.AEAccountAccessConsentPermissionCodes`, matching the same addition to the\\n Consent Manager and the Consent Events and Actions API. Both codes are in the v2.1 Standards Bank Data Sharing\\n permission set, so the Hub can forward them on a consent event.\\n\\n\\n### v2.1.4\\n\\n* Renamed API from User Operations to CAAP Operations.\\n\\n* Added `get /accounts` and `get /accounts/{accountId}` operations (previously on Bank Data Sharing), carrying the\\n CAAP-specific `o3-is-caap-consent-operation` and `o3-caap-consent-use-case` headers and the `availableBalance`\\n property on the account.\\n\\n\\n* Added `get /{insurance-type}-insurance-policies` operations for Employment, Health, Home, Life, Motor, Renters,\\n and Travel insurance (previously on Insurance), carrying the CAAP-specific `o3-is-caap-consent-operation` header\\n and CAAP-only response properties (`PolicyEndDate`, `ProductName`, `BodyType`, `PlateNumber`).\\n\\n\\n### v2.1.3\\n* Changed `pattern` regexes on the `AEActiveOrHistoricAmount`, `ControlSum`, and `Amount` schemas, which were\\n over-escaped in YAML and failed to validate decimal monetary values.\\n\\n\\n### v2.1.2\\n\\n* Added Validate API operation for executing BAU processes at LFI based on Consent and user identification.\\n\\n* Added Augment API operation for updating the Consent with authorization properties.\\n\\n### v2.1.1\\n\\n* Added initial version for compatibility with v2.1-rc2 of standards.\\n\",\n \"version\": \"v2.2.1\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/accounts\",\n \"operations\": {\n \"get\": {\n \"tags\": [\n \"accounts\"\n ],\n \"summary\": \"Retrieve accounts\",\n \"description\": \"Return the list of accounts that either:\\n\\n* Match the value of the `accountIds` parameter.\\n\\n* Are in scope for Bank Data Sharing and must be displayed to the User in CAAP, where\\n `o3-is-caap-consent-operation` is set to `true` and `accountIds` not sent.\\n\\nThe API Hub will ensure that one of these conditions is met consistently, but LFIs should reject API operations\\nthat do not meet either requirement.\\n\\nThis operation duplicates those provided in Bank Data Sharing, with properties that are specific to the\\nimplementation of CAAP. **CAAP users MUST implement this version of the `get /accounts` operation and MUST NOT\\nimplement the equivalent operation from Bank Data Sharing.**\\n\",\n \"operationId\": \"caapFindAccounts\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.aspspId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.consentId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.ozoneInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.psuIdentifier\"\n },\n {\n \"$ref\": \"#/components/parameters/accountIds\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.page\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.page-size\"\n },\n {\n \"$ref\": \"#/components/parameters/isCaapConsentOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/caapConsentUseCase\"\n }\n ],\n \"responses\": {\n \"200\": {\n \"description\": \"successful operation\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/AccountsResponse\"\n }\n }\n }\n },\n \"400\": {\n \"$ref\": \"#/components/responses/error400Response\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/error403Response\"\n },\n \"409\": {\n \"$ref\": \"#/components/responses/error409Response\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/error500Response\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "API /accounts",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /accounts\"],\"\"]:0:part:0",
+      "content_hash": "2014f40764199665f228df308a44b0b1f4244494097417536446ef3b0bfa5b45",
+      "schema_version": 2
+    },
+    {
+      "id": "ea1216b0-148d-51ed-9c8e-0869590a9458",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > API /accounts\n\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n },\n \"OzoneConnectServiceInitiationToken\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Bearer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "API /accounts",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /accounts\"],\"\"]:0:part:1",
+      "content_hash": "4d58f8c5ab3fc14e5a067b24bc4d18cc92ce07805867ca918c85c6de83f27cb8",
+      "schema_version": 2
+    },
+    {
+      "id": "5252d641-a256-5216-9764-5986a253dbb5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targeted to\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.providerId\"],\"\"]:0",
+      "content_hash": "e5d47857cdbfb3c53e7bc9047eb093b82643533c34b2ff70d5f167ab73277a29",
+      "schema_version": 2
+    },
+    {
+      "id": "ca3107a0-eae4-5552-9cf0-fa02ee9a95dc",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.aspspId\n\n{\n \"name\": \"o3-aspsp-id\",\n \"in\": \"header\",\n \"required\": true,\n \"deprecated\": true,\n \"description\": \"Identifier for the financial institution that the request is targeted to. This header is deprecated and will be removed in a future version of Ozone Connect. Use `o3-provider-id` instead.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.aspspId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.aspspId\"],\"\"]:0",
+      "content_hash": "ec77d67c4bb2e5bb97837a02cff190f2d0d9901f47a7ec91df8efccb7dc9da9b",
+      "schema_version": 2
+    },
+    {
+      "id": "e14eb963-1e75-50ce-bba8-f1f889fbe1e1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\"],\"\"]:0",
+      "content_hash": "2c39b66a7ab603c274d6c03b1c005ac527f65d5158eab2da6bb4ffd0b1f0c242",
+      "schema_version": 2
+    },
+    {
+      "id": "be2e1a18-e48c-5da8-a8ea-48687be25e2b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\"],\"\"]:0",
+      "content_hash": "af44463e26bcd7cb837c2a0b0823fbc99bc2356c6c5e03e84a7591fa80bec425",
+      "schema_version": 2
+    },
+    {
+      "id": "3a052dbe-fbda-552c-b367-f5c36abe0190",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "8227b5ce09dec6dc315894466187d71e8270fe04c9cec2a71d411a389c5c5401",
+      "schema_version": 2
+    },
+    {
+      "id": "b730a0a8-d463-5df2-8786-48e773604a81",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The URL of the API being called by the caller\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiUri\"],\"\"]:0",
+      "content_hash": "e6f5b625bdbfb2712923c6ebfdcedf745aabd20efd66f1d6c24b88544b332e9e",
+      "schema_version": 2
+    },
+    {
+      "id": "5ea77d72-bdf9-5bb8-8fcb-5b102eb243f3",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\"],\"\"]:0",
+      "content_hash": "bc26e0c98c5215f27d2292d8302e2c02e475d2f986cf1096ab4defff483d578f",
+      "schema_version": 2
+    },
+    {
+      "id": "0bfc1071-eb3f-544e-aaff-68a2d0d443d4",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.consentId\n\n{\n \"name\": \"o3-consent-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The consentId for which this call is being made\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.consentId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.consentId\"],\"\"]:0",
+      "content_hash": "5197fbb7e11e621e631e268c31b38372a6344bdf99fd6cc697f63443d7389059",
+      "schema_version": 2
+    },
+    {
+      "id": "5c06bcc4-7a51-571b-b80e-79854ca16e17",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\"],\"\"]:0",
+      "content_hash": "36dacae5e21a77477c21e3c198e7e119b0754a04f4adbe04cb062579ffd7ed34",
+      "schema_version": 2
+    },
+    {
+      "id": "328f0736-6705-5940-9e55-fbada4cf74d0",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "9518e6bd0b2076bb61a9ca1501c4d5c37545294e3336fbfe95ef136a3a962821",
+      "schema_version": 2
+    },
+    {
+      "id": "8b8cc427-6b85-5430-963c-71ae4ed814a9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.psuIdentifier\n\n{\n \"name\": \"o3-psu-identifier\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"A Base64 encoded representation of the psuIdentifier JSON object.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.psuIdentifier",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.psuIdentifier\"],\"\"]:0",
+      "content_hash": "c5333af3c08590f810927e518b448586764622124c31160ddad380a96e309ae0",
+      "schema_version": 2
+    },
+    {
+      "id": "0c11e2d9-3b73-58bc-aa8c-deda4f22a08d",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/accountIds\n\n{\n \"name\": \"accountIds\",\n \"in\": \"query\",\n \"description\": \"Comma separated ids of the accounts to be returned. **MUST** be supplied when `o3-is-caap-consent-operation` is `false` or omitted. May be empty when `o3-is-caap-consent-operation` is `true`, since account selection has not been completed at CAAP.\",\n \"schema\": {\n \"type\": \"string\",\n \"minLength\": 1\n },\n \"required\": false\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/accountIds",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/accountIds\"],\"\"]:0",
+      "content_hash": "6290a163ce3e3270fb0fca0287b18e5f5ea30683ac849a51b6e75cc303611c6e",
+      "schema_version": 2
+    },
+    {
+      "id": "aa456552-4589-5a46-bac4-0c60c6e69287",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.page\n\n{\n \"name\": \"page\",\n \"in\": \"query\",\n \"required\": true,\n \"description\": \"Page of results to request (standard pagination)\",\n \"schema\": {\n \"type\": \"integer\",\n \"default\": 1\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.page",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.page\"],\"\"]:0",
+      "content_hash": "121ca2eaec79d78bbb9e773ad1cdd45f06cb229308a3ea6e6fc788e1038a486d",
+      "schema_version": 2
+    },
+    {
+      "id": "7a1e052f-575e-5074-b746-838e64026558",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/OzoneConnect.page-size\n\n{\n \"name\": \"page-size\",\n \"in\": \"query\",\n \"required\": true,\n \"description\": \"Page size to request. Default is 100 to comply with the Operating Guidelines for the Open Finance Framework.\",\n \"schema\": {\n \"type\": \"integer\",\n \"default\": 100\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.page-size",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.page-size\"],\"\"]:0",
+      "content_hash": "09d14f877a6974ae59b8d8b007e1854da4df297e8602f87ac10ca47fb62459f9",
+      "schema_version": 2
+    },
+    {
+      "id": "d3d9cdfb-09b0-56d1-aa8b-f5c44dc5dc95",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/isCaapConsentOperation\n\n{\n \"name\": \"o3-is-caap-consent-operation\",\n \"in\": \"header\",\n \"required\": false,\n \"description\": \"Flag to indicate that query originates from CAAP and is invoked to get available accounts or policies.\\n\\nLFIs must return all eligible accounts/policies and/or populate all CAAP-specific response properties when the\\nvalue is `true` to facilitate User selection or Consent operations.\\n\",\n \"schema\": {\n \"type\": \"boolean\"\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/isCaapConsentOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/isCaapConsentOperation\"],\"\"]:0",
+      "content_hash": "bfe748447a8014115353ec7645e55291094f15a0cb8bc6ccfbb589dc4f582cb4",
+      "schema_version": 2
+    },
+    {
+      "id": "a301f938-6fc9-5399-b652-48c2a9804e00",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/parameters/caapConsentUseCase\n\n{\n \"name\": \"o3-caap-consent-use-case\",\n \"in\": \"header\",\n \"required\": false,\n \"description\": \"Value that indicates the use case for a given CAAP consent request, sent when a list of eligible accounts is required for a consent authorized through CAAP, or specific properties are required for a Consent operation.\\nSupported values are:\\n- `accounts`: Consent for a Bank Data Sharing use case.\\n- `payments`: Consent for a Bank Service Initiation use case.\\n\\nLFIs **MUST** return the accounts that are eligible based on the use case and their understanding of the Open Finance Framework requirements.\\n\",\n \"schema\": {\n \"type\": \"string\",\n \"enum\": [\n \"accounts\",\n \"payments\"\n ]\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/parameters/caapConsentUseCase",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/caapConsentUseCase\"],\"\"]:0",
+      "content_hash": "b06cf5657ecbea51062b3576acd0e202e707c96681c113bfc7af19e217204f77",
+      "schema_version": 2
+    },
+    {
+      "id": "2b6057f8-d1ef-564e-a6e4-9ef8b522282a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AccountsResponse\n\n{\n \"type\": \"object\",\n \"description\": \"A descriptor for an account.\\nThis is a composite object that may be expanded in the future to support\\nadditional account types for new API standards and account types.\\n\",\n \"example\": {\n \"data\": [\n {\n \"id\": \"string\",\n \"accountType\": \"Retail\",\n \"accountSubType\": \"CurrentAccount\",\n \"currency\": \"GBP\",\n \"status\": \"Active\",\n \"accountHolderName\": \"string\",\n \"servicer\": {\n \"schemeName\": \"BICFI\",\n \"identification\": \"string\"\n },\n \"accountNumbers\": [\n {\n \"name\": \"string\",\n \"schemeName\": \"IBAN\",\n \"identification\": \"string\"\n }\n ],\n \"product\": {\n \"id\": \"string\",\n \"productName\": \"string\",\n \"bundleName\": \"string\"\n }\n }\n ],\n \"meta\": {}\n },\n \"properties\": {\n \"data\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/CbuaeAccount\"\n },\n \"description\": \"Primary data for the resource\"\n },\n \"meta\": {\n \"$ref\": \"#/components/schemas/Meta\"\n }\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AccountsResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AccountsResponse\"],\"\"]:0",
+      "content_hash": "ecc678a628ec67fc1425e90f6ce5ab02704fd1fcb1c88096f69a3d1cc4a50cfa",
+      "schema_version": 2
+    },
+    {
+      "id": "4d26cee3-a6fa-5296-a7cd-9c1005a37eb8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/CbuaeAccount\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"id\": {\n \"type\": \"string\",\n \"description\": \"Unique identifier for the account resource\"\n },\n \"product\": {\n \"$ref\": \"#/components/schemas/ProductIdentifier\"\n },\n \"multiAuth\": {\n \"type\": \"boolean\",\n \"description\": \"Indicator that labels the account as requiring multiple authorizers\"\n },\n \"businessCustomer\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/CustomerIdentifier\"\n },\n \"description\": \"Provides the customer identifiers for an account when the account is a business account\"\n },\n \"customers\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/CustomerIdentifier\"\n },\n \"minItems\": 1,\n \"description\": \"Provides the customer identifiers for an account when the account is a non-business account\"\n },\n \"accountHolderName\": {\n \"$ref\": \"#/components/schemas/AccountHolderName\"\n },\n \"accountHolderShortName\": {\n \"$ref\": \"#/components/schemas/AccountHolderShortName\"\n },\n \"status\": {\n \"description\": \"Specifies the status of account resource in code form.\\n\\n* Active: The account exist and is in an active state.\\n\\n* Inactive: The account is deemed not active by the LFI. Please refer to the\\n [CBUAE Website](https://rulebook.centralbank.ae/en/rulebook/dormant-accounts-regulation)\\n for qualification of Inactive status.\\n\\n* Dormant: Please refer to the [CBUAE Website](https://rulebook.centralbank.ae/en/rulebook/dormant-accounts-regulation)\\n for the definition of Dormant status.\\n\\n* Unclaimed: Please refer to the [CBUAE Website](https://rulebook.centralbank.ae/en/rulebook/dormant-accounts-regulation)\\n for the definition of Unclaimed status.\\n\\n* Deceased: The account holder has passed away.\\n\\n* Suspended: The account has been temporarily deactivated by the LFI for reasons such as\\n suspicious activities or non-compliance with regulations. The account holder might\\n be unable to access funds or perform transactions until the bank's requirements\\n are met, and the suspension is lifted.\\n\\n* Closed: The account is closed\\n\",\n \"type\": \"string\",\n \"enum\": [\n \"Active\",\n \"Inactive\",\n \"Dormant\",\n \"Unclaimed\",\n \"Deceased\",\n \"Suspended\",\n \"Closed\"\n ]\n },\n \"statusUpdateDateTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"Date and time at which the resource status was updated.\"\n }\n ]\n },\n \"currency\": {\n \"$ref\": \"#/components/schemas/TCurrency\"\n },\n \"accountType\": {\n \"description\": \"Specifies the type of account (Retail, SME or Corporate).\",\n \"type\": \"string\",\n \"enum\": [\n \"Retail\",\n \"SME\",\n \"Corporate\"\n ]\n },\n \"accountSubType\": {\n \"$ref\": \"#/components/schemas/AEExternalAccountSubTypeCode\"\n },\n \"description\": {\n \"description\": \"Specifies the description of the account sub-type.\",\n \"type\": \"string\"\n },\n \"nickName\": {\n \"description\": \"The nickname of the account, assigned by User 1 to provide an additional and easier means of identification of the account at the financial instituation\",\n \"type\": \"string\"\n },\n \"openingDate\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"Date on which the account and its related basic services by financial institution started to be operational for User 1\"\n }\n ]\n },\n \"maturityDate\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"* Fixed Term Savings Account\\nMaturityDate is the date on which the savings mature and the balance can be withdrawn by the User without penalty\"\n }\n ]\n },\n \"accountNumbers\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AccountIdentifiers\"\n },\n \"minItems\": 1,\n \"description\": \"Provides the account numbers that identity the account. This is separate to the `accountId`, which uniquely identifies the account resource.\"\n },\n \"servicer\": {\n \"$ref\": \"#/components/schemas/AEBranchAndFinancialInstitutionIdentification5_0\"\n },\n \"availableBalance\": {\n \"description\": \"Required where CAAP is implemented by an LFI and the value of the header field `o3-is-caap-consent-operation` is set to true. Omitted by non-CAAP users. Provides the available balance on the account for use in CAAP consent user journey. LFIs must provide the `balanceType` value equivalent to that which their customer would see in a internet or mobile banking payment journey. This property is specified as an array to future proof against changes to the CAAP customer experience, where more than one balance in the consent authorization screen may be required.\\n\",\n \"minItems\": 1,\n \"items\": {\n \"type\": \"object\",\n \"required\": [\n \"creditDebitIndicator\",\n \"balanceType\",\n \"timestamp\",\n \"amount\"\n ],\n \"properties\": {\n \"creditDebitIndicator\": {\n \"$ref\": \"#/components/schemas/AECreditDebitIndicator\"\n },\n \"balanceType\": {\n \"$ref\": \"#/components/schemas/CbuaeBalanceType\"\n },\n \"timestamp\": {\n \"$ref\": \"#/components/schemas/AEBalanceCheckDateTime\"\n },\n \"amount\": {\n \"$ref\": \"#/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\"\n },\n \"creditLines\": {\n \"description\": \"Credit line available to the customer for the given balance, provided to allow the available overdraft to be provided in the consent authorization user experience.\",\n \"type\": \"array\",\n \"minItems\": 1,\n \"items\": {\n \"$ref\": \"#/components/schemas/CbuaeCreditLine\"\n }\n }\n }\n }\n },\n \"isShariaCompliant\": {\n \"$ref\": \"#/components/schemas/AEShariaFlag\"\n }\n },\n \"required\": [\n \"id\"\n ],\n \"additionalProperties\": false,\n \"description\": \"The properties of an account\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/CbuaeAccount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaeAccount\"],\"\"]:0",
+      "content_hash": "bd78342182460b34892034328ed7d6356f88209684aa9b56a9a688f1ceac7eac",
+      "schema_version": 2
+    },
+    {
+      "id": "decd7799-c96e-5592-8431-755a2aa2229a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/ProductIdentifier\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"id\": {\n \"type\": \"string\",\n \"description\": \"Identifier within the LFI for the product. Must be unique in the organisation.\"\n },\n \"productName\": {\n \"type\": \"string\",\n \"description\": \"Descriptive name for the product.\"\n },\n \"bundleName\": {\n \"description\": \"Optional field to indicate if this account is part of a bundle that is providing additional benefit for to the customer\",\n \"type\": \"string\"\n }\n },\n \"description\": \"Provides the details of a given product at the LFI\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/ProductIdentifier",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ProductIdentifier\"],\"\"]:0",
+      "content_hash": "df421f567ceabaa1180c6f2afc04b462bf28dbd8be2ae58c046c8fbba6b42d74",
+      "schema_version": 2
+    },
+    {
+      "id": "7d0c3681-3a46-5877-9cb7-235cd41874dd",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/CustomerIdentifier\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"id\": {\n \"type\": \"string\",\n \"description\": \"Identifier within the LFI for the customer.\"\n },\n \"customerName\": {\n \"type\": \"string\",\n \"description\": \"Name of the customer.\"\n }\n },\n \"required\": [\n \"id\",\n \"customerName\"\n ],\n \"description\": \"Provides the unique identifier and name for a given customer at the LFI\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/CustomerIdentifier",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CustomerIdentifier\"],\"\"]:0",
+      "content_hash": "b7a9a1188c0b90184a951e43219e2c7de64e804b8d6c9a93f774a74439323502",
+      "schema_version": 2
+    },
+    {
+      "id": "193b713e-f3ea-5222-8f12-44e9df882615",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AccountHolderName\n\n{\n \"type\": \"string\",\n \"description\": \"The Account Holder Name is the name or names of the Beneficiary account owner(s) represented at the account level, as displayed by the Creditor Agent's online channels and as provided by the Beneficiary to the customer when adding the Beneficiary in the Beneficiary list.\\nNote, the Account Holder Name is not the product name or the nickname of the account.d\\n\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AccountHolderName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AccountHolderName\"],\"\"]:0",
+      "content_hash": "62e57489911e7168aee137a3a569c0d70723d865730d3c993cbdd719f36acd6a",
+      "schema_version": 2
+    },
+    {
+      "id": "ae0dd779-8803-5a9f-86e7-7627dd568787",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AccountHolderShortName\n\n{\n \"type\": \"string\",\n \"description\": \"The Beneficiary account holder nick name\\n\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AccountHolderShortName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AccountHolderShortName\"],\"\"]:0",
+      "content_hash": "c1bdef393cda972e154e13c87fb19df607b55ab99143350fcb561956dcfc6eab",
+      "schema_version": 2
+    },
+    {
+      "id": "6914d1ab-1361-52b2-a9d7-ba296d07ef99",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AEDateTime\n\n{\n \"title\": \"AEDateTime\",\n \"description\": \"An instant in time, per ISO 8601 / RFC 3339, with a mandatory offset. Recipients MUST apply the offset, and\\nMUST NOT read the date and time components as local time. Encodings of the same instant are equivalent and MUST\\nbehave identically: `2027-07-22T00:00:00Z` and `2027-07-22T04:00:00+04:00` identify the same moment.\\n\\nIssuers SHOULD emit UTC, using `Z` or `+00:00`. The negative zero offset `-00:00` MUST NOT be used. Fractional\\nseconds are optional and carry no specified precision; implementations MUST accept both their presence and\\ntheir absence.\\n\",\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}(\\\\.\\\\d+)?(Z|\\\\+\\\\d{2}:\\\\d{2}|-(?:0[1-9]|1[0-2]):\\\\d{2})$\",\n \"example\": \"2027-07-22T00:00:00Z\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AEDateTime",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDateTime\"],\"\"]:0",
+      "content_hash": "6e57382676682b6adaae88b2194b5912fbb2663b41553bd379f24388ff8d83e4",
+      "schema_version": 2
+    },
+    {
+      "id": "0fa79ab9-eaa7-5644-948d-ac9b48141093",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/TCurrency\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"Currency code for the account.\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/TCurrency",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/TCurrency\"],\"\"]:0",
+      "content_hash": "e01462eb9e878355798663929902359af48e2ead352b12a2666da5fe0c814d32",
+      "schema_version": 2
+    },
+    {
+      "id": "ade9fd97-d655-5638-ac3d-e23aa3602de9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AEExternalAccountSubTypeCode\n\n{\n \"description\": \"Specifies the sub type of account (product family group).\",\n \"type\": \"string\",\n \"enum\": [\n \"CurrentAccount\",\n \"Savings\",\n \"CreditCard\",\n \"Mortgage\",\n \"Finance\"\n ]\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AEExternalAccountSubTypeCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEExternalAccountSubTypeCode\"],\"\"]:0",
+      "content_hash": "6026e0042311fbf8dc7902a51dec4575ca39f8ed6a0239cf59c340e974f9c8c6",
+      "schema_version": 2
+    },
+    {
+      "id": "6b04ccb5-76db-59b3-8dc5-1af45fc15539",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AccountIdentifiers\n\n{\n \"type\": \"object\",\n \"description\": \"Provides the details to identify an account.\",\n \"required\": [\n \"schemeName\",\n \"identification\"\n ],\n \"properties\": {\n \"schemeName\": {\n \"$ref\": \"#/components/schemas/AEExternalAccountIdentificationCode\"\n },\n \"identification\": {\n \"$ref\": \"#/components/schemas/Identification_0\"\n },\n \"name\": {\n \"$ref\": \"#/components/schemas/Name_0\"\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AccountIdentifiers",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AccountIdentifiers\"],\"\"]:0",
+      "content_hash": "cc6de6d186874bd3e2fe26a68e5395ea4920e3c884705b438f537e8fabfa4122",
+      "schema_version": 2
+    },
+    {
+      "id": "4ed9f89f-ce49-57e0-b42b-fdece50a22d7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AEExternalAccountIdentificationCode\n\n{\n \"description\": \"Name of the identification scheme for the account. Encoded with allowable values published in an external list.\",\n \"type\": \"string\",\n \"enum\": [\n \"IBAN\",\n \"AccountNumber\",\n \"MaskedPAN\",\n \"MortgageReference\",\n \"FinanceReference\"\n ]\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AEExternalAccountIdentificationCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEExternalAccountIdentificationCode\"],\"\"]:0",
+      "content_hash": "baaef6e31aeca40e7a22fe9de3eda6d21cd2e4d53f12848fb5e036ff9b14275c",
+      "schema_version": 2
+    },
+    {
+      "id": "01c7f296-be37-5d11-84ef-a014bb2b3474",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/Identification_0\n\n{\n \"description\": \"Identification for the account assigned by the financial institution based on the Account Scheme Name. This identification is known by the User 1 account owner. For IBAN, refer to the ISO Standard 13616.\\n\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 400\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/Identification_0",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Identification_0\"],\"\"]:0",
+      "content_hash": "0abc629afaa78d87c5fbc65375c981a03eafeacba282c3a50bb73b492ee5eb0d",
+      "schema_version": 2
+    },
+    {
+      "id": "a49da2bd-9612-5964-a297-291d4b4ee7f9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/Name_0\n\n{\n \"description\": \"The account name is the name or names of the User 1 account owner(s) represented at an account level, as displayed by the financial institution's online channels. Note: The account name is not the product name or the nickname of the account.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/Name_0",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Name_0\"],\"\"]:0",
+      "content_hash": "b7ec2350aff1911893f2a9702be61e478cd850d77954f72d66b5e9a464350485",
+      "schema_version": 2
+    },
+    {
+      "id": "05931b6d-b04e-55e2-b415-e90425b1fb2c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AEBranchAndFinancialInstitutionIdentification5_0\n\n{\n \"type\": \"object\",\n \"required\": [\n \"schemeName\",\n \"identification\"\n ],\n \"description\": \"Party that manages the account on behalf of the account owner, that is manages the registration and booking of entries on the account, calculates balances on the account and provides information about the account.\",\n \"properties\": {\n \"schemeName\": {\n \"$ref\": \"#/components/schemas/AEExternalFinancialInstitutionIdentificationCode\"\n },\n \"identification\": {\n \"$ref\": \"#/components/schemas/Identification_1\"\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AEBranchAndFinancialInstitutionIdentification5_0",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBranchAndFinancialInstitutionIdentification5_0\"],\"\"]:0",
+      "content_hash": "5502ba0f05eaa1bc0bbbdf2b4ff51f61de5cd42d4c471fa26380f28d6c0dccc9",
+      "schema_version": 2
+    },
+    {
+      "id": "74ce162b-fd68-5eb4-aa48-2e41ab9aa5e8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AEExternalFinancialInstitutionIdentificationCode\n\n{\n \"description\": \"* /accounts resource\\nThe name of the identification scheme for the financial institution as the account services provider. Encoded with allowable value as published in an external list.\\n\\n* /beneficiaries resource\\nRefers to the Financial Institution that manages the account on behalf of the Beneficiary party, managing registration, booking of entries on the account, calculating balances on the account and providing information about the account. This is the servicing Financial Institution of the Beneficiary account.\\n\\n* /scheduled-payments resource\\nRefers to the identification scheme for uniquely identifying the Creditor Agent.\\n\\n* /standing-orders resource\\nRefers to the identification scheme for uniquely identifying the Creditor Agent.\\n\\n* /transactions resource\\nRefers to the identification scheme for uniquely identifying the Creditor Agent.\\n\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"BICFI\",\n \"Other\"\n ]\n },\n {\n \"deprecated\": true,\n \"type\": \"string\",\n \"enum\": [\n \"BICFI\",\n \"OTHER\"\n ]\n }\n ]\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AEExternalFinancialInstitutionIdentificationCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEExternalFinancialInstitutionIdentificationCode\"],\"\"]:0",
+      "content_hash": "267cb4e291bdeba106897d4dd3be2401787355751fba9720b8af184948190595",
+      "schema_version": 2
+    },
+    {
+      "id": "aa6cdb18-938c-5b79-ba95-0f034af97051",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/Identification_1\n\n{\n \"description\": \"* /accounts resource\\nUnique and unambiguous identification of the financial institution as the account servicing institution for the Open Finance services.\\n\\n* /beneficiaries resource\\nUnique and unambiguous identification of the Creditor Agency as the servicing institution of the Beneficiary.\\n\\n* /scheduled-payments resource\\nUnique and unambiguous identification of the financial institution as the account servicing institution for the Open Finance services.\\n\\n* /standing-orders resource\\nUnique and unambiguous identification of the financial institution as the account servicing institution for the Open Finance services.\\n\\n* /transactions resource\\nUnique and unambiguous identification of the financial institution as the account servicing institution for the Open Finance services.\\n* Notes:\\nBased on the value of the field **IdentificationType**, this entry may be :\\n* BICFI: The BIC/SWIFT Code\\n* Other: Identification code that is not a BIC/SWIFT code and allows a financial institution to be identified.\\n\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/Identification_1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Identification_1\"],\"\"]:0",
+      "content_hash": "9d31312e9bff9e9213450d8ce584120490784c7c041dac22abd365fad5648549",
+      "schema_version": 2
+    },
+    {
+      "id": "13a99877-32c0-532d-91a5-0954c122abe9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AECreditDebitIndicator\n\n{\n \"description\": \"Indicates whether a given balance, transaction, or summarized amount is a credit or a debit.\",\n \"type\": \"string\",\n \"enum\": [\n \"Credit\",\n \"Debit\"\n ]\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AECreditDebitIndicator",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECreditDebitIndicator\"],\"\"]:0",
+      "content_hash": "71a3be15319d6330594a39b1f1f73a7e335540418028c56594a354d42092d31c",
+      "schema_version": 2
+    },
+    {
+      "id": "82b9ed48-19dd-5498-9825-383acd6dab6b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/CbuaeBalanceType\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"ClosingAvailable\",\n \"ClosingBooked\",\n \"ClosingCleared\",\n \"Expected\",\n \"ForwardAvailable\",\n \"Information\",\n \"InterimAvailable\",\n \"InterimBooked\",\n \"InterimCleared\",\n \"OpeningAvailable\",\n \"OpeningBooked\",\n \"OpeningCleared\",\n \"PreviouslyClosedBooked\"\n ],\n \"description\": \"The type of balance for the account.\\nEncoded with allowable values of:\\n* 'ClosingAvailable' - end of day balance specifying the amount available to User 1 to withdraw or use.\\n* 'ClosingBooked' - end of day balance including value of payments for cheques or payments which have not been cleared yet.\\n* 'ClosingCleared' - end of day balance including value of payments for cheques or payments which have been cleared.\\n* 'Expected' - intra day balance including value of payments for cheques or payments which have been cleared.\\n* 'ForwardAvailable' - intraday balance specifying the amount available to User 1 to withdraw or use considering forward dated payments or other intraday payments or cheques that will be clearing to the account.\\n* 'Information' - TBC.\\n* 'InterimAvailable' - intraday balance specifying the amount available to User 1 to withdraw or use (most probably real-time.'InterimBooked' - intraday balance including value of payments for cheques or payments which have not been cleared yet.\\n* 'InterimCleared' - intraday balance including value of payments for cheques or payments which have been cleared (probably real-time).\\n* 'OpeningAvailable' - start of day balance specifying the amount available to User 1 to withdraw or use.\\n* 'OpeningBooked' - start of day balance including value of payments for cheques or payments which have not been cleared yet.\\n* 'OpeningCleared' - start of day balance including value of payments for cheques or payments which have been cleared.\\n* 'PreviouslyClosedBooked' -TBC.\\n\\nNote: LFIs support different types for presenting account balance, so this list is used to support different LFI systems in UAE.\\n\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/CbuaeBalanceType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaeBalanceType\"],\"\"]:0",
+      "content_hash": "560436f0aaed03fac17539602e93e90897df10b8cf93b9e5edb96fd7d745ef57",
+      "schema_version": 2
+    },
+    {
+      "id": "0420153b-4aa9-57e5-a2be-0b8eeabf89e7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AEBalanceCheckDateTime\n\n{\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"Indicates the date (and time) that the account balance was checked\"\n }\n ]\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AEBalanceCheckDateTime",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBalanceCheckDateTime\"],\"\"]:0",
+      "content_hash": "70d4b9d4265c05ff307ba84537fa65192816e81fbc75e51e6de623e7179a6e39",
+      "schema_version": 2
+    },
+    {
+      "id": "b0d44068-8d48-59ff-948f-92d184a5e4fd",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\n\n{\n \"type\": \"object\",\n \"required\": [\n \"amount\",\n \"currency\"\n ],\n \"properties\": {\n \"amount\": {\n \"$ref\": \"#/components/schemas/AEActiveCurrencyAndAmount_SimpleType\"\n },\n \"currency\": {\n \"$ref\": \"#/components/schemas/ActiveOrHistoricCurrencyCode_1\"\n }\n },\n \"description\": \"The amount and currency code for a given payment or transaction.\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\"],\"\"]:0",
+      "content_hash": "b6fdefe0ceafbd9a5158ac70a371db6480ffdba223c3fe0acc69bcb9484bccf5",
+      "schema_version": 2
+    },
+    {
+      "id": "5d5a5a83-cc3d-5a39-b3f8-425797b0074e",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AEActiveCurrencyAndAmount_SimpleType\n\n{\n \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n \"type\": \"string\",\n \"pattern\": \"^\\\\d{1,13}$|^\\\\d{1,13}\\\\.\\\\d{1,5}$\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AEActiveCurrencyAndAmount_SimpleType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEActiveCurrencyAndAmount_SimpleType\"],\"\"]:0",
+      "content_hash": "fbef5299760b5ff489b67bc089b066f68df0b2ee06d80717302cfa4ebef8834b",
+      "schema_version": 2
+    },
+    {
+      "id": "9672de8e-8a1d-54c9-bcd7-906e2c8e9f9d",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/ActiveOrHistoricCurrencyCode_1\n\n{\n \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"example\": \"SAR\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/ActiveOrHistoricCurrencyCode_1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ActiveOrHistoricCurrencyCode_1\"],\"\"]:0",
+      "content_hash": "f3123a741509666718a7c1d9397df4974090197f1afb144ca07ffd2158d1688e",
+      "schema_version": 2
+    },
+    {
+      "id": "296904f5-8db1-55b2-81fd-29ed274078eb",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/CbuaeCreditLine\n\n{\n \"description\": \"Set of elements used to provide details on the credit line.\",\n \"type\": \"object\",\n \"required\": [\n \"included\",\n \"creditType\",\n \"amount\"\n ],\n \"properties\": {\n \"included\": {\n \"description\": \"Boolean flag to Indicate whether or not a credit line is included in the balance of the account.\",\n \"type\": \"boolean\"\n },\n \"creditType\": {\n \"description\": \"Type of credit line provided to the account. The enumerations values are defined as follows.\\n\\n- Available: The amount of credit limit available to the account holder\\n- Credit: The amount of a credit limit that has been agreed with the account holder\\n- Emergency: The amount of an arranged lending limit that can be borrowed on top of pre-agreed lending, that has been agreed with the account holder\\n- Pre-Agreed: The amount of an arranged lending limit that has been agreed with the account holder\\n- Temporary: The amount of a temporary lending limit that has been agreed with the account holder\\n\",\n \"type\": \"string\",\n \"enum\": [\n \"Available\",\n \"Credit\",\n \"Emergency\",\n \"Pre-Agreed\",\n \"Temporary\"\n ]\n },\n \"amount\": {\n \"$ref\": \"#/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\"\n }\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/CbuaeCreditLine",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaeCreditLine\"],\"\"]:0",
+      "content_hash": "1f011dbd39b2fe55ac5a1e2a840366aebaa88d31cd2fb05bd0cf7b588b6ca189",
+      "schema_version": 2
+    },
+    {
+      "id": "23764799-5b54-5977-a99f-ebce166126c2",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AEShariaFlag\n\n{\n \"description\": \"A flag to denote if the Product is Sharia Compliant\",\n \"type\": \"boolean\",\n \"default\": false\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AEShariaFlag",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEShariaFlag\"],\"\"]:0",
+      "content_hash": "2962f0f0c2126fc863da0a8bd920b4dc7927b585697c2e5ddae740c227a794c6",
+      "schema_version": 2
+    },
+    {
+      "id": "5b6ae6fc-2703-560f-a764-ee5b8270e673",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/Meta\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"totalPages\": {\n \"type\": \"number\",\n \"description\": \"The number of expected pages for the query.\\n\"\n },\n \"totalRecords\": {\n \"type\": \"number\",\n \"description\": \"The total number of records in the full set.\\n\"\n }\n },\n \"description\": \"Metadata relevant to the resource.\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/Meta",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Meta\"],\"\"]:0",
+      "content_hash": "2354dc140c240966e5987d05f9ea3af7a11ed3e7850b81443b4c55f701e0c262",
+      "schema_version": 2
+    },
+    {
+      "id": "2bc13f59-d61d-53b9-b10c-65de6cc6630d",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/responses/error400Response\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/responses/error400Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error400Response\"],\"\"]:0",
+      "content_hash": "7de7fcd22fed7777d526b85a37c5285867d8faea2e6a477115ef2165a1d839c6",
+      "schema_version": 2
+    },
+    {
+      "id": "251a83ee-78cb-51d2-a1c2-19ffc5119158",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/OzoneConnect.Error400\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError400Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Default error response payload structure for Ozone Connect\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error400\"],\"\"]:0",
+      "content_hash": "65b55b78f7a5dc0d1b91f98d216a74003184c1cf7190410873204a7f16c4bc90",
+      "schema_version": 2
+    },
+    {
+      "id": "bd0b84cd-3e03-5a3c-8d29-ac4703879744",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AEError400Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWS.InvalidPayload\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError400Codes\"],\"\"]:0",
+      "content_hash": "ffd1388d2f4d6ff4f6ce0a2b63e966f1b9ec63d89bdc9bec7c8322d59b94e9a3",
+      "schema_version": 2
+    },
+    {
+      "id": "f67202ab-5dbc-5900-8e11-0e5cc2cffe1c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AECustomErrorCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECustomErrorCode\"],\"\"]:0",
+      "content_hash": "f88589fc85e5a3986fe727a7d77c73bd64b2493aa63e24832eef646564bc1d7c",
+      "schema_version": 2
+    },
+    {
+      "id": "fabb6aee-832c-5617-a953-48af8061a500",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\n\n{\n \"type\": \"string\",\n \"description\": \"Custom error code without prefix, retained for compatibility with version 1.2.\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\"],\"\"]:0",
+      "content_hash": "ffacded0289b1e06f393bc6961da7048a9909e6e720c32e91d4ba29233fb1710",
+      "schema_version": 2
+    },
+    {
+      "id": "00abb41f-3592-5985-a106-629f3b312105",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/responses/error403Response\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/responses/error403Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error403Response\"],\"\"]:0",
+      "content_hash": "e694b3f5e1e5912dcdd394837759b8650838bce36f5f900e65e06c33132afc6b",
+      "schema_version": 2
+    },
+    {
+      "id": "f8a43eb8-3c75-58a5-8f0d-918afb29c600",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/OzoneConnect.Error403\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError403Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n \\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error403\"],\"\"]:0",
+      "content_hash": "ac7bfaabe535db9648e1decb7d4af229934d36395f26e761214498c8e7a99dfa",
+      "schema_version": 2
+    },
+    {
+      "id": "bcaa1dae-afac-51a3-9191-f9ae4ae169cb",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AEError403Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError403Codes\"],\"\"]:0",
+      "content_hash": "47c3c4290839c452a0d228a99df437cc76565b9ddcb3c28930b3d97954db43fd",
+      "schema_version": 2
+    },
+    {
+      "id": "275c8043-4f12-5bca-9c15-96d3fe998aa9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/responses/error409Response\n\n{\n \"description\": \"Operation failed due to a conflict\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error409\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/responses/error409Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error409Response\"],\"\"]:0",
+      "content_hash": "41af33bef086a81c43137444ff3029bf1abdb36fa18ec0ff5d8a4bf2798ffaf2",
+      "schema_version": 2
+    },
+    {
+      "id": "715775bc-2c7e-5649-a190-c3c905b494e9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/OzoneConnect.Error409\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error409",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error409\"],\"\"]:0",
+      "content_hash": "4fc4bca9a2f564b75ae81f38670cb5f08ed2728c9321fb1f3cec0e7ce6e34d24",
+      "schema_version": 2
+    },
+    {
+      "id": "ed20eff8-39de-5fa3-a1db-dd3ec16e96a7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/AEErrorGenericCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEErrorGenericCodes\"],\"\"]:0",
+      "content_hash": "f899dc935314e00b04b67cf9234e12bd35ed22b8eb25139e8d4b6cf14d253c74",
+      "schema_version": 2
+    },
+    {
+      "id": "c8fce2ca-af70-5d8a-8be4-e4e86bdbcd91",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/responses/error500Response\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/responses/error500Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error500Response\"],\"\"]:0",
+      "content_hash": "8f2d0e2b4b8bc3fdee9930ab8c409d5753359eb627a1ba4afef008c10f901f8e",
+      "schema_version": 2
+    },
+    {
+      "id": "23471cfe-8392-5b51-9c06-36e2890914cf",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/OzoneConnect.Error500\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error500\"],\"\"]:0",
+      "content_hash": "c0f7bf114ee0d1fb35b229af7fbfa782ad54af62a12855bba188647649f28259",
+      "schema_version": 2
+    },
+    {
+      "id": "62f1b250-3078-58db-b73d-107d5d7cf798",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/responses/errorResponse\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.DefaultError\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "688f3296608dc65c12cb8c3bd905adcd8cefcfaaa03dcb01f91c7dafa112bb8e",
+      "schema_version": 2
+    },
+    {
+      "id": "5189a25d-60aa-5146-ba59-6a6d0fddf62c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+      "type": "section",
+      "text": "Retrieve Accounts (CAAP) > OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Generic error code set by the LFI. Non-namespaced error codes are allowed for compatibility versions prior to v2.0.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n }\n}",
+      "metadata": {
+        "title": "Retrieve Accounts (CAAP)",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.DefaultError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "aca18d9e0b18b2e2e843d6ad978371b2764f3d98aa8089c5fafc4e124d559f3f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/caap/open-api/accounts",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-caap-operations-openapi.yaml",
+            "hash": "2f217969c256ddb2edafaab3cf6eddc3d86f4c4932ff09bbd70fc49ba03c3049"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\"],\"\"]:0",
+      "content_hash": "c06a080d6e3e588668c749c025482f8cab9d3297ebc8d9a278561139e46ed2fb",
+      "schema_version": 2
+    }
+  ]
+}

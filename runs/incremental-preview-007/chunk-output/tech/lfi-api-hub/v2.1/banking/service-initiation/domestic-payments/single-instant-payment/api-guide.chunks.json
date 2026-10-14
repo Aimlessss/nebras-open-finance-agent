@@ -1,0 +1,1184 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+  "chunk_count": 36,
+  "chunks": [
+    {
+      "id": "76f5eeeb-4b17-5291-b846-dbba18027afc",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "intro",
+      "text": "Single Instant Payment — API Guide\n\nSingle Instant Payment lets a TPP initiate a one-off domestic payment from a customer's account at your LFI via the API Hub. The payment runs on AANI as the primary rail with UAEFTS as the fallback. This guide covers the Ozone Connect endpoints your LFI MUST implement so the Hub can serve a TPP payment from consent creation through to execution and status retrieval.\n\nThe behavioural rules for each endpoint — validation conditions, error mappings, post-execution lifecycle — are in the Single Instant Payment Requirements. This guide covers the request and response shape of each endpoint, with code walkthroughs for the parts that need them: decrypting the PII, validating the creditor, matching the payment-time PII against the consent, and reading the FAPI customer headers.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "8a4ec577bbc50a67763976a3af4c09441d7a34ad12f35e02da07a3fab2c46e63",
+      "schema_version": 2
+    },
+    {
+      "id": "60ea9868-a0d7-5f7c-91e4-1b04616fc842",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "section",
+      "text": "Single Instant Payment — API Guide > Prerequisites > What you need before implementing Single Instant Payment\n\nBefore implementing Single Instant Payment, ensure the following are in place:\n\n- API Hub onboarded — Your API Hub instance is provisioned and your environment-specific configuration is complete.\n- Enc1 key pair generated and registered — The TPP encrypts PII to your LFI's Enc1 public key. Your LFI MUST hold the corresponding private key and be able to look it up by kid.\n- Consent Journey implemented — The Consent Journey API Guide MUST be implemented first. A payment cannot be initiated without an authorized consent.\n- Ozone Connect connectivity verified — Bidirectional mTLS connectivity is confirmed between the API Hub and your Ozone Connect base URL. See Connectivity & Certificates.\n- Single Instant Payment advertised — ApiMetadata.SingleInstantPayment.Supported is set to true on your authorisation server entry in the Trust Framework.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "What you need before implementing Single Instant Payment",
+        "category": "Prerequisites",
+        "anchor": "prerequisites",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"prerequisites\",\"\"]:0",
+      "content_hash": "23a169def3702be0d18a8bbed18620332d70b1d1a3afb4447aba5a914d44bdf7",
+      "schema_version": 2
+    },
+    {
+      "id": "9e3ff609-e2ab-5b14-b38e-f0e69ef1305b",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "section",
+      "text": "Single Instant Payment — API Guide > Consent Validation > Validate the consent before it is created\n\nWhen a TPP creates a payment consent, the API Hub calls your POST /consent/action/validate endpoint before the consent is created. Your LFI MUST validate the consent and respond with data.status: \"valid\" or data.status: \"invalid\". An invalid response prevents the consent being created and the TPP receives an error.\n\nThe full set of validation rules — standardVersion, Initiation.DebtorAccount, BaseConsentId, CurrencyRequest, payment-type support, PII conformance, creditor checks — is enumerated in Single Instant Payment Requirements — Consent Validation. The two parts that need a code walkthrough are decrypting the PII and validating the creditor; both are covered below.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"consent-validation\",\"\"]:0",
+      "content_hash": "f8172b717be9c0c3064185ad5d78bff4db6d0ce3fa30366c4bb6127e43cbcd38",
+      "schema_version": 2
+    },
+    {
+      "id": "ab7fa499-b3ef-56b3-a164-a89f5c2dd60b",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > Consent Validation > Validate the consent before it is created > Decrypting and validating the PII\n\nThe consent.PersonalIdentifiableInformation field arrives as a JWE compact string encrypted by the TPP to your LFI's Enc1 public key. The API Hub passes it through unchanged — it cannot inspect the contents and has not validated them. Decryption, schema validation, and field-level checks are entirely the LFI's responsibility.\n\nThe end-to-end flow is:\n\n- Read the kid from the JWE protected header and look up the matching Enc1 private key.\n- Decrypt the JWE → recover the inner JWS.\n- Decode the JWS payload (signature verification is optional — the outer Ozone Connect request is itself a JWS that the API Hub has already verified, so the PII cannot have been tampered with in transit).\n- Validate the decoded payload against the consent-time PII schema — AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII in uae-api-hub-consent-manager-openapi.yaml. additionalProperties: false is set at every level, so any unexpected field fails validation.\n\nHappy-path snippet:\n\nFor the per-step deep dive — kid lookup conventions, key import options, the optional JWS signature verification, building the ajv / jsonschema validator with all $ref schemas registered — see How to Decrypt PII.\n\nThe decrypted consent-time PII for a Single Instant Payment looks like:\n\nIf decryption fails, schema validation fails, or any required field is missing, respond with invalid per Rejecting an invalid consent.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Decrypting and validating the PII",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Decrypting and validating the PII\"]:0",
+      "content_hash": "ee7a9dad2acdb35940a2b7ab3d1ba10e4c661a9e96c42b981c11d9f50866e754",
+      "schema_version": 2
+    },
+    {
+      "id": "f9802342-bfe7-5bd1-a362-87791e941cb1",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > Consent Validation > Validate the consent before it is created > Validating the Creditor\n\nFor Single Instant Payment, Initiation.Creditor MUST be an array of exactly one entry. The full Creditor rules — cardinality, mandatory fields, BIC derivation — are in Creditor. This section walks through the validation in code.\n\nThe validation breaks into four parts:\n\n- Cardinality — exactly one entry.\n- Mandatory fields — CreditorAccount.SchemeName == \"IBAN\", Identification is a syntactically valid UAE IBAN, at least one of Name.en or Name.ar is present.\n- BIC consistency — derive the BIC from the IBAN; if CreditorAgent.Identification was supplied it MUST match.\n- Domestic rail reachability — the receiving bank is reachable on AANI or UAEFTS, and (where the LFI can determine it) the receiving account is in a state that can accept a payment.\n\nSteps 1–3 are universal. Step 4 depends on each LFI's BIC directory and rail integration — the snippet below uses a stubbed lookupRailReachability(bic) interface that your LFI replaces with its own implementation.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Validating the Creditor",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Validating the Creditor\"]:0",
+      "content_hash": "62bd089a0df413e9bff7dbd4fcd0d350d82c915707306443165165950935bf16",
+      "schema_version": 2
+    },
+    {
+      "id": "0a933332-b67f-5d31-8ebd-330ed9e87b7b",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > Consent Validation > Validate the consent before it is created > Validating the DebtorAccount\n\nIf the TPP supplied Initiation.DebtorAccount in the consent PII, your LFI MUST also validate it before approving the consent: SchemeName is IBAN, the IBAN corresponds to an account held at this LFI and reachable through this API Hub integration, and the account is in a state that permits payment initiation (not blocked, dormant, or closed). Customer ownership of the account is not checked here — it is checked later during the authorisation journey, once the customer has authenticated.\n\nThe full check list and the invalid response shape (with code: InvalidDebtorAccount ) are in Debtor Account.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Validating the DebtorAccount",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Validating the DebtorAccount\"]:0",
+      "content_hash": "268975290d6bc4f58513adf194bdb39d0fdd1e2b03172059ab2f13d8e2d7f4c9",
+      "schema_version": 2
+    },
+    {
+      "id": "748a0fa8-8875-5947-81b3-dcc5dcd94cde",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > Consent Validation > Validate the consent before it is created > Returning the validate response\n\nIf validateCreditor (or the DebtorAccount checks) returns a non-null result, return it inside data on the validate response:\n\nSee Consent Events & Actions — API Guide for the full validate request and response schema.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Returning the validate response",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Returning the validate response\"]:0",
+      "content_hash": "0178b5b568af4f6588a7e72696a35edcd3d69bc6c284f7223674c51f3f85fe72",
+      "schema_version": 2
+    },
+    {
+      "id": "38c8970a-96cc-5891-94ca-bdae0f05f88c",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "section",
+      "text": "Single Instant Payment — API Guide > Consent Flow > Authenticate the customer and pin the debtor account\n\nAfter consent creation passes validation, the TPP redirects the customer to your LFI's authorization endpoint and your LFI runs the standard consent journey: authenticate the customer, retrieve the consent, present the debtor account selection screen subject to the rules in Authorization — Account Selection, patch the selected debtor account and customer identifier onto the consent, and redirect back to the Hub.\n\nThe endpoints your LFI implements against the API Hub for this flow are:\n\nEndpoint | Direction | Purpose\nGET /auth | LFI → API Hub | Initiate the authorization interaction\nGET /consents/{consentId} | LFI → API Hub | Retrieve the full consent details\nPATCH /consents/{consentId} | LFI → API Hub | Update consent status, customer identifiers, and the selected debtor account\nPOST /auth/{interactionId}/doConfirm | LFI → API Hub | Complete the interaction and redirect back to the TPP successfully\nPOST /auth/{interactionId}/doFail | LFI → API Hub | Complete the interaction and redirect back to the TPP with a failure\n\nFull details are in the Consent Journey API Guide.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Authenticate the customer and pin the debtor account",
+        "category": "Consent Flow",
+        "anchor": "consent-flow",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"consent-flow\",\"\"]:0",
+      "content_hash": "0148c008b0c2a96ab0a9f67398285d41d8bb2c3beae5757764c03e811ee1316a",
+      "schema_version": 2
+    },
+    {
+      "id": "81c6dc94-62a2-5feb-82ae-dcb5fbd0f844",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > Consent Flow > Authenticate the customer and pin the debtor account > After the consent is authorized\n\nWhen the TPP submits a payment instruction to the API Hub's resource server, the API Hub validates the access token, checks the consent is Authorised, checks the amount/currency match the consent control parameters, and validates the request against the OpenAPI schema — all before forwarding to your Ozone Connect POST /payments endpoint covered in the next section.\n\nThe Hub does not decrypt or inspect the PII. Re-validating the PII and matching it against the consent at payment time is the LFI's responsibility, covered below.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Authenticate the customer and pin the debtor account",
+        "category": "Consent Flow",
+        "subsection": "After the consent is authorized",
+        "anchor": "consent-flow",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-flow\",\"After the consent is authorized\"]:0",
+      "content_hash": "57342d6f30f4c50fc8937a513467c7296b3a23955e7e825d71c4443226cabc39",
+      "schema_version": 2
+    },
+    {
+      "id": "456c8e63-22d8-517b-8aa2-138475e6ce20",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "section",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201\n\nPOST /payments is the central endpoint your LFI implements for payment execution. The API Hub calls it after a TPP payment instruction has passed all Hub-side validations. Your LFI MUST decrypt and validate the PII, match it against the consent, run the synchronous validations listed in POST /payments Requirements, create the payment record, and return 201 with the assigned PaymentId.\n\nScreening, rail submission, and status propagation happen after the 201 response — see After returning 201.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"post-payments\",\"\"]:0",
+      "content_hash": "3d438625c0f1c97251e34a36be4cf38bbe1e31d8d0c2da5b768909944f500628",
+      "schema_version": 2
+    },
+    {
+      "id": "82f2d081-6e48-525a-a083-d9672b7f9d55",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > Common request headers\n\nHeader | Required | Description\no3-provider-id | Yes | Identifier for your LFI registered in the Hub\no3-aspsp-id | Yes (deprecated) | Deprecated alias for o3-provider-id. Will be removed in a future version — use o3-provider-id\no3-caller-org-id | Yes | Organisation ID of the TPP making the underlying request\no3-caller-client-id | Yes | OIDC client ID of the TPP application\no3-caller-software-statement-id | Yes | Software statement ID of the TPP application\no3-api-uri | Yes | The parameterised URL of the API being called by the TPP\no3-api-operation | Yes | The HTTP method of the operation carried out by the TPP ( POST )\no3-ozone-interaction-id | Yes | Hub-generated interaction ID. Equals o3-caller-interaction-id if the TPP provided one\no3-consent-id | Yes | The consentId for which this call is being made — the lookup key for the stored consent context (see Matching the PII against the consent )\no3-psu-identifier | Yes | Base64-encoded customer identifier JSON object — the opaque LFI-issued reference patched onto the consent at authorization\no3-caller-interaction-id | No | Interaction ID passed in by the TPP, if present\n\nThe headers the TPP set on its original call to the API Hub — including x-fapi-customer-ip-address, x-fapi-auth-date, x-fapi-interaction-id, x-customer-user-agent, and x-idempotency-key — are forwarded to your LFI inside the request body as requestHeaders, not on the HTTP headers of the API Hub → LFI call. See Reading the FAPI customer headers.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "Common request headers",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Common request headers\"]:0",
+      "content_hash": "5bb1b8638c49e9932f4c9a27f6b442ebb8374c1b95bf5d6170556d3dafe152b3",
+      "schema_version": 2
+    },
+    {
+      "id": "36e7f5d9-dafc-571c-9c77-4ce193c8d761",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > Request body\n\nContent-Type: application/json\n\nThe Hub sends a plain JSON payload (not a JWS) containing the payment details, the headers the TPP supplied, and the TPP's directory record.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "Request body",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Request body\"]:0",
+      "content_hash": "a1c7d58e02647627f86154676fea733f280c598f5328057713786e251def3667",
+      "schema_version": 2
+    },
+    {
+      "id": "71b8bdb2-1574-58e4-a519-6648c0d53509",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > Top-level fields\n\nField | Type | Required | Description\nrequestUrl | string | No | The TPP-facing resource URL the TPP called, e.g. https://rs1.[LFICode].apihub.openfinance.ae/open-finance/payment/v2.1/payments\npaymentType | string | Yes | The payment type. MUST be cbuae-payment for domestic Single Instant Payment\nrequest.Data | object | Yes | The payment payload — see request.Data below\nrequestHeaders | object | Yes | The complete set of HTTP headers the TPP sent to the API Hub. The TPP's FAPI headers live here — see Reading the FAPI customer headers\ntpp | object | Yes | The TPP's directory record ( clientId, orgId, tppId, tppName, softwareStatementId, decodedSsa, optional directoryRecord ). Not required for payment execution — see The tpp and decodedSsa Context Blocks for field-by-field detail and the situations where an LFI uses them\nsupplementaryInformation | object | No | Free-form pass-through context. The LFI MUST safely ignore unrecognised properties",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "Top-level fields",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Top-level fields\"]:0",
+      "content_hash": "73addd2efb7e52cd14a2b7f68f4f70901cbb415c1774ffa0c684ab3e49c91153",
+      "schema_version": 2
+    },
+    {
+      "id": "30e5464d-af62-55a2-8e14-ea9a45d4bce2",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > request.Data\n\nField | Type | Required | Description\nConsentId | string | Yes | The consent the payment is being executed under. MUST equal the o3-consent-id header\nInstruction.Amount.Amount | string | Yes | Decimal amount with two fraction digits, e.g. 100.00\nInstruction.Amount.Currency | string | Yes | ISO-4217 currency code. MUST be AED for domestic payments\nPaymentPurposeCode | string | Yes | 3-letter ISO 20022 purpose code, e.g. ACM\nPersonalIdentifiableInformation | string | No | Encrypted PII payload as a JWE compact string. Required for the Creditor at payment time — see Reading the PII at payment time\nDebtorReference | string | No | Reference shown on the debtor's statement\nCreditorReference | string | No | Reference shown on the creditor's statement\nOpenFinanceBilling.Type | string | Yes | Billing type, e.g. Collection, PushP2P, PullP2P, Me2Me\nOpenFinanceBilling.MerchantId | string | No | Optional merchant identifier\n\nFor the full schema — including tpp and decodedSsa field-by-field — see the POST /payments API Reference.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "request.Data",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"request.Data\"]:0",
+      "content_hash": "abca5532d8a72434fdf4a0972c7246851f97e23d963032ee63e4b34eea1c1902",
+      "schema_version": 2
+    },
+    {
+      "id": "cf1d2975-83af-595d-8231-a28c577fb290",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > Reading the PII at payment time\n\nThe payment-time PII follows a different shape from the consent-time PII:\n\n- Initiation.Creditor is a single object, not an array — the consent fixed exactly one creditor at consent time.\n- DebtorAccount is absent — the debtor was selected and pinned during consent authorisation.\n- The schema to validate against is AEBankServiceInitiation.AEDomesticPaymentPIIProperties in uae-ozone-connect-bank-service-initiation-openapi.yaml — not the consent-time schema.\n\nThe decrypt + decode flow is identical to consent time — read the kid, decrypt with the matching Enc1 private key, decode the JWS payload. Re-use the helper from Decrypting and validating the PII; only swap the schema:\n\nIf decryption fails, reject with 400 JWE.DecryptionError. If schema validation fails (missing required field, wrong type, additional property), reject with 400 Body.InvalidFormat.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "Reading the PII at payment time",
+        "anchor": "reading-the-pii-at-payment-time",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"reading-the-pii-at-payment-time\",\"Reading the PII at payment time\"]:0",
+      "content_hash": "1141cdee33e3591945c0946152889a35e2342ba4ea946b52ae5ff4425b6597c2",
+      "schema_version": 2
+    },
+    {
+      "id": "cf00700b-9a5e-5a45-af4d-3805903ceb83",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > Matching the PII against the consent\n\nPer POST /payments Requirements rule 2, the submitted creditor at payment time MUST exactly match the single creditor entry that was on the consent at consent time. Mismatch → 400 Consent.FailsControlParameters.\n\nThe link between the payment and the consent is the o3-consent-id request header (also surfaced as request.Data.ConsentId in the body). Two implementation patterns are valid; pick whichever matches your LFI's persistence model:",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "Matching the PII against the consent",
+        "anchor": "matching-the-pii-against-the-consent",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"matching-the-pii-against-the-consent\",\"Matching the PII against the consent\"]:0",
+      "content_hash": "be0286adc59be977ed6a2ee176a83ade55ff5ca634955bc5896ff85a903ae40c",
+      "schema_version": 2
+    },
+    {
+      "id": "2cab7b2b-b8a6-56bb-9238-54dc93e5dd29",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > Pattern A — LFI persisted the decrypted creditor at consent time\n\nThe most common pattern. At consent validation, after you decrypted and validated the consent-time PII, you persisted the single creditor entry keyed by consentId. At payment time you fetch it and deep-compare against the payment-time creditor.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "Pattern A — LFI persisted the decrypted creditor at consent time",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Pattern A — LFI persisted the decrypted creditor at consent time\"]:0",
+      "content_hash": "f95b74f9c4bffefde6afb6cfa6b10babd612ce6348bc706ee3718089fae397a5",
+      "schema_version": 2
+    },
+    {
+      "id": "62aac1fc-904e-5fbb-a369-d9ef009469a8",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > Pattern B — LFI did not persist the consent-time PII\n\nIf your LFI did not persist the decrypted PII at consent time, fetch the consent from the API Hub via GET /consents/{consentId}, decrypt the consent's PersonalIdentifiableInformation field, and run the same isExactMatch comparison against Initiation.Creditor[0] (the consent-time creditor is an array of one).\n\nPattern B trades a stored creditor for a network round-trip and a second decryption on every payment. Choose Pattern A unless persistence is not an option for your LFI.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "Pattern B — LFI did not persist the consent-time PII",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Pattern B — LFI did not persist the consent-time PII\"]:0",
+      "content_hash": "59901f3858edb940f969d9cf487393fe957670c6d1c198979aad4edbcfdf9b6b",
+      "schema_version": 2
+    },
+    {
+      "id": "1f6f0d10-4545-594b-a8bd-54039686e806",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > Reading the FAPI customer headers\n\nThe TPP's FAPI headers ( x-fapi-customer-ip-address, x-fapi-auth-date, x-fapi-interaction-id, x-customer-user-agent, x-idempotency-key ) are forwarded inside body.requestHeaders — they are not on the actual HTTP headers of the API Hub → LFI call. Read them off the body.\n\nPer POST /payments Requirements rule 3, x-fapi-customer-ip-address MUST be present on a Single Instant Payment (the customer is actively present at the time of the call) and MUST be a valid IPv4 or IPv6 address. Missing or malformed → 400 Body.InvalidFormat.\n\nThe validated IP is typically logged on the payment record and surfaced to fraud and screening systems alongside x-fapi-auth-date and x-customer-user-agent.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "Reading the FAPI customer headers",
+        "anchor": "reading-the-fapi-customer-headers",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"reading-the-fapi-customer-headers\",\"Reading the FAPI customer headers\"]:0",
+      "content_hash": "5b2516647e56ce221b457e254dbcae667abb3bcbf42f9ef573db8b339ff51f47",
+      "schema_version": 2
+    },
+    {
+      "id": "be402452-a86b-52d1-b54c-4aa8ef92ac91",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > Response\n\nContent-Type: application/json\n\nReturn 201 on successful payment record creation.\n\nField | Type | Required | Description\ndata.id | string | Yes | The LFI-assigned PaymentId. MUST be unique within your payment system, MUST NOT be reassigned, and MUST resolve to the same payment for the full 1-year GET /payments/{paymentId} sustain window — see Rule 7 of POST /payments Requirements\ndata.consentId | string | No | The consent under which the payment was created\ndata.paymentTransactionId | string | No | End-to-end identifier from the rail. Omit until AANI/UAEFTS has assigned one — do not return an empty string\ndata.status | string | Yes | One of Pending, AcceptedSettlementCompleted, AcceptedCreditSettlementCompleted, AcceptedWithoutPosting, Rejected, Received\ndata.statusUpdateDateTime | string | Yes | ISO 8601 timestamp of the last status update\ndata.creationDateTime | string | Yes | ISO 8601 timestamp the payment record was created\ndata.instruction.Amount.amount / Amount.currency | string | No | The payment amount and currency\ndata.paymentPurposeCode | string | Yes | The purpose code from the request\ndata.openFinanceBilling.Type | string | Yes | The billing type from the request\nmeta | object | No | Free-form metadata",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "Response",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Response\"]:0",
+      "content_hash": "9b998b570f02035fc1067dd4f2233dfd53fb7f59d65a41088b8593215d7a2bbd",
+      "schema_version": 2
+    },
+    {
+      "id": "f2a94e58-3e57-5318-b3f2-9fb7bbeb9e33",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > Error responses\n\nOnly return an error when the request is invalid or a server condition prevents you from responding. All error bodies MUST include errorCode and errorMessage. The errorCode values are drawn from the POST /payments OpenAPI schema Error400 / Error403 enums.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "Error responses",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Error responses\"]:0",
+      "content_hash": "5acb48d6bbf4ef07dca72032c25cf7f742bd1cac2b4e70d64c6d7f227e3e3000",
+      "schema_version": 2
+    },
+    {
+      "id": "25a6cd18-51c4-5f04-abdc-774b042fbd25",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > 400 — Bad request\n\nerrorCode | When to use\nBody.InvalidFormat | Body is absent, not valid JSON, fails schema validation, or x-fapi-customer-ip-address is missing/malformed\nResource.InvalidFormat | A field is present but not syntactically valid\nConsent.Invalid | The consent referenced by o3-consent-id is unknown to the LFI or has been revoked\nConsent.FailsControlParameters | The payment-time creditor does not match the consent-time creditor\nConsent.BusinessRuleViolation | An LFI-side business rule blocks the payment\nJWE.DecryptionError | PII JWE cannot be decrypted with any registered Enc1 key\nJWE.InvalidHeader | PII JWE header is malformed\nJWS.InvalidSignature / JWS.Malformed / JWS.InvalidClaim / JWS.InvalidHeader | PII inner JWS fails verification (only relevant if you have opted in to verifying the TPP's signature)\nGenericRecoverableError | Recoverable validation error not covered above — Hub may retry\nGenericError | Unrecoverable validation error not covered above",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "400 — Bad request",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"400 — Bad request\"]:0",
+      "content_hash": "2e04d792833f82067b54f35e224a40417b6b3e93c9140ec648fb8d596509f2c9",
+      "schema_version": 2
+    },
+    {
+      "id": "2a488f85-6c1f-541a-b235-f4aac55e2dac",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > 403 — Forbidden\n\nerrorCode | When to use\nAccessToken.InvalidScope | The Hub's token does not include the required scope\nConsent.AccountTemporarilyBlocked | Debtor account is Inactive, Dormant, or Suspended\nConsent.PermanentAccountAccessFailure | Debtor account is Closed, Deceased, or Unclaimed\nConsent.TransientAccountAccessFailure | Debtor account temporarily inaccessible — Hub may retry after a delay\nGenericRecoverableError / GenericError | Other forbidden conditions",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "403 — Forbidden",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"403 — Forbidden\"]:0",
+      "content_hash": "25eb62015658f9da1c754e6eee2c424a666988c9c2a9f1da43a322a607e5d22c",
+      "schema_version": 2
+    },
+    {
+      "id": "e3839324-fc07-5afb-9186-7234f8e5019a",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > 409 / 500\n\n409 for conflict conditions and 500 for transient/unrecoverable server errors. Use GenericRecoverableError if the Hub may retry, GenericError otherwise.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "409 / 500",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"409 / 500\"]:0",
+      "content_hash": "66a912bb65b8317efe581dfa62a86c3e3f5c5e0cdcbb62f5bb7c582e82fc7ca4",
+      "schema_version": 2
+    },
+    {
+      "id": "fc90ab12-b45b-51ff-b565-f9b39dbf6d27",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > POST /payments > Decrypt, validate, persist, return 201 > After returning 201\n\nThe 201 returned to the API Hub means the payment record exists at your LFI; it does not mean the payment has settled. The lifecycle from here is asynchronous and is the LFI's responsibility:\n\nStage | LFI behaviour | Reference\nScreening | Run the LFI's standard fraud / sanctions / AML controls on the payment record. SHOULD complete within 3 seconds. On a screening failure, immediately PATCH the payment to Rejected with an LFI. -namespaced reject reason | Screening Checks\nRail submission | Submit to AANI as primary. Fall back to UAEFTS automatically if AANI is unavailable or the receiving bank cannot receive via AANI — no TPP/customer intervention | Rail Submission\nStatus propagation | On every rail status change that maps to an Open Finance status, call PATCH /payment-log/{id} on the API Hub Consent Manager. Once AANI/UAEFTS assigns the end-to-end identifier, include it as paymentTransactionId on the next PATCH | Payment Status\nRail rejection | If the rail rejects the payment, PATCH paymentResponse.status: Rejected with RejectReasonCode.Code namespaced as AANI. or FTS. and a sanitised Message for relay to the TPP | Rail Submission\nStatus retrieval | Continue serving GET /payments/{paymentId} for at least 1 year, with Status and paymentTransactionId consistent with the most recent PATCH | GET /payments/{paymentId} rules below\n\nPATCH delivery is durable: retry transient 5xx /timeout failures with exponential backoff; raise 4xx failures for operational investigation rather than retrying.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Decrypt, validate, persist, return 201",
+        "category": "POST /payments",
+        "subsection": "After returning 201",
+        "anchor": "after-returning-201",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"after-returning-201\",\"After returning 201\"]:0",
+      "content_hash": "6ebdb9acb1f8661559472b12657ab2aedd235b2099ee46922ac40208b43f2d4c",
+      "schema_version": 2
+    },
+    {
+      "id": "8e3a4b9c-2940-5e4b-9777-f119faa982fc",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "section",
+      "text": "Single Instant Payment — API Guide > PATCH /payment-log/:id > Update payment status on the API Hub\n\nThis endpoint updates the payment status on the API Hub. The Hub uses the update to send asynchronous notifications to TPPs and to maintain accurate state for billing and limit calculations. The LFI calls it for every Open Finance-relevant status transition after the 201 has been returned to the Hub on POST /payments.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Update payment status on the API Hub",
+        "category": "PATCH /payment-log/:id",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"patch-payment-log\",\"\"]:0",
+      "content_hash": "287aec7242be2ecaa8291f7c46dea0c305d44f89be95370e8dc5c06bf44bb2af",
+      "schema_version": 2
+    },
+    {
+      "id": "217d7fc5-1c1a-5658-ada7-babc0e9c4f75",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > PATCH /payment-log/:id > Update payment status on the API Hub > Request headers\n\nHeader | Required | Description\no3-provider-id | Yes | Identifier for your LFI registered in the Hub\no3-caller-org-id | Yes | Organisation ID of the TPP making the underlying request\no3-caller-client-id | Yes | OIDC client ID of the TPP application\no3-api-uri | Yes | The parameterised URL of the API being called by the TPP\no3-api-operation | Yes | The HTTP method of the operation carried out by the TPP ( PATCH )\no3-ozone-interaction-id | Yes | Hub-generated interaction ID. Equals o3-caller-interaction-id if the TPP provided one\no3-consent-id | Yes | The consent backing this payment\no3-psu-identifier | Yes | Base64-encoded psuIdentifier JSON object\no3-caller-interaction-id | No | Interaction ID passed in by the TPP, if present",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Update payment status on the API Hub",
+        "category": "PATCH /payment-log/:id",
+        "subsection": "Request headers",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Request headers\"]:0",
+      "content_hash": "9375437f5a1550429d08e2c0d5da03a94bc01a3f282cb5d16068c1f503b3219c",
+      "schema_version": 2
+    },
+    {
+      "id": "3d4aa968-6789-5291-9fb5-f6421bbf92d5",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > PATCH /payment-log/:id > Update payment status on the API Hub > Path parameters\n\nParameter | Type | Description\nid | string | Identifier of the payment log entry being updated — the data.id returned from POST /payments",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Update payment status on the API Hub",
+        "category": "PATCH /payment-log/:id",
+        "subsection": "Path parameters",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Path parameters\"]:0",
+      "content_hash": "14c0ef98a29e1348ebde8538c3362e287d93defb9efaed91e6d7ad7d61ac462e",
+      "schema_version": 2
+    },
+    {
+      "id": "be3dd603-8747-5290-973e-bc55f51482a7",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > PATCH /payment-log/:id > Update payment status on the API Hub > Request body\n\nContent-Type: application/json\n\nThe PATCH body uses literal flat-key JSON (the dots are part of the key, not nested objects):\n\nField | Type | Required | Description\npaymentResponse.status | string | Yes | Pending, AcceptedSettlementCompleted, AcceptedCreditSettlementCompleted, AcceptedWithoutPosting, or Rejected. See Payment Status\npaymentResponse.paymentTransactionId | string | Conditional | The end-to-end identifier assigned by the rail (AANI or UAEFTS). Set on the first PATCH that carries it; once set, MUST NOT change\npaymentResponse.OpenFinanceBilling.numberOfSuccessfulTransactions | integer | No | Number of successful transactions (typically 1 for a Single Instant Payment)\npaymentResponse.RejectReasonCode[] | array | Conditional | Required when paymentResponse.status is Rejected. Append new reasons rather than replacing — preserves history\npaymentResponse.RejectReasonCode[].Code | string | Yes (in array) | Namespaced rejection code: LFI.… for an LFI-side rejection (e.g. screening), AANI.… or FTS.… for a rail rejection. Pattern: ^(LFI|AANI|FTS)\\.[A-Za-z0-9]+$\npaymentResponse.RejectReasonCode[].Message | string | Yes (in array) | Sanitised, customer-relayable description. MUST NOT reveal detection logic, sanctions matches, or internal case identifiers",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Update payment status on the API Hub",
+        "category": "PATCH /payment-log/:id",
+        "subsection": "Request body",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Request body\"]:0",
+      "content_hash": "90dd2d160c4bc4b57bf6d486e0edcc8cfd00159e03f6af3b8d288044154c636d",
+      "schema_version": 2
+    },
+    {
+      "id": "a3d7bd0d-30f2-5fda-826a-4222c07ee820",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > PATCH /payment-log/:id > Update payment status on the API Hub > Response\n\nContent-Type: application/json\n\nA successful PATCH returns 204 No Content with no body. See the PATCH /payment-log/:id API Reference for the full schema.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Update payment status on the API Hub",
+        "category": "PATCH /payment-log/:id",
+        "subsection": "Response",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Response\"]:0",
+      "content_hash": "bd313533bbffad5ee9bc3175600dc08ca5be2ef57773a9dc1aa1ca73d226e565",
+      "schema_version": 2
+    },
+    {
+      "id": "3651e832-ee91-55c7-9bbf-8a7e7b8fa91b",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "section",
+      "text": "Single Instant Payment — API Guide > GET /payments/:paymentId > Serve payment status to the TPP\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/payment/v2.1/payments/{PaymentId}.\n\nReturns the current state of a payment your LFI created via POST /payments. The TPP polls this to observe screening outcomes, rail settlement, and any subsequent rejection.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Serve payment status to the TPP",
+        "category": "GET /payments/:paymentId",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-payments-paymentid\",\"\"]:0",
+      "content_hash": "4ed48ffecc8ac2897fd3a12f936724c26a6598a05e3e7abe72a199130aa461bb",
+      "schema_version": 2
+    },
+    {
+      "id": "996544b2-1789-5d5c-be74-ce85562b9aa4",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > GET /payments/:paymentId > Serve payment status to the TPP > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Serve payment status to the TPP",
+        "category": "GET /payments/:paymentId",
+        "subsection": "Request headers",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Request headers\"]:0",
+      "content_hash": "6dbde0dd374f68ba4a97578b73fafbf9c103f061146cb60868287d6872c4307d",
+      "schema_version": 2
+    },
+    {
+      "id": "a42d3961-097e-5398-a219-7bec93889c29",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > GET /payments/:paymentId > Serve payment status to the TPP > Path parameters\n\nParameter | Type | Description\npaymentId | string | The PaymentId your LFI returned from POST /payments",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Serve payment status to the TPP",
+        "category": "GET /payments/:paymentId",
+        "subsection": "Path parameters",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Path parameters\"]:0",
+      "content_hash": "2d708eee70db2214792b863854f5777d15413bd101d301b97f5b55a78319187f",
+      "schema_version": 2
+    },
+    {
+      "id": "362672ac-22b3-58cd-9027-5ff253afaa20",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > GET /payments/:paymentId > Serve payment status to the TPP > Response\n\nContent-Type: application/json\n\nThe response shape mirrors the POST /payments 201 response — same data envelope, with the current Status, paymentTransactionId (once assigned by the rail), and any rejection details.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Serve payment status to the TPP",
+        "category": "GET /payments/:paymentId",
+        "subsection": "Response",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Response\"]:0",
+      "content_hash": "ae5f7097bb1bc2331e79e8945d5d715d207fa398b4d6f244e74b5f5abef19737",
+      "schema_version": 2
+    },
+    {
+      "id": "28d67788-d216-5232-bfd5-bd3d229e3bdc",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > GET /payments/:paymentId > Serve payment status to the TPP > Behavioural rules\n\nPer GET /payments/{paymentId} Requirements:\n\n# | Rule\n1 | Sustain period — Serve GET /payments/{paymentId} for at least 1 year from the payment's creation date. Within this window, the response MUST reflect the current status, including any later screening, rail, or reversal outcomes\n2 | Status consistency with the API Hub — The Status returned MUST exactly match the most recent value PATCHed to the API Hub Consent Manager via PATCH /payment-log/{id}. Any change in the LFI's systems MUST be reflected on both surfaces before it becomes observable to the TPP\n3 | paymentTransactionId consistency — Once the rail has assigned the end-to-end identifier and the LFI has PATCHed it to the Consent Manager, this endpoint MUST return the same value. Before assignment, omit the field entirely — do not return an empty string",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Serve payment status to the TPP",
+        "category": "GET /payments/:paymentId",
+        "subsection": "Behavioural rules",
+        "anchor": "behavioural-rules",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"behavioural-rules\",\"Behavioural rules\"]:0",
+      "content_hash": "2730529a700d20fba455bea1e10d9494ba3c9f550d161535c20b09aa6cd9c43c",
+      "schema_version": 2
+    },
+    {
+      "id": "5a79ab1e-fa40-5e62-b2dc-fffcac95ac2e",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+      "type": "subsection",
+      "text": "Single Instant Payment — API Guide > GET /payments/:paymentId > Serve payment status to the TPP > Errors\n\nStatus | errorCode | When to use\n404 | Resource.NotFound | No payment exists for the supplied paymentId (or the payment exists but belongs to a different consent)\n403 | Consent.AccountTemporarilyBlocked / Consent.PermanentAccountAccessFailure | The debtor account has become inaccessible since the payment was created\n500 | GenericRecoverableError / GenericError | Transient or unrecoverable server error\n\nSee the GET /payments/{paymentId} API Reference for the full schema.",
+      "metadata": {
+        "title": "Single Instant Payment — API Guide",
+        "section": "Serve payment status to the TPP",
+        "category": "GET /payments/:paymentId",
+        "subsection": "Errors",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "efd9d3f57e2eae76f1c59a9a36e79cb32b9542a5b84fdaffb8819d02f2348ef4",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "node:net"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Errors\"]:0",
+      "content_hash": "36325f6d5b27691d47c1d282a53ccc3d6dc7f7341c1eb673dce99bbfc39b71c4",
+      "schema_version": 2
+    }
+  ]
+}

@@ -1,0 +1,518 @@
+{
+  "id": "tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "c47f3ed2f57b8c3aa0cbbf011dc2e042ec14faa181e819db1de56e4fcb8a8c93",
+    "dependencies": [
+      "./pkce",
+      "./request-jwt",
+      "jose",
+      "node:crypto"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Single Instant Payment — API Guide",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/single-instant-payment/api-guide",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Single Instant Payment — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "A Single Instant Payment is a one-time, immediate domestic payment initiated by the TPP on behalf of the user. The payment amount and destination are fixed at the point of consent — the user approves once, and the payment executes immediately after authorization."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before initiating a Single Instant Payment",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before initiating a Single Instant Payment, ensure the following requirements are met:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Registered Application — the application must be created within the Trust Framework and assigned the BSIP role as defined in Roles.",
+              "Valid Transport Certificate — an active transport certificate must be issued and registered in the Trust Framework to establish secure mTLS communication.",
+              "Valid Signing Certificate — an active signing certificate must be issued and registered in the Trust Framework. This certificate is used to sign request objects and client assertions.",
+              "Registration with the relevant API Hub (Authorisation Server) — the application must be registered with the API Hub (Server) of the LFI with which you intend to initiate payments.",
+              "Understanding of the FAPI Security Profile and Tokens & Assertions — you should understand how request object signing, client authentication, and access token validation underpin secure API interactions.",
+              "Understanding of Message Encryption — PII (creditor name and account details) must be encrypted as a JWE before being embedded in the consent. You will need the LFI's public encryption key from their JWKS."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end Single Instant Payment",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Sign and encrypt the consent PII",
+        "level": 2,
+        "anchor": "step-1-encrypt-pii",
+        "category": "POST /par · Step 1 — Encrypting PII",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Build the consent payload",
+        "level": 2,
+        "anchor": "step-2-authorization-details",
+        "category": "POST /par · Step 2 — Constructing Authorization Details",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "With the encrypted PII ready, construct the authorization_details of type urn:openfinanceuae:service-initiation-consent:v2.1. The encrypted PII is embedded as consent.PersonalIdentifiableInformation."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "authorization_details",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description",
+                  "Example"
+                ],
+                "rows": [
+                  [
+                    "type *",
+                    "enum",
+                    "Must be urn:openfinanceuae:service-initiation-consent:v2.1",
+                    "urn:openfinanceuae:service-initiation-consent:v2.1"
+                  ],
+                  [
+                    "consent *",
+                    "object",
+                    "Consent properties agreed by the User with the TPP. Described below.",
+                    "—"
+                  ],
+                  [
+                    "subscription",
+                    "object",
+                    "Optional subscription to Event Notifications via Webhook. Described below.",
+                    "—"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "consent (Required) | authorization_details.consent",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description",
+                  "Example"
+                ],
+                "rows": [
+                  [
+                    "ConsentId *",
+                    "string (uuid)",
+                    "Unique ID assigned by the TPP (1–128 chars)",
+                    "b8f42378-10ac-46a1-8d20-4e020484216d"
+                  ],
+                  [
+                    "IsSingleAuthorization *",
+                    "boolean",
+                    "Whether the payment requires only one authorizing party",
+                    "true"
+                  ],
+                  [
+                    "ExpirationDateTime *",
+                    "date-time",
+                    "Consent expiry (ISO 8601 with timezone, max 1 year)",
+                    "2026-05-03T15:46:00+00:00"
+                  ],
+                  [
+                    "AuthorizationExpirationDateTime",
+                    "date-time",
+                    "Deadline by which the consent must reach Authorized. Applies whether IsSingleAuthorization is true or false: SHOULD be set when false, so a consent cannot sit part-authorized; MAY be set when true to cap how long the single authorizer has. MUST NOT be in the past or after ExpirationDateTime.",
+                    "2026-05-03T16:00:00+00:00"
+                  ],
+                  [
+                    "BaseConsentId",
+                    "string (uuid)",
+                    "Used when amending or renewing an existing consent",
+                    "—"
+                  ],
+                  [
+                    "Permissions",
+                    "array<enum>",
+                    "Optional access permissions granted alongside the payment consent",
+                    "ReadAccountsBasic, ReadBalances"
+                  ],
+                  [
+                    "ControlParameters *",
+                    "object",
+                    "Payment schedule and amount. Described below.",
+                    "—"
+                  ],
+                  [
+                    "PersonalIdentifiableInformation *",
+                    "string (JWE)",
+                    "Encrypted creditor and risk data — the encryptedPII string from Step 1",
+                    "eyJhbGci..."
+                  ],
+                  [
+                    "PaymentPurposeCode *",
+                    "string (3 chars)",
+                    "AANI payment purpose code",
+                    "ACM"
+                  ],
+                  [
+                    "DebtorReference",
+                    "string",
+                    "Reference shown on the debtor's statement",
+                    "Test Purchase"
+                  ],
+                  [
+                    "CreditorReference",
+                    "string",
+                    "Reference shown on the creditor's statement",
+                    "Test Purchase"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "ControlParameters.ConsentSchedule.SinglePayment (Required)",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description",
+                  "Example"
+                ],
+                "rows": [
+                  [
+                    "Type *",
+                    "enum",
+                    "Must be SingleInstantPayment",
+                    "SingleInstantPayment"
+                  ],
+                  [
+                    "Amount.Amount *",
+                    "string",
+                    "Payment amount (decimal, max 2 d.p.)",
+                    "100.00"
+                  ],
+                  [
+                    "Amount.Currency *",
+                    "string",
+                    "ISO 4217 currency code",
+                    "AED"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Example request",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          }
+        ]
+      },
+      {
+        "heading": "Bind PKCE and authorization details into a signed JWT",
+        "level": 2,
+        "anchor": "step-3-request-jwt",
+        "category": "POST /par · Step 3 — Constructing the Request JWT",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Save codeVerifier in your server-side session or an httpOnly cookie — you will need it in Step 8 to exchange the authorization code for tokens."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Preparing the Request JWT for the full JWT claim reference and PKCE helpers."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Prove the application's identity to the API Hub",
+        "level": 2,
+        "anchor": "step-4-client-assertion",
+        "category": "POST /par · Step 4 — Creating a Client Assertion",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Push the request to the API Hub",
+        "level": 2,
+        "anchor": "step-5-par-request",
+        "category": "POST /par · Step 5 — Sending the /par Request",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Send the user to the LFI to authenticate",
+        "level": 2,
+        "anchor": "step-6-authorization-url",
+        "category": "Redirecting the User · Step 6 — Building the Authorization URL",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The authorization_endpoint is found in the LFI's.well-known/openid-configuration — not constructed from the issuer URL directly."
+          },
+          {
+            "type": "paragraph",
+            "text": "See User Experience for screen mockups of the Consent and Authorization pages the user sees at the bank, including an interactive form where you can edit the consent JSON and PII and preview the resulting UI."
+          },
+          {
+            "type": "paragraph",
+            "text": "After redirecting, the user will:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Authenticate with their bank.",
+              "Review the payment details — amount, recipient, and purpose — on the bank's authorization screen.",
+              "Approve or decline."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Validate state and issuer on the redirect",
+        "level": 2,
+        "anchor": "step-7-callback",
+        "category": "Handling the Callback · Step 7 — Extracting the Authorization Code",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Swap the auth code for an access and refresh token",
+        "level": 2,
+        "anchor": "step-8-post-token-authorization-code",
+        "category": "Exchanging the Code for Tokens · Step 8 — POST /token (Authorization Code)",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Re-encrypt the creditor PII for the payment request",
+        "level": 2,
+        "anchor": "step-9-encrypt-pii-payment",
+        "category": "Creating the Payment · Step 9 — Encrypt PII for Payment Initiation",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before constructing the payment request, you must encrypt a fresh PII token specifically for the payment. This follows the Domestic Payment PII Schema Object ( AEBankServiceInitiation.AEDomesticPaymentPIIProperties ) — the same JWS-inside-JWE pattern used in Step 1, but submitted on the payment itself rather than on the /par consent."
+          },
+          {
+            "type": "paragraph",
+            "text": "The Creditor object inside the payment PII — including CreditorAccount.SchemeName, CreditorAccount.Identification, CreditorAccount.Name, and any Creditor.Name or CreditorAgent fields — must be byte-for-byte identical to the Creditor you encrypted in Step 1. The LFI decrypts both PII tokens and compares them; any discrepancy can result in rejection."
+          },
+          {
+            "type": "paragraph",
+            "text": "Build the PII object according to the schema, then encrypt it using the same encryptPII helper from Step 1:"
+          },
+          {
+            "type": "paragraph",
+            "text": "See Personal Identifiable Information for the complete field reference, required vs optional fields, and creditor models for each domestic payment type."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Message Encryption for details on fetching the LFI's JWKS and selecting the correct encryption key."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "POST /payments — signed JWT submission",
+        "level": 2,
+        "anchor": "step-10-submit-payment",
+        "category": "Creating the Payment · Step 10 — Sign and Submit the Payment Request",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "For a SingleInstantPayment, the TPP MUST submit POST /payments without undue delay after completing the token exchange in Step 8. Although the access token is valid for 10 minutes, the User has just authorized the payment at the LFI and is waiting for the TPP to confirm the outcome — avoidable delay creates uncertainty about whether the payment has been initiated and degrades the User experience."
+          },
+          {
+            "type": "paragraph",
+            "text": "Where practicable, prepare work that can be done before the callback (PII encryption, JWT signing key loading) in advance so the call to POST /payments can fire as soon as the access token is returned."
+          },
+          {
+            "type": "paragraph",
+            "text": "Include x-fapi-interaction-id and x-idempotency-key. As the customer is present at this point in the flow, also send x-fapi-customer-ip-address, x-customer-user-agent and x-fapi-auth-date if the customer has been authenticated. See Request Headers."
+          },
+          {
+            "type": "paragraph",
+            "text": "The POST /payments body is sent as Content-Type: application/jwt — the payment payload is wrapped in a signed JWT ( AEPaymentRequestSigned ) using your private signing key. The LFI verifies the signature before processing the payment."
+          },
+          {
+            "type": "paragraph",
+            "text": "Every field in the request must exactly match the corresponding value from the authorized consent:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Must match"
+            ],
+            "rows": [
+              [
+                "ConsentId",
+                "The ConsentId from the authorized consent"
+              ],
+              [
+                "Instruction.Amount.Amount",
+                "consent.ControlParameters.ConsentSchedule.SinglePayment.Amount.Amount"
+              ],
+              [
+                "Instruction.Amount.Currency",
+                "consent.ControlParameters.ConsentSchedule.SinglePayment.Amount.Currency"
+              ],
+              [
+                "PaymentPurposeCode",
+                "consent.PaymentPurposeCode"
+              ],
+              [
+                "OpenFinanceBilling",
+                "consent.OpenFinanceBilling (including Type and, if present, MerchantId )"
+              ],
+              [
+                "DebtorReference",
+                "consent.DebtorReference"
+              ],
+              [
+                "CreditorReference",
+                "consent.CreditorReference"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The payment request is validated at two points. The API Hub checks that ConsentId, Instruction.Amount, PaymentPurposeCode, DebtorReference, CreditorReference, and OpenFinanceBilling exactly match the authorized consent — a mismatch returns 400 before the request reaches the LFI. The LFI then decrypts the payment PII and verifies that all creditor fields match the PII from the consent. Either validation failure results in rejection."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "A successful POST /payments",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "A 201 Created response is returned as a signed JWT ( application/jwt ). The verified JWT body is a message envelope wrapping Data and Links per AEPaymentIdResponseSigned."
+              }
+            ]
+          },
+          {
+            "heading": "Response body — Data",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "PaymentId",
+                    "Yes",
+                    "LFI-assigned unique identifier for this payment resource (use this to poll for status)"
+                  ],
+                  [
+                    "ConsentId",
+                    "Yes",
+                    "The consent this payment is bound to"
+                  ],
+                  [
+                    "Status",
+                    "Yes",
+                    "Current payment status — see status lifecycle below"
+                  ],
+                  [
+                    "StatusUpdateDateTime",
+                    "Yes",
+                    "ISO 8601 datetime of the last status change"
+                  ],
+                  [
+                    "CreationDateTime",
+                    "Yes",
+                    "ISO 8601 datetime when the payment resource was created"
+                  ],
+                  [
+                    "Instruction.Amount",
+                    "Yes",
+                    "Echoes back the amount and currency from the request"
+                  ],
+                  [
+                    "PaymentPurposeCode",
+                    "Yes",
+                    "Echoes back the payment purpose code"
+                  ],
+                  [
+                    "OpenFinanceBilling",
+                    "Yes",
+                    "Echoes back the billing parameters"
+                  ],
+                  [
+                    "PaymentTransactionId",
+                    "No",
+                    "End-to-end transaction ID generated by the Aani payment rails once the payment is submitted for settlement. Not present at Pending."
+                  ],
+                  [
+                    "DebtorReference",
+                    "No",
+                    "Echoes back the debtor reference if provided"
+                  ],
+                  [
+                    "RejectReasonCode",
+                    "No",
+                    "Array of { Code, Message } objects — present only when Status is Rejected"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See the POST /payments API reference for the full request and response schema."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

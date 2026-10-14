@@ -1,0 +1,245 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/banking/service-initiation/multi-authorization",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/multi-authorization.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "e7d90617a998a95a357e3f14a13f609fed164484f9b20b5177a364e6a8172952",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Multi-Authorization",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/multi-authorization",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Multi-Authorization",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Open Finance standards support payment journeys that require more than one authorizer. This guide explains how TPPs and LFIs must coordinate multi-authorization for payment consents and how the consent lifecycle is reflected in API calls and responses."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before initiating a multi-authorization payment",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before initiating a multi-authorization payment, ensure the following are in place:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Registered Application — The application must be created within the Trust Framework and assigned the BSIP role as defined in Roles.",
+              "An active payment consent — A payment consent must have been created through the relevant Service Initiation API Guide. Multi-authorization applies after the first authorizer has completed their step.",
+              "Understanding of the Consent Journey — You should understand consent status transitions, including AwaitingAuthorization, Authorized, and Rejected."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "API sequence flow",
+        "level": 2,
+        "anchor": "api-sequence-flow",
+        "category": "Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Indicating multi-authorization support",
+        "level": 2,
+        "anchor": "indicating-multi-authorization-support",
+        "category": "PAR Request",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Step 1 — Setting IsSingleAuthorization and AuthorizationExpirationDateTime in the PAR Request",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "When submitting the Pushed Authorization Request (PAR), the TPP MUST set IsSingleAuthorization inside authorization_details[].consent:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "true — only a single authorizer is supported for the payment.",
+                  "false — multiple authorizers are supported (multi-authorization enabled)."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "The TPP MAY also set AuthorizationExpirationDateTime inside authorization_details[].consent. This field is the deadline by which the consent MUST reach Status=Authorized — that is, by which all required authorizers must have acted. If the deadline passes while the consent is still AwaitingAuthorization, the consent is set to Rejected."
+              },
+              {
+                "type": "paragraph",
+                "text": "The field applies to both authorization modes, and the API Hub validates it identically in each. It is also the only field that bounds the authorization window — ExpirationDateTime bounds the life of the consent, not the time available to authorize it."
+              },
+              {
+                "type": "list",
+                "items": [
+                  "AuthorizationExpirationDateTime MUST NOT be in the past, and MUST NOT be after ExpirationDateTime.",
+                  "When IsSingleAuthorization is false, the TPP SHOULD set it. Without it, a consent can sit part-authorized for as long as ExpirationDateTime allows.",
+                  "When IsSingleAuthorization is true, the TPP MAY set it to cap how long the single authorizer has to complete the authorization journey. Earlier guidance on this page said TPPs SHOULD NOT set it in this case; the standard places no such restriction."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "These fields are carried in the Rich Authorization Request ( authorization_details[].consent.IsSingleAuthorization, authorization_details[].consent.AuthorizationExpirationDateTime ). See the Authorization Endpoints OpenAPI for the full schema reference."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "LFI behavior",
+        "level": 2,
+        "anchor": "lfi-behavior",
+        "category": "LFI Behaviour",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Step 2 — Account selection based on authorization type",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Before showing eligible accounts during the consent journey, the LFI checks IsSingleAuthorization from the PAR request:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "If true: allow selection only from accounts that require a single authorizer. If none exist, decline the consent, cancel the journey, and redirect the user to the TPP with an appropriate error.",
+                  "If false: allow selection from accounts that require either single or multiple authorizers."
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Step 3 — Managing the authorization flow",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "After the first user authorizes, the LFI must:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Inform OFH of required authorizers by PATCHing the consent to include Meta.MultipleAuthorizers.",
+                  "Keep consent status as AwaitingAuthorization — do not set Status=Authorized yet.",
+                  "Redirect back to the TPP via /doConfirm once the PATCH is accepted."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Example PATCH consents/{consentId} body after first authorizer (still awaiting others):"
+              },
+              {
+                "type": "paragraph",
+                "text": "The TPP receives the redirect/callback, exchanges the authorization code at /token, and receives an access token plus the consent object still marked AwaitingAuthorization, including the Meta.MultipleAuthorizers structure above."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Tracking additional authorizations",
+        "level": 2,
+        "anchor": "tracking-additional-authorizations",
+        "category": "Tracking",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Step 4 — Updating consent status after each authorization",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The LFI must PATCH the consent after each additional authorization to reflect progress:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "If any required authorizer rejects → set Status=Rejected.",
+                  "When all required authorizers approve → set Status=Authorized."
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Example: one authorizer approved, another still pending",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Example: final approval — consent becomes Authorized",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Example: a required authorizer rejects — consent becomes Rejected",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          }
+        ]
+      },
+      {
+        "heading": "Consent status and payment initiation",
+        "level": 2,
+        "anchor": "consent-status-and-payment-initiation",
+        "category": "Payment Initiation",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Step 5 — Initiating the payment",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "The TPP MAY initiate the payment only after Status=Authorized.",
+                  "Additional authorizers must act before AuthorizationExpirationDateTime if set, otherwise before ExpirationDateTime."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "TPPs can monitor progress by:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Subscribing to event notifications; or",
+                  "Polling GET /payment-consents/{ConsentId}."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Once the consent is Authorized, the TPP can exchange the refresh token for a new access token via /token and proceed to initiate the payment."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

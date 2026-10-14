@@ -1,0 +1,307 @@
+{
+  "id": "tech/tpp-standards/v2.1/insurance/quotation/requirements",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/insurance/quotation/requirements.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "9a32e2a08683e092fe13313b8981c570d794b99a3ffee7b3c79d76b42dcf283e",
+    "dependencies": [
+      "@/data/requirements/insurance-quotation-tpp",
+      "src/data/requirements/insurance-quotation-tpp.ts"
+    ],
+    "assets": [
+      {
+        "file": "src/data/requirements/insurance-quotation-tpp.ts",
+        "hash": "21dd056e2411ff095f4cfe30a4ea40f42942b8af4dbf6bf7bf21c1d3dea97349"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Insurance Quotation — Requirements",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/insurance/quotation/requirements",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Insurance Quotation — Requirements",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The validation rules that apply to Insurance Quotation. The Validated by\n column on each table indicates where each rule is enforced. Insurance Quotation does not use a per-customer consent — TPPs authenticate with the Client Credentials Grant and act as themselves throughout the quote lifecycle. Read alongside the API Guide\n and User Journeys\n."
+      },
+      {
+        "type": "paragraph",
+        "text": "All requests require an active Trust Framework application\n with the ISP\n role, a valid transport certificate\n presented on every request via mTLS, an active signing key\n for JWT signing, and a client credentials access token\n with the insurance\n scope."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Create a Quote",
+        "anchor": "post-quote",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Sector slug in path",
+                "Must be one of employment\n, health\n, home\n, life\n, motor\n, renters\n, or travel\n. The Hub returns 404\n for any other value before the request reaches the LFI.",
+                "API Hub"
+              ],
+              [
+                "QuoteType",
+                "Must be one of New\n, Renewal\n, or Switch\n. See Quote Types\n for the per-type field requirements (Renewal\n references the prior policy; Switch\n references the incumbent insurer).",
+                "API Hub (schema) + LFI (logic)"
+              ],
+              [
+                "Quote request body",
+                "Must conform exactly to the per-sector quote request schema in the OpenAPI spec\n. Sector-specific identifiers (e.g. Vehicle for Motor, PropertyAddress for Home, TripDetails for Travel) are required.",
+                "API Hub"
+              ],
+              [
+                "Customer identifiers",
+                "Customer identification fields (Emirates ID, date of birth, etc.) carried inline on the quote request are subject to the same data-minimisation rules as other Open Finance flows — only collect what is required to underwrite. There is no JWE encryption for Insurance Quotation PII.",
+                "TPP discretion"
+              ],
+              [
+                "Access token",
+                "Must be a Client Credentials Grant token issued by the API Hub authorisation server with the insurance\n scope. Customer consent tokens (Authorization Code Grant) MUST NOT be used.",
+                "API Hub"
+              ],
+              [
+                "Signed request",
+                "The request body MUST be sent as an application/jwt\n Request JWT signed with the TPP's signing key, per the FAPI security profile. Unsigned requests are rejected with 400\n.",
+                "API Hub"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be included. Should be a valid UUID (RFC 4122). An invalid value will not cause a failure but tracing will not be possible.",
+                "N/A"
+              ],
+              [
+                "Response — 201",
+                "The LFI returned one or more quotes. Each entry includes a QuoteId\n the TPP uses for retrieval, acceptance, and policy creation. The TPP MUST persist the QuoteId\n alongside the customer context.",
+                "TPP"
+              ],
+              [
+                "Response — 204",
+                "The LFI declined to quote (e.g. risk profile out of appetite). The TPP MUST surface the decline to the customer without retrying.",
+                "TPP"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Retrieve a Quote",
+        "anchor": "get-quote",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "QuoteId",
+                "Must be a QuoteId\n the TPP previously received from this LFI's POST /{type}-insurance-quotes\n response, in the matching sector. An unknown or cross-sector ID returns 404\n.",
+                "LFI"
+              ],
+              [
+                "Quote ownership",
+                "The LFI returns 404\n rather than 403\n if the QuoteId\n belongs to a different TPP, to prevent leakage of quote existence.",
+                "LFI"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Accept a Quote (and Subscribe to Events)",
+        "anchor": "patch-quote",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Data",
+                "Carries the accept-quote properties for the sector (sector-specific fields such as policy start date, beneficiary list, etc.). Required when accepting the quote; may be omitted on subsequent PATCHes that only manage the webhook subscription.",
+                "API Hub + LFI"
+              ],
+              [
+                "Subscription.Webhook.Url",
+                "Optional. If the TPP wants to receive event notifications, set Url\n to an HTTPS endpoint the TPP controls. The URL MUST match ^https://.+\n. The Hub will POST status events to this URL for the lifetime of the quote (see API Guide\n). If omitted, the TPP must poll via GET /{type}-insurance-quotes/{QuoteId}\n.",
+                "API Hub"
+              ],
+              [
+                "Subscription.Webhook.IsActive",
+                "Required when Subscription\n is present. true\n activates webhook delivery; false\n pauses it without removing the registered URL. The TPP can PATCH later with IsActive: false\n to disable webhooks mid-lifecycle without altering the quote.",
+                "API Hub"
+              ],
+              [
+                "Signed request",
+                "PATCH body MUST be sent as application/jwt\n signed with the TPP's signing key.",
+                "API Hub"
+              ],
+              [
+                "Response — 200\n (TPP-Led)",
+                "The LFI returns data.PolicyIssuanceAllowed\n declaring which steps the TPP may perform: CustomerVerification\n, Payment\n, PolicyDocuments\n. The TPP MUST honour these flags — only perform the steps the LFI has explicitly allowed.",
+                "TPP"
+              ],
+              [
+                "Response — 204\n (LFI-Led)",
+                "The LFI has accepted the quote and will drive the application internally. The TPP's next step is to wait for the ApplicationPending\n → PolicyIssued\n → Completed\n event sequence (via webhook or polling).",
+                "TPP"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Submit KYC (TPP-Led only)",
+        "anchor": "submit-kyc",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Eligibility",
+                "Submit KYC is only valid in TPP-Led mode (i.e. the Accept Quote response carried PolicyIssuanceAllowed.CustomerVerification: true\n). Calling it for an LFI-Led quote results in 409\n.",
+                "LFI"
+              ],
+              [
+                "KYC payload",
+                "Must conform to the sector's accept-quote / KYC request schema. The TPP is responsible for collecting valid customer identification (Emirates ID, etc.) and forwarding it verbatim.",
+                "API Hub + LFI"
+              ],
+              [
+                "Customer presence",
+                "The TPP MUST collect the KYC data with the customer present and consenting — this submission acts as the customer's instruction to proceed with the application.",
+                "TPP"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Event Subscription and Handling",
+        "anchor": "event-subscription",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Webhook endpoint",
+                "Must be reachable over HTTPS with a valid TLS certificate. The Hub will not deliver events to plaintext, self-signed, or expired endpoints.",
+                "API Hub (delivery)"
+              ],
+              [
+                "Webhook authentication",
+                "Events are signed by the Hub. The TPP MUST verify the signature on every received event before acting on it — see Receiving Event Notifications\n.",
+                "TPP"
+              ],
+              [
+                "Idempotency",
+                "The Hub may redeliver an event after a transient delivery failure. The TPP MUST treat events as idempotent — apply the latest QuoteStatus\n rather than counting events. Tracking by QuoteId\n + QuoteStatus\n + event timestamp is sufficient.",
+                "TPP"
+              ],
+              [
+                "Status vocabulary",
+                "Events carry one of three schemas: pending-completion (ApplicationPending\n, ApplicationApproved\n, PaymentRequired\n, PolicyIssued\n), completed (Completed\n), or terminal (Expired\n, Rejected\n, CustomerCancelled\n, LFICancelled\n). The TPP MUST handle all three.",
+                "TPP"
+              ],
+              [
+                "BrokerInstructions.Url",
+                "When emitted on ApplicationApproved\n or PaymentRequired\n, this is the LFI-hosted URL the TPP MUST redirect the customer to in order to complete payment. The URL is single-use and time-bound. The TPP MUST NOT scrape, modify, or replay it.",
+                "TPP"
+              ],
+              [
+                "Documents",
+                "When emitted on PolicyIssued\n in TPP-Led mode, the TPP MUST verify each document's SHA-256 Hash\n against the decoded Content\n, then make the documents available to the customer (download, email, in-app viewer). The TPP becomes the policy document delivery channel.",
+                "TPP"
+              ],
+              [
+                "Polling fallback",
+                "TPPs without a webhook subscription MUST poll GET /{type}-insurance-quotes/{QuoteId}\n at a reasonable cadence (no more than once per minute under normal load). The Hub may rate-limit aggressive polling.",
+                "TPP"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Create a Policy",
+        "anchor": "create-policy",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "QuoteId",
+                "The body MUST reference a QuoteId\n the TPP previously accepted at this LFI, in the matching sector. A mismatched sector or unknown QuoteId\n returns 404\n.",
+                "LFI"
+              ],
+              [
+                "TPP-supplied data (TPP-Led)",
+                "For TPP-Led quotes where the TPP collected KYC, the body carries that KYC plus any additional data the LFI requires. For LFI-Led quotes the body may be empty beyond the QuoteId\n.",
+                "LFI"
+              ],
+              [
+                "Signed request",
+                "POST body MUST be sent as application/jwt\n signed with the TPP's signing key.",
+                "API Hub"
+              ],
+              [
+                "Idempotency",
+                "If the TPP retries POST Create Policy with the same QuoteId\n after a successful response, the LFI MUST return the same policy reference rather than minting a duplicate. The TPP SHOULD use the x-fapi-interaction-id\n to correlate retries.",
+                "LFI"
+              ],
+              [
+                "Response — 201",
+                "The LFI has accepted the policy creation request. The TPP awaits the PolicyIssued\n → Completed\n event sequence (or polls). The final InsurancePolicyId\n and the Documents\n arrive via the quote-log events, not in this response body.",
+                "TPP"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

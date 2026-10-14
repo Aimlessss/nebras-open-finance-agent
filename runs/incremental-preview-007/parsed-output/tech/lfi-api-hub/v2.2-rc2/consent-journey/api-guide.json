@@ -1,0 +1,581 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/consent-journey/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/consent-journey/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "509a69fdde0025e8686aa38eb7fb32c363509183e6a084cbbe73319e1823d13b",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Consent Journey - API Guide",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/consent-journey/api-guide",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Consent Journey - API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "End-to-end implementation guide for the consent authorization journey: from the TPP's POST /par through your Authorization Endpoint, the Headless Heimdall and Consent Manager API calls, and the final doConfirm / doFail redirect back to the TPP."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What must be in place before you start",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before implementing the consent journey, ensure the following are in place:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "API Hub onboarded — Your API Hub instance is provisioned and your environment-specific configuration is complete",
+              "C3-hh-cm-client application created — Registered in the Trust Framework with mTLS connectivity established in both directions. See Creating the C3-hh-cm-client Application",
+              "Connectivity verified — Bidirectional mTLS connectivity confirmed between your systems and the API Hub. Use GET /hello-mtls on both the Headless Heimdall and Consent Manager base URLs to verify. See Connectivity & Certificates",
+              "Authorization Endpoint registered — Your Authorization Endpoint is configured in the API Hub to receive TPP user redirects"
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Required API implementations",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "You MUST implement the following endpoints:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Endpoint",
+                  "Direction",
+                  "Purpose"
+                ],
+                "rows": [
+                  [
+                    "GET /auth",
+                    "LFI → API Hub",
+                    "Initiate the authorization interaction"
+                  ],
+                  [
+                    "GET /consents/{consentId}",
+                    "LFI → API Hub",
+                    "Retrieve the full consent details"
+                  ],
+                  [
+                    "PATCH /consents/{consentId}",
+                    "LFI → API Hub",
+                    "Update consent status, end user identifiers, and account IDs"
+                  ],
+                  [
+                    "POST /auth/{interactionId}/doConfirm",
+                    "LFI → API Hub",
+                    "Complete the authorization interaction and redirect back to TPP successfully"
+                  ],
+                  [
+                    "POST /auth/{interactionId}/doFail",
+                    "LFI → API Hub",
+                    "Complete the authorization interaction and redirect back to TPP with a failure"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "End-to-end flow diagram",
+        "level": 2,
+        "anchor": "api-sequence-flow",
+        "category": "API sequence flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Steps 1–3 — TPP /par, optional validate, optional event",
+        "level": 2,
+        "anchor": "consent-creation",
+        "category": "Consent creation",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Step 1 — TPP creates the consent via /par",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The consent journey begins when a TPP sends a Pushed Authorization Request ( POST /par ) to the API Hub. The TPP embeds the consent definition inside a signed Request JWT. See the TPP Consent API Guide for the TPP's API Guide and POST /par for the full /par request structure."
+              },
+              {
+                "type": "paragraph",
+                "text": "At this point your LFI systems are not yet involved — the API Hub receives the request and begins processing the consent."
+              }
+            ]
+          },
+          {
+            "heading": "Step 2 — (Optional) Validate the consent",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If your LFI has configured the POST /consent/action/validate endpoint in the API Hub, the API Hub will call your Ozone Connect server with the full consent payload before the consent is created."
+              },
+              {
+                "type": "paragraph",
+                "text": "This gives your LFI the opportunity to inspect the consent and determine whether it is one you support — for example, validating that a debtor account exists in your systems, or that the requested permissions are supported."
+              },
+              {
+                "type": "paragraph",
+                "text": "Your LFI MUST return data.status set to one of:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Status",
+                  "Effect"
+                ],
+                "rows": [
+                  [
+                    "valid",
+                    "The consent is created and processing continues"
+                  ],
+                  [
+                    "invalid",
+                    "The consent is rejected and an error is returned to the TPP"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "If you have not configured the POST /consent/action/validate endpoint, the API Hub assumes all consents are valid and creates them immediately."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the Validate Consent API Reference for the full request and response schemas."
+              }
+            ]
+          },
+          {
+            "heading": "Step 3 — (Optional) Receive the consent event",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If your LFI has configured the POST /consent/event/{operation} endpoint, the API Hub will call POST /consent/event/post on your Ozone Connect server once the consent has been successfully created."
+              },
+              {
+                "type": "paragraph",
+                "text": "This is an informational notification — the API Hub does not expect a response body. Return 204 No Content to acknowledge receipt."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Steps 4–6 — receive redirect, GET /auth, GET /consents",
+        "level": 2,
+        "anchor": "psu-redirect",
+        "category": "End user redirect and authorization interaction",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Step 4 — End user is redirected to your Authorization Endpoint",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "After the consent is created via POST /par, the TPP redirects the end user to your Authorization Endpoint with the following query parameters:"
+              },
+              {
+                "type": "paragraph",
+                "text": "Where request_uri is the value returned from the /par response. Your Authorization Endpoint is the URL you registered during environment-specific configuration."
+              },
+              {
+                "type": "paragraph",
+                "text": "Your Authorization Endpoint MUST NOT reject the redirect based on the query parameters it receives. If a TPP appends additional parameters beyond client_id, response_type, and request_uri, simply ignore them — do not treat the redirect as malformed."
+              },
+              {
+                "type": "paragraph",
+                "text": "The authoritative authorization request is the signed Request JWT referenced by request_uri; the API Hub validates it when you call GET /auth in Step 5. Forward whatever you receive and let Headless Heimdall be the source of truth."
+              }
+            ]
+          },
+          {
+            "heading": "Step 5 — Call GET /auth",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Upon receiving the end user redirect, your authorization server MUST immediately call GET /auth on the Headless Heimdall base URL, passing through all the query parameters received from the redirect."
+              },
+              {
+                "type": "paragraph",
+                "text": "The 200 response contains:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "interaction.interactionId",
+                    "Unique identifier for this authorization interaction — required for doConfirm and doFail"
+                  ],
+                  [
+                    "interaction.consentIdsList",
+                    "Array of consent IDs associated with this interaction (currently one element)"
+                  ],
+                  [
+                    "tpp",
+                    "TPP details including clientId, tppName, orgId, and directory record"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "GET /auth can return three outcomes:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "200 — Success. Continue with the authorization journey.",
+                  "303 — Redirectable failure. The OIDC client was valid but the authorization request parameters failed validation. You MUST redirect the end user to the URI in the Location header without modification.",
+                  "400 — Non-redirectable failure. The OIDC client could not be verified. You MUST render an error page and MUST NOT redirect back to the TPP."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /auth API Reference for the full response schema."
+              }
+            ]
+          },
+          {
+            "heading": "Step 6 — Retrieve the consent details",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Using the consentId from the GET /auth response, call GET /consents/{consentId} on the Consent Manager to retrieve the full consent object."
+              },
+              {
+                "type": "paragraph",
+                "text": "Some consent types include encrypted personally identifiable information (PII) — for example, debtor or creditor details on payment consents. If the consent contains encrypted PII fields, your LFI MUST decrypt the data and validate that the decrypted values align exactly with the Open Finance API specification. See Personal Identifiable Information for decryption and validation details."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /consents/{consentId} API Reference for the full response schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Step 7 — authenticate the end user",
+        "level": 2,
+        "anchor": "psu-authentication",
+        "category": "End user authentication",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Your LFI MUST authenticate the end user using your standard authentication mechanisms. The authentication MUST satisfy the requirements defined in the Authentication Requirements."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Steps 8–9 — present, then PATCH + doConfirm/doFail",
+        "level": 2,
+        "anchor": "consent-authorization",
+        "category": "Consent authorization",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Step 8 — Present the authorization page",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "After the end user has authenticated, present the consent details for the user to review and authorize. The authorization page layout varies by consent type. For example, a bank data sharing consent displays the requested permissions and account selection, while a payment consent displays the payment details."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the User Experience pages for each consent type for the expected authorization page layouts:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Consent Type",
+                  "User Experience"
+                ],
+                "rows": [
+                  [
+                    "Bank Data Sharing",
+                    "User Experience"
+                  ],
+                  [
+                    "Single Instant Payment",
+                    "User Experience"
+                  ],
+                  [
+                    "Insurance Data Sharing",
+                    "User Experience"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Step 9a — end user authorizes: PATCH consent and doConfirm",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If the end user approves the consent, your LFI MUST:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "PATCH the consent to Authorized status, providing the end user identifiers, account IDs, and authorization channel",
+                  "Call doConfirm to complete the interaction and redirect the end user back to the TPP"
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "PATCH the consent",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The PATCH returns 204 No Content on success."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "status",
+                    "Yes",
+                    "Set to Authorized"
+                  ],
+                  [
+                    "psuIdentifiers",
+                    "Yes",
+                    "Object containing your internal end user identifier fields"
+                  ],
+                  [
+                    "accountIds",
+                    "Yes (Bank consents)",
+                    "Array of account IDs the end user selected. For Bank Data Sharing, one or more accounts. For Bank Service Initiation, exactly one debtor account. Not patched for Insurance Data Sharing — use insurancePolicyIds instead"
+                  ],
+                  [
+                    "insurancePolicyIds",
+                    "Yes (Insurance Data Sharing)",
+                    "Array of InsurancePolicyId values the end user selected. The Consent Manager mirrors this into accountIds automatically so downstream identifier handling stays uniform across consent types"
+                  ],
+                  [
+                    "authorizationChannel",
+                    "Yes",
+                    "App or Web — the channel on which the end user authorized the consent"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See the PATCH /consents/{consentId} API Reference for the full request schema."
+              }
+            ]
+          },
+          {
+            "heading": "Call doConfirm",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The API Hub responds with a 303 See Other containing the redirect URI back to the TPP. Your LFI MUST redirect the end user to this URI to complete the journey."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the POST /auth/{interactionId}/doConfirm API Reference for the full specification."
+              }
+            ]
+          },
+          {
+            "heading": "Step 9b — end user rejects: PATCH consent and doFail",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If the end user declines the consent or authentication fails, your LFI MUST:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "PATCH the consent to Rejected status, providing the end user identifiers (but not account IDs)",
+                  "Call doFail to complete the interaction and redirect the end user back to the TPP with an error"
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "PATCH the consent",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Call doFail",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The API Hub responds with a 303 See Other containing the redirect URI back to the TPP with OAuth 2.0 error parameters. Your LFI MUST redirect the end user to this URI. If you omit error and error_description, the API Hub will return default error values."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the POST /auth/{interactionId}/doFail API Reference for the full specification."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "psuIdentifiers and accountIds MUST be opaque",
+        "level": 2,
+        "anchor": "identifier-requirements",
+        "category": "Identifier requirements",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The values the LFI patches onto the consent — psuIdentifiers and accountIds — are stored centrally in the API Hub. They MUST be opaque, non-sensitive, LFI-defined references."
+          },
+          {
+            "type": "paragraph",
+            "text": "The LFI MUST NOT use Emirates ID, passport number, name, email, phone number, IBAN, account number, card number, CIF, or any other value that on its own identifies a natural person or a real-world account."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Consent Identifiers for the full rationale."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "psuIdentifiers.userId",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Rule",
+                  "Requirement"
+                ],
+                "rows": [
+                  [
+                    "Type",
+                    "String (required field on psuIdentifiers )"
+                  ],
+                  [
+                    "Pattern",
+                    "LFI-defined opaque string. UUID (v4) recommended"
+                  ],
+                  [
+                    "Uniqueness",
+                    "MUST uniquely identify a single end user within the LFI"
+                  ],
+                  [
+                    "Stability",
+                    "MUST be the same value for the same end user across every consent they authorise — used by GET /psu/{userId}/consents"
+                  ],
+                  [
+                    "Sensitive values",
+                    "MUST NOT be an Emirates ID, email, phone, CIF, or any other PII"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Additional custom fields on psuIdentifiers are permitted but MUST follow the same non-sensitive rule."
+              }
+            ]
+          },
+          {
+            "heading": "accountIds[]",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Rule",
+                  "Requirement"
+                ],
+                "rows": [
+                  [
+                    "Type",
+                    "Array of strings, minItems: 1"
+                  ],
+                  [
+                    "Item format",
+                    "String, 1–40 characters. UUID (v4) recommended"
+                  ],
+                  [
+                    "Value",
+                    "MUST match the AccountId the LFI returns from its own /accounts APIs — the API Hub uses it to enrich downstream TPP requests"
+                  ],
+                  [
+                    "Immutability",
+                    "Once issued, the AccountId for an account MUST NOT change"
+                  ],
+                  [
+                    "Uniqueness",
+                    "MUST uniquely identify a single account within the LFI"
+                  ],
+                  [
+                    "Sensitive values",
+                    "MUST NOT be an IBAN, account number, card number, or any externally-meaningful account identifier"
+                  ],
+                  [
+                    "Cardinality",
+                    "Bank Service Initiation: exactly one (the debtor account). Bank Data Sharing: one or more selected accounts. Insurance Data Sharing: not patched directly — the Consent Manager mirrors insurancePolicyIds into accountIds via trigger"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

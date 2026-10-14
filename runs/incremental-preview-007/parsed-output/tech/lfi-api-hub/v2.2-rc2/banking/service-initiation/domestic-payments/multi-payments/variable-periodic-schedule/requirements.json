@@ -1,0 +1,341 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-periodic-schedule/requirements",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-periodic-schedule/requirements.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "ae326777a3c7d7ad7120fa2b35b2b088360254e1b45dd9632a4628125b57efe3",
+    "dependencies": [
+      "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-periodic-schedule",
+      "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-periodic-schedule.ts"
+    ],
+    "assets": [
+      {
+        "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-periodic-schedule.ts",
+        "hash": "605fa657dfba0d9af0cf50205a6ea0ddcab5cf98e22e5bf02dfb92cdb70c0a76"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Variable Periodic Schedule — Requirements",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/domestic-payments/multi-payments/variable-periodic-schedule/requirements",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Variable Periodic Schedule — Requirements",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Authentication requirements\n, Authorization requirements\n, and User Journeys\n must be adhered to."
+      },
+      {
+        "type": "paragraph",
+        "text": "The tables below list the rules that apply to Variable Periodic Schedule. All request validation of the TPP's credentials, access token, and consent is performed by the Hub before your Ozone Connect endpoint is called. The rules below cover what your Ozone Connect endpoint must validate and what it must return."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Consent Validation",
+        "anchor": "consent-validation",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When a TPP creates a consent, the API Hub calls your POST /consent/action/validate\n\n endpoint before the consent is created. You MUST validate the consent and respond with status: \"valid\"\n or status: \"invalid\"\n. If you respond with invalid\n, the API Hub will not create the consent and the TPP will receive an error. This validation runs before the customer is involved — there is no authentication or authorization at this stage. The purpose is to reject consents early that your systems cannot fulfil."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "Unsupported standardVersion",
+                "The consent's standardVersion\n (a top-level property on the consent object) is the URL path version the TPP will call on subsequent payment initiation requests. If you do not support that version for the Payment Initiation API family, respond with invalid\n. \n\n Where you are dual-running multiple versions during a deprecation window (see Major Version Deprecation\n) — for example v2.0\n alongside v3.1\n — you MUST respond valid\n for every version you serve. \n\n Minor versions are backward compatible (see Version Management\n), so prior minors within each major you run are also valid (e.g. running v2.0\n and v3.1\n means v2.0\n, v3.0\n, and v3.1\n all resolve to valid\n)."
+              ],
+              [
+                "2",
+                "consent.PersonalIdentifiableInformation",
+                "The decrypted PII payload must conform exactly to the PII schema\n. If decryption fails or the payload contains additional or undocumented parameters, respond with invalid\n."
+              ],
+              [
+                "3",
+                "Initiation.DebtorAccount",
+                "If provided, validate that the account is a UAE IBAN held at this LFI, reachable through this API Hub integration, and in a state that permits payment initiation (not blocked, dormant, or closed). If any check fails, respond with invalid\n."
+              ],
+              [
+                "4",
+                "Initiation.Creditor",
+                "Initiation.Creditor\n must contain exactly one creditor entry. Validate that the creditor is a valid UAE domestic creditor — the account is reachable on a supported UAE domestic rail (AANI or UAEFTS) and, where the state of the receiving account can be determined, able to receive payments. Mandatory fields, IBAN, and BIC derivation rules apply — see Creditor\n. If any check fails, respond with invalid\n."
+              ],
+              [
+                "5",
+                "Payment type not supported",
+                "Variable Periodic Schedule must be advertised as supported via ApiMetadata.VariablePeriodicSchedule.Supported\n on your authorisation server entry in the Trust Framework. If the LFI has not advertised support for this payment type, respond with invalid\n."
+              ],
+              [
+                "6",
+                "Invalid BaseConsentId",
+                "If the consent includes a BaseConsentId\n, validate that: The BaseConsentId\n references an existing consent known to the LFI.\nThe referenced consent is a Service Initiation consent (authorization_details[0].type\n is urn:openfinanceuae:service-initiation-consent:*\n).\nThe referenced consent does not itself have a BaseConsentId\n — if it does, the TPP has incorrectly linked to an intermediate consent in the chain rather than the root consent. The BaseConsentId\n must always reference the original root consent.\n\n If any of these checks fail, respond with invalid\n."
+              ],
+              [
+                "7",
+                "consent.CurrencyRequest",
+                "Must not be present. Domestic payments are denominated in AED only; CurrencyRequest\n is for non-local currency and international transfers. If present, respond with invalid\n."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Authorization — Account Selection",
+        "anchor": "authorization-account-selection",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The generic Authorization requirements\n apply to this journey. The rules below cover the additional account selection logic specific to Variable Periodic Schedule. During the consent authorization journey, the customer selects the account to be debited for payments under this consent. The LFI is responsible for presenting only accounts eligible to initiate the payment and applying any constraints the TPP has specified in the consent."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Field",
+              "Rule"
+            ],
+            "rows": [
+              [
+                "1",
+                "Initiation.DebtorAccount",
+                "If Initiation.DebtorAccount\n was provided on the consent, only that account may be used — do not present an account selection screen. If the authenticated customer does not hold the specified account, PATCH the consent to Rejected\n and call doFail\n with error\n: invalid_request\n and error_description\n: user_does_not_own_debtor_account\n."
+              ],
+              [
+                "2",
+                "consent.IsSingleAuthorization",
+                "If true\n, only accounts the authenticated customer can solely authorize (no subsequent approvers required) may be offered and selected. If false\n or not provided (default), accounts where the customer is one of multiple required authorizers may also be offered; subsequent authorizers must then approve the consent before it reaches Authorized\n status and payments can be executed. See Multi-Authorization\n."
+              ],
+              [
+                "3",
+                "No eligible accounts",
+                "If the authenticated customer does not hold any account eligible to initiate a payment under this consent (including the IsSingleAuthorization\n constraint above), PATCH the consent to Rejected\n and call doFail\n with error\n: invalid_request\n and error_description\n: user_lacks_eligible_accounts\n. See Authorization requirements\n for details."
+              ],
+              [
+                "4",
+                "Single selection",
+                "The account selection screen must allow the customer to select exactly one account to be debited. A consent with no account selected must not be authorised."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Payment Execution",
+        "anchor": "payment-execution",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When the TPP initiates a payment under an authorized consent, the API Hub validates the access token, consent status, amount/currency consistency with the consent, and OpenAPI schema before forwarding the request to your Ozone Connect POST /payments\n\n endpoint. The rules below cover what your Ozone Connect endpoint must validate on receipt. Error responses MUST conform to the POST /payments\n OpenAPI schema\n — the errorCode\n values referenced below are drawn from the Error400\n enum."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "PersonalIdentifiableInformation",
+                "The decrypted PII payload must conform exactly to the Domestic Payment PII Schema Object (POST /payments\n)\n. Note that DebtorAccount\n is not part of the payment-time PII (the debtor is fixed by the consent) and Initiation.Creditor\n is a single object rather than an array. Reject with HTTP 400\n and:errorCode\n: JWE.DecryptionError\n — if decryption of the PII payload fails.\nerrorCode\n: Body.InvalidFormat\n — if any required property is missing, of the wrong type, or the payload contains additional or undocumented properties (additionalProperties: false\n)."
+              ],
+              [
+                "2",
+                "PersonalIdentifiableInformation\n (Creditor)",
+                "Initiation.Creditor[]\n had exactly 1 entry at consent time. The submitted creditor on the payment request must exactly match that consent-time entry — see Creditor\n. If it does not match, reject with HTTP 400\n errorCode\n: Consent.FailsControlParameters\n."
+              ],
+              [
+                "3",
+                "Sufficient funds",
+                "The debtor account must have sufficient available funds to cover Initiation.InstructedAmount\n at the time the payment is received, taking into account any holds, pending transactions, and overdraft limits applied by the LFI. If the account has insufficient funds, reject with HTTP 400\n errorCode\n: GenericError\n and errorMessage\n: Payment rejected due to insufficient funds\n."
+              ],
+              [
+                "4",
+                "Debtor account — temporarily unavailable",
+                "The debtor account selected at consent authorization must still be in a state that permits payment initiation at the time the payment is received. If the account is Inactive\n, Dormant\n, or Suspended\n, reject with HTTP 403\n errorCode\n: Consent.AccountTemporarilyBlocked\n and errorMessage\n: The account is temporarily blocked."
+              ],
+              [
+                "5",
+                "Debtor account — permanently unavailable",
+                "If the debtor account has become Closed\n, Deceased\n, or Unclaimed\n since consent authorization, reject with HTTP 403\n errorCode\n: Consent.PermanentAccountAccessFailure\n and errorMessage\n: The account is permanently inaccessible."
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "If all validations above pass, the LFI MUST create the payment record in its systems and return HTTP 201\n with the generated PaymentId\n per the POST /payments\n OpenAPI schema\n. Full response handling is covered in the API Guide\n."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Screening Checks",
+        "anchor": "screening-checks",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Once the payment record has been created, the LFI MUST apply its standard fraud, sanctions, and AML screening controls before the payment is submitted to the domestic rail. These checks are the LFI's responsibility and follow the LFI's own policies and regulatory obligations. Screening may result in the payment being held, rejected, or referred for manual review after the 201\n response has been returned to the TPP. The outcome MUST be reflected in the payment's Status\n and surfaced via GET /payments/{paymentId}\n\n so the TPP can observe the final state."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "Screening duration",
+                "Screening checks SHOULD complete within 3 seconds\n of the payment record being created. This is a target, not a hard cutoff — where the LFI's controls require longer (for example, referral for manual review), the payment remains in Pending\n and the final outcome is reflected when available. A payment MUST NOT be rejected solely because screening exceeded 3 seconds."
+              ],
+              [
+                "2",
+                "Screening failure — notify API Hub",
+                "If a screening check fails, the LFI MUST immediately call PATCH /payment-log/{id}\n\n on the API Hub Consent Manager with paymentResponse.status\n: Rejected\n and a paymentResponse.RejectReasonCode\n entry. The entry's Code\n MUST use the LFI.\n namespace (the check that failed is in the LFI's systems, not AANI or UAEFTS), matching the pattern ^LFI\\.[A-Za-z0-9]+$\n. The Message\n MUST be sanitised for onward relay to the TPP — it MUST NOT reveal detection logic, sanctions list matches, or internal case identifiers. \n\n Example:\n \n Code\n: LFI.ScreeningRejected\n \n Message\n: Payment rejected by LFI screening controls."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Rail Submission",
+        "anchor": "rail-submission",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Once the payment has passed screening, the LFI MUST submit it to the domestic rails for processing. AANI is the primary rail for Variable Periodic Schedule payments; UAEFTS is the fallback."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "Submit to AANI",
+                "Once screening has passed, the LFI MUST immediately submit the payment to AANI for processing."
+              ],
+              [
+                "2",
+                "Fallback to UAEFTS",
+                "If AANI is unavailable for any reason — including the AANI service being degraded or unreachable, or the receiving bank being unable to receive the payment via AANI — the LFI MUST fall back to UAEFTS and submit the payment there. The fallback decision MUST NOT require TPP or customer intervention."
+              ],
+              [
+                "3",
+                "Propagate status changes to the API Hub",
+                "Whenever a rail status change at AANI or UAEFTS maps to a change in the payment's Open Finance status, the LFI MUST immediately call PATCH /payment-log/{id}\n\n on the API Hub Consent Manager to update paymentResponse.status\n to the new Open Finance status. Rail statuses that are deliberately not mapped (see Payment Status\n) do not require a PATCH; the mapping document is the source of truth for which rail transitions are reportable."
+              ],
+              [
+                "4",
+                "paymentTransactionId\n propagation",
+                "Once AANI or UAEFTS assigns the end-to-end identifier for the payment (the IPP identifier for AANI, or the equivalent for UAEFTS), the LFI MUST include it as paymentTransactionId\n on the next PATCH /payment-log/{id}\n\n — ideally on the same PATCH as the accompanying status transition. Once set, paymentTransactionId\n MUST NOT be changed. Note that paymentTransactionId\n identifies the payment instruction on the rail and is distinct from the Bank Data Sharing transactionId\n (which identifies a ledger entry)."
+              ],
+              [
+                "5",
+                "Rail rejection — reject reason code",
+                "If the payment is rejected by AANI or UAEFTS, the LFI MUST populate paymentResponse.RejectReasonCode\n on the PATCH /payment-log/{id}\n call. The Code\n MUST use the namespace of the rail that rejected the payment (AANI.\n or FTS.\n, matching the spec pattern ^(AANI|FTS)\\.[A-Za-z0-9]+$\n), with the specific reason code mapped directly from the rail's originating rejection code. The Message\n MUST be sanitised for onward relay to the TPP. \n\n Example:\n \n Code\n: AANI.AM04\n \n Message\n: Payment request cannot be executed as insufficient funds at debtor account."
+              ],
+              [
+                "6",
+                "PATCH /payment-log/{id}\n delivery",
+                "The LFI MUST treat Consent Manager updates as durable — status\n, paymentTransactionId\n, and RejectReasonCode\n changes cannot be dropped. If a PATCH fails with a transient error (HTTP 5xx\n, connection error, or timeout), the LFI MUST retry with exponential backoff until the update is accepted; updates that cannot be delivered immediately MUST be queued and retried rather than abandoned. A PATCH rejected with a 4xx\n response indicates a client-side issue that retry will not fix — the LFI MUST NOT retry in this case and MUST raise the failure for operational investigation."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Payment Status Retrieval",
+        "anchor": "payment-status-retrieval",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The TPP may use GET /payments/{paymentId}\n to retrieve the current status of a payment it has initiated. The API Hub validates the access token and consent, then forwards the request to your Ozone Connect endpoint."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "Sustain period",
+                "The LFI MUST continue to serve GET /payments/{paymentId}\n for at least 1 year from the creation date of the payment\n. Within this window, the endpoint MUST return the current Status\n of the payment, reflecting any subsequent state changes (e.g. screening outcomes, rail settlement, reversal)."
+              ],
+              [
+                "2",
+                "Status consistency with the API Hub",
+                "The Status\n returned by GET /payments/{paymentId}\n MUST exactly match the status most recently PATCHed to the API Hub Consent Manager via PATCH /payment-log/{id}\n\n. The LFI is responsible for keeping the two representations in lockstep — any status change in the LFI's systems MUST be reflected on both surfaces before the change is observable to the TPP."
+              ],
+              [
+                "3",
+                "paymentTransactionId\n consistency",
+                "Once the rail has assigned an end-to-end identifier and the LFI has PATCHed it to the Consent Manager, GET /payments/{paymentId}\n MUST return the same paymentTransactionId\n. Before the rail has assigned one, paymentTransactionId\n MUST be omitted from the response rather than returned as an empty string."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Parity and Treatment Constraints",
+        "anchor": "parity-and-constraints",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "These requirements govern how the LFI may treat Open Finance initiated payments relative to its own banking channels. They apply alongside — and do not override — the LFI's standard fraud, sanctions, and AML controls, which remain the LFI's responsibility (see Screening Checks\n)."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Requirement",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "No timing constraints",
+                "The LFI MUST NOT impose timing constraints on Open Finance initiated payments. Cooling-off periods for new beneficiaries with reduced transactional limits, or other constraints related to the number or value of payment transactions, MUST NOT be applied to Open Finance initiated payments. \n\n This does not restrict the LFI's own channels: if the customer subsequently attempts a payment through the LFI's own channels to a beneficiary that was saved during an Open Finance journey, the LFI MAY block or delay that payment under its existing cooling-off policy for that account."
+              ],
+              [
+                "2",
+                "Parity with other digital channels",
+                "Transaction limits and other constraints applied to Open Finance services MUST NOT be more restrictive than those applied across the LFI's other commonly used banking digital channels. This establishes parity, ensuring the customer experience is consistent regardless of the digital channel used."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

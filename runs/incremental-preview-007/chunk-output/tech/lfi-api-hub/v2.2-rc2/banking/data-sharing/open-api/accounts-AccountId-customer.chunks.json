@@ -1,0 +1,1471 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+  "chunk_count": 43,
+  "chunks": [
+    {
+      "id": "163ffa64-3ec7-57d9-80e8-3fcf748eeace",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "intro",
+      "text": "Get Customer for an Account\n\nLFI · Banking · Data Sharing",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "49a7a99df41ed418a51af8d48b054b55e1800ad7c81019505e26fb7d77ee1004",
+      "schema_version": 2
+    },
+    {
+      "id": "5af67cbb-4274-59cc-8c3d-3e43674c5f64",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > API /accounts/{accountId}/customer\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - Bank Data Sharing APIs\",\n \"contact\": {\n \"name\": \"Ozone Financial Technology Limited\"\n },\n \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor Bank Data Sharing APIs for Ozone Connect.\\n\\nThese APIs should be implemented by an financial institution so that Ozone\\ncan expose these end-points to TPPs.\\n\\n#### Implementer Notes\\n\\nImplementers should note that this API prescribes a positive response for correctly executed\\noperations including those where no data is returned. This is consistent with the general principles\\nof REST.\\nFor example, if the operation \\n`get /accounts/{accountId}/products` is invoked and no product data is found for the account\\nassociated with the value of `accountId` then the correct response is to return a `200` and an empty\\narray: `{ \\\"data\\\": [] }`.\\n\\nPlease refer to the API Hub documentation for details of test cases that are \\navailable for this API using the Ozone Connect test suite.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n**Please adhere to the deprecated flags in your implementation. Do not implement deprecated properties when** **implementing new functionality.**\\n\\n### v2.2.3\\n* Changed `emiratesId` on `CustomerPersonClaims` to carry\\n `pattern: ^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$`, so the Emirates ID returned by `get /customer` and\\n `get /accounts/{accountId}/customer` is well-formed. This is the pattern already used by the Insurance API\\n description and, from v2.2, by `post /leads` in the Bank Products Data API description. Per OFP-009.\\n\\n* Changed `fullName`, `givenName`, `familyName`, `middleName` and `nickname` on `CustomerPersonClaims` to accept\\n Latin letters, space, apostrophe, period and hyphen only, and `businessName` on `CustomerCorporateClaims` to\\n accept those plus digits, ampersand, comma, parentheses and forward slash. Field lengths are unchanged.\\n Per OFP-009.\\n\\n### v2.2.2\\n* Changed `transactionInformation` on `CbuaeTransaction` to be required, so every transaction returned by\\n `get /accounts/{accountId}/transactions` carries a narrative by which the customer can recognise the entry.\\n The field also gains `minLength: 1` and `maxLength: 500`, matching the bounds the TPP-facing\\n `TransactionInformation` schema has carried since v2.1. The same requirement is applied to `AETransaction` in\\n the Standards Account Information API description, since the API Hub can only return a narrative the LFI\\n supplied.\\n\\n* Changed the `post /customers/action/cop-query` request to carry the account IBAN only. `data.account.name` is\\n removed, along with the `PersonName` and `BusinessName` Schema Objects it referenced. The LFI performs no\\n matching, so the name submitted by the TPP is no longer sent to it.\\n\\n* Changed the `post /customers/action/cop-query` response to carry the account holder's name directly. Each\\n entry in `data` is now an `id` and a `name`, which is either a `CbuaeCopPersonName` (`fullName` required) or a\\n `CbuaeCopBusinessName` (`businessName` required). The `verifiedClaims` / `verification` identity-assurance\\n envelope is removed from this operation, along with the `CbuaeVerifiedCopClaim` and\\n `ConfirmationOfPayeePersonClaims` Schema Objects and the wider customer data the latter carried — none of it\\n is needed to compare two names, and Confirmation of Payee runs without a consent. `number` is dropped for the\\n same reason; `id` is retained as the handle for investigating a disputed result. Structured name fields\\n (`firstName`, `middleName`, `lastName`, `fullNameAr`, `alsoKnownAs`, `businessNameAr`) are retained as\\n optional members so the matching algorithm can be improved without a further change to this contract.\\n `get /accounts/{accountId}/customer` is unaffected: it has its own `CbuaeCustomer` / `CbuaeVerifiedClaim`\\n Schema Objects.\\n\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards.\\n* Changed `get /accounts/{accountId}/products` to return `ExpectedProfitRates`, providing one-or-more deposit\\n rates for Sharia-compliant products. Each rate carries `RateType` (`FixedProfit` or `VariableProfit`),\\n `DepositRateType` (`ExpectedProfitRate` or `IndicativeProfitRate`), `ProfitSharingRatio`,\\n `ProfitDistributionMethod`, `ProfitDistributionFrequency`, an optional `Description`, and `RateDetails`.\\n\\n* Changed `get /accounts/{accountId}/products` to return `ShariaFinanceRates`, providing one-or-more finance\\n rates for Sharia-compliant products. As with `FinanceRates`, this can be provided in cleartext or as a JWE\\n based on the preference of the LFI for sharing this information. Each cleartext rate is discriminated on\\n `RateType` as a fixed profit rate, a variable profit rate or a hybrid profit rate, and carries\\n `ProfitCalculationMethod` with the values `PrincipalBalance`, `OutstandingBalance`,\\n `InitialDrawdownAmount`, `UnusedCreditLine` or `UtilizedLimit`.\\n\\n* Changed `get /accounts/{accountId}/products` to return `TakafulRequired`, indicating whether Takaful\\n coverage is required for the product, and `TakafulDescription`, describing the type and purpose of the\\n required coverage.\\n\\n* Changed `get /accounts/{accountId}/products` to return `ProfitCalculationMethod` on charge components, for\\n use in place of `InterestCalculationMethod` where the product uses Islamic calculation method",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "API /accounts/{accountId}/customer",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /accounts/{accountId}/customer\"],\"\"]:0:part:0",
+      "content_hash": "14146396f9441627db24164be774f6fecc6f4f529f680c81555697138cafe1e0",
+      "schema_version": 2
+    },
+    {
+      "id": "f58f2227-d780-50df-8cc4-6d3acee67013",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > API /accounts/{accountId}/customer\n\ns.\\n\\n* Changed `InterestCalculationMethod` on charge components returned by\\n `get /accounts/{accountId}/products` to apply to interest only. Islamic calculation methods are now\\n described by `ProfitCalculationMethod`.\\n\\n* Changed `RateDetails` on the deposit rates returned by `get /accounts/{accountId}/products` to reference a\\n shared Schema Object, so that the same rate structure is used by both `DepositRates` and\\n `ExpectedProfitRates`. No change to the properties returned.\\n\\n* Changed `get /accounts/{accountId}/balances`, `get /accounts/{accountId}/transactions` and\\n `get /accounts/{accountId}/statements` to return `BalanceDescription`, allowing a description of the\\n balance to be provided identifying the specific Shari'ah compliant charges, payments and rewards made\\n which can affect the balance.\\n\",\n \"version\": \"v2.2.3\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/accounts/{accountId}/customer\",\n \"operations\": {\n \"get\": {\n \"tags\": [\n \"customers\"\n ],\n \"summary\": \"Fetch the customers specified by the account id\",\n \"description\": \"Return the customer details for the account specified by the accountId\",\n \"operationId\": \"findCustomerByAccountId\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/aspspId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/consentId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/ozoneInteractionId\"\n },\n {\n \"name\": \"o3-psu-identifier\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"A Base64 encoded representation of the psuIdentifier JSON object.\"\n },\n {\n \"name\": \"accountId\",\n \"in\": \"path\",\n \"description\": \"Id of the account to be queried\",\n \"required\": true,\n \"schema\": {\n \"type\": \"string\"\n },\n \"example\": \"abc-123\"\n },\n {\n \"$ref\": \"#/components/parameters/page\"\n },\n {\n \"$ref\": \"#/components/parameters/page-size\"\n }\n ],\n \"responses\": {\n \"200\": {\n \"description\": \"successful operation\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/CustomersResponse\"\n }\n }\n }\n },\n \"400\": {\n \"$ref\": \"#/components/responses/BadRequestError\"\n },\n \"401\": {\n \"$ref\": \"#/components/responses/UnauthorizedError\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/ForbiddenError\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/InternalServerError\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/Error\"\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "API /accounts/{accountId}/customer",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /accounts/{accountId}/customer\"],\"\"]:0:part:1",
+      "content_hash": "b08101bfca9eae238764c28f1ff69216af576a531933d01e8407cafbf40be0b4",
+      "schema_version": 2
+    },
+    {
+      "id": "f352305c-ee00-597a-a72f-835dec5ff0ad",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targetted to\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/providerId\"],\"\"]:0",
+      "content_hash": "55eb01e3ed9f9776005c9bca5c868d5420f5f5e5e02ec4439ba4c822d2a95073",
+      "schema_version": 2
+    },
+    {
+      "id": "f4791772-86cb-5f8f-8d9a-c490d15f85c8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/aspspId\n\n{\n \"name\": \"o3-aspsp-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"deprecated\": true,\n \"description\": \"Identifier for the financial institution that the request is targetted to. This header is deprecated and will be removed in a future version of Ozone Connect. Use `o3-provider-id` instead.\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/aspspId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/aspspId\"],\"\"]:0",
+      "content_hash": "ab3e632f48cd3b0d82228406354978f35d1adc14bce96fa02c84b49a9b9f325b",
+      "schema_version": 2
+    },
+    {
+      "id": "c996c552-ab56-5e47-824b-0acdf904dbe8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerOrgId\"],\"\"]:0",
+      "content_hash": "fbc1200792c14e7ce435458dd1a833d0a8d457c21206d154aa6111728436c624",
+      "schema_version": 2
+    },
+    {
+      "id": "1e9efe44-b0d5-5078-89d1-73f4a57bb079",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerClientId\"],\"\"]:0",
+      "content_hash": "2163218bfbb035b849d2cd4b0493a15b532f2f45ea6a1935b50c14bb84c15f6d",
+      "schema_version": 2
+    },
+    {
+      "id": "195bd196-71c1-5054-b83d-435732860e7b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "6fe0939b34d1dd64de2ce3863f6c788891ff45ce827b307102d3e6484b485a2e",
+      "schema_version": 2
+    },
+    {
+      "id": "873581aa-ae11-54f0-8a40-d3a932651b36",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The parameterised URL of the API being called by the caller\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiUri\"],\"\"]:0",
+      "content_hash": "57c31d719a4c479db721e3b017ca9244e14680c80054771039845c2afac50b44",
+      "schema_version": 2
+    },
+    {
+      "id": "e9948ed1-655a-5d18-9177-178de9f86e5b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiOperation\"],\"\"]:0",
+      "content_hash": "2215a7ee44f00af7315756bc8e05a203e1e48825815ba1b810f275197385c053",
+      "schema_version": 2
+    },
+    {
+      "id": "a0ab1575-7569-5705-9a80-b90ea833c236",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/consentId\n\n{\n \"name\": \"o3-consent-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The consentId for which this call is being made\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/consentId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/consentId\"],\"\"]:0",
+      "content_hash": "45feca73004fc8b4b42b5f249bd29619276f640f635e2b6d4699d9c713c8ac59",
+      "schema_version": 2
+    },
+    {
+      "id": "80b427a1-2581-5c3a-92c5-f73fc5eb7267",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerInteractionId\"],\"\"]:0",
+      "content_hash": "fea939501f266e113fbdf3979a1f6e73ebe8f587ae4e591c4e492c529be982ae",
+      "schema_version": 2
+    },
+    {
+      "id": "cdd6de6c-09f4-5d66-842d-56eb0ffe4c53",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "738a470247337803620206111875ca342b3e036e71dfd332d3701982ac5e7631",
+      "schema_version": 2
+    },
+    {
+      "id": "333dc08e-082a-5882-8264-ec7647d6aa1e",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/page\n\n{\n \"name\": \"page\",\n \"in\": \"query\",\n \"description\": \"Page of results to request (standard pagination)\",\n \"required\": true,\n \"schema\": {\n \"default\": 1,\n \"type\": \"integer\"\n },\n \"style\": \"form\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/page",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/page\"],\"\"]:0",
+      "content_hash": "473389f871ecc9f5beff74f06a11dd980dc7dd295470868b0e8199701f49aacf",
+      "schema_version": 2
+    },
+    {
+      "id": "170db5a5-0044-5050-aed7-ac1811547757",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/parameters/page-size\n\n{\n \"name\": \"page-size\",\n \"in\": \"query\",\n \"description\": \"Page size to request. Default is 100 to comply with the Operating Guidelines for the Open Finance Framework.\",\n \"required\": true,\n \"schema\": {\n \"default\": 100,\n \"type\": \"integer\"\n },\n \"style\": \"form\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/parameters/page-size",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/page-size\"],\"\"]:0",
+      "content_hash": "5d276f1aba602ecb039a72d39cef7ad291e4c872f4265a9ba2982ebbf527d82f",
+      "schema_version": 2
+    },
+    {
+      "id": "436d6aed-39a7-57b3-aad6-49c5121eb9e4",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/CustomersResponse\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/CbuaeCustomerById\"\n },\n \"description\": \"Primary data for the resource\"\n },\n \"meta\": {\n \"$ref\": \"#/components/schemas/Meta\"\n }\n },\n \"description\": \"The properties of customers associated with a given account\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/CustomersResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CustomersResponse\"],\"\"]:0",
+      "content_hash": "13d1e53acd53e3692e616cc770ae197f14bef87ada74b36497fcf46615c45b8a",
+      "schema_version": 2
+    },
+    {
+      "id": "6c576b01-cb4a-52c7-979e-52b18a5d3892",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/CbuaeCustomerById\n\n{\n \"type\": \"object\",\n \"required\": [\n \"id\",\n \"verifiedClaims\",\n \"customerType\",\n \"customerCategory\",\n \"accountRole\"\n ],\n \"properties\": {\n \"id\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 40,\n \"description\": \"A unique and immutable identifier used to identify the customer resource. This identifier has no meaning to the account owner.\"\n },\n \"number\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"Number assigned by an agent to identify its customer.\"\n },\n \"customerType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Delegate\",\n \"Joint\",\n \"Sole\"\n ],\n \"description\": \"Specifies the party type. Encoded with allowable values: \\\"Delegate\\\" - Used for business accounts when user has delegated authority to access the account , \\\"Joint\\\" - Customer is a joint owner of the account \\\"Sole\\\" - Customer is the sole owner of the account\\n\"\n },\n \"customerCategory\": {\n \"description\": \"Category of Party\",\n \"type\": \"string\",\n \"enum\": [\n \"Retail\",\n \"SME\",\n \"Corporate\"\n ]\n },\n \"accountRole\": {\n \"description\": \"Specifies the Party's role with respect to the related account. Allowed values \\nare defined based on ISO 20022 definitions as follows:\\n\\n - Administrator: The party that administers the account and is not the \\n account owner.\\n - Beneficiary: Ultimate party that is entitled to receive the benefits \\n of the ownership of the account.\\n - CustodianForMinor: Entity that holds the account on behalf of a legal \\n minor. Although the account is registered under the name of the minor, \\n the custodian retains control of the account.\\n - Granter: Granter role in the hedge funds industry.\\n - LegalGuardian: Party that has been appointed by a legal authority to act on \\n behalf of a person judged to be incapacitated.\\n - OtherParty: An other type of party. Used when a given account role cannot \\n be mapped to the role defined at the LFI.\\n - PowerOfAttorney: Power of attorney which is held by the party.\\n - Principal: Party acts as principal for the account for trading purposes.\\n - Protector: Person appointed under a trust instrument to direct or \\n restrain the trustees in relation to their administration of an account \\n held in trust. \\n - RegisteredShareholderName: Party for which shares are to be registered,\\n for share holding accounts only.\\n - SecondaryOwner: Entity that is not the primary owner when the ownership of \\n an account is split among several owners.\\n - SeniorManagingOfficial: Party that makes, or participates in the making of, \\n decisions that affect the whole, or a substantial part, of the business of \\n a customer of a reporting entity or that has the capacity to affect \\n significantly the financial standing of a customer of a reporting entity.\\n - Settlor: Entity that creates a trust or contributes assets to the trust.\\n - SuccessorOnDeath: Deceased's estate, or successor, to whom account \\n ownership will be transferred upon the death of one of the \\n owners.\\n\",\n \"type\": \"string\",\n \"enum\": [\n \"Administrator\",\n \"Beneficiary\",\n \"CustodianForMinor\",\n \"Granter\",\n \"LegalGuardian\",\n \"OtherParty\",\n \"PowerOfAttorney\",\n \"Principal\",\n \"Protector\",\n \"RegisteredShareholderName\",\n \"SecondaryOwner\",\n \"SeniorManagingOfficial\",\n \"Settlor\",\n \"SuccessorOnDeath\"\n ]\n },\n \"verifiedClaims\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/CbuaeVerifiedClaim\"\n },\n \"description\": \"Container object containing entries for the trust framework and the evidence used to verify the claims\"\n }\n },\n \"description\": \"Party Identity Assurance (Response) Schema\\nBased on the [OpenID Connect for Identity Assurance 1.0 Specification](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html)\\n\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/CbuaeCustomerById",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaeCustomerById\"],\"\"]:0",
+      "content_hash": "3e46175ce523c3236c2164cca47f5ae19f80dec6b190843fa87c75b3be634839",
+      "schema_version": 2
+    },
+    {
+      "id": "3affbc5b-0da6-559e-8041-fe83ba2ee6e5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/CbuaeVerifiedClaim\n\n{\n \"description\": \"Verified Claims :This is Required field for Cbuae\\nContainer object containing entries for the trust framework and the evidence used to verify the customer claims\\n\",\n \"type\": \"object\",\n \"required\": [\n \"claims\"\n ],\n \"properties\": {\n \"verification\": {\n \"description\": \"Verification\\n\",\n \"type\": \"object\",\n \"required\": [\n \"trustFramework\"\n ],\n \"properties\": {\n \"trustFramework\": {\n \"type\": \"string\",\n \"enum\": [\n \"FI\"\n ],\n \"description\": \"Identifies the trust framework used for customer verification. For UAE the value \\\"FI\\\" is used, to indicate the FI has carried out verification of the customer details based on their processes that adhere to legislation for KYC and AML.\"\n },\n \"assuranceLevel\": {\n \"type\": \"string\",\n \"description\": \"Determines the assurance level associated with the customer in the respective VerifiedClaims.\\n\"\n },\n \"assuranceProcess\": {\n \"type\": \"object\",\n \"description\": \"Determines the assurance process that was followed. This reflects how the evidence meets the requirements of the TrustFramework and AssuranceLevel.\\n\",\n \"required\": [\n \"policy\",\n \"procedure\",\n \"assuranceDetails\"\n ],\n \"properties\": {\n \"policy\": {\n \"type\": \"string\",\n \"description\": \"Representing the standard or policy that was followed.\"\n },\n \"procedure\": {\n \"type\": \"string\",\n \"description\": \"Representing a specific procedure from the policy that was followed.\"\n },\n \"assuranceDetails\": {\n \"type\": \"array\",\n \"description\": \"Denoting the details about how the evidence complies with the policy\",\n \"items\": {\n \"type\": \"object\",\n \"required\": [\n \"assuranceType\",\n \"assuranceClassification\",\n \"evidenceRef\"\n ],\n \"properties\": {\n \"assuranceType\": {\n \"description\": \"String denoting which part of the assurance_process the evidence fulfils\",\n \"type\": \"string\"\n },\n \"assuranceClassification\": {\n \"description\": \"String reflecting how the evidence has been classified or measured as required by the TrustFramework\",\n \"type\": \"string\"\n },\n \"evidenceRef\": {\n \"description\": \"Evidence being referred to\",\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"required\": [\n \"txn\",\n \"evidenceMetadata\"\n ],\n \"properties\": {\n \"txn\": {\n \"description\": \"Identifier referring to the txn used in the CheckDetails.\",\n \"type\": \"string\"\n },\n \"evidenceMetadata\": {\n \"description\": \"Object indicating any meta data about the evidence that is required by the AssuranceProcess in order to demonstrate compliance with the TrustFramework. It has the following sub-elements\",\n \"type\": \"object\",\n \"required\": [\n \"evidenceClassification\"\n ],\n \"properties\": {\n \"evidenceClassification\": {\n \"type\": \"string\",\n \"description\": \"The classification of the evidence metadata used in verifying a given customer\"\n }\n }\n }\n },\n \"description\": \"The properties of each piece of evidence used in verifying a given customer\"\n }\n }\n },\n \"description\": \"The properties of each assurance process implemented by the LFI to verify the details of a given customer\"\n }\n }\n }\n },\n \"time\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"Representing the date and time when the identity verification process took place.\"\n }\n ]\n },\n \"verificationProcess\": {\n \"type\": \"string\",\n \"description\": \"Unique reference to the identity verification process as performed by the OP.\\n\"\n },\n \"evidence\": {\n \"description\": \"The type of evidence allowed for providing verification.\",\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEPartyIdentityEvidenceTypeDocument\"\n },\n {\n \"$ref\": \"#/components/schemas/AEPartyIdentityEvidenceTypeElectronicRecord\"\n }\n ]\n }\n }\n },\n \"claims\": {\n \"description\": \"Claims related to a person or a business.\\n* When `customerCategory` is provided in the response and the value is set to `Retail` then `identityType` \\n must be set to `Person`.\\n\\n* When `customerCategory` is provided in the response and the value is set to `SME` or `Corporate` then \\n `identityType` must be set to `Business`.\\n\",\n \"oneOf\": [\n {\n \"$ref\": \"#/components/schemas/CustomerPersonClaims\"\n },\n {\n \"$ref\": \"#/components/schemas/CustomerCorporateClaims\"\n }\n ],\n \"discriminator\": {\n \"propertyName\": \"identityType\",\n \"mapping\": {\n \"Person\": \"#/components/schemas/CustomerPersonClaims\",\n \"Business\": \"#/components/schemas/CustomerCorporateClaims\"\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/CbuaeVerifiedClaim",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaeVerifiedClaim\"],\"\"]:0",
+      "content_hash": "020f711622ec728bf5e9380bdaa321389dc452c764c3e59fd5da1cbc82e25c6c",
+      "schema_version": 2
+    },
+    {
+      "id": "560845ab-cde8-5573-8aa0-76664e8e0509",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/AEDateTime\n\n{\n \"title\": \"AEDateTime\",\n \"description\": \"An instant in time, per ISO 8601 / RFC 3339, with a mandatory offset. Recipients MUST apply the offset, and\\nMUST NOT read the date and time components as local time. Encodings of the same instant are equivalent and MUST\\nbehave identically: `2027-07-22T00:00:00Z` and `2027-07-22T04:00:00+04:00` identify the same moment.\\n\\nIssuers SHOULD emit UTC, using `Z` or `+00:00`. The negative zero offset `-00:00` MUST NOT be used. Fractional\\nseconds are optional and carry no specified precision; implementations MUST accept both their presence and\\ntheir absence.\\n\",\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}(\\\\.\\\\d+)?(Z|\\\\+\\\\d{2}:\\\\d{2}|-(?:0[1-9]|1[0-2]):\\\\d{2})$\",\n \"example\": \"2027-07-22T00:00:00Z\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEDateTime",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDateTime\"],\"\"]:0",
+      "content_hash": "1492caaf04792178fdbb7b153695bb45610bfcce61c999f8d46e8718a9b272b2",
+      "schema_version": 2
+    },
+    {
+      "id": "36a4b3f0-a006-51ae-ae6b-88bf2c11bde8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/AEPartyIdentityEvidenceTypeDocument\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"type\": {\n \"type\": \"string\",\n \"enum\": [\n \"document\"\n ],\n \"description\": \"The type of evidence allowed for providing verification.\"\n },\n \"checkDetails\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEPartyIdentityCheckDetail\"\n },\n \"description\": \"Details of one-or-more methods used to verify a physical document that asserts the identity of the customer\"\n },\n \"verifier\": {\n \"$ref\": \"#/components/schemas/DocumentEvidenceVerifier\"\n },\n \"time\": {\n \"$ref\": \"#/components/schemas/ISODateTime\"\n },\n \"documentDetails\": {\n \"$ref\": \"#/components/schemas/DocumentEvidenceDetails\"\n },\n \"attachments\": {\n \"type\": \"object\",\n \"required\": [\n \"AEPartyIdentityEvidenceAttachments\"\n ],\n \"properties\": {\n \"AEPartyIdentityEvidenceAttachments\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEPartyIdentityEvidenceAttachment\"\n },\n \"description\": \"Attachment\\n\"\n }\n },\n \"additionalProperties\": false,\n \"description\": \"Attachments that provide evidence of the physical documents used to verify the identity of the customer\"\n }\n },\n \"description\": \"Document Evidence\\n[https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#name-evidence-type-document](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#name-evidence-type-document)\\n\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEPartyIdentityEvidenceTypeDocument",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPartyIdentityEvidenceTypeDocument\"],\"\"]:0",
+      "content_hash": "b31ef4a504f33e19c1167d498881d2027708c991fc3ca0b62c779baf047f814d",
+      "schema_version": 2
+    },
+    {
+      "id": "6a9de149-ad08-55a0-8e0e-ab72aec6054b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/AEPartyIdentityCheckDetail\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"checkMethod\": {\n \"type\": \"string\",\n \"description\": \"Identifes the method used by PASP for checking the evidence for verification\\nString representing the check done, this includes processes such as checking the authenticity of the document, or verifying the user's biometric against an identity document.\\n\"\n },\n \"organization\": {\n \"type\": \"string\",\n \"description\": \"String denoting the legal entity that performed the check. This SHOULD be included if the OP did not perform the check itself\\n\"\n },\n \"txn\": {\n \"type\": \"string\",\n \"description\": \"Identifier referring to the identity verification transaction. The OP MUST ensure that this is present when EvidenceRef element is used. The OP MUST ensure that the transaction identifier can be resolved into transaction details during an audit\\n\"\n },\n \"time\": {\n \"$ref\": \"#/components/schemas/ISODateTime\"\n }\n },\n \"description\": \"Identifes the method used by PASP for checking the evidence for verification.\\nRepresenting the checks done in relation to the evidence\\n\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEPartyIdentityCheckDetail",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPartyIdentityCheckDetail\"],\"\"]:0",
+      "content_hash": "2c3c96919ec200ad1c19efc144e613c88cf418b6e5a115b5c3683a5f4506bc90",
+      "schema_version": 2
+    },
+    {
+      "id": "f53a4028-04d4-5ecf-b036-080b9b70a8e6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/ISODateTime\n\n{\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"title\": \"ISODateTime\"\n }\n ]\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/ISODateTime",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ISODateTime\"],\"\"]:0",
+      "content_hash": "70e9e65ee7b268bc12c18f95676dd2c610b1e724b14875ee99c2b07f344b128a",
+      "schema_version": 2
+    },
+    {
+      "id": "7727da21-81ca-5e72-8a74-f75e52b2e3c9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/DocumentEvidenceVerifier\n\n{\n \"type\": \"object\",\n \"required\": [\n \"organization\"\n ],\n \"properties\": {\n \"organization\": {\n \"type\": \"string\",\n \"description\": \"String denoting the organization which performed the verification on behalf of the OP.\"\n },\n \"txn\": {\n \"type\": \"string\",\n \"description\": \"Identifier referring to the identity verification transaction.\"\n }\n },\n \"description\": \"Denoting the legal entity that performed the identity verification.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/DocumentEvidenceVerifier",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/DocumentEvidenceVerifier\"],\"\"]:0",
+      "content_hash": "021a9e71bf72f13c1012ddf26e42d1753c12105ea14c4c8dd0b8a23aa7faf3c8",
+      "schema_version": 2
+    },
+    {
+      "id": "6fbc05ac-04cd-5617-9f63-9cb2f6210e0b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/DocumentEvidenceDetails\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"type\": {\n \"type\": \"string\",\n \"enum\": [\n \"passport\",\n \"driving_permit\",\n \"idcard\",\n \"residence_permit\",\n \"emirates_id\"\n ],\n \"description\": \"The type of document used for evidence checking\\n\"\n },\n \"documentNumber\": {\n \"type\": \"string\",\n \"description\": \"The unique id number in the evidence used for verification checking\"\n },\n \"personalNumber\": {\n \"type\": \"string\",\n \"description\": \"An identifier that is assigned to the End-User and is not limited to being used in one document, for example a national identification number, personal identity number, citizen number, social security number, driver number, account number, customer number, licensee number, etc\\n\"\n },\n \"serialNumber\": {\n \"type\": \"string\",\n \"description\": \"An identifier/number that identifies the document irrespective of any personalization information (this usually only applies to physical artifacts and is present before personalization).\\n\"\n },\n \"calendarType\": {\n \"type\": \"string\",\n \"enum\": [\n \"IslamicCalendar\",\n \"GregorianCalendar\"\n ],\n \"description\": \"The type of calendar used for the date of issuance and date of expiry in the document evidence\\nAllowable values:\\n\\\"Islamic Calendar\\\"\\n\\\"Gregorian Calendar\\\"\\nBoth calendars must follow YYYY-MM-DD\\n\"\n },\n \"dateOfIssuance\": {\n \"$ref\": \"#/components/schemas/ISODateTime\"\n },\n \"dateOfExpiry\": {\n \"$ref\": \"#/components/schemas/ISODateTime\"\n },\n \"issuer\": {\n \"$ref\": \"#/components/schemas/DocumentEvidenceDetailsIssuer\"\n }\n },\n \"description\": \"Representing the document used to perform the identity verification. \",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/DocumentEvidenceDetails",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/DocumentEvidenceDetails\"],\"\"]:0",
+      "content_hash": "07d72ae761f2280067c3e7c4b9de1442f28fc502d8dfc860067c4bf3423daa6e",
+      "schema_version": 2
+    },
+    {
+      "id": "a0c20707-79f3-544a-a244-9130e95d4f80",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/DocumentEvidenceDetailsIssuer\n\n{\n \"type\": \"object\",\n \"required\": [\n \"name\",\n \"address\",\n \"countryCode\",\n \"jurisdiction\"\n ],\n \"properties\": {\n \"name\": {\n \"type\": \"string\",\n \"description\": \"Designation of the issuer of the document.\\n\"\n },\n \"address\": {\n \"$ref\": \"#/components/schemas/AEPostalAddress\"\n },\n \"countryCode\": {\n \"type\": \"object\",\n \"required\": [\n \"CountryCode\"\n ],\n \"properties\": {\n \"CountryCode\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{2,2}$\",\n \"description\": \"Nation with its own government, occupying a particular territory.\"\n }\n },\n \"additionalProperties\": false,\n \"description\": \"String containing the name of the region(s)/state(s)/province(s)/municipality(ies) that issuer has jurisdiction over (if this information is not common knowledge or derivable from the address)\\n\"\n },\n \"jurisdiction\": {\n \"type\": \"string\",\n \"description\": \"String containing the name of the region(s)/state(s)/province(s)/municipality(ies) that issuer has jurisdiction over (if this information is not common knowledge or derivable from the address)\\n\"\n }\n },\n \"description\": \"Containing information about the issuer of this document.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/DocumentEvidenceDetailsIssuer",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/DocumentEvidenceDetailsIssuer\"],\"\"]:0",
+      "content_hash": "517d5c328b97916012467916d30c2674a1bfe9426b0da4b34c8fc75fc620b25b",
+      "schema_version": 2
+    },
+    {
+      "id": "17f8f453-a5ee-599a-aed7-1dc9f0ce826a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/AEPostalAddress\n\n{\n \"description\": \"Address properties based on ISO 20022 `PostalAddress27` definition\",\n \"type\": \"object\",\n \"required\": [\n \"addressLine\",\n \"country\"\n ],\n \"properties\": {\n \"addressType\": {\n \"description\": \"The type of address. Omitted if type not held.\",\n \"type\": \"string\",\n \"enum\": [\n \"Billing\",\n \"Business\",\n \"Correspondence\",\n \"DeliveryTo\",\n \"MailTo\",\n \"POBox\",\n \"Postal\",\n \"Permanent\",\n \"Residential\",\n \"Statement\",\n \"Other\"\n ]\n },\n \"addressLine\": {\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\",\n \"type\": \"array\",\n \"minItems\": 1,\n \"maxItems\": 7,\n \"items\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n }\n },\n \"buildingNumber\": {\n \"description\": \"The unit, apartment, or villa number within a building or community\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"buildingName\": {\n \"description\": \"Name of the building or house.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"floor\": {\n \"description\": \"Floor or storey within a building.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"streetName\": {\n \"description\": \"The name of the street or road where the property is located.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"districtName\": {\n \"description\": \"The district, community, or neighbourhood where the property is located.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"postBox\": {\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"townName\": {\n \"description\": \"Name of a built-up area, such as a town or city.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"countrySubDivision\": {\n \"description\": \"Country subdivision, such as state or province. This is the Emirate where the address is registered.\",\n \"type\": \"string\",\n \"enum\": [\n \"AbuDhabi\",\n \"Ajman\",\n \"Dubai\",\n \"Fujairah\",\n \"RasAlKhaimah\",\n \"Sharjah\",\n \"UmmAlQuwain\"\n ]\n },\n \"country\": {\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{2}$\"\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEPostalAddress",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPostalAddress\"],\"\"]:0",
+      "content_hash": "f07521f80e7da9fc5bc6e9b660b5e88b373125eb44c651c60be22af05c38efff",
+      "schema_version": 2
+    },
+    {
+      "id": "43969b82-8530-576a-8e2e-7ac59e9f4ee9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/AEPartyIdentityEvidenceAttachment\n\n{\n \"type\": \"object\",\n \"required\": [\n \"desc\",\n \"contentType\",\n \"content\",\n \"txn\"\n ],\n \"properties\": {\n \"desc\": {\n \"type\": \"string\",\n \"description\": \"Description of the document. This can be the filename or just an explanation of the content.\\n\"\n },\n \"contentType\": {\n \"type\": \"string\",\n \"description\": \"Content (MIME) type of the document\\n\"\n },\n \"content\": {\n \"type\": \"string\",\n \"description\": \"Base64 encoded representation of the document content\\n\"\n },\n \"txn\": {\n \"type\": \"string\",\n \"description\": \"Identifier referring to the transaction\\n\"\n }\n },\n \"additionalProperties\": false,\n \"description\": \"Identifier referring to the transaction\\n\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEPartyIdentityEvidenceAttachment",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPartyIdentityEvidenceAttachment\"],\"\"]:0",
+      "content_hash": "0786ed820339f63d2b8595531d9fe1c4c64e6f2046069e2a292c861ffbc454df",
+      "schema_version": 2
+    },
+    {
+      "id": "728b45c1-89a3-58ad-8c5f-ead17ab5f309",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/AEPartyIdentityEvidenceTypeElectronicRecord\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"type\": {\n \"type\": \"string\",\n \"enum\": [\n \"electronic_record\"\n ],\n \"description\": \"The type of evidence allowed for providing verification.\"\n },\n \"checkDetails\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEPartyIdentityCheckDetail\"\n },\n \"description\": \"Details of one-or-more methods used to verify an electronic record that asserts the identity of the customer\"\n },\n \"time\": {\n \"$ref\": \"#/components/schemas/ISODateTime\"\n },\n \"record\": {\n \"$ref\": \"#/components/schemas/ElectronicRecordProperties\"\n },\n \"attachments\": {\n \"type\": \"object\",\n \"required\": [\n \"AEPartyIdentityEvidenceAttachments\"\n ],\n \"properties\": {\n \"AEPartyIdentityEvidenceAttachments\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEPartyIdentityEvidenceAttachment\"\n },\n \"description\": \"Attachments\\n\"\n }\n },\n \"description\": \"Attachments that provide evidence of the electronic records used to verify the identity of the customer\"\n }\n },\n \"description\": \"Electronic Record Evidence\\n\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEPartyIdentityEvidenceTypeElectronicRecord",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPartyIdentityEvidenceTypeElectronicRecord\"],\"\"]:0",
+      "content_hash": "f0cd480a6a0780e64e50e343ead5a43319007823b3c6e43e5b667ae89cc90902",
+      "schema_version": 2
+    },
+    {
+      "id": "b8c5c292-c4ff-5759-923e-0b6a567b8cba",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/ElectronicRecordProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"type\",\n \"personalNumber\",\n \"calendarType\",\n \"createdAt\",\n \"dateOfExpiry\",\n \"source\"\n ],\n \"properties\": {\n \"type\": {\n \"type\": \"string\",\n \"enum\": [\n \"bank_account\",\n \"mortgage_account\",\n \"finance_account\"\n ],\n \"description\": \"String denoting the type of electronic record\\n\"\n },\n \"personalNumber\": {\n \"type\": \"string\",\n \"description\": \"String representing an identifier that is assigned to the customer and is not limited to being used in one record, for example a national identification number, personal identity number, citizen number, social security number, driver number, account number, customer number, licensee number, etc.\\n\"\n },\n \"calendarType\": {\n \"type\": \"string\",\n \"enum\": [\n \"IslamicCalendar\",\n \"GregorianCalendar\"\n ],\n \"description\": \"The type of calendar used for the date of issuance and date of expiry in the document evidence\\nAllowable values:\\n\\\"Islamic Calendar\\\"\\n\\\"Gregorian Calendar\\\"\\nBoth calendars must follow YYYY-MM-DD\\n\"\n },\n \"createdAt\": {\n \"$ref\": \"#/components/schemas/ISODateTime\"\n },\n \"dateOfExpiry\": {\n \"$ref\": \"#/components/schemas/ISODateTime\"\n },\n \"source\": {\n \"$ref\": \"#/components/schemas/ElectronicRecordSourceProperties\"\n }\n },\n \"description\": \"Representing the record used to perform the identity verification.\\n\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/ElectronicRecordProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ElectronicRecordProperties\"],\"\"]:0",
+      "content_hash": "ca40464d5fd9598cfe00a536f143a4ec0fc44725bfca7e1b783128231f0e965c",
+      "schema_version": 2
+    },
+    {
+      "id": "9f4f530d-50f7-5cb8-a4d0-d741e0b07eb7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/ElectronicRecordSourceProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"name\",\n \"address\",\n \"countryCode\",\n \"jurisdiction\"\n ],\n \"properties\": {\n \"name\": {\n \"type\": \"string\",\n \"description\": \"Designation of the source of the electronic_record\\n\"\n },\n \"address\": {\n \"$ref\": \"#/components/schemas/AEPostalAddress\"\n },\n \"countryCode\": {\n \"type\": \"object\",\n \"properties\": {\n \"CountryCode\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{2,2}$\",\n \"description\": \"Nation with its own government, occupying a particular territory.\"\n }\n },\n \"additionalProperties\": false,\n \"description\": \"String containing the name of the region(s) / state(s) / province(s) / municipality(ies) that source has jurisdiction over (if it's not common knowledge or derivable from the address)\\n\"\n },\n \"jurisdiction\": {\n \"type\": \"string\",\n \"description\": \"String containing the name of the region(s) / state(s) / province(s) / municipality(ies) that source has jurisdiction over (if it's not common knowledge or derivable from the address)\\n\"\n }\n },\n \"description\": \"Information about the source of this record\\n\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/ElectronicRecordSourceProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ElectronicRecordSourceProperties\"],\"\"]:0",
+      "content_hash": "50c2951fa284ed74dd1e4480350baaf6646214111ea9e323eba5e53d80160c99",
+      "schema_version": 2
+    },
+    {
+      "id": "6eb8d663-485f-596a-a1f3-ce7c124be122",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/CustomerPersonClaims\n\n{\n \"type\": \"object\",\n \"required\": [\n \"identityType\",\n \"fullName\",\n \"givenName\",\n \"familyName\",\n \"emiratesId\",\n \"emiratesIdExpiryDate\",\n \"residentialAddress\"\n ],\n \"properties\": {\n \"identityType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Person\"\n ]\n },\n \"fullName\": {\n \"description\": \"The full name of the account holder, as it appears on the account, as a single string. Used where LFIs hold the account name as a single value.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z '.-]+$\"\n },\n \"givenName\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z '.-]+$\",\n \"description\": \"Given name of the Party. Given name (also called forename) is used to differentiate from the surname or family name.\"\n },\n \"familyName\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z '.-]+$\",\n \"description\": \"Surname of the Party\"\n },\n \"middleName\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z '.-]+$\",\n \"description\": \"Middle name of the Party\"\n },\n \"nickname\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z '.-]+$\",\n \"description\": \"Nickname of the Party\"\n },\n \"emiratesId\": {\n \"type\": \"string\",\n \"pattern\": \"^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$\",\n \"description\": \"Emirates ID number of the Party\"\n },\n \"emiratesIdExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Emirates ID card expiry date\"\n },\n \"birthDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date of birth of the Party\"\n },\n \"sourceOfIncome\": {\n \"type\": \"string\",\n \"description\": \"The customer source of income\"\n },\n \"salary\": {\n \"type\": \"string\",\n \"description\": \"The customer salary\"\n },\n \"nationality\": {\n \"type\": \"string\",\n \"description\": \"The customer nationality, standardised where possible using a recognised three-character code set such as ISO 3166\"\n },\n \"residentialAddress\": {\n \"$ref\": \"#/components/schemas/AEPartyIdentityResidentialAddressClaim\"\n },\n \"mobileNumber\": {\n \"type\": \"string\",\n \"description\": \"The customer mobile number\"\n },\n \"email\": {\n \"type\": \"string\",\n \"description\": \"The customer email\"\n },\n \"maritalStatus\": {\n \"type\": \"string\",\n \"description\": \"The customer marital status\"\n },\n \"salutation\": {\n \"type\": \"string\",\n \"description\": \"The customer salutation\"\n },\n \"language\": {\n \"type\": \"string\",\n \"description\": \"The primary language of the customer, standardised where possible using a recognised three-character code set such as ISO 639\"\n },\n \"employerName\": {\n \"type\": \"string\",\n \"description\": \"The employer name of the customer\"\n },\n \"employmentSinceDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The date from which the customer was employed by their employer\"\n },\n \"powerofAttorney\": {\n \"type\": \"boolean\",\n \"description\": \"Indicator that labels whether the customer is subject to a power of attorney arrangement\"\n },\n \"salaryTransfer\": {\n \"type\": \"boolean\",\n \"description\": \"Indicator that labels whether the customer receives their salary in the associated account\"\n },\n \"profession\": {\n \"type\": \"string\",\n \"description\": \"The customer profession\"\n },\n \"updatedAt\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"The date at which the customer data was last updated\"\n }\n ]\n }\n },\n \"description\": \"Standard Claims:\\n[https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims)\\nIdentityAssurance Claims:\\n[https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#name-claims](https://openid.net/specs/openid-connect-4-identity-assurance-1_0.html#name-claims)\\nAn LFI MUST provide both givenName and familyName for a Retail customer, together with all mandatory properties.\\n\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/CustomerPersonClaims",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CustomerPersonClaims\"],\"\"]:0",
+      "content_hash": "42c23dde6fec8aaab254a5bb7f9812251179d2e68840a8ba107881365b8f39ba",
+      "schema_version": 2
+    },
+    {
+      "id": "7a2c28b9-7d37-5ca9-b4e6-51aea9661093",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/AEPartyIdentityResidentialAddressClaim\n\n{\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEPostalAddress\"\n },\n {\n \"type\": \"object\",\n \"properties\": {\n \"addressType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Residential\"\n ]\n }\n }\n }\n ]\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEPartyIdentityResidentialAddressClaim",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPartyIdentityResidentialAddressClaim\"],\"\"]:0",
+      "content_hash": "9f88e1180c30fcd26464fe15311d39945bf9371cb2d66b0cb2de306f95f17da3",
+      "schema_version": 2
+    },
+    {
+      "id": "ef77a8b6-a988-56d9-a6b0-aa8379b1f666",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/CustomerCorporateClaims\n\n{\n \"type\": \"object\",\n \"description\": \"Standard claims for corporate or SME entities.\",\n \"required\": [\n \"identityType\",\n \"businessName\",\n \"tradeLicenceNumber\"\n ],\n \"properties\": {\n \"identityType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Business\"\n ]\n },\n \"businessName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"pattern\": \"^[A-Za-z0-9 &'.,()\\\\/-]+$\",\n \"description\": \"The name of the business.\"\n },\n \"tradeLicenceNumber\": {\n \"type\": \"string\",\n \"description\": \"Trade License Number of the business.\"\n },\n \"taxIdentificationNumber\": {\n \"type\": \"string\",\n \"description\": \"The tax identification number or VAT number for the company.\"\n },\n \"dateOfIncorporation\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The date the company was legally incorporated.\"\n },\n \"countryOfIncorporation\": {\n \"type\": \"string\",\n \"description\": \"The country where the company is incorporated.\"\n },\n \"corporateAddress\": {\n \"$ref\": \"#/components/schemas/AEPostalAddress\"\n },\n \"corporateContactEmail\": {\n \"type\": \"string\",\n \"format\": \"email\",\n \"description\": \"The primary email address for corporate communications.\"\n },\n \"corporateContactPhoneNumber\": {\n \"type\": \"string\",\n \"description\": \"The primary phone number for corporate communications.\"\n },\n \"industry\": {\n \"type\": \"string\",\n \"description\": \"The industry or sector in which the company operates.\"\n },\n \"companyWebsite\": {\n \"type\": \"string\",\n \"format\": \"uri\",\n \"description\": \"The official website of the company.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/CustomerCorporateClaims",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CustomerCorporateClaims\"],\"\"]:0",
+      "content_hash": "06ead2561f766c7e9079421e940b9245629985d02b74424ff96cbc185c20c1e5",
+      "schema_version": 2
+    },
+    {
+      "id": "f01d64bc-35a1-586e-b026-fa72df1b05cb",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/Meta\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"totalPages\": {\n \"type\": \"number\",\n \"description\": \"The number of expected pages for the query.\\n\"\n },\n \"totalRecords\": {\n \"type\": \"number\",\n \"description\": \"The total number of records in the full set.\\n\"\n }\n },\n \"description\": \"Metadata relevant to the resource.\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/Meta",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Meta\"],\"\"]:0",
+      "content_hash": "c40cf719c57855e45549ce0a14274181550a508db5e2b7cc0deb2b82a105ca38",
+      "schema_version": 2
+    },
+    {
+      "id": "51acd62c-1aea-576e-9feb-609b550d89bd",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/responses/BadRequestError\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/responses/BadRequestError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/BadRequestError\"],\"\"]:0",
+      "content_hash": "844b8c45ad0c92d69cfe95799c7b6615c9ae3569d245581fc1f528ad2dc9c5de",
+      "schema_version": 2
+    },
+    {
+      "id": "352744d6-3aad-53ba-85fa-93f3cce08960",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/Error400\n\n{\n \"description\": \"Default error response payload structure for Ozone Connect\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error400\"],\"\"]:0",
+      "content_hash": "5473a40bd00fa627091369b384ca9f4d2e1717438bf0e0f4921a41afcfcca767",
+      "schema_version": 2
+    },
+    {
+      "id": "039278c5-0abc-5cd2-87c2-fd326bff35da",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/ErrorMessage\n\n{\n \"description\": \"Message describing the problem that has occurred.\",\n \"type\": \"string\"\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/ErrorMessage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ErrorMessage\"],\"\"]:0",
+      "content_hash": "9dfb652fcedce3c921b27400ea7100e6b729f1596a31d156620a48b2a8425b70",
+      "schema_version": 2
+    },
+    {
+      "id": "279d8b38-f798-5964-bd69-749d252a30a9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/responses/UnauthorizedError\n\n{\n \"description\": \"Operation failed due to an invalid credential or missing token\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n \"type\": \"string\"\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/responses/UnauthorizedError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/UnauthorizedError\"],\"\"]:0",
+      "content_hash": "b7850a590acc94cc281055e18cfdbd54d10adbdfb5d031f96fb22ba7c7906837",
+      "schema_version": 2
+    },
+    {
+      "id": "77e91296-3579-52ec-8da8-6f3d4a13da22",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/responses/ForbiddenError\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/responses/ForbiddenError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/ForbiddenError\"],\"\"]:0",
+      "content_hash": "d09f565ca05342074591acb355a6e7600f8b7c166338b55b03e3666522216e96",
+      "schema_version": 2
+    },
+    {
+      "id": "7dc6e910-42d6-5d31-a6cb-48924ecba9e2",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/Error403\n\n{\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error403\"],\"\"]:0",
+      "content_hash": "7ac50bd8072d979a8b69ad60ce71aa6a1b126c736961b3d591856a15972e76c4",
+      "schema_version": 2
+    },
+    {
+      "id": "79446b93-4132-539f-b363-8ac4030fab25",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/responses/InternalServerError\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/responses/InternalServerError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/InternalServerError\"],\"\"]:0",
+      "content_hash": "8040c0c3504188888506b603073de4a60d7cb56cf093c35739597394045529f7",
+      "schema_version": 2
+    },
+    {
+      "id": "b6678dfc-ca98-558a-aa05-1f44c666944d",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/schemas/Error500\n\n{\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/schemas/Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error500\"],\"\"]:0",
+      "content_hash": "54cda2ef29a82a8aae98aeb6bd8951c85a63012b86e537c5a117849b75a2e65a",
+      "schema_version": 2
+    },
+    {
+      "id": "d12af216-902d-5fca-9996-b1ff690d18d4",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+      "type": "section",
+      "text": "Get Customer for an Account > OpenAPI definition #/components/responses/Error\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n \"type\": \"string\"\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Customer for an Account",
+        "section": "OpenAPI definition #/components/responses/Error",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "d1a31442bee9d6064ead0e7977ded400881b0292616a8f7192e93525dc9c5a52",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-customer",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/Error\"],\"\"]:0",
+      "content_hash": "9ccc27be718dab55f9747a7664839448dcb28f299067d1b58888bcb04b62a4d9",
+      "schema_version": 2
+    }
+  ]
+}

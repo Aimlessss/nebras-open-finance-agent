@@ -1,0 +1,121 @@
+{
+  "id": "knowledge-base/articles/consent-identifiers",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/knowledge-base/articles/consent-identifiers.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "cb0f1b83dd20328dac6f95d0192a3cc7e7e6b87aeac58eaf80c49233d22db978",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Consent Identifiers — Why End User and Account IDs Must Be Opaque",
+    "description": "Why any identifier patched onto a consent (psuIdentifiers, accountIds) must be an opaque, non-sensitive, stable LFI-defined value.",
+    "category": "Consents",
+    "readTime": "6 min",
+    "updated": "2026-04-21",
+    "tags": [
+      "Consents",
+      "end user Identifiers",
+      "Data Protection"
+    ],
+    "url": "https://nebras-open-finance.com/knowledge-base/articles/consent-identifiers",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Consent Identifiers — Why End User and Account IDs Must Be Opaque",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "What you MUST NOT use as an identifier",
+        "level": 2,
+        "anchor": "rule",
+        "category": "The rule",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Because these values live outside the LFI's own systems, they MUST be opaque internal references — never the underlying personal or account data they point to."
+          },
+          {
+            "type": "paragraph",
+            "text": "Any value patched onto a consent MUST NOT be a sensitive or personally identifiable value. An LFI MUST NOT use any of the following as an identifier on the consent:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Emirates ID, passport number, or any regulated national identifier",
+              "Full name, date of birth, email, or mobile number",
+              "IBAN, account number, card number, or PAN",
+              "CIF number or any other internal identifier that maps 1:1 to regulated data"
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The identifier MUST be an LFI-defined opaque reference that is meaningful only inside the LFI's own systems. The LFI resolves it back to the real customer or account internally when processing a request."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The hub stores it; therefore it must be opaque",
+        "level": 2,
+        "anchor": "why",
+        "category": "Why",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The API Hub is the central consent store for UAE Open Finance. Consents — including the identifiers patched onto them — are persisted centrally, visible to operators of the API Hub, and surface in operational logs and reports. They are long-lived and outlive individual sessions."
+          },
+          {
+            "type": "paragraph",
+            "text": "Storing sensitive values on the consent would leak PII outside the LFI's boundary, create a durable record of regulated data the LFI cannot unwind, and break the trust model where the API Hub receives only opaque handles from the LFI."
+          },
+          {
+            "type": "paragraph",
+            "text": "The same principle governs payment PII, which is encrypted end-to-end to keep personal data opaque to the hub — see PII Encryption."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Per-identifier requirements",
+        "level": 2,
+        "anchor": "format",
+        "category": "Format rules",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Identifier",
+              "Requirement"
+            ],
+            "rows": [
+              [
+                "psuIdentifiers.userId",
+                "Opaque string. Stable per end user (same value across all their consents). Unique within the LFI. UUID v4 recommended."
+              ],
+              [
+                "accountIds[]",
+                "Array of opaque strings, 1–40 chars each, minItems: 1. Each value MUST match the AccountId the LFI returns from its /accounts APIs. Immutable once issued. UUID v4 recommended."
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "For Bank Service Initiation consents, accountIds MUST contain exactly one element — the debtor account. For Bank Data Sharing, it MUST contain every account the end user selected."
+          },
+          {
+            "type": "paragraph",
+            "text": "The consent is a central record, not a private LFI record. Anything the LFI puts on it MUST be meaningless to any party other than the LFI itself."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

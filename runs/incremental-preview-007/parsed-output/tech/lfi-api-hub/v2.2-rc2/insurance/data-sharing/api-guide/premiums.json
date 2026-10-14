@@ -1,0 +1,125 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/api-guide/premiums",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/api-guide/premiums.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "5560abf5138696cd9faec4e3cf0710164674a6a18b490795267f6228e514fff4",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Insurance Data Sharing — Encrypted Premiums",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/api-guide/premiums",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Insurance Data Sharing — Encrypted Premiums",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Premium field on every insurance policy response is an anyOf of a structured cleartext object or a compact JWE string. Your LFI chooses, per policy, which shape to return. When you return a JWE, the TPP backend MUST NOT decrypt it — the payload is unwrapped only on the customer’s device."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Per-policy LFI choice",
+        "level": 2,
+        "anchor": "when-to-encrypt",
+        "category": "When to encrypt",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Encrypted premiums let your LFI surface commercially sensitive premium values to a customer-present TPP experience without the TPP backend ever holding the cleartext. The decision is per policy and entirely yours — the TPP and the API Hub do not influence it. Both shapes are valid under the OpenAPI spec, so the TPP is required to handle either on every call."
+          },
+          {
+            "type": "list",
+            "items": [
+              "Cleartext — appropriate when the premium is non-sensitive or already publicly disclosed (e.g. tariff-based products with published rates).",
+              "Encrypted (JWE) — appropriate for individually underwritten policies where the premium reflects pricing decisions you do not want exposed in a TPP’s server-side analytics, switching pipelines, or third-party data flows."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The Hub only routes the request with Premium in scope when the consent grants ReadInsurancePremium. If the permission is absent for the relevant sector, omit the Premium field entirely — do not return an empty object or a placeholder JWE."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "AEInsuranceDataSharingPremiumProperties",
+        "level": 2,
+        "anchor": "cleartext-shape",
+        "category": "Cleartext shape",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Populate the structured object directly under the Premium key. All five fields are required by the OpenAPI spec."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Type",
+              "Description"
+            ],
+            "rows": [
+              [
+                "PremiumAmountExcludingVAT",
+                "string (amount)",
+                "The Premium Amount excluding any VAT amount."
+              ],
+              [
+                "PremiumVATAmount",
+                "string (amount)",
+                "The Premium VAT amount."
+              ],
+              [
+                "TotalPremiumAmount",
+                "string (amount)",
+                "The total Premium amount including VAT."
+              ],
+              [
+                "Currency",
+                "string (ISO 4217)",
+                "Currency of the premium amounts."
+              ],
+              [
+                "PremiumFrequency",
+                "enum",
+                "The payment frequency the calculated Premium has been based on."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "AEInsurancePremiumJWE",
+        "level": 2,
+        "anchor": "jwe-shape",
+        "category": "Encrypted shape",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Encrypt the same structured premium object as a compact JWE and place the resulting string directly under the Premium key — not wrapped in another object."
+          },
+          {
+            "type": "paragraph",
+            "text": "The JWE mechanism mirrors Bank Data Sharing’s encrypted FinanceRates field — same algorithms, same client-side decryption pattern, same handling obligations on the TPP. The customer-side decryption flow is documented for TPPs at Encrypted Premiums; treat the LFI obligations on this page as the producer-side equivalent."
+          },
+          {
+            "type": "paragraph",
+            "text": "A single policy response carries exactly one of the two shapes — either the cleartext object or the JWE string. Do not include both keys, do not embed the JWE inside the structured object, and do not return a partially populated structured object alongside a JWE."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

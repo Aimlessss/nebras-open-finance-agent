@@ -1,0 +1,146 @@
+{
+  "id": "knowledge-base/articles/request-headers",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/knowledge-base/articles/request-headers.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "1fce4b9b95cd73eee4ecbff6f4d1458b9e1776cd7ece4f2312d3600d546ef7c6",
+    "dependencies": [
+      "uuid"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "FAPI Request Headers — Traceability, Context, and Safe Retries",
+    "description": "What the FAPI and Open Finance request headers are for, why x-fapi-interaction-id is the most important one to get right, and a one-line guide to each of the others.",
+    "category": "Security",
+    "readTime": "7 min",
+    "updated": "2026-04-21",
+    "tags": [
+      "FAPI",
+      "Headers",
+      "Traceability"
+    ],
+    "url": "https://nebras-open-finance.com/knowledge-base/articles/request-headers",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "FAPI Request Headers — Traceability, Context, and Safe Retries",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Request Headers reference covers the full rules. This article explains the intent behind each one."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "The most important header to get right",
+        "level": 2,
+        "anchor": "interaction",
+        "category": "x-fapi-interaction-id",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Every log line on every system that touched that request can be tagged with the same ID. Without it, tracing a failed payment across three systems means reconciling timestamps and guessing. With it, you ask Nebras support for a trace by interaction ID and get a complete picture in minutes."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "How it works in practice",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Generate a fresh UUID v4 for each request — never reuse across requests.",
+                  "Send it as x-fapi-interaction-id: 7b5b4e3c-1d2a-4f5e-8c3b-9a0d6e2f1b4c.",
+                  "The API Hub echoes the exact value back in the x-fapi-interaction-id response header. If you omit it, the API Hub generates one for you — but you won't know what it is until you read the response header, and any log lines emitted before the response arrives will have no ID to correlate against.",
+                  "Log the interaction ID the moment you compose the request, not when you receive the response. This ensures it appears in your logs even if the request never returns."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "When debugging: if a request fails, search your logs for the interaction ID to pull the full request and response together. Pass it to Nebras when raising a support case — it is the single fastest way to get an end-to-end trace."
+              },
+              {
+                "type": "paragraph",
+                "text": "The API Hub validates the x-fapi-interaction-id value. If it is not a valid UUID v4, the request will not fail — but the interaction ID will be silently discarded and will not be stored at the API Hub. This means the ID you logged will not match anything on the API Hub side, and end-to-end tracing becomes impossible."
+              },
+              {
+                "type": "paragraph",
+                "text": "Values that look similar but are not RFC 4122 UUID v4 will be discarded without any error response."
+              },
+              {
+                "type": "paragraph",
+                "text": "The header is defined as recommended in FAPI 2.0, but in practice it is essential. There is no meaningful cost to sending it and significant cost to omitting it when you need to investigate a problem."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Context, fraud controls, and idempotency",
+        "level": 2,
+        "anchor": "others",
+        "category": "Other headers",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "x-fapi-customer-ip-address",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The IP address of the customer's device; send it whenever the customer is actively present in a session, so the LFI's fraud controls can see that the request originated from a real user rather than a background process."
+              }
+            ]
+          },
+          {
+            "heading": "x-fapi-auth-date",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The date and time the customer last authenticated with your system (RFC 7231 HTTP-date format); send it on end user-facing calls so the LFI knows how fresh the authentication is and can apply appropriate session risk controls."
+              }
+            ]
+          },
+          {
+            "heading": "x-customer-user-agent",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The user-agent string of the customer's browser or app; send it when the customer is accessing your service through a browser or native application, as it supports API Hub device fingerprinting and fraud detection."
+              }
+            ]
+          },
+          {
+            "heading": "x-idempotency-key",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "A stable, unique key you attach to every POST /payments request; if the API Hub has already processed a request with the same key for the same consent, it returns the original response without re-processing — always reuse the same key on retries, never generate a fresh one, or you risk creating a duplicate payment."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the Request Headers reference for format rules, exact conditions, and validation requirements."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

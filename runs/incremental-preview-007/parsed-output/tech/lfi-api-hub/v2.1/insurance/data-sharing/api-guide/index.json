@@ -1,0 +1,233 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/api-guide/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "4fe30efba2fce4e7fdc7b78a5bfd2f3a845f24de74e74e6a97749a25b1031006",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Insurance Data Sharing — API Guide",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/api-guide",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Insurance Data Sharing — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "How your Ozone Connect server receives, processes, and responds to Insurance Data Sharing requests proxied by the API Hub. The end-to-end flow — consent validation, authorisation, token issuance — is identical to Bank Data Sharing; this page focuses on the insurance-specific differences."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you implement on Ozone Connect",
+        "level": 2,
+        "anchor": "positioning",
+        "category": "Where this fits",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "For Insurance Data Sharing, your LFI implements one pair of endpoints per insurance sector you underwrite on your Ozone Connect server:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Endpoint",
+              "Purpose"
+            ],
+            "rows": [
+              [
+                "GET /{type}-insurance-policies",
+                "Return every policy of the named sector the consent grants access to."
+              ],
+              [
+                "GET /{type}-insurance-policies/{InsurancePolicyId}",
+                "Return the single policy identified by the path parameter, after checking it belongs to the consented customer."
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Substitute the sector slug ( employment, health, home, life, motor, renters, travel ) for {type}. Implement only the sectors your LFI underwrites — the API Hub will not route requests for unmounted sectors."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Same validate hook as Bank Data Sharing",
+        "level": 2,
+        "anchor": "consent-validation",
+        "category": "Consent validation",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "During consent creation, if your LFI has configured the POST /consent/action/validate endpoint, the API Hub forwards the full insurance consent payload to your Ozone Connect server before the consent is created. For Insurance Data Sharing consents, consentType is cbuae-insurance-consents."
+          },
+          {
+            "type": "paragraph",
+            "text": "The mechanics are identical to Bank Data Sharing — respond with data.status: valid to allow the consent, or invalid with an error if the requested permissions cannot be granted. See the Consent Journey API Guide — Validate the consent for the request and response shapes."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Authorize the customer at your LFI",
+        "level": 2,
+        "anchor": "auth-flow",
+        "category": "Consent flow",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Once the consent has been created, the TPP redirects the customer to your LFI’s authorisation endpoint — the same URL you registered for Bank Data Sharing. From there, your LFI runs the standard consent journey: authenticate the customer, retrieve the consent, let the customer approve or reject it, patch the customer identifier onto the consent, and redirect back to the Hub."
+          },
+          {
+            "type": "paragraph",
+            "text": "The endpoints your LFI implements against the API Hub for this flow are the same as Bank Data Sharing — see Bank Data Sharing — Consent flow for the full list. The only difference for insurance is that there are no per-account identifiers to patch; the consent is granted at the policy-collection level per sector, and the Hub forwards each policy lookup directly to your endpoints."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Shared conventions",
+        "level": 2,
+        "anchor": "conventions",
+        "category": "Ozone Connect Insurance responses",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "Field population",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Every field that exists on the LFI’s systems, or is derivable from them, MUST be populated in the response. TPPs rely on this data to serve customer use cases end-to-end — a field omitted by the LFI is a feature the TPP cannot build."
+              }
+            ]
+          },
+          {
+            "heading": "Common request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Insurance endpoints receive the same set of o3-* headers from the API Hub as Bank Data Sharing. See Common request headers for the full table."
+              }
+            ]
+          },
+          {
+            "heading": "No pagination",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Insurance policy endpoints return the full set of consented policies for the named sector in a single response. There is no page query parameter, and Meta does not carry TotalPages or TotalRecords. If the consent grants access to twelve motor policies, your /motor-insurance-policies response MUST contain all twelve."
+              }
+            ]
+          },
+          {
+            "heading": "Error responses",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Use the same UAE Open Finance error envelope and HTTP status codes as Bank Data Sharing. 404 for an InsurancePolicyId the consent does not grant access to. 403 if the policy exists but is not in a state your LFI surfaces (e.g. cancelled and outside the retention window). The Hub validates token, consent, and TPP role before the request reaches your endpoint; you do not re-validate any of those."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Return all consented policies for a sector",
+        "level": 2,
+        "anchor": "list-policies",
+        "category": "GET /{type}-insurance-policies",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Return every active policy of the named sector the consent grants access to. Each Policy entry MUST include the fields required by the OpenAPI spec for that sector, plus every optional field your LFI holds."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Required permission",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The Hub only routes the request to your endpoint if the consent contains ReadInsurancePolicies for the named sector. You do not need to re-check the permission."
+              }
+            ]
+          },
+          {
+            "heading": "Example response",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          }
+        ]
+      },
+      {
+        "heading": "Return a single policy",
+        "level": 2,
+        "anchor": "get-policy",
+        "category": "GET /{type}-insurance-policies/{InsurancePolicyId}",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Return the single policy identified by InsurancePolicyId. The InsurancePolicyId MUST belong to a policy your LFI underwrites for the customer identified by the o3-psu-identifier header — if it does not, respond with 404."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Example response",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          }
+        ]
+      },
+      {
+        "heading": "Returning the Premium field as a JWE",
+        "level": 2,
+        "anchor": "premium-field",
+        "category": "Encrypted Premium",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Premium field on every policy is defined as anyOf a structured AEInsurance.AEInsuranceDataSharingPremiumProperties object or an AEInsurance.AEInsurancePremiumJWE compact string. Your LFI decides, per policy, whether to return the premium in cleartext or as an encrypted JWE."
+          },
+          {
+            "type": "list",
+            "items": [
+              "Cleartext — populate the structured object with PremiumAmountExcludingVAT, PremiumVATAmount, TotalPremiumAmount, Currency, and PremiumFrequency.",
+              "Encrypted (JWE) — encrypt the same structured object as a compact JWE using key material the customer’s device can unwrap. The TPP MUST NOT decrypt the JWE on its server — this lets you surface premium values that are commercially sensitive without the TPP backend ever holding the cleartext."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Whichever shape you choose, return it under the Premium key in the policy object. The TPP guide explains the customer-device decryption flow in detail at Encrypted Premiums."
+          },
+          {
+            "type": "paragraph",
+            "text": "The Hub only routes the request with Premium in scope if the consent contains ReadInsurancePremium for the relevant sector. If the consent does not include this permission, omit the Premium field entirely from the response."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

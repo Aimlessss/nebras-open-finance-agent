@@ -1,0 +1,352 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/insurance/quotation/requirements",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/insurance/quotation/requirements.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "9fd15511fa0486c04ca5e57425344cbe16917c7036a173849125ad8a99a636a5",
+    "dependencies": [
+      "@/data/requirements/lfi-api-hub-v2-1-insurance-quotation",
+      "src/data/requirements/lfi-api-hub-v2-1-insurance-quotation.ts"
+    ],
+    "assets": [
+      {
+        "file": "src/data/requirements/lfi-api-hub-v2-1-insurance-quotation.ts",
+        "hash": "3b4481bbe540175fcd5fafd2e4c9e0da07d11ba34015263167888982efa4b877"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Insurance Quotation — Requirements",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/quotation/requirements",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Insurance Quotation — Requirements",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Insurance Quotation flow runs on the Client Credentials Grant — there is no per-customer consent. TPPs authenticate as themselves, request a quote, and (where the customer accepts) drive the application through to policy issuance. Your Ozone Connect endpoints execute the quote and policy lifecycle; status updates flow back to subscribed TPPs through the Hub."
+      },
+      {
+        "type": "paragraph",
+        "text": "The tables below list the rules that apply to Insurance Quotation. All request validation of the TPP's credentials, access token, and OpenAPI schema is performed by the Hub before your Ozone Connect endpoints are called. The rules below cover what your Ozone Connect endpoints must validate and what they must return, and what your LFI must emit through the PATCH /insurance-quote-log/{logId}\n\n callback to keep the Hub and any subscribed TPP webhooks in sync."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Create Quote",
+        "anchor": "create-quote",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When a TPP requests a quote, the Hub validates the access token and OpenAPI schema, then proxies the request to your Ozone Connect POST /{type}-insurance-quotes\n endpoint with the sector slug (employment\n, health\n, home\n, life\n, motor\n, renters\n, or travel\n) baked into the path. Your endpoint receives the customer's quote request and either returns one-or-more quotes (201\n) or declines to quote (204\n)."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "Sector support",
+                "The sector slug in the URL path indicates which insurance type the TPP is requesting. If your LFI does not underwrite the requested sector, return 404\n. Only mount endpoints for sectors you actually offer; the Hub will not route requests for unmounted sectors."
+              ],
+              [
+                "2",
+                "Quote Type",
+                "The request body carries a QuoteType\n of New\n, Renewal\n, or Switch\n. See Quote Types\n for the per-type validation differences (e.g. Renewal\n references a prior policy, Switch\n references an incumbent insurer). If the requested QuoteType\n cannot be supported for the sector (e.g. the LFI does not support switching for Travel), return 204\n with an empty body."
+              ],
+              [
+                "3",
+                "Multi-quote response",
+                "The 201\n response carries a data\n array of one-or-more quotes. Each entry must include a unique QuoteId\n the LFI generates and persists — the TPP uses this ID to retrieve, accept, or reject the quote. Populate every field marked required by the per-sector quote schema."
+              ],
+              [
+                "4",
+                "Decline to quote",
+                "If your underwriting rules cannot produce any quote that meets the request (e.g. risk profile out of appetite, vehicle/property out of supported scope), return 204\n with an empty body. Do not return a 201\n with an empty data\n array."
+              ],
+              [
+                "5",
+                "Quote validity window",
+                "Each QuoteId\n MUST remain retrievable and acceptable for the validity period the LFI advertises on the quote (typically 14–30 days). After expiry, retrievals MUST still return the quote in a Expired\n terminal state via the quote-log\n rather than 404\n — TPPs need to be able to display an expiry reason."
+              ],
+              [
+                "6",
+                "No subscription handling",
+                "The Subscription\n object on the request body is the TPP's webhook configuration. It is consumed by the Hub for event delivery — the LFI MUST NOT act on it. The LFI's only obligation is to emit status events via PATCH /insurance-quote-log/{logId}\n; the Hub fans those out to any subscribed TPP webhook."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Retrieve Quote",
+        "anchor": "retrieve-quote",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "Quote ownership",
+                "Return the quote only if the QuoteId\n was created in response to a request from the same TPP (identified by the Hub via o3-caller-client-id\n). If the quote belongs to a different TPP, return 404\n — do not leak quote existence across TPPs."
+              ],
+              [
+                "2",
+                "Sector match",
+                "The sector slug in the URL path MUST match the sector the quote was created under. A motor QuoteId\n requested via /home-insurance-quotes/{QuoteId}\n MUST return 404\n."
+              ],
+              [
+                "3",
+                "Current state",
+                "Return the quote in its current state. If the quote has progressed past Accepted\n into the application lifecycle, include the latest QuoteStatus\n drawn from the same vocabulary the LFI emits on the quote-log (see Status Updates\n)."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Accept Quote",
+        "anchor": "accept-quote",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The TPP calls PATCH on the quote to indicate the customer has accepted, kicking off the application lifecycle. The response declares PolicyIssuanceAllowed\n — the steps the LFI permits the TPP to handle (TPP-Led mode) or retains for itself (LFI-Led mode). This declaration drives whether the TPP collects KYC, hosts payment, and issues policy documents, or whether your LFI does."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "Quote ownership",
+                "Accept the PATCH only if the QuoteId\n was created in response to a request from the same TPP. Reject with 404\n otherwise — do not return 403\n (which would confirm the quote exists)."
+              ],
+              [
+                "2",
+                "Quote validity",
+                "If the quote has expired or has already been progressed past Accepted\n, reject with 409\n. The TPP should retrieve the quote to see its current state."
+              ],
+              [
+                "3",
+                "PolicyIssuanceAllowed — LFI-Led",
+                "For LFI-Led quotes (your LFI hosts customer verification, payment, and documents), return 204\n with no body. The TPP knows the quote has been accepted and will await status updates emitted through the quote-log."
+              ],
+              [
+                "4",
+                "PolicyIssuanceAllowed — TPP-Led",
+                "For TPP-Led quotes, return 200\n with data.PolicyIssuanceAllowed\n set to the steps the TPP may perform: CustomerVerification\n, Payment\n, and PolicyDocuments\n. All three booleans are required. Where the TPP hosts payment, the LFI MUST emit a PaymentRequired\n or ApplicationApproved\n event with a BrokerInstructions[].Url\n that the TPP redirects the customer to (see Status Updates\n)."
+              ],
+              [
+                "5",
+                "Subscription not consumed by LFI",
+                "The Subscription\n object is the TPP's webhook registration for the Hub's event delivery. The Hub stores it; the LFI MUST NOT act on it. Your only obligation is to emit status events through PATCH /insurance-quote-log/{logId}\n and the Hub fans them out."
+              ],
+              [
+                "6",
+                "Implicit ApplicationPending",
+                "Immediately after responding 200\n or 204\n to the PATCH, the LFI MUST PATCH the quote-log with QuoteStatus: ApplicationPending\n so the TPP — whether polling or subscribed — sees a consistent first status. This is the entry point to the application lifecycle."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Create Policy",
+        "anchor": "create-policy",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "After the application has been progressed (KYC collected, payment confirmed where the TPP hosts it), the TPP calls POST /{type}-insurance-policies\n with the originating QuoteId\n and any data the LFI requires to finalise issuance. The LFI runs its BAU policy creation flow."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "QuoteId\n binding",
+                "The request body MUST reference a QuoteId\n that this TPP previously accepted at this LFI under the same sector. If the quote is not in a state that permits policy issuance (e.g. application has not reached ApplicationApproved\n on TPP-Led, or the quote is terminal), reject with 409\n."
+              ],
+              [
+                "2",
+                "Quote sector match",
+                "The sector slug in the URL path MUST match the sector the quote was issued under. A mismatch MUST return 404\n."
+              ],
+              [
+                "3",
+                "TPP-supplied data",
+                "For TPP-Led quotes, the request body carries the KYC data the TPP collected. Validate it against the same rules your LFI applies internally. If any field fails (Emirates ID mismatch, prohibited customer, etc.) reject with 400\n and explain via errorCode\n / errorMessage\n."
+              ],
+              [
+                "4",
+                "Idempotency",
+                "If a previous POST /{type}-insurance-policies\n against the same QuoteId\n has already produced a policy, return the existing policy reference rather than minting a new one. Repeated calls with the same payload MUST be safe."
+              ],
+              [
+                "5",
+                "Status emission",
+                "On successful policy issuance, the LFI MUST PATCH the quote-log to PolicyIssued\n with the issued InsurancePolicyId\n (LFI-Led) or with Documents\n attached (TPP-Led) — and then to Completed\n once any post-issuance work has settled. See Status Updates\n."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Status Updates (Quote Log)",
+        "anchor": "status-updates",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The quote lifecycle is observable to TPPs through events the LFI emits to the Hub. The LFI PATCHes /insurance-quote-log/{logId}\n\n with the new QuoteStatus\n; the Hub records it and, where the TPP has subscribed via the Subscription\n object on the original PATCH Accept Quote, delivers an event to the TPP's webhook. logId\n is the same value as the QuoteId\n. The event body conforms to one of three schemas drawn from the Hub spec — terminal, pending-completion, or completed."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Status",
+              "When the LFI emits it"
+            ],
+            "rows": [
+              [
+                "1",
+                "ApplicationPending",
+                "Immediately after the LFI responds to PATCH Accept Quote. Signals that the application has been registered and is awaiting next steps (KYC for TPP-Led, internal processing for LFI-Led)."
+              ],
+              [
+                "2",
+                "ApplicationApproved",
+                "TPP-Led only.\n The LFI has approved the application based on TPP-supplied KYC and is ready for the customer to pay. The event MUST include a BrokerInstructions\n array containing a Url\n (the LFI-hosted payment page) for the TPP to redirect the customer to."
+              ],
+              [
+                "3",
+                "PaymentRequired",
+                "Used where payment hand-off occurs outside the standard ApplicationApproved transition (e.g. mid-flow premium adjustment). Carries BrokerInstructions\n with the payment URL."
+              ],
+              [
+                "4",
+                "PolicyIssued",
+                "The LFI has issued the policy. On LFI-Led, attach the InsurancePolicyId\n. On TPP-Led, attach the policy Documents\n (Policy Booklet, Terms & Conditions, etc.) as base64 with SHA-256 hashes so the TPP can verify integrity and surface them to the customer."
+              ],
+              [
+                "5",
+                "Completed",
+                "Final terminal state for a successful flow. Carries the finalised Premium\n breakdown, PolicyTerm\n, PolicyStartDate\n/PolicyEndDate\n, CustomerPaidInFull\n, PolicyCountrySubDivision\n, and (where applicable) the Commission\n due to the TPP. No further events follow."
+              ],
+              [
+                "6",
+                "Expired\n / Rejected\n / CustomerCancelled\n / LFICancelled",
+                "Negative terminal states. Emit when the quote times out, the LFI declines to proceed, the customer abandons, or the LFI cancels mid-flow. Include a free-text Reason\n where possible. No further events follow."
+              ]
+            ]
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "Status ordering",
+                "The LFI MUST NOT emit a later status before an earlier one. The valid forward sequence is: ApplicationPending\n → (optional ApplicationApproved\n / PaymentRequired\n) → PolicyIssued\n → Completed\n. Any negative terminal status (Expired\n, Rejected\n, CustomerCancelled\n, LFICancelled\n) may be emitted from any non-terminal state."
+              ],
+              [
+                "2",
+                "No status regression",
+                "Once a terminal status (Completed\n or any negative terminal) has been emitted, the LFI MUST NOT emit any further events for that logId\n. Subsequent PATCHes will be rejected by the Hub with 400\n."
+              ],
+              [
+                "3",
+                "BrokerInstructions URL",
+                "When emitting ApplicationApproved\n or PaymentRequired\n in TPP-Led mode where the TPP is to host the customer through payment, the BrokerInstructions[].Url\n MUST be an HTTPS URL the customer can be redirected to. The URL is single-use and tied to the application; the LFI MUST invalidate it after first redemption or after a reasonable session window."
+              ],
+              [
+                "4",
+                "Document delivery",
+                "When emitting PolicyIssued\n in TPP-Led mode, all documents that would normally be delivered to the customer (Policy Booklet, Terms & Conditions, IPID, etc.) MUST be attached as base64-encoded Documents\n entries with matching SHA-256 hashes. The TPP becomes the document delivery channel — the LFI MUST NOT email or post them separately."
+              ],
+              [
+                "5",
+                "Reliability",
+                "The Hub treats PATCH /insurance-quote-log/{logId}\n as fire-and-forget from the LFI's perspective once a 204\n is returned. If the Hub responds with 4xx\n or 5xx\n, the LFI MUST retry with exponential backoff. Lost events leave subscribed TPPs blind to the lifecycle and MUST NOT be tolerated."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "QuoteId Stewardship",
+        "anchor": "quote-id-stewardship",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The QuoteId\n is the single identifier that threads the entire lifecycle — quote retrieval, acceptance, policy creation, and every status update emitted to the quote-log. The LFI is the sole authority for minting QuoteId\n values."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "Uniqueness",
+                "Each QuoteId\n MUST be globally unique within the LFI. UUIDv4 is recommended."
+              ],
+              [
+                "2",
+                "Persistence",
+                "The LFI MUST persist the QuoteId\n for the policy retention period applicable to the sector (typically aligned with the five-year retention floor that applies to issued policies). The QuoteId\n MUST remain retrievable via GET /{type}-insurance-quotes/{QuoteId}\n even in terminal states for the lifetime of any policy that may have been issued from it."
+              ],
+              [
+                "3",
+                "Cross-sector isolation",
+                "A QuoteId\n belongs to a single sector and is not transferable. The same UUID MUST NOT be re-issued for a different sector."
+              ],
+              [
+                "4",
+                "TPP scoping",
+                "A QuoteId\n belongs to the TPP that created it. Any GET, PATCH, or POST referencing it MUST verify ownership via o3-caller-client-id\n before responding."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

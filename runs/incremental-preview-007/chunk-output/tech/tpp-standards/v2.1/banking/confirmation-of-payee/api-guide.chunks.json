@@ -1,0 +1,551 @@
+{
+  "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+  "chunk_count": 17,
+  "chunks": [
+    {
+      "id": "01ebc922-6ab6-561e-8b14-e5f646ef7b37",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "intro",
+      "text": "Confirmation of Payee — API Guide\n\nConfirmation of Payee (CoP) lets a TPP verify that an IBAN belongs to the named individual or business before initiating a payment. Unlike payment flows, CoP does not require user authorization — the TPP authenticates directly using a client credentials grant and the LFI responds with a match result in seconds.\n\nCoP is served by each participating LFI independently. Before calling an LFI directly, the TPP first calls the API Hub's discovery endpoint to identify which LFI holds the destination account and retrieve its endpoint URLs.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "c58812a9071377e7824d01017c08a6450c2ac37178f4553e01ccc428997b4ba2",
+      "schema_version": 2
+    },
+    {
+      "id": "d2539daf-7d5b-5997-8746-e5511533727e",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Prerequisites > What you need before calling the CoP API\n\nBefore calling the CoP API, ensure the following requirements are met:\n\n- Registered Application — the application must be created within the Trust Framework and assigned the BSIP role as defined in Roles.\n- Valid Transport Certificate — an active transport certificate must be issued and registered in the Trust Framework to establish secure mTLS communication.\n- Valid Signing Certificate — an active signing certificate must be issued and registered in the Trust Framework. This certificate is used to sign the confirmation request JWT and client assertions.\n- Registration with the relevant API Hub (Authorisation Server) — the application must be registered with the API Hub (Server) of the LFI that holds the destination account.\n- Understanding of Tokens & Assertions — you should understand how client authentication works with private_key_jwt before calling the token endpoint.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "What you need before calling the CoP API",
+        "category": "Prerequisites",
+        "anchor": "prerequisites",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"prerequisites\",\"\"]:0",
+      "content_hash": "cffa36670ce2a3caf7966d6abeb5330780cc21a474879def03afe72350a608c5",
+      "schema_version": 2
+    },
+    {
+      "id": "ee4a669c-078a-508b-b0ac-7b935d45ded1",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Step 1 — Discover the LFI > Resolve the IBAN to a specific LFI\n\nCoP is served by individual LFIs — the /discovery endpoint resolves a payee IBAN to the correct LFI and returns two URLs you will need for the rest of the flow:\n\nField | Description\nDiscoveryEndpointUrl | The.well-known endpoint for the LFI's Authorisation Server. Fetch this to obtain the token_endpoint and issuer used in later steps.\nResourceServerUrl | The base URL of the LFI's API Hub resource server. Use this as the base URL when calling /confirmation.\n\nBefore calling /discovery you must obtain an access token from any LFI you are registered with using a client credentials grant. The API Hub does not make any requests to the LFI when processing /discovery — it resolves the IBAN centrally — so the response is the same regardless of which LFI you authenticate with. You only need to perform discovery once, and the POST /discovery request must be sent to the LFI whose token you are using.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Resolve the IBAN to a specific LFI",
+        "category": "Step 1 — Discover the LFI",
+        "anchor": "step-1-discover-lfi",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-1-discover-lfi\",\"\"]:0",
+      "content_hash": "b10c184f9e3bcf4cbe7e4e33fd4adc2f1cc1204ca84bb805d7f7c9c902cd23a2",
+      "schema_version": 2
+    },
+    {
+      "id": "384cf2ff-8880-50c5-981d-104d3f399afe",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Step 2 — Build a Client Assertion > Prove your application's identity\n\nUse the signJWT() helper to build a client assertion proving your application's identity:\n\nSee Client Assertion for the full claims reference.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Prove your application's identity",
+        "category": "Step 2 — Build a Client Assertion",
+        "anchor": "step-2-client-assertion",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-2-client-assertion\",\"\"]:0",
+      "content_hash": "9d3654c2aac866669e6a72e2da6caaf913af025babfca06d40eb1499dd71f0aa",
+      "schema_version": 2
+    },
+    {
+      "id": "c9f766b1-d5d2-5473-8dcf-89755a055593",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Step 3 — Token Request > Exchange the assertion for an access token\n\nPOST to any LFI's token endpoint with scope=confirmation-of-payee:",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Exchange the assertion for an access token",
+        "category": "Step 3 — Token Request",
+        "anchor": "step-3-token-request",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-3-token-request\",\"\"]:0",
+      "content_hash": "25b6c00315d46837bbf98619d3e9583749a072cc9dca2437351ac30b085a7f78",
+      "schema_version": 2
+    },
+    {
+      "id": "a7736258-fa7d-5980-8e23-868e52919dcb",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Step 4 — Build a signed discovery request > Sign the IBAN-lookup payload\n\nThe request body is a signed JWT containing the IBAN, signed with your signing key:",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Sign the IBAN-lookup payload",
+        "category": "Step 4 — Build a signed discovery request",
+        "anchor": "step-4-discovery-request",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-4-discovery-request\",\"\"]:0",
+      "content_hash": "4cb1a63ac4d18f8c213f8dad8e66a428788423f886ab40a864421b2fb8b65d43",
+      "schema_version": 2
+    },
+    {
+      "id": "16d18e30-eebb-5c19-bbed-f16883acdf19",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Step 5 — POST /discovery > Resolve the LFI for an IBAN\n\nInclude x-fapi-interaction-id on the request. See Request Headers.\n\nSee the POST /discovery API reference for the full request and response schema.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Resolve the LFI for an IBAN",
+        "category": "Step 5 — POST /discovery",
+        "anchor": "step-5-post-discovery",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-5-post-discovery\",\"\"]:0",
+      "content_hash": "76b53eb71a382d8456693f88a6fa97147ea27a080d5b32f731aaf428ae87a3df",
+      "schema_version": 2
+    },
+    {
+      "id": "15f941c2-3719-5934-a0d2-0dbf375cf488",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Step 6 — Resolve the LFI token endpoint > Read the LFI's OpenID configuration\n\nFetch the DiscoveryEndpointUrl directly to read the LFI's OpenID configuration. This gives you the token_endpoint and issuer needed for the next steps:",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Read the LFI's OpenID configuration",
+        "category": "Step 6 — Resolve the LFI token endpoint",
+        "anchor": "step-6-resolve-token-endpoint",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-6-resolve-token-endpoint\",\"\"]:0",
+      "content_hash": "531dc2ba7844fd9f6703d2bcee06bfcb46ff226b4f83712b0bddbe10cb55c623",
+      "schema_version": 2
+    },
+    {
+      "id": "ac9aa6cd-bac8-5f79-a453-1b79a8bc55d2",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Step 7 — Build a Client Assertion > Build a fresh assertion for the resolved LFI\n\nUse the signJWT() helper to build a client assertion proving your application's identity:\n\nSee Client Assertion for the full claims reference.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Build a fresh assertion for the resolved LFI",
+        "category": "Step 7 — Build a Client Assertion",
+        "anchor": "step-7-client-assertion",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-7-client-assertion\",\"\"]:0",
+      "content_hash": "b7c3ad81962b672467d7bfb486008d372b194ab84df98defb59853c925da0ec6",
+      "schema_version": 2
+    },
+    {
+      "id": "c112c9ce-2005-56fe-a8e9-c1553255f25c",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Step 8 — Token Request > Get an access token from the resolved LFI\n\nPOST to the token endpoint (resolved in Step 6) with scope=confirmation-of-payee:",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Get an access token from the resolved LFI",
+        "category": "Step 8 — Token Request",
+        "anchor": "step-8-token-request",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-8-token-request\",\"\"]:0",
+      "content_hash": "b4610c406d590469bd05684886c3534ae4fcfdbdb66ce51b4d19dd21170d997a",
+      "schema_version": 2
+    },
+    {
+      "id": "3bf13100-e4d6-552d-af60-fe5f99ecd0ec",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Step 9 — Build and Sign the Confirmation Request > POST /confirmation — request payload\n\nThe confirmation request is sent as a signed JWT ( Content-Type: application/jwt ). Build the JWT payload containing the account details you want to verify, then sign it with your signing key.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "POST /confirmation — request payload",
+        "category": "Step 9 — Build and Sign the Confirmation Request",
+        "anchor": "step-9-build-confirmation-request",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-9-build-confirmation-request\",\"\"]:0",
+      "content_hash": "78c6fec8457fcee65c37298056a134b109de34503df08c5f3761280564f61e45",
+      "schema_version": 2
+    },
+    {
+      "id": "e771d58b-035b-5b38-a4de-08826992e2eb",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "subsection",
+      "text": "Confirmation of Payee — API Guide > Step 9 — Build and Sign the Confirmation Request > POST /confirmation — request payload > Request payload fields\n\nField | Type | Description | Example\nData.SchemeName * | enum | Account identifier type — always IBAN | IBAN\nData.Identification * | string | The IBAN to verify | AE070331234567890123456\nData.Name.FullName * | string | Full name of the account holder | Ibrahim Al Suwaidi\nData.Name.GivenName | string | Given (first) name — individual accounts | Ibrahim\nData.Name.LastName | string | Family name — individual accounts | Al Suwaidi\nData.Name.BusinessName | string | Registered business name — use instead of personal name fields for business accounts | Business Inc.\n\nProvide GivenName + LastName for personal accounts, or BusinessName for business accounts. Do not mix both.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "POST /confirmation — request payload",
+        "category": "Step 9 — Build and Sign the Confirmation Request",
+        "subsection": "Request payload fields",
+        "anchor": "step-9-build-confirmation-request",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-9-build-confirmation-request\",\"Request payload fields\"]:0",
+      "content_hash": "62fd6776bcebf96ce4f15ee984e82cf2ad3cdd39623d1acdda55b8c8b0104566",
+      "schema_version": 2
+    },
+    {
+      "id": "2e400de5-93f9-59a0-86e9-27f006657ee3",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "subsection",
+      "text": "Confirmation of Payee — API Guide > Step 9 — Build and Sign the Confirmation Request > POST /confirmation — request payload > Signing the request\n\nUse the signJWT() helper, wrapping the payload in a message claim:",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "POST /confirmation — request payload",
+        "category": "Step 9 — Build and Sign the Confirmation Request",
+        "subsection": "Signing the request",
+        "anchor": "step-9-build-confirmation-request",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-9-build-confirmation-request\",\"Signing the request\"]:0",
+      "content_hash": "d4513b86bfb7441e7303677ef741c63b744404b52f1027abf5b4b192d9184998",
+      "schema_version": 2
+    },
+    {
+      "id": "9cfdb6e8-2b99-5be6-935c-f2c6b194e462",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Step 10 — POST /confirmation > Send the signed JWT and decode the response\n\nSend the signed JWT to the LFI's CoP endpoint using the ResourceServerUrl resolved in Step 5. Both the request body and the response are JWTs. Include x-fapi-interaction-id on every request. See Request Headers.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Send the signed JWT and decode the response",
+        "category": "Step 10 — POST /confirmation",
+        "anchor": "step-10-post-confirmation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-10-post-confirmation\",\"\"]:0",
+      "content_hash": "434d8faa0761f803174cba71f0aa148e16791598207fe31fea769d2cfb792156",
+      "schema_version": 2
+    },
+    {
+      "id": "ba9a08e0-fbf8-53bb-b641-fd2e9d1fcfbf",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "subsection",
+      "text": "Confirmation of Payee — API Guide > Step 10 — POST /confirmation > Send the signed JWT and decode the response > Response\n\nThe response is a signed JWT. Decode the payload to read the match result:\n\nField | Type | Description\nData.NameMatchIndicator | string | The result of the name match check — see enum below\nData.MaskedName | string | The account holder's name, partially masked. Returned on ConfirmationOfPayee.Partial and ConfirmationOfPayee.No\n\nNameMatchIndicator | Meaning\nConfirmationOfPayee.Yes | Name and account match — safe to proceed\nConfirmationOfPayee.Partial | Name partially matches — present the MaskedName to the payer\nConfirmationOfPayee.No | Name does not match — present the MaskedName to the payer\n\nA ConfirmationOfPayee.Partial or ConfirmationOfPayee.No result must be surfaced to the payer — along with the MaskedName — before initiating a payment. Proceeding without informing the user may increase the risk of authorised push payment fraud.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Send the signed JWT and decode the response",
+        "category": "Step 10 — POST /confirmation",
+        "subsection": "Response",
+        "anchor": "step-10-post-confirmation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-10-post-confirmation\",\"Response\"]:0",
+      "content_hash": "30e2ed9d1a28d94c5f6b52ad6dbcfbd9a8e2b298f63ec188d7f89877bfe5fa3f",
+      "schema_version": 2
+    },
+    {
+      "id": "c40f574f-d008-5c42-bf71-1c29524b15e2",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "subsection",
+      "text": "Confirmation of Payee — API Guide > Step 10 — POST /confirmation > Send the signed JWT and decode the response > Decoding the JWS\n\nThe /confirmation response body is a compact JWS — three base64url-encoded segments separated by.:\n\nVerify the signature using the LFI's public key, then base64url-decode the payload:\n\nThe decoded payload contains a message object with the CoP result under message.Data:\n\nSee the POST /confirmation API reference for the full request and response schema.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Send the signed JWT and decode the response",
+        "category": "Step 10 — POST /confirmation",
+        "subsection": "Decoding the JWS",
+        "anchor": "step-10-post-confirmation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-10-post-confirmation\",\"Decoding the JWS\"]:0",
+      "content_hash": "9eee07b3587ddcffa00c0d6255c48b8bd94f139c44ce86de883173f31b96513a",
+      "schema_version": 2
+    },
+    {
+      "id": "e34b2a31-d556-540a-b337-1efd5e5f1fcd",
+      "document_id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+      "type": "section",
+      "text": "Confirmation of Payee — API Guide > Embedding the result > Using the CoP Response in a Payment Consent\n\nWhere Confirmation of Payee has been performed for a creditor, include the full raw JWS response string returned by the /confirmation endpoint in the ConfirmationOfPayeeResponse field of the creditor entry inside the payment consent PII.\n\nThis gives the LFI confidence that the creditor account details have been verified before the payment consent was created. The value must be the complete compact JWS string — do not decode it to an object before embedding.\n\nSee Creditor for the full PII creditor schema and the creditor models (single, multiple, and open beneficiary).\n\nSee Confirmation of Payee — User Experience for consent and authorisation page examples across different match results.",
+      "metadata": {
+        "title": "Confirmation of Payee — API Guide",
+        "section": "Using the CoP Response in a Payment Consent",
+        "category": "Embedding the result",
+        "anchor": "cop-in-payment-consent",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "acc1108a80f1ef9b50d8cd40a8334e1c7c1c43c8f12c3763c364cef446db9726",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"cop-in-payment-consent\",\"\"]:0",
+      "content_hash": "068a7fea76be6a800bea603bd242146a49fb2be43695d71af773cb1a3c9175e3",
+      "schema_version": 2
+    }
+  ]
+}

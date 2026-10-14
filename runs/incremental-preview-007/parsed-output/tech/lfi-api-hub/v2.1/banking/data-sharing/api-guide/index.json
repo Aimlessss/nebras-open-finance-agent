@@ -1,0 +1,1576 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/banking/data-sharing/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/banking/data-sharing/api-guide/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "20658f4c9045a705992b74513ee47c83f99b04ade51c6d275cdd66f8d0c840d2",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Bank Data Sharing — API Guide",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/data-sharing/api-guide",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Bank Data Sharing — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Bank Data Sharing lets a TPP retrieve a customer's account list, account details, balances, transactions, statements, beneficiaries, direct debits, scheduled payments, standing orders, products, and customer details from your LFI via the API Hub. This guide covers the Ozone Connect endpoints your LFI MUST implement so the Hub can serve TPP requests."
+      },
+      {
+        "type": "paragraph",
+        "text": "The behavioural rules for each endpoint — including account status handling, required field population, and AccountSubType coverage — are in the Bank Data Sharing Requirements. This guide covers the request and response shape of each endpoint."
+      },
+      {
+        "type": "paragraph",
+        "text": "To see what the TPP receives for each field you return — and which consent permission exposes it — see the Field Mapping pages, one per endpoint, starting with GET /accounts."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What must be in place before you implement",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before implementing Bank Data Sharing, ensure the following are in place:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "API Hub onboarded — Your API Hub instance is provisioned and your environment-specific configuration is complete.",
+              "Consent Journey implemented — The Consent Journey API Guide MUST be implemented first. A Bank Data Sharing request cannot be served without an authorized consent, so GET /auth, GET /consents/{consentId}, PATCH /consents/{consentId}, POST /auth/{interactionId}/doConfirm, and POST /auth/{interactionId}/doFail must already be in place.",
+              "Ozone Connect connectivity verified — Bidirectional mTLS connectivity is confirmed between the API Hub and your Ozone Connect base URL. See Connectivity & Certificates."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end Bank Data Sharing",
+        "level": 2,
+        "anchor": "api-sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Validate the consent before it is created",
+        "level": 2,
+        "anchor": "consent-validation",
+        "category": "Consent validation",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "During consent creation, if your LFI has configured the POST /consent/action/validate endpoint, the API Hub forwards the full consent payload to your Ozone Connect server before the consent is created. The request and response shape, and the overall placement of this call in the consent lifecycle, are covered in the Consent Journey API Guide — Validate the consent."
+          },
+          {
+            "type": "paragraph",
+            "text": "For Bank Data Sharing consents ( consentType: cbuae-account-access-consents ), your LFI MUST respond with data.status: invalid in the cases listed in Bank Data Sharing Requirements — Consent Validation."
+          },
+          {
+            "type": "paragraph",
+            "text": "If the validate endpoint is not configured, the API Hub assumes all consents are valid and creates them immediately — those checks then cannot be enforced. Configuring the endpoint is strongly recommended for Bank Data Sharing."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Authorize the customer at your LFI",
+        "level": 2,
+        "anchor": "consent-flow",
+        "category": "Consent flow",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Once the consent has been created, the TPP redirects the customer to your LFI's authorization endpoint — the URL you registered during API Hub onboarding. From there, your LFI runs the standard consent journey: authenticate the customer, retrieve the consent, let the customer approve or reject it, patch the authorized accounts and customer identifier onto the consent, and redirect back to the Hub."
+          },
+          {
+            "type": "paragraph",
+            "text": "The endpoints your LFI implements against the API Hub for this flow are:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Endpoint",
+              "Direction",
+              "Purpose"
+            ],
+            "rows": [
+              [
+                "GET /auth",
+                "LFI → API Hub",
+                "Initiate the authorization interaction"
+              ],
+              [
+                "GET /consents/{consentId}",
+                "LFI → API Hub",
+                "Retrieve the full consent details"
+              ],
+              [
+                "PATCH /consents/{consentId}",
+                "LFI → API Hub",
+                "Update consent status, customer identifiers, and account IDs"
+              ],
+              [
+                "POST /auth/{interactionId}/doConfirm",
+                "LFI → API Hub",
+                "Complete the interaction and redirect back to the TPP successfully"
+              ],
+              [
+                "POST /auth/{interactionId}/doFail",
+                "LFI → API Hub",
+                "Complete the interaction and redirect back to the TPP with a failure"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Full details are in the Consent Journey API Guide."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "After the consent is authorized",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Every request the TPP makes to the API Hub's resource server — for example, https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/v2.1/accounts — MUST carry an access token bound to the authorized consent."
+              },
+              {
+                "type": "paragraph",
+                "text": "The API Hub then performs the following checks before any traffic reaches your LFI:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Validates the access token",
+                  "Validates that the consent is in Authorised status",
+                  "Validates that the consent grants access to the requested resource — e.g. ReadAccountsBasic or ReadAccountsDetail is required to call GET /open-finance/account-information/v2.1/accounts",
+                  "For endpoints scoped to a specific account, validates that the {accountId} path parameter is one of the accounts the LFI patched onto the consent at authorization. For GET /accounts, the same set is supplied to your Ozone Connect endpoint as the accountIds query parameter",
+                  "Validates that the TPP holds the role required to call the endpoint (e.g. BDSP for Bank Data Sharing)"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "If all checks pass, the Hub proxies the request to your Ozone Connect base URL, enriching it with the headers listed in Common request headers. The headers most relevant to your LFI are:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "o3-consent-id — the authorized consent backing this call",
+                  "o3-psu-identifier — the opaque reference your LFI patched onto the consent during the Consent flow, identifying the customer inside your systems",
+                  "o3-api-uri — the parameterised URL the TPP called",
+                  "o3-ozone-interaction-id — a per-request correlation ID for debugging"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Shared conventions across every endpoint",
+        "level": 2,
+        "anchor": "conventions",
+        "category": "Ozone Connect Data Sharing responses",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The remainder of this guide covers the LFI-facing Ozone Connect endpoints that serve each TPP request after the consent is authorized — the shared conventions (field population, request headers, error responses, pagination) followed by the per-endpoint request and response shapes."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Field population",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Every field that exists on the LFI's systems, or is derivable from them, MUST be populated in the response. TPPs rely on this data to serve customer use cases end-to-end — a field the LFI omits is a feature the TPP cannot build. The OpenAPI spec marks the minimum required set, but LFIs MUST populate every optional field they hold."
+              },
+              {
+                "type": "paragraph",
+                "text": "This rule applies to every endpoint in this guide. The endpoint-specific rules in Bank Data Sharing Requirements call out fields that are always required for each endpoint."
+              }
+            ]
+          },
+          {
+            "heading": "Common request headers",
+            "level": 3,
+            "anchor": "common-request-headers",
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "All resource endpoints receive the same set of headers from the API Hub. They are listed here and referenced from each endpoint section below."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Header",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "o3-provider-id",
+                    "Yes",
+                    "Identifier for your LFI registered in the Hub"
+                  ],
+                  [
+                    "o3-aspsp-id",
+                    "Yes (deprecated)",
+                    "Deprecated alias for o3-provider-id. Will be removed in a future version — use o3-provider-id"
+                  ],
+                  [
+                    "o3-caller-org-id",
+                    "Yes",
+                    "Organisation ID of the TPP making the underlying request"
+                  ],
+                  [
+                    "o3-caller-client-id",
+                    "Yes",
+                    "OIDC client ID of the TPP application"
+                  ],
+                  [
+                    "o3-caller-software-statement-id",
+                    "Yes",
+                    "Software statement ID of the TPP application"
+                  ],
+                  [
+                    "o3-api-uri",
+                    "Yes",
+                    "The parameterised URL of the API being called by the TPP"
+                  ],
+                  [
+                    "o3-api-operation",
+                    "Yes",
+                    "The HTTP method of the operation carried out by the TPP (e.g. GET )"
+                  ],
+                  [
+                    "o3-consent-id",
+                    "Yes",
+                    "The consent ID authorising this call"
+                  ],
+                  [
+                    "o3-psu-identifier",
+                    "Yes",
+                    "Base64-encoded representation of the customer identifier JSON object — the opaque LFI-issued reference patched onto the consent at authorization, linking the consent to the authenticated customer"
+                  ],
+                  [
+                    "o3-ozone-interaction-id",
+                    "Yes",
+                    "Hub-generated interaction ID. Equals o3-caller-interaction-id if the TPP provided one"
+                  ],
+                  [
+                    "o3-caller-interaction-id",
+                    "No",
+                    "Interaction ID passed in by the TPP, if present"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Token and consent validation have already been performed by the Hub before the request reaches your Ozone Connect endpoint. Your LFI does not re-validate the token or consent — it is trusted to be valid. See Bank Data Sharing Requirements for what your Ozone Connect endpoints must validate."
+              }
+            ]
+          },
+          {
+            "heading": "Common error responses",
+            "level": 3,
+            "anchor": "common-error-responses",
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Every /accounts/{accountId}/… endpoint MUST check the account's status before returning data — if the account is not Active, the endpoint MUST respond with 403 instead of returning the resource. GET /accounts is the only exception: it lists every consented account regardless of status, with the Status field populated so the TPP can observe the current state."
+              },
+              {
+                "type": "paragraph",
+                "text": "All error bodies MUST include errorCode and errorMessage."
+              }
+            ]
+          },
+          {
+            "heading": "403 — Forbidden",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Return 403 using the Account Status Handling mapping:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "errorCode",
+                  "errorMessage",
+                  "When to use"
+                ],
+                "rows": [
+                  [
+                    "Consent.AccountTemporarilyBlocked",
+                    "The account is temporarily blocked.",
+                    "Account status is Suspended"
+                  ],
+                  [
+                    "Consent.PermanentAccountAccessFailure",
+                    "The account is permanently inaccessible.",
+                    "Account status is Closed, Deceased, or Unclaimed"
+                  ],
+                  [
+                    "GenericError",
+                    "The account is inaccessible.",
+                    "{accountId} does not belong to the customer identified by o3-psu-identifier"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "400 — Bad Request",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Return 400 only for a request that is genuinely malformed — not for a well-formed request that simply matches no data. The API Hub enforces the OpenAPI schema before proxying, so most format errors are rejected upstream and rarely reach your Ozone Connect endpoints."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "errorCode",
+                  "errorMessage",
+                  "When to use"
+                ],
+                "rows": [
+                  [
+                    "Resource.InvalidFormat",
+                    "A query parameter has an invalid format.",
+                    "A date-range query parameter cannot be parsed, a contradictory range is supplied ( fromBookingDateTime after toBookingDateTime ), or toBookingDateTime is in the future. The API Hub enforces these checks before proxying, so an LFI does not normally return this itself"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Pagination",
+            "level": 3,
+            "anchor": "pagination",
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "GET /accounts/{accountId}/transactions and GET /accounts/{accountId}/statements MUST support pagination. Other list endpoints ( /beneficiaries, /direct-debits, /scheduled-payments, /standing-orders, /products, /accounts/{accountId}/customer ) MAY support pagination where result sets warrant it."
+              },
+              {
+                "type": "paragraph",
+                "text": "The LFI implements page-based pagination ( page / page-size query params, meta.paginated / meta.totalPages / meta.totalRecords in the response). The API Hub converts this into the Links envelope returned to the TPP."
+              },
+              {
+                "type": "paragraph",
+                "text": "See Pagination for the full behaviour."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /accounts",
+        "level": 2,
+        "anchor": "get-accounts",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns the accounts matching the accountIds query parameter. Non-CAAP LFIs MUST treat accountIds as mandatory — it is always supplied by the Hub and contains the set of accounts the customer consented to share."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers."
+              }
+            ]
+          },
+          {
+            "heading": "Query parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Default",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "accountIds",
+                    "Yes",
+                    "—",
+                    "Comma-separated list of account IDs to return. Populated by the Hub from the accountIds your LFI patched onto the consent during the Consent flow"
+                  ],
+                  [
+                    "page",
+                    "Yes",
+                    "1",
+                    "Page number for paginated results"
+                  ],
+                  [
+                    "page-size",
+                    "Yes",
+                    "100",
+                    "Number of records per page"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json. Return 200 with a data array containing one record per consented account. See GET /accounts rules for field-level requirements."
+              },
+              {
+                "type": "paragraph",
+                "text": "GET /accounts is exempt from the Common error responses status mapping — return all consented accounts regardless of status."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /accounts API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /accounts/{accountId}",
+        "level": 2,
+        "anchor": "get-accounts-accountid",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns the full details of a single account. The response shape is the same CbuaeAccount returned inside the data array of GET /accounts, wrapped as a single object rather than an array. Data returned here MUST be consistent with what is returned by GET /accounts for the same account."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers."
+              }
+            ]
+          },
+          {
+            "heading": "Path parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "accountId",
+                    "Yes",
+                    "The ID of the account to return. MUST be one of the accounts on the consent"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "Errors: see Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /accounts/{accountId} API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /accounts/{accountId}/balances",
+        "level": 2,
+        "anchor": "get-accounts-balances",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/balances."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns the balances for a single account. An account may have more than one balance — return one record per distinct balanceType held. For CurrentAccount and Savings accounts, a record with balanceType: InterimAvailable MUST always be included — this is the real-time available balance. Include creditLines where applicable."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers."
+              }
+            ]
+          },
+          {
+            "heading": "Path parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "accountId",
+                    "Yes",
+                    "The ID of the account whose balances are being returned"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Query parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Default",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "page",
+                    "Yes",
+                    "1",
+                    "Page number"
+                  ],
+                  [
+                    "page-size",
+                    "Yes",
+                    "100",
+                    "Records per page"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "The full set of allowable balanceType values ( ClosingAvailable, ClosingBooked, ClosingCleared, Expected, ForwardAvailable, Information, InterimAvailable, InterimBooked, InterimCleared, OpeningAvailable, OpeningBooked, OpeningCleared, PreviouslyClosedBooked ) is defined in the OpenAPI spec."
+              },
+              {
+                "type": "paragraph",
+                "text": "Errors: see Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /accounts/{accountId}/balances API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /accounts/{accountId}/transactions",
+        "level": 2,
+        "anchor": "get-accounts-transactions",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/transactions."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns the transactions for a single account, filtered by booking date-time where provided. Pagination is required for this endpoint — see Pagination."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers. In addition:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Header",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "o3-fx-transactions",
+                    "No",
+                    "If true, return only FX-related transactions, based on permissions set in the related consent"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Path parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "accountId",
+                    "Yes",
+                    "The ID of the account whose transactions are being returned"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Query parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Default",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "fromBookingDateTime",
+                    "No",
+                    "—",
+                    "Return only transactions booked on or after this date-time. Open-ended if omitted. Any timezone offset MUST be ignored"
+                  ],
+                  [
+                    "toBookingDateTime",
+                    "No",
+                    "—",
+                    "Return only transactions booked on or before this date-time. Open-ended if omitted. Any timezone offset MUST be ignored"
+                  ],
+                  [
+                    "page",
+                    "Yes",
+                    "1",
+                    "Page number"
+                  ],
+                  [
+                    "page-size",
+                    "Yes",
+                    "100",
+                    "Records per page"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "At least two years of transactions MUST be available for retrieval. If no transactions exist within the requested range, return 200 with an empty data array — do not return 404."
+              },
+              {
+                "type": "paragraph",
+                "text": "The two-year rule is a minimum availability guarantee, not a query limit. An LFI MUST NOT reject a request solely because fromBookingDateTime or toBookingDateTime extends beyond two years into the past, or because the range matches no transactions — return 200 with the matching subset, empty where there is none. An LFI MAY return transactions older than two years where it holds them. The API Hub rejects malformed date-range requests before proxying — an unparseable date-time, a contradictory range ( fromBookingDateTime after toBookingDateTime ), or a toBookingDateTime in the future — with 400, so the LFI receives only well-formed ranges. See Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "Errors: see Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /accounts/{accountId}/transactions API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /accounts/{accountId}/statements",
+        "level": 2,
+        "anchor": "get-accounts-statements",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/statements."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns the statements for a single account, filtered by statement date where provided. Pagination is required for this endpoint — see Pagination."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers."
+              }
+            ]
+          },
+          {
+            "heading": "Path parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "accountId",
+                    "Yes",
+                    "The ID of the account whose statements are being returned"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Query parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Default",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "fromStatementDate",
+                    "No",
+                    "—",
+                    "Return only statements with a statement date on or after this date. Open-ended if omitted"
+                  ],
+                  [
+                    "toStatementDate",
+                    "No",
+                    "—",
+                    "Return only statements with a statement date on or before this date. Open-ended if omitted"
+                  ],
+                  [
+                    "page",
+                    "Yes",
+                    "1",
+                    "Page number"
+                  ],
+                  [
+                    "page-size",
+                    "Yes",
+                    "100",
+                    "Records per page"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "At least two years of statements MUST be available for retrieval. If no statements exist in the requested range, return 200 with an empty data array."
+              },
+              {
+                "type": "paragraph",
+                "text": "As with transactions, the two-year rule is a minimum availability guarantee, not a query limit. An LFI MUST NOT reject a request solely because fromStatementDate or toStatementDate extends beyond two years into the past, or because the range matches no statements — return 200 with the matching subset, empty where there is none. An LFI MAY return statements older than two years where it holds them. The API Hub rejects malformed date-range requests before proxying — an unparseable date, a contradictory range ( fromStatementDate after toStatementDate ), or a toStatementDate in the future — with 400, so the LFI receives only well-formed ranges. See Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "Errors: see Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /accounts/{accountId}/statements API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /accounts/{accountId}/beneficiaries",
+        "level": 2,
+        "anchor": "get-accounts-beneficiaries",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/beneficiaries."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns the beneficiaries linked to the account. Only supported for CurrentAccount and Savings — not available for CreditCard, Finance, or Mortgage accounts."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers."
+              }
+            ]
+          },
+          {
+            "heading": "Path parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "accountId",
+                    "Yes",
+                    "The ID of the account whose beneficiaries are being returned"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Query parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Default",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "page",
+                    "Yes",
+                    "1",
+                    "Page number"
+                  ],
+                  [
+                    "page-size",
+                    "Yes",
+                    "100",
+                    "Records per page"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "If the account holds no beneficiaries, return 200 with an empty data array — do not return 404."
+              },
+              {
+                "type": "paragraph",
+                "text": "Errors: see Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /accounts/{accountId}/beneficiaries API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /accounts/{accountId}/direct-debits",
+        "level": 2,
+        "anchor": "get-accounts-direct-debits",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/direct-debits."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns the direct debits linked to the account. Only supported for CurrentAccount and Savings."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers."
+              }
+            ]
+          },
+          {
+            "heading": "Path parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "accountId",
+                    "Yes",
+                    "The ID of the account whose direct debits are being returned"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Query parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Default",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "page",
+                    "Yes",
+                    "1",
+                    "Page number"
+                  ],
+                  [
+                    "page-size",
+                    "Yes",
+                    "100",
+                    "Records per page"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "If the account holds no direct debits, return 200 with an empty data array."
+              },
+              {
+                "type": "paragraph",
+                "text": "Errors: see Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /accounts/{accountId}/direct-debits API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /accounts/{accountId}/scheduled-payments",
+        "level": 2,
+        "anchor": "get-accounts-scheduled-payments",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/scheduled-payments."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns one-off scheduled payments linked to the account. Only supported for CurrentAccount and Savings."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers."
+              }
+            ]
+          },
+          {
+            "heading": "Path parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "accountId",
+                    "Yes",
+                    "The ID of the account whose scheduled payments are being returned"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Query parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Default",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "page",
+                    "Yes",
+                    "1",
+                    "Page number"
+                  ],
+                  [
+                    "page-size",
+                    "Yes",
+                    "100",
+                    "Records per page"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "Errors: see Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /accounts/{accountId}/scheduled-payments API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /accounts/{accountId}/standing-orders",
+        "level": 2,
+        "anchor": "get-accounts-standing-orders",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/standing-orders."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns standing orders linked to the account. Only supported for CurrentAccount and Savings."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers."
+              }
+            ]
+          },
+          {
+            "heading": "Path parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "accountId",
+                    "Yes",
+                    "The ID of the account whose standing orders are being returned"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Query parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Default",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "page",
+                    "Yes",
+                    "1",
+                    "Page number"
+                  ],
+                  [
+                    "page-size",
+                    "Yes",
+                    "100",
+                    "Records per page"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "Errors: see Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /accounts/{accountId}/standing-orders API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /accounts/{accountId}/products",
+        "level": 2,
+        "anchor": "get-accounts-products",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/product (singular on the TPP side)."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns the product data associated with the account — fees, charges, rates, rewards, benefits, and eligibility criteria. FinanceRates may be returned as cleartext JSON or as a JWE compact string — see Encrypted FinanceRates."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers."
+              }
+            ]
+          },
+          {
+            "heading": "Path parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "accountId",
+                    "Yes",
+                    "The ID of the account whose product data is being returned"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Query parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Default",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "page",
+                    "Yes",
+                    "1",
+                    "Page number"
+                  ],
+                  [
+                    "page-size",
+                    "Yes",
+                    "100",
+                    "Records per page"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "If no product data exists for the account, return 200 with an empty data array."
+              },
+              {
+                "type": "paragraph",
+                "text": "Errors: see Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /accounts/{accountId}/products API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /accounts/{accountId}/customer",
+        "level": 2,
+        "anchor": "get-accounts-customer",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/accounts/{AccountId}/parties — \"parties\" on the TPP side, \"customer\" on Ozone Connect."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns the customer records associated with a specific account. Joint accounts return one record per joint holder."
+          },
+          {
+            "type": "paragraph",
+            "text": "The response is based on OpenID Connect for Identity Assurance 1.0 — claims are carried inside a verifiedClaims envelope. See Identity Assurance Claims."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers."
+              }
+            ]
+          },
+          {
+            "heading": "Path parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "accountId",
+                    "Yes",
+                    "The ID of the account whose customers are being returned"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              }
+            ]
+          },
+          {
+            "heading": "200 — Retail (personal) account",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "200 — SME / Corporate account",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Errors: see Common error responses."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /accounts/{accountId}/customer API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "GET /customer",
+        "level": 2,
+        "anchor": "get-customer",
+        "category": "Endpoint",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Backs the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/account-information/vx.y/parties — \"parties\" on the TPP side, \"customer\" on Ozone Connect."
+          },
+          {
+            "type": "paragraph",
+            "text": "Returns the customer record for the authenticated customer. Unlike /accounts/{accountId}/customer, this endpoint is not scoped to a specific account."
+          },
+          {
+            "type": "paragraph",
+            "text": "The response MUST be derived from the o3-psu-identifier header — not from any account on the consent. At authorization, the LFI patched an opaque customer identifier onto the consent, linking the consent to the authenticated user inside the LFI's own systems. The Hub forwards that identifier here. Your LFI resolves it back to the customer and returns that customer's claims."
+          },
+          {
+            "type": "paragraph",
+            "text": "o3-consent-id is still supplied so the LFI can attribute the call for logging, but it MUST NOT be used to select which customer to return — the customer who authenticated the consent is the only subject of this response."
+          },
+          {
+            "type": "paragraph",
+            "text": "The response is based on OpenID Connect for Identity Assurance 1.0. See Identity Assurance Claims."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See Common request headers. o3-psu-identifier is the operative header for this endpoint."
+              }
+            ]
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /customer API Reference for the full schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "OpenID Connect Identity Assurance envelope",
+        "level": 2,
+        "anchor": "customer-data-responses",
+        "category": "Customer data responses",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The response format for GET /customer and GET /accounts/{accountId}/customer (and the CoP query response) is based on the OpenID Connect for Identity Assurance 1.0 Specification — claims about a customer are carried inside a verifiedClaims envelope with a verification.trustFramework indicating the framework under which the claims were verified."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Identity Assurance Claims for the shared envelope and how it maps to each endpoint."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

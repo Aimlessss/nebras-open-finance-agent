@@ -1,0 +1,420 @@
+{
+  "id": "tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information/creditor",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information/creditor.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "9e9dea343915174fa8344e4580380b343cec318d5f27604105dc3e84fd0e1b1c",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Creditor",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information/creditor",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Creditor",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Creditor data is submitted as part of the PII payload at two points in the payment lifecycle. The structure is different at each stage."
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Stage",
+          "Endpoint",
+          "Structure"
+        ],
+        "rows": [
+          [
+            "Consent staging",
+            "POST /par",
+            "Initiation.Creditor — an array of creditor entries"
+          ],
+          [
+            "Payment creation",
+            "POST /payments",
+            "Initiation.CreditorAccount, Initiation.CreditorAgent, Initiation.Creditor, Initiation.ConfirmationOfPayeeResponse — flat fields on Initiation"
+          ]
+        ]
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Initiation.Creditor — array of creditor entries",
+        "level": 2,
+        "anchor": "consent-time",
+        "category": "Creditor at consent time — POST /par",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "At consent staging, creditor data lives in Initiation.Creditor — an array of creditor entry objects. Each entry has the structure:"
+          },
+          {
+            "type": "paragraph",
+            "text": "The number of entries in the array determines the beneficiary model, which constrains which payment types are available."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Single Beneficiary (1 entry)",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The Creditor array contains exactly one entry. The consent is bound to that creditor — every payment made under this consent must go to that account."
+              },
+              {
+                "type": "paragraph",
+                "text": "Supported payment types:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Payment Type"
+                ],
+                "rows": [
+                  [
+                    "Single Instant Payment — domestic"
+                  ],
+                  [
+                    "Single Instant Payment — international"
+                  ],
+                  [
+                    "Fixed Defined Schedule multi-payment"
+                  ],
+                  [
+                    "Variable Defined Schedule multi-payment"
+                  ],
+                  [
+                    "Fixed Periodic Schedule multi-payment"
+                  ],
+                  [
+                    "Variable Periodic Schedule multi-payment"
+                  ],
+                  [
+                    "Fixed On-Demand multi-payment"
+                  ],
+                  [
+                    "Variable On-Demand multi-payment"
+                  ],
+                  [
+                    "Delegated SCA ( IsDelegatedAuthentication: true )"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Multiple Beneficiaries (2–10 entries)",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The Creditor array contains between 2 and 10 entries. The consent authorises payments to any one of the listed creditors — each individual payment specifies which one."
+              },
+              {
+                "type": "paragraph",
+                "text": "Supported payment types:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Payment Type"
+                ],
+                "rows": [
+                  [
+                    "Variable On-Demand multi-payment"
+                  ],
+                  [
+                    "Delegated SCA ( IsDelegatedAuthentication: true )"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Open Beneficiary (array omitted)",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The Creditor array is not provided. No beneficiary is fixed at consent time — the creditor is supplied with each POST /payments call."
+              },
+              {
+                "type": "paragraph",
+                "text": "Supported payment types:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Payment Type"
+                ],
+                "rows": [
+                  [
+                    "Variable On-Demand multi-payment"
+                  ],
+                  [
+                    "Delegated SCA ( IsDelegatedAuthentication: true )"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Flat fields on Initiation — single AEDomesticCreditor",
+        "level": 2,
+        "anchor": "payment-time",
+        "category": "Creditor at payment time — POST /payments",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "At payment creation, the Initiation object in the PII payload is a single AEDomesticCreditor — the creditor fields are flat properties of Initiation, not nested inside an array."
+          },
+          {
+            "type": "paragraph",
+            "text": "Initiation.Creditor at POST /payments is the party identity object ( { Name, PostalAddress } ) — not the array that appears at POST /par. The two uses of the word Creditor refer to different things."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Matching the authorised creditor",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The creditor supplied at POST /payments must correspond to one of the creditors authorised on the consent. The rule depends on the beneficiary model:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Consent model",
+                  "Creditor at POST /par",
+                  "Requirement at POST /payments"
+                ],
+                "rows": [
+                  [
+                    "Single beneficiary",
+                    "1 entry in Initiation.Creditor[]",
+                    "Must exactly match that entry — same IBAN and account name"
+                  ],
+                  [
+                    "Multiple beneficiaries",
+                    "2–10 entries in Initiation.Creditor[]",
+                    "Must exactly match one entry from the pre-approved list"
+                  ],
+                  [
+                    "Open beneficiary",
+                    "Initiation.Creditor[] omitted",
+                    "Any valid creditor — no consent-time match required"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "For Single and Multiple Beneficiary consents, the LFI validates that the CreditorAccount.Identification (IBAN) at POST /payments matches a creditor entry from the authorised consent. A mismatch will result in the payment being rejected."
+              },
+              {
+                "type": "paragraph",
+                "text": "For Open Beneficiary consents, this is where the creditor details appear for the first time. The LFI validates the supplied creditor against the same mandatory field and IBAN rules that apply at consent time — there is no consent-time entry to match against."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "The shape of each creditor entry — applies to both stages",
+        "level": 2,
+        "anchor": "entry-schema",
+        "category": "Creditor entry schema",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The following schema applies to each entry in Initiation.Creditor[] at POST /par, and to the flat fields on Initiation at POST /payments."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Type",
+              "Required",
+              "Description"
+            ],
+            "rows": [
+              [
+                "CreditorAccount.SchemeName",
+                "enum",
+                "Yes",
+                "Always IBAN for domestic payments"
+              ],
+              [
+                "CreditorAccount.Identification",
+                "string",
+                "Yes",
+                "The IBAN of the creditor account"
+              ],
+              [
+                "CreditorAccount.Name.en",
+                "string",
+                "Yes*",
+                "Account holder name in English"
+              ],
+              [
+                "CreditorAccount.Name.ar",
+                "string",
+                "Yes*",
+                "Account holder name in Arabic"
+              ],
+              [
+                "CreditorAccount.TradingName",
+                "object",
+                "No",
+                "Trading brand name, if applicable"
+              ],
+              [
+                "CreditorAccount.Type",
+                "enum",
+                "No",
+                "Account type: Individual, Merchant, Business, Charity, GovernmentBody, Other"
+              ],
+              [
+                "Creditor.Name",
+                "string",
+                "No",
+                "Full legal name of the payment recipient"
+              ],
+              [
+                "Creditor.PostalAddress",
+                "object",
+                "No",
+                "Postal address of the payment recipient"
+              ],
+              [
+                "CreditorAgent.SchemeName",
+                "enum",
+                "No",
+                "BICFI or Other"
+              ],
+              [
+                "CreditorAgent.Identification",
+                "string",
+                "No",
+                "BIC/SWIFT code or payment scheme identifier"
+              ],
+              [
+                "ConfirmationOfPayeeResponse",
+                "string (JWS)",
+                "No",
+                "The full JWS returned by the CoP /confirmation endpoint, if CoP was performed"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "*At least one of Name.en or Name.ar must be present."
+          },
+          {
+            "type": "paragraph",
+            "text": "Where Confirmation of Payee has been performed for a creditor, include the full JWS response string in ConfirmationOfPayeeResponse. This gives the LFI confidence that the creditor account details have been verified. See Confirmation of Payee API Guide for how to obtain the CoP response."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Rules the LFI applies after decrypting the PII",
+        "level": 2,
+        "anchor": "validation",
+        "category": "Validation requirements — domestic payments",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "These requirements apply at both POST /par and POST /payments:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "At POST /par: each entry in the Initiation.Creditor[] array is validated independently.",
+              "At POST /payments: the flat creditor fields on Initiation are validated."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Because PII is encrypted using the LFI's public key, Nebras cannot validate it. All validation is performed by the LFI after decryption. A consent or payment that fails LFI validation will be rejected."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "1. Schema conformance",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The decrypted PII must conform exactly to the schema defined in the OpenAPI specification ( AEDomesticPaymentPII for POST /par, AEDomesticPaymentPIIProperties for POST /payments ). No additional properties are permitted."
+              }
+            ]
+          },
+          {
+            "heading": "2. Mandatory fields",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Requirement"
+                ],
+                "rows": [
+                  [
+                    "CreditorAccount.Name.en or CreditorAccount.Name.ar",
+                    "At least one must be present"
+                  ],
+                  [
+                    "CreditorAccount.SchemeName",
+                    "Must be \"IBAN\" — \"AccountNumber\" is not valid for domestic payments"
+                  ],
+                  [
+                    "CreditorAccount.Identification",
+                    "Must be a valid UAE IBAN"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "3. CreditorAgent — BIC derivation and validation",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The CreditorAgent.Identification field identifies the creditor's bank. LFIs apply the following rules:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "If CreditorAgent is not provided — the LFI must derive the BIC from the IBAN.",
+                  "If CreditorAgent.Identification is provided — the LFI must accept both 8-character and 11-character BIC formats. The LFI must not reject a valid BIC solely because of its length. Where AANI requires an 8-character BIC and an 11-character BIC is received, the LFI must validate that the 8-character truncation is consistent with the IBAN before submitting. In all cases, the LFI must validate that the provided BIC matches the BIC derivable from the IBAN."
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

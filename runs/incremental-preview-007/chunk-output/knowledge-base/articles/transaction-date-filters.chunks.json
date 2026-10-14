@@ -1,0 +1,119 @@
+{
+  "document_id": "knowledge-base/articles/transaction-date-filters",
+  "chunk_count": 4,
+  "chunks": [
+    {
+      "id": "d8805529-91ed-5729-84a0-a41bb834f65e",
+      "document_id": "knowledge-base/articles/transaction-date-filters",
+      "type": "intro",
+      "text": "Date Filters — fromBookingDateTime & toBookingDateTime\n\nBoth list endpoints take an optional, open-ended date range. GET /accounts/{accountId}/transactions uses fromBookingDateTime / toBookingDateTime; GET /accounts/{accountId}/statements uses fromStatementDate / toStatementDate. The behaviour is identical — the examples below use transactions.",
+      "metadata": {
+        "title": "Date Filters — fromBookingDateTime & toBookingDateTime",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/transaction-date-filters.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "2412cfae502ebcbc333a84f3f74d450dd12d9fdc25894725b188699dbbf49d0c",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/transaction-date-filters",
+        "doc_version": "unversioned",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "31956a30a6c467ca14b2bdfbf7b51005d2b61b1de296e3ee71d3cc05408c81e4",
+      "schema_version": 2
+    },
+    {
+      "id": "b2a55168-7f22-56ad-b5d1-8685713e577c",
+      "document_id": "knowledge-base/articles/transaction-date-filters",
+      "type": "section",
+      "text": "Date Filters — fromBookingDateTime & toBookingDateTime > Accepted > What the range accepts\n\nBoth parameters are optional. They narrow the result to transactions booked on or after fromBookingDateTime and on or before toBookingDateTime; omit either bound for an open-ended range. A well-formed range is always accepted — even when it matches nothing. In particular, the following are valid requests, not errors:\n\n- a range reaching beyond two years into the past — the LFI returns the records it holds, and MAY return records older than two years where it has them;\n- a quiet period with no activity;\n- a fromBookingDateTime set in the future or later than any booked transaction — coherent, it simply matches nothing.\n\nIn each of these cases the response is 200 with the matching subset in data — an empty array where nothing matches. A 404 MUST NOT be used to signal \"no transactions in range\".",
+      "metadata": {
+        "title": "Date Filters — fromBookingDateTime & toBookingDateTime",
+        "section": "What the range accepts",
+        "category": "Accepted",
+        "anchor": "accepted",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/transaction-date-filters.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "2412cfae502ebcbc333a84f3f74d450dd12d9fdc25894725b188699dbbf49d0c",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/transaction-date-filters",
+        "doc_version": "unversioned",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"accepted\",\"\"]:0",
+      "content_hash": "cacd1f85056e7d0fc827a54116ce7312c6646f451060b972574f2b717c3437ed",
+      "schema_version": 2
+    },
+    {
+      "id": "7804cfab-fd6e-59eb-8a68-425addc367d6",
+      "document_id": "knowledge-base/articles/transaction-date-filters",
+      "type": "section",
+      "text": "Date Filters — fromBookingDateTime & toBookingDateTime > Rejected > Three cases the API Hub rejects\n\nThe API Hub validates the date range before proxying the request to the LFI. It returns 400 with Resource.InvalidFormat in three cases:\n\n- a date-time parameter cannot be parsed;\n- the range is contradictory — fromBookingDateTime is after toBookingDateTime;\n- toBookingDateTime is in the future — an upper bound on when a transaction was booked cannot lie past the current moment.\n\nNote the asymmetry: only the upper bound is checked against the clock. A future fromBookingDateTime is coherent — it just matches nothing — so it is accepted and returns 200. The identical three checks apply to fromStatementDate / toStatementDate on the statements endpoint.",
+      "metadata": {
+        "title": "Date Filters — fromBookingDateTime & toBookingDateTime",
+        "section": "Three cases the API Hub rejects",
+        "category": "Rejected",
+        "anchor": "rejected",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/transaction-date-filters.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "2412cfae502ebcbc333a84f3f74d450dd12d9fdc25894725b188699dbbf49d0c",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/transaction-date-filters",
+        "doc_version": "unversioned",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"rejected\",\"\"]:0",
+      "content_hash": "9c973dfe72f5b979a315ada351dfe6b062aa6b1a6b221b5301eb3ea42b1c10c6",
+      "schema_version": 2
+    },
+    {
+      "id": "a6787e22-2a10-5828-965d-d027d72e0a22",
+      "document_id": "knowledge-base/articles/transaction-date-filters",
+      "type": "section",
+      "text": "Date Filters — fromBookingDateTime & toBookingDateTime > What the LFI does > What your Ozone Connect implementation must do\n\nBecause the API Hub catches all three malformed cases, your Ozone Connect endpoints receive only parseable, non-contradictory ranges whose upper bound is not in the future. There is nothing to re-validate — the LFI's job is simply to filter and return:\n\n- Filter to transactions whose booking date-time falls within the supplied bounds, then apply pagination — so meta.totalRecords and meta.totalPages describe the filtered set.\n- Ignore any timezone offset on the supplied values — compare the wall-clock date-time as given.\n- Make at least two years of history available; you MAY hold and return more. The two-year figure is a minimum availability floor, not a query limit.\n- Return 200 with the matching subset — an empty data array where nothing matches. Never 404.\n\nA 200 with an empty data array means \"no records matched\" — it does not assert the customer had no activity. For any period beyond the two-year guarantee, an empty or partial result may simply reflect what the LFI retains. TPPs are told not to infer absence of activity past that window.",
+      "metadata": {
+        "title": "Date Filters — fromBookingDateTime & toBookingDateTime",
+        "section": "What your Ozone Connect implementation must do",
+        "category": "What the LFI does",
+        "anchor": "lfi",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/transaction-date-filters.vue",
+        "parser": "vue-sfc",
+        "source_commit": "66f561bd290796edd53a766bf4238e96889b61df",
+        "source_hash": "2412cfae502ebcbc333a84f3f74d450dd12d9fdc25894725b188699dbbf49d0c",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/transaction-date-filters",
+        "doc_version": "unversioned",
+        "parser_version": "4",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"lfi\",\"\"]:0",
+      "content_hash": "35f4ddad97b902be3dbd53ce96b61137e24bc947a1b41c190d42a662974500c4",
+      "schema_version": 2
+    }
+  ]
+}

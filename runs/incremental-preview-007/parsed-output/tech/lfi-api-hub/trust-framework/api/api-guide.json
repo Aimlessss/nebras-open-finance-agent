@@ -1,0 +1,229 @@
+{
+  "id": "tech/lfi-api-hub/trust-framework/api/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/trust-framework/api/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "6f362ac994ad8234fa5bf0407c4a58b76dda68782cfa1df975a25c39426e9a4c",
+    "dependencies": [
+      "node:fs",
+      "node:https"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Trust Framework — API Guide",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/trust-framework/api/api-guide",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Trust Framework — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Trust Framework directory provides a set of APIs that enable Applications within the framework to communicate and exchange data."
+      },
+      {
+        "type": "paragraph",
+        "text": "This guide explains how a registered Application can:"
+      },
+      {
+        "type": "list",
+        "items": [
+          "Retrieve all registered Organisations",
+          "Filter those Organisations to identify TPPs",
+          "Retrieve the associated Software Statements for each TPP"
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "These steps can be used, for example, to generate a report that cross-references Organisations with their corresponding Software Statement applications."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What you need before calling the Trust Framework API",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Before calling the Trust Framework API, ensure the following requirements are met:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Registered Application — the application must be created within the Trust Framework.",
+              "Valid Transport Certificate — an active transport certificate must be issued and registered in the Trust Framework to establish secure mTLS communication."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "End-to-end Trust Framework API call",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Obtain an Access Token",
+        "level": 2,
+        "anchor": "step-1",
+        "category": "Step 1",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The directory uses the OAuth 2.0 client credentials grant. POST to the directory's token endpoint, presenting your transport certificate over mTLS:"
+          },
+          {
+            "type": "paragraph",
+            "text": "See the POST /token API reference for the full request and response schema."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "List all Organisations",
+        "level": 2,
+        "anchor": "step-2",
+        "category": "Step 2",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "With the token, call the /organisations endpoint to retrieve every organisation registered in the directory:"
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Key response fields",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "OrganisationId",
+                    "string",
+                    "Unique identifier for the organisation — used in subsequent calls"
+                  ],
+                  [
+                    "OrganisationName",
+                    "string",
+                    "Human-readable name of the organisation"
+                  ],
+                  [
+                    "Size",
+                    "string ≤ 255 chars, ^[^<>]*$",
+                    "Organisation type — \"TPP\" for Third Party Providers, \"LFI\" for Licensed Financial Institutions. Use this field to filter results to TPPs only."
+                  ],
+                  [
+                    "Status",
+                    "string",
+                    "Registration status, e.g. Active"
+                  ],
+                  [
+                    "CreatedOn",
+                    "string (ISO 8601)",
+                    "Date the organisation was registered"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /organisations API reference for the full response schema."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Filter for TPPs",
+        "level": 2,
+        "anchor": "step-3",
+        "category": "Step 3",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The /organisations response includes both LFIs and TPPs. Use the Size field to narrow the list to TPPs only before iterating:"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Retrieve Software Statements",
+        "level": 2,
+        "anchor": "step-4",
+        "category": "Step 4",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "For each TPP from Step 3, call the /softwarestatements sub-resource using its OrganisationId:"
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Key response fields",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "SoftwareStatementId",
+                    "string",
+                    "Unique identifier for the Software Statement"
+                  ],
+                  [
+                    "SoftwareClientName",
+                    "string",
+                    "Human-readable name of the client application"
+                  ],
+                  [
+                    "Status",
+                    "string",
+                    "Status of the Software Statement, e.g. Active"
+                  ],
+                  [
+                    "SoftwareRoles",
+                    "string[]",
+                    "Roles assigned to this application (e.g. BDSP, BSIP )"
+                  ],
+                  [
+                    "OrganisationId",
+                    "string",
+                    "The owning organisation (not always returned inline — join from Step 2)"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See the GET /softwarestatements API reference for the full response schema."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

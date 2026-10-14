@@ -1,0 +1,258 @@
+{
+  "id": "tech/tpp-standards/v2.2-rc2/consent/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.2-rc2/consent/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "e9ff5d22deb04460123cbad20a7ac763cc96129f417dfc5f1b8d1cef70042a52",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Consent — API Guide",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/consent/api-guide",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Consent — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "In UAE Open Finance, a Consent is a structured, user-authorized agreement that grants a TPP specific rights to access data or initiate payments on a user's behalf. All API access is consent-bound — you cannot call a resource endpoint without a valid, authorized consent."
+      },
+      {
+        "type": "paragraph",
+        "text": "Consents are created through the Pushed Authorization Request flow ( FAPI 2.0 PAR ). Rather than creating a consent resource directly, the TPP embeds the consent definition inside a signed Request JWT and pushes it to the Authorization Server. The user then authenticates at the LFI and explicitly authorizes the consent."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Consent types",
+        "level": 2,
+        "anchor": "consent-types",
+        "category": "Three flavours",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Type",
+              "authorization_details.type",
+              "Used for"
+            ],
+            "rows": [
+              [
+                "Bank Data Sharing",
+                "urn:openfinanceuae:account-access-consent:v2.2",
+                "Reading account information, balances, transactions"
+              ],
+              [
+                "Service Initiation",
+                "urn:openfinanceuae:service-initiation-consent:v2.2",
+                "Initiating domestic payments"
+              ],
+              [
+                "Insurance Data Sharing",
+                "urn:openfinanceuae:insurance-consent:v2.2",
+                "Reading insurance policy details"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "API sequence flow",
+        "level": 2,
+        "anchor": "api-sequence-flow",
+        "category": "End-to-end",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "POST /par",
+        "level": 2,
+        "anchor": "post-par",
+        "category": "Stage the consent",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Push the signed Request JWT to the Authorization Server. The authorization_details inside the JWT carries the full consent definition — account permissions, payment amounts, billing details, and (for payments) encrypted PII."
+          },
+          {
+            "type": "paragraph",
+            "text": "For the full construction of authorization_details — including field tables, PII encryption, and code examples — see the specific API guides, for example:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Bank Data Sharing — API Guide",
+              "Single Instant Payment — API Guide",
+              "Insurance Data Sharing — API Guide"
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "See Preparing the Request JWT for how to build and sign the Request JWT, and POST /par for the full API reference."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Redirecting the user",
+        "level": 2,
+        "anchor": "redirect-user",
+        "category": "Hand off to the LFI",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Build the authorization URL using the authorization_endpoint from the LFI's.well-known/openid-configuration and the request_uri returned by /par:"
+          },
+          {
+            "type": "paragraph",
+            "text": "The user will authenticate with their bank and authorize the consent on the LFI's authorization screen."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Handling the callback",
+        "level": 2,
+        "anchor": "callback",
+        "category": "Back to the TPP",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "After authorization, the LFI redirects the user back to your redirect_uri:"
+          },
+          {
+            "type": "paragraph",
+            "text": "Always validate state and iss before proceeding. See Handling Authorization Callbacks for the full security guide."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "POST /token",
+        "level": 2,
+        "anchor": "post-token",
+        "category": "Exchange the code",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Exchange the authorization code for an access token and refresh token. The code_verifier must match the code_challenge sent in the Request JWT (PKCE)."
+          },
+          {
+            "type": "paragraph",
+            "text": "The access token is consent-bound — it carries the scope and ConsentId granted during authorization. See Tokens & Assertions for token lifetimes and the refresh flow."
+          },
+          {
+            "type": "paragraph",
+            "text": "When obtaining an access token you also receive the current state of the consent (including the status) to confirm it has moved to the Authorized state before making resource API calls."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Maintaining consent state",
+        "level": 2,
+        "anchor": "maintaining-state",
+        "category": "Track changes over time",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "After a consent is created, your application needs to track its status over time. There are two approaches:"
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Subscribe to webhook events Recommended",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "When a consent is created with subscription.Webhook.IsActive: true, on every consent status change — for example, when a user revokes, or the consent expires — the API Hub delivers a Consent Status Event to your registered webhook URL. This avoids the need to poll and ensures your application reacts to status changes in real time."
+              },
+              {
+                "type": "paragraph",
+                "text": "Note: as Events are delivered as JWEs, this approach requires a valid Encryption Certificate on your Application. See the Consent Status Event — API Guide for the full flow."
+              }
+            ]
+          },
+          {
+            "heading": "Poll the consent endpoint",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If you need to check the current state of a consent on demand, call the consent endpoint directly. Both endpoints require a client credentials access token — not the user's consent-bound access token."
+              }
+            ]
+          },
+          {
+            "heading": "Obtaining a client credentials token",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Bank Data Sharing",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See GET /account-access-consents/{ConsentId} for the full response schema."
+              },
+              {
+                "type": "paragraph",
+                "text": "You can also retrieve all consents created under a long-lived base consent by passing baseConsentId as a query parameter to GET /account-access-consents."
+              }
+            ]
+          },
+          {
+            "heading": "Service Initiation",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See GET /payment-consents/{ConsentId} for the full response schema."
+              },
+              {
+                "type": "paragraph",
+                "text": "You can also retrieve all payment consents under a long-lived base consent by passing baseConsentId as a query parameter to GET /payment-consents."
+              }
+            ]
+          },
+          {
+            "heading": "Insurance Data Sharing",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "See GET /insurance-consents/{ConsentId} for the full response schema."
+              },
+              {
+                "type": "paragraph",
+                "text": "You can also retrieve all insurance consents under a long-lived base consent by passing baseConsentId as a query parameter to GET /insurance-consents."
+              },
+              {
+                "type": "paragraph",
+                "text": "A consent moves through a defined lifecycle — AwaitingAuthorization → Authorized → Consumed / Expired / Revoked. See Consent Overview for the full state machine and transition rules."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

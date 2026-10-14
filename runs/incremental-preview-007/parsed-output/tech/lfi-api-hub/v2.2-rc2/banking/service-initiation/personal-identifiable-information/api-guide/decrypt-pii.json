@@ -1,0 +1,294 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/personal-identifiable-information/api-guide/decrypt-pii",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/personal-identifiable-information/api-guide/decrypt-pii.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "7577d75dfa5e9afc7d6892c529a9d600881ff0873a292d51df2137cc2324a51e",
+    "dependencies": [
+      "ajv",
+      "fs",
+      "jose",
+      "js-yaml"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "How to Decrypt PII",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/personal-identifiable-information/api-guide/decrypt-pii",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "How to Decrypt PII",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The PersonalIdentifiableInformation field is a compact JWE (JSON Web Encryption) string. It was encrypted by the TPP using your LFI's public encryption key ( Enc1 ). To decrypt it, you need the corresponding Enc1 private key."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Two decryption patterns — decide which one you are building",
+        "level": 2,
+        "anchor": "two-patterns",
+        "category": "Before you start",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Where the PII reaches you",
+              "Age of the PII",
+              "Pattern"
+            ],
+            "rows": [
+              [
+                "POST /consent/action/validate",
+                "Seconds",
+                "A — at creation"
+              ],
+              [
+                "POST /consent/event/post",
+                "Seconds",
+                "A — at creation"
+              ],
+              [
+                "The consent authorisation journey",
+                "Minutes to hours",
+                "B — later"
+              ],
+              [
+                "POST /consent/event/patch",
+                "Minutes to hours",
+                "B — later"
+              ],
+              [
+                "POST /payments",
+                "Up to the consent lifetime",
+                "B — later"
+              ]
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Pattern A — decrypt at consent creation",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "/consent/action/validate is called by the API Hub synchronously, inside the TPP’s PAR request and before the consent exists. The PII is at most seconds old, and the post consent event fires at the same moment in the lifecycle. Nothing can have rotated in between, so:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "The kid in the JWE header names an Enc1 key you currently hold.",
+                  "If you verify the TPP’s signature, the TPP’s active JWKS is sufficient.",
+                  "The JWS exp, iat and nbf claims can be evaluated against the current time, because now is the moment of signing. Library defaults are correct here."
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Pattern B — decrypt later",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Everywhere else is “later”. The authorisation journey already is: between the TPP creating the consent and the customer authenticating on your platform there can be a redirect the customer does not follow immediately, an app switch, an abandoned login resumed later. Payment execution is later still — a multi-payment consent executes against the same PII for as long as the consent lives. Three things follow."
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Your own Enc1 key. The JWE was encrypted to whichever Enc1 public key you had published when the consent was created. The recommended Server ENCKEY certificate type does not expire, so routine rotation is avoided — but if you do replace Enc1, you MUST retain the retired private key for as long as consents encrypted under it remain in force. Step 1 below exists for exactly this reason: resolve the private key from the kid, never from “the current one”.",
+                  "The TPP’s signing key — only if you verify the signature. TPPs rotate signing keys freely and without notice, and a rotated kid leaves the active JWKS. Resolve the kid against the active set and then against the inactive/ set, and pin PS256 yourself — published JWKS entries carry no alg.",
+                  "The timing claims. exp, iat and nbf on the PII JWS bound the PAR submission window — the moment the TPP created the consent — not the moment you are decrypting. On a long-lived consent they will normally have lapsed. Evaluate them against the consent’s CreationDateTime, or do not evaluate them at all. Whether the consent is still usable today is answered by the API Hub’s consent validation on every request, not by a claim inside the PII."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Pattern B is also correct at consent creation — the active JWKS simply hits every time, and the timing claims happen to be current. Pattern A is not correct anywhere else, and it fails in a way that is hard to diagnose: it works for months, then starts rejecting perfectly valid PII on older consents, with no change at either end. If you decrypt at more than one point in the lifecycle, build Pattern B once and use it everywhere."
+              },
+              {
+                "type": "paragraph",
+                "text": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS covers the signing-key half of Pattern B in full: the active and inactive/ keystore URL pair, the lookup order, and what membership of the inactive set does and does not tell you."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Read the kid from the JWE header",
+        "level": 2,
+        "anchor": "step-1-read-kid",
+        "category": "Step 1",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The JWE protected header contains the kid (Key ID) of the encryption key that was used. Decode the first segment of the JWE to identify which private key to use — under Pattern B this may be a retired Enc1 key rather than your current one, so always resolve by kid:"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Decrypt the JWE",
+        "level": 2,
+        "anchor": "step-2-decrypt-jwe",
+        "category": "Step 2",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Decrypt the JWE using your Enc1 private key. The result is the inner JWS (signed JWT):"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Decode the JWS payload",
+        "level": 2,
+        "anchor": "step-3-decode-jws",
+        "category": "Step 3",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The inner JWS contains the PII JSON in its payload. Decode the payload to access the PII fields:"
+          },
+          {
+            "type": "paragraph",
+            "text": "The JWS is signed by the TPP. You may optionally verify this signature against the TPP's public signing key. However, this is not required — the entire request containing the PII field is itself sent as a JWS that the API Hub has already verified was signed by the TPP. The PII therefore cannot have been tampered with in transit."
+          },
+          {
+            "type": "paragraph",
+            "text": "If you choose to implement JWS verification for defence-in-depth, see Verify TPP Signature (Optional). Under Pattern B you must also resolve the signing kid against the TPP’s inactive/ JWKS, and stop your library checking exp, iat and nbf against the current time — see Verifying the PII Signature."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Validate the PII against the OpenAPI schema",
+        "level": 2,
+        "anchor": "step-4-validate-schema",
+        "category": "Step 4",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "After decrypting, the LFI MUST validate the PII payload against the relevant OpenAPI schema. The PII has not been validated by the API Hub — schema validation is the LFI's responsibility."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Stage",
+              "Spec file",
+              "Schema"
+            ],
+            "rows": [
+              [
+                "Consent",
+                "uae-api-hub-consent-manager-openapi.yaml",
+                "AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII"
+              ],
+              [
+                "Payment",
+                "uae-ozone-connect-bank-service-initiation-openapi.yaml",
+                "AEBankServiceInitiation.AEDomesticPaymentPIIProperties"
+              ]
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Obtaining the OpenAPI specification",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The OpenAPI YAML files are the source of truth for PII schemas. They are maintained in the canonical specification repository:"
+              },
+              {
+                "type": "paragraph",
+                "text": "Nebras-Open-Finance/api-specs"
+              },
+              {
+                "type": "paragraph",
+                "text": "Spec files are located under dist/ by category:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Stage",
+                  "Path"
+                ],
+                "rows": [
+                  [
+                    "Consent",
+                    "dist/api-hub/{version}/openapi/uae-api-hub-consent-manager-openapi.yaml"
+                  ],
+                  [
+                    "Payment",
+                    "dist/ozone-connect/{version}/openapi/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Specifications may have errata releases (e.g. v2.1.x-errata1 ) that contain targeted corrections. When multiple version folders exist for the same major.minor version, use the highest errata that contains the file you need. If a file is not present in an errata folder, fall back to the base version. Always check for errata before bundling a spec into your service."
+              }
+            ]
+          },
+          {
+            "heading": "Validating against the schema",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Extract the relevant components/schemas entry from the YAML file and validate the decrypted PII payload against it. The PII schemas in the OpenAPI specification already declare the constraints needed for validation:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "additionalProperties: false is set at every level of the PII schema — any unexpected fields will cause validation to fail.",
+                  "required arrays are declared on sub-schemas (e.g. CreditorAccount is required on each creditor entry, SchemeName and Identification are required on account objects) — missing mandatory fields will cause validation to fail.",
+                  "enum constraints restrict values to allowed options (e.g. SchemeName must be IBAN ).",
+                  "$ref pointers link to nested schemas (creditor, debtor, risk). For validation to work correctly, all components/schemas entries from the spec MUST be registered with the validator so that $ref pointers resolve."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "When you register the full set of component schemas and compile the PII schema, standard JSON Schema validators ( ajv for Node.js, jsonschema for Python) will enforce all of these constraints automatically. No custom validation logic is needed for schema conformance — the OpenAPI spec is the single source of truth."
+              },
+              {
+                "type": "paragraph",
+                "text": "The following example shows how to validate a domestic payment PII at consent time:"
+              },
+              {
+                "type": "paragraph",
+                "text": "If the decrypted PII fails schema validation, the LFI MUST reject the consent or payment. Do not attempt to process a payment with malformed PII — return an appropriate error response. See Personal Identifiable Information for the full set of validation rules."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Decryption and validation, end-to-end",
+        "level": 2,
+        "anchor": "full-example",
+        "category": "Full example",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "This example resolves the Enc1 private key from the JWE kid, so it is correct under both patterns. It does not verify the TPP’s signature; if you add that step, follow Pattern B unless you are certain the code path only ever runs at consent creation."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

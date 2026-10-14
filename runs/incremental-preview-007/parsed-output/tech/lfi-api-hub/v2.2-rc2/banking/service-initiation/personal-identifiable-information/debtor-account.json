@@ -1,0 +1,95 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/personal-identifiable-information/debtor-account",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/personal-identifiable-information/debtor-account.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "654871b664c5931f0ecf2be67c46cd4a2ff3cf73f7c17d315e66794f54cefc8c",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Debtor Account",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/personal-identifiable-information/debtor-account",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Debtor Account",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Initiation.DebtorAccount is only present in the PII the LFI receives at POST /consent/action/validate (consent validation). It is not part of the PII delivered with a payment instruction via Ozone Connect — by the time a payment is created, the debtor account has been fixed by the consent authorisation journey."
+      },
+      {
+        "type": "paragraph",
+        "text": "When a TPP supplies Initiation.DebtorAccount in the consent PII, the LFI MUST validate it during consent validation — POST /consent/action/validate. At this stage the customer has not yet authenticated, so the LFI cannot check ownership. The checks are limited to whether the account exists at this LFI, is reachable through this API Hub, and is eligible for payment initiation."
+      },
+      {
+        "type": "paragraph",
+        "text": "Checks that depend on the authenticated customer — e.g. whether the DebtorAccount supplied by the TPP actually belongs to the user who logs in at the LFI — are covered separately under the authorisation journey. This page covers only what the LFI MUST validate before the consent is stored."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "What to check after decryption",
+        "level": 2,
+        "anchor": "validation-requirements",
+        "category": "Validation requirements",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Perform these checks after decrypting the PII in the POST /consent/action/validate handler:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Check",
+              "Rule"
+            ],
+            "rows": [
+              [
+                "Schema",
+                "DebtorAccount conforms to AEDomesticPaymentPII — see PII Schema — Consent"
+              ],
+              [
+                "Scheme",
+                "SchemeName MUST be IBAN"
+              ],
+              [
+                "Account exists",
+                "Identification (IBAN) corresponds to an account held at this LFI and reachable through this API Hub"
+              ],
+              [
+                "Payments enabled",
+                "The account is in a state that permits payment initiation (e.g. not blocked, dormant, or closed)"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Mark the consent invalid in the validate response",
+        "level": 2,
+        "anchor": "rejecting-an-invalid-debtor-account",
+        "category": "Rejecting an invalid DebtorAccount",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "If any check fails, the LFI MUST mark the consent invalid in its POST /consent/action/validate response. The API Hub will then reject the consent back to the TPP."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Consent Events & Actions — API Guide for the full POST /consent/action/validate flow and response schema."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,285 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/api-guide",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/api-guide.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "8c2b23dde13abaf18f27d6ce22933ef76ddf167d3a9e0c3d78bd3a1267da02c8",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Confirmation of Payee — API Guide",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/api-guide",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Confirmation of Payee — API Guide",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Confirmation of Payee (CoP) lets a TPP verify that an IBAN belongs to the named individual or business before initiating a payment."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "End-to-end Confirmation of Payee",
+        "level": 2,
+        "anchor": "sequence-flow",
+        "category": "API Sequence Flow",
+        "blocks": [],
+        "subsections": []
+      },
+      {
+        "heading": "Return the name(s) held against an IBAN",
+        "level": 2,
+        "anchor": "post-cop-query",
+        "category": "POST /customers/action/cop-query",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Both bodies changed in v2.2. The request no longer carries data.account.name — drop it from your parser, and stop reading it if you used it to select which name to return. The response is flattened: replace data[].verifiedClaims[].verification and data[].verifiedClaims[].claims with a single data[].name, mapping claims.fullName to name.fullName, givenName to firstName, familyName to lastName, and organisationClaims.name to name.businessName. Everything else the envelope carried — trust framework, assurance evidence, and the wider customer fields such as emiratesId, birthDate and salary — is removed and MUST NOT be sent."
+          },
+          {
+            "type": "paragraph",
+            "text": "Headers, query parameters, status codes and error codes are unchanged, so this is a rewrite of your request parser and response builder rather than a new integration."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Request headers",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Header",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "o3-provider-id",
+                    "Yes",
+                    "Identifier for your LFI registered in the Hub"
+                  ],
+                  [
+                    "o3-aspsp-id",
+                    "Yes (deprecated)",
+                    "Deprecated alias for o3-provider-id. Will be removed in a future version — use o3-provider-id"
+                  ],
+                  [
+                    "o3-caller-org-id",
+                    "Yes",
+                    "Organisation ID of the TPP making the underlying request"
+                  ],
+                  [
+                    "o3-caller-client-id",
+                    "Yes",
+                    "OIDC client ID of the TPP application"
+                  ],
+                  [
+                    "o3-caller-software-statement-id",
+                    "Yes",
+                    "Software statement ID of the TPP application"
+                  ],
+                  [
+                    "o3-api-uri",
+                    "Yes",
+                    "The parameterised URL of the API being called by the TPP"
+                  ],
+                  [
+                    "o3-api-operation",
+                    "Yes",
+                    "The HTTP method of the operation carried out by the TPP (e.g. POST )"
+                  ],
+                  [
+                    "o3-ozone-interaction-id",
+                    "Yes",
+                    "Hub-generated interaction ID. Equals o3-caller-interaction-id if the TPP provided one"
+                  ],
+                  [
+                    "o3-caller-interaction-id",
+                    "No",
+                    "Interaction ID passed in by the TPP, if present"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Query parameters",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Parameter",
+                  "Required",
+                  "Default",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "page",
+                    "Yes",
+                    "1",
+                    "Page number for paginated results"
+                  ],
+                  [
+                    "page-size",
+                    "Yes",
+                    "100",
+                    "Number of records per page"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Request body",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "The Hub sends a plain JSON body — not a JWS. The body identifies a single account by IBAN, and carries nothing else. The name the TPP submitted is not sent to you: look the account up by IBAN and return the holders you have, and the Hub does the comparing."
+              }
+            ]
+          },
+          {
+            "heading": "data.account",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "table",
+                "headers": [
+                  "Field",
+                  "Type",
+                  "Required",
+                  "Description"
+                ],
+                "rows": [
+                  [
+                    "schemeName",
+                    "string",
+                    "Yes",
+                    "Always IBAN"
+                  ],
+                  [
+                    "identification",
+                    "string",
+                    "Yes",
+                    "The IBAN to look up"
+                  ]
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Example",
+            "level": 4,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Response",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Content-Type: application/json"
+              },
+              {
+                "type": "paragraph",
+                "text": "Return 200 in all lookup scenarios — whether the account is found or not. The Hub interprets the data array contents to determine the match result returned to the TPP."
+              }
+            ]
+          },
+          {
+            "heading": "200 — Account found",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Return a data array containing one entry per account holder. id and name are the only required members of an entry."
+              },
+              {
+                "type": "paragraph",
+                "text": "name.fullName is mandatory and is the value the Hub matches on today. Every other field is optional — supply firstName, middleName, lastName, fullNameAr and alsoKnownAs where your systems hold them separately, so that improvements to the matching algorithm can use them without a further change to this contract. A response carrying only fullName is fully conformant."
+              },
+              {
+                "type": "paragraph",
+                "text": "Return one entry per holder. The Hub evaluates every entry in data, so the order is not significant — do not attempt to place the most likely match first."
+              },
+              {
+                "type": "paragraph",
+                "text": "Populate name.businessName with the registered business name on the account. businessNameAr and alsoKnownAs are optional."
+              }
+            ]
+          },
+          {
+            "heading": "200 — Account not found, opted out",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Return 200 with an empty data array where no account was found matching the IBAN, the account is under a bar, or the customer has opted out of CoP. Do not use 204, 404, 201 or 202 — the Hub expects 200 and treats an empty array as a no-result response."
+              },
+              {
+                "type": "paragraph",
+                "text": "The three cases are deliberately indistinguishable to the TPP, so that a CoP query cannot be used to probe for the existence of an account."
+              }
+            ]
+          },
+          {
+            "heading": "Error responses",
+            "level": 4,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "All error bodies must include errorCode and errorMessage."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "errorCode",
+                  "errorMessage",
+                  "When to use"
+                ],
+                "rows": [
+                  [
+                    "Consent.AccountTemporarilyBlocked",
+                    "The account is blocked from receiving payments.",
+                    "The account is blocked from receiving payments for a temporary reason — e.g. account status is Suspended"
+                  ],
+                  [
+                    "Consent.PermanentAccountAccessFailure",
+                    "The account is blocked from receiving payments.",
+                    "The account is blocked from receiving payments permanently — e.g. account status is Closed, Deceased, or Unclaimed"
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

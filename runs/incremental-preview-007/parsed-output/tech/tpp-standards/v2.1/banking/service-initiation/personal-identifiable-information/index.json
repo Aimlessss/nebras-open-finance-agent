@@ -1,0 +1,270 @@
+{
+  "id": "tech/tpp-standards/v2.1/banking/service-initiation/personal-identifiable-information",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/banking/service-initiation/personal-identifiable-information/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "4",
+    "commit": "66f561bd290796edd53a766bf4238e96889b61df",
+    "hash": "b6f94010dae8af5233a27ab0537f34a3350ae14824d06f73c53854a57a75e4dd",
+    "dependencies": [
+      "jose",
+      "uuid"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Personal Identifiable Information (PII)",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/service-initiation/personal-identifiable-information",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Personal Identifiable Information (PII)",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Every payment instruction carries sensitive data about who is paying and who is receiving the funds. This data — the creditor account details, optional debtor account, and risk indicators — is collectively referred to as Personal Identifiable Information (PII)."
+      },
+      {
+        "type": "paragraph",
+        "text": "PII is encrypted and embedded at two points in the payment lifecycle:"
+      },
+      {
+        "type": "table",
+        "headers": [
+          "Stage",
+          "Endpoint",
+          "PII form"
+        ],
+        "rows": [
+          [
+            "Consent staging",
+            "POST /par",
+            "Embedded in consent.PersonalIdentifiableInformation"
+          ],
+          [
+            "Payment creation",
+            "POST /payments",
+            "Embedded in payment.PersonalIdentifiableInformation"
+          ]
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "The Risk structure is the same at both stages. DebtorAccount is only present at POST /par — by the time POST /payments is called, the debtor account has already been fixed through the consent authorisation flow. The creditor data also differs between stages — both in structure and cardinality. See Creditor for the full breakdown."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "End-to-end encryption between TPP and LFI",
+        "level": 2,
+        "anchor": "why-encrypted",
+        "category": "Why PII is encrypted",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Payment consents are stored centrally at Nebras, the UAE Open Finance Hub. Because Nebras acts as an intermediary between TPPs and LFIs, PII is encrypted end-to-end before it leaves the TPP — ensuring that Nebras, and any other party in transit, cannot read the sensitive payment details."
+          },
+          {
+            "type": "paragraph",
+            "text": "The encryption uses the destination LFI's public key (see Message Encryption for full cryptographic details). Only the LFI can decrypt the payload. Nebras passes the opaque JWE through without inspection — all PII validation is performed by the LFI after the consent is authorised."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Sign, then encrypt — Nested JWT (JWS inside JWE)",
+        "level": 2,
+        "anchor": "encrypt-steps",
+        "category": "Steps to encrypt PII",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The PersonalIdentifiableInformation field MUST be sent as a compact JWE — a signed-then-encrypted token (Nested JWT). The process is:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Build the PII JSON — construct the PII object for the stage you are at ( POST /par or POST /payments ). See The PII payload structure below.",
+              "Sign — sign the PII payload as a JWS using your TPP signing key. The JWS MUST include standard claims ( iat, exp, jti, iss, sub, aud ).",
+              "Fetch the LFI's encryption key — retrieve the LFI's JWKS and select the key where \"use\": \"enc\".",
+              "Encrypt — encrypt the signed JWS into a compact JWE using RSA-OAEP-256 / A256GCM.",
+              "Embed — place the resulting JWE string in the PersonalIdentifiableInformation field of your request."
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Example",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "For the full breakdown of JWKS discovery, key selection, and JWE structure, see Message Encryption."
+              },
+              {
+                "type": "paragraph",
+                "text": "The sandbox provides an O3 Utility endpoint that accepts your private key and JWKS URL and returns a ready-made encrypted PII token — useful for validating your payload structure before writing your own encryption code. See O3 Sandbox Utilities."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "oneOf — three variants, one form sent in requests",
+        "level": 2,
+        "anchor": "object-structure",
+        "category": "Structure of the PII object",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The PersonalIdentifiableInformation field is defined as a oneOf:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Variant",
+              "Form",
+              "Purpose"
+            ],
+            "rows": [
+              [
+                "Domestic Payment PII Schema Object",
+                "object",
+                "Unencrypted reference form for domestic payments"
+              ],
+              [
+                "International Payment PII Schema Object",
+                "object",
+                "Unencrypted reference form for international payments"
+              ],
+              [
+                "Encrypted PII Object ( AEJWEPaymentPII )",
+                "string (compact JWE)",
+                "The form that MUST be sent at both POST /par and POST /payments"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "The two object variants document the structure implementers MUST follow when constructing the PII payload before encryption. The encrypted form — AEJWEPaymentPII — is a compact JWE string wrapping a signed JWS containing the serialised PII JSON."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Different shape at consent staging vs. payment creation",
+        "level": 2,
+        "anchor": "payload-structure",
+        "category": "The PII payload structure",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The structure of the unencrypted PII differs between the two stages."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "At POST /par (consent staging)",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "At POST /payments (payment creation)",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The key difference: at POST /par the creditor data is inside an Initiation.Creditor[] array (allowing 1–10 entries, or omitted for open beneficiary). At POST /payments the same fields sit directly on Initiation as a single creditor."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Property",
+                  "POST /par",
+                  "POST /payments"
+                ],
+                "rows": [
+                  [
+                    "Initiation.DebtorAccount",
+                    "Optional object",
+                    "Not present — debtor account is fixed by consent"
+                  ],
+                  [
+                    "Initiation.Creditor",
+                    "Array of creditor entry objects (0–10)",
+                    "Object — the party name/address ( { Name, PostalAddress } )"
+                  ],
+                  [
+                    "Initiation.CreditorAccount",
+                    "Nested inside each Creditor[] entry",
+                    "Direct field on Initiation"
+                  ],
+                  [
+                    "Initiation.CreditorAgent",
+                    "Nested inside each Creditor[] entry",
+                    "Direct field on Initiation"
+                  ],
+                  [
+                    "Initiation.ConfirmationOfPayeeResponse",
+                    "Nested inside each Creditor[] entry",
+                    "Direct field on Initiation"
+                  ],
+                  [
+                    "Risk",
+                    "Required object",
+                    "Required object"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See the sub-pages for full schema and rules:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Debtor Account — optional at POST /par only; not part of the POST /payments PII",
+                  "Creditor — consent-time models (single/multiple/open), payment-time structure, and match requirements",
+                  "Risk — debtor and creditor risk indicators"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Each LFI validates PII independently after decryption",
+        "level": 2,
+        "anchor": "decentralised-validation",
+        "category": "Decentralised validation",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Because PII is encrypted using the LFI's public key, Nebras cannot decrypt or validate it. The LFI is solely responsible for decrypting and validating the PII — at consent time and at payment time."
+          },
+          {
+            "type": "paragraph",
+            "text": "Validation is therefore performed independently by each LFI rather than centrally. The standards place explicit validation requirements on every LFI — each LFI must validate the decrypted PII against the schema before accepting a consent or processing a payment."
+          },
+          {
+            "type": "paragraph",
+            "text": "A consent that is accepted by one LFI may be rejected by another if the PII does not meet the required format. TPPs should ensure that the PII they construct is strictly valid according to the schema for the payment type being instructed."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Creditor for the specific validation rules that LFIs apply to the Creditor array for domestic payments."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}
