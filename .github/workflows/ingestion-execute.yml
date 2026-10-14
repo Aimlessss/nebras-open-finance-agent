@@ -1,0 +1,55 @@
+name: Apply reviewed ingestion preview
+on:
+  workflow_dispatch:
+    inputs:
+      preview_id:
+        description: 'Saved preview RUN_ID-ATTEMPT (use a new preview with baseline fingerprint)'
+        required: true
+        type: string
+      expected_deletes:
+        description: 'Exact deletion count reviewed in that preview'
+        required: true
+        type: string
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: nebras-ingestion-state
+  cancel-in-progress: false
+jobs:
+  execute:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      STATE_BUCKET: atharva-nebras-ingestion-state
+      AWS_REGION: eu-north-1
+      AWS_PAGER: ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install and test
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install --no-package-lock; fi
+          npm test
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::916861645417:role/GitHubNebrasIngestion
+          aws-region: eu-north-1
+      - name: Check AWS account
+        run: test "$(aws sts get-caller-identity --query Account --output text)" = "916861645417"
+      - name: Apply saved preview and advance baseline after verification
+        env:
+          PREVIEW_ID: ${{ inputs.preview_id }}
+          EXPECTED_DELETES: ${{ inputs.expected_deletes }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+          EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL }}
+          EMBEDDING_DIMENSIONS: ${{ vars.EMBEDDING_DIMENSIONS }}
+          EMBEDDING_TASK_TYPE: ${{ vars.EMBEDDING_TASK_TYPE }}
+        run: node src/scripts/execute-s3.js
