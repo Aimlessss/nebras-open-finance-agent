@@ -1,0 +1,95 @@
+name: Ingestion preview (S3)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: nebras-ingestion-state
+  cancel-in-progress: false
+jobs:
+  preview:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      STATE_BUCKET: atharva-nebras-ingestion-state
+      AWS_REGION: eu-north-1
+      AWS_PAGER: ""
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install and test
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install --no-package-lock; fi
+          npm test
+      - name: Connect to AWS using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::916861645417:role/GitHubNebrasIngestion
+          aws-region: eu-north-1
+          allowed-account-ids: '916861645417'
+      - name: Verify identity and restore original baseline from S3
+        run: |
+          set -euo pipefail
+          aws sts get-caller-identity
+          baseline_key="baselines/baseline-ts5.tar.gz"
+          # A failed listing is an error, never treated as an empty bucket.
+          aws s3api list-objects-v2 --bucket "$STATE_BUCKET" --prefix "$baseline_key" --output json > "$RUNNER_TEMP/baseline-list.json"
+          count="$(node -e "const fs=require('fs');const r=JSON.parse(fs.readFileSync(process.argv[1]));console.log((r.Contents||[]).filter(o=>o.Key===process.argv[2]).length)" "$RUNNER_TEMP/baseline-list.json" "$baseline_key")
+          if [ "$count" = "0" ]; then
+            node -e "require('./src/scripts/embed-upload').loadRun('runs/baseline-ts5/manifest.json')"
+            tar -czf "$RUNNER_TEMP/baseline.tar.gz" -C runs/baseline-ts5 manifest.json chunk-output
+            # One object upload: a failed first upload cannot leave a partial baseline.
+            aws s3 cp "$RUNNER_TEMP/baseline.tar.gz" "s3://$STATE_BUCKET/$baseline_key" --only-show-errors
+          elif [ "$count" != "1" ]; then
+            echo "Unexpected S3 listing result: $count" >&2
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/ingestion-baseline"
+          aws s3 cp "s3://$STATE_BUCKET/$baseline_key" "$RUNNER_TEMP/baseline-restored.tar.gz" --only-show-errors
+          tar -xzf "$RUNNER_TEMP/baseline-restored.tar.gz" -C "$RUNNER_TEMP/ingestion-baseline"
+          BASELINE_MANIFEST="$RUNNER_TEMP/ingestion-baseline/manifest.json" node -e "require('./src/scripts/embed-upload').loadRun(process.env.BASELINE_MANIFEST)"
+      - name: Fetch public documentation and required API assets
+        run: |
+          set -euo pipefail
+          git clone --branch main --single-branch https://github.com/Nebras-Open-Finance/community-standards.git "$RUNNER_TEMP/community-standards"
+          source_sha="$(git -C "$RUNNER_TEMP/community-standards" rev-parse HEAD)"
+          git -C "$RUNNER_TEMP/community-standards" checkout --detach "$source_sha"
+          (cd "$RUNNER_TEMP/community-standards" && node scripts/fetch-openapi-specs.mjs)
+          echo "Source commit: $source_sha" >> "$GITHUB_STEP_SUMMARY"
+      - name: Prepare full manifest with public exclusions
+        run: |
+          node src/scripts/prepare.js \
+            --source-root "$RUNNER_TEMP/community-standards" \
+            --previous "$RUNNER_TEMP/ingestion-baseline/manifest.json" \
+            --output "$RUNNER_TEMP/ingestion-preview"
+      - name: Preview Qdrant changes (no writes or embeddings)
+        run: |
+          set -euo pipefail
+          node src/scripts/incremental.js \
+            --previous "$RUNNER_TEMP/ingestion-baseline/manifest.json" \
+            --next "$RUNNER_TEMP/ingestion-preview/manifest.json" \
+            | tee "$RUNNER_TEMP/ingestion-plan.json"
+          {
+            echo '### Dry-run plan'
+            echo '\`\`\`json'
+            cat "$RUNNER_TEMP/ingestion-plan.json"
+            echo '\`\`\`'
+            echo 'No Qdrant writes or embedding calls. This preview does not advance the uploaded baseline.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Save preview separately in S3
+        run: |
+          set -euo pipefail
+          preview_key="previews/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          tar -czf "$RUNNER_TEMP/preview.tar.gz" -C "$RUNNER_TEMP/ingestion-preview" .
+          aws s3 cp "$RUNNER_TEMP/preview.tar.gz" "s3://$STATE_BUCKET/$preview_key/run.tar.gz" --only-show-errors
+          aws s3 cp "$RUNNER_TEMP/ingestion-plan.json" "s3://$STATE_BUCKET/$preview_key/plan.json" --only-show-errors
+          echo "Preview saved to s3://$STATE_BUCKET/$preview_key/" >> "$GITHUB_STEP_SUMMARY"
