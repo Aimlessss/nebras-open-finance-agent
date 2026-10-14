@@ -1,0 +1,580 @@
+{
+  "document_id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+  "chunk_count": 10,
+  "chunks": [
+    {
+      "document_id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+      "type": "section",
+      "text": "Get Payment Log > API /payment-log/{id}\n\n{\n  \"info\": {\n    \"title\": \"Consent Manager API\",\n    \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor the Consent Manager API.\\n\\nThese APIs are implemented by Ozone and should be called by the financial institution to find, modify and delete consents.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.1.10\\n* Added a character-set `pattern` (`^[A-Za-z0-9 \\\\/?:().,'+-]+$`, the ISO 20022 / SWIFT \\\"x\\\" set) to the\\n  current (free-text, 35-char) branch of the Creditor and Debtor references\\n  (`AEServiceInitiationCreditorReference` / `AEServiceInitiationDebtorReference`), so every LFI knows\\n  exactly which characters it must accept and store. The deprecated structured (120-char) branch is\\n  unchanged. Per OFP-003.\\n\\n### v2.1.9\\n* Restructured the international Creditor PII (`PersonalIdentifiableInformation.Initiation.Creditor`) for\\n  SWIFT SR2026: the Creditor party is now a `oneOf` of Individual and Organization variants, discriminated\\n  by `IdentityType`.\\n\\n\\n* The Individual variant carries object-valued `FirstName` / `MiddleName` / `LastName` (`en` / `ar` / `ls`),\\n  `RelationshipToSender`, `DateOfBirth`, `Occupation`, `Nationality`, `Gender`, `CountryOfBirth`,\\n  `SourceOfIncome`, `SourceOfFunds`, and `Evidence`. The Organization variant carries `AnyBIC`, `LEI`, and\\n  `Identification` + `SchemeName`. Both variants share `MobileNumber` / `Email` and an object-valued `Name`\\n  (`en` / `ar` / `ls`).\\n\\n\\n* Added SWIFT SR2026 fields to the international `PostalAddress` (`PostCode`, `Room`, `Department`,\\n  `SubDepartment`, `TownLocationName`, and now-mandatory `TownName`). It is now a single\\n  `AEInternationalAddress` schema shared by both the Creditor and the Creditor Agent (the Creditor Agent\\n  previously used the legacy `AEAddress`).\\n\\n\\n* Added a `CreditorAgent.Branch` object and `CreditorAccount.AccountType` (Savings / Current / Checking /\\n  Prepaid). Domestic Creditor schemas are unchanged.\\n\\n\\n### v2.1.8\\n* Aligned `AEBankServiceInitiationRichAuthorizationRequests.AECreditorIndicators.AccountType` enum with Standards (Retail / SME / Corporate), replacing the previous product-category enum (CurrentAccount / Savings / CreditCard / Mortgage / Finance) that diverged from the Standards PAR + Payments specs.\\n\\n* Aligned the `Risk` object with Standards: tightened `AERisk` and its descendants on the payment-initiation side with `additionalProperties: false` throughout, carved out the three `SupplementaryData` blocks on the RAR-shape (`AEBankServiceInitiationRichAuthorizationRequests.AE*Indicators.SupplementaryData`) to be open extension points (no `additionalProperties: false`), and added `minLength: 1` / `maxLength: 70` to `AddressLine` items inside the legacy `AEAddress` variant.\\n\\n* Added `ReadStatements` and `ReadProductFinanceRates` to `AEAccountAccessConsentPermissionCodes`, which were present in the v2.1 Standards Bank Data Sharing permission set but missing from the Consent Manager. The Consent Manager must accept every permission code from all supported Standards versions.\\n\\n* Closed the three `ConsentManager.AE*ConsentUpdateProperties` schemas with `additionalProperties: false`. The `PATCH /consents/{consentId}` request body is an `anyOf` of one schema per consent type (Bank Data Sharing, Bank Service Initiation, Insurance Data Sharing); without this, unknown properties were silently accepted, so a field belonging to one consent type could be patched onto another. The schemas now enforce the per-type field separation they describe.\\n\\n* Reverted the payment-log reject reason code to match the v2.0.x Consent Manager: the top-level property is `rejectReasonCode` (not `RejectReasonCode`) on the `GET /payment-log` response and `PATCH /payment-log/{id}` request body, and the `code` / `message` fields inside `CbuaePaymentLogRejectReasonCode` items are lower-case again (not `Code` / `Message`). The PascalCase variants were introduced in error and broke LFIs built against the v2.0.x payment-log contract.\\n\\n### v2.1.7\\n* Added `SME` to `AEExternalAccountTypeCode`.\\n\\n* Changed the `Amount` schema `pattern` regex, which was over-escaped in YAML and failed to validate decimal \\n  monetary values.\\n\\n\\n* Removed the unused `AEBankServiceInitiationRichAuthorizationRequests.AERiskExternalAccountIdentificationCode` \\n  schema, which duplicated `AERiskExternalAccountIdentificationCode` and was never referenced.\\n\\n\\n### v2.1.6\\n* Added revised PII properties compatible with version 2.1.\\n\\n* Changed DebtorReference and CreditorReference to reflect v2.0 properties.\\n\\n* Changed Rich Authorization Request `type` values to reflect exactly the consent type they are describing.\\n\\n* Removed changelog before v2.1.4 to reduce bloat of API description.\\n### v2.1.5\\n* Changed Account Opening Statuses to provide correct status codes for `patch /account-opening-log/{logId}`.\\n### v2.1.4\\n* Added `FromDate` and `ToDate` in Bank Data Sharing Consents.\\n* Changed `TransactionFromDateTime` and `TransactionToDateTime` to `deprecated` in Bank Data Sharing Consents in\\n  line with changes in v2.1 Pushed Authorization Requests.\\n\",\n    \"version\": \"v2.1.10\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://cm.[LFICODE].apihub.openfinance.ae\"\n    },\n    {\n      \"url\": \"https://cm.[LFICODE].preprod.apihub.openfinance.ae\"\n    }\n  ],\n",
+      "metadata": {
+        "title": "Get Payment Log",
+        "section": "API /payment-log/{id}",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "id": "1ba48e45-8acb-5d0a-bfd1-12652c310f00",
+      "chunk_key": "[\"section\",[\"\",\"API /payment-log/{id}\"],\"\"]:0:part:0",
+      "content_hash": "4c688f34937d6f4162d35eea75987cf1decb2f829a82407c9ed3e014183f62bc",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+      "type": "section",
+      "text": "Get Payment Log > API /payment-log/{id}\n\n  \"source_path\": \"/payment-log/{id}\",\n  \"operations\": {\n    \"patch\": {\n      \"tags\": [\n        \"payments\"\n      ],\n      \"summary\": \"Patches one or more fields in a payment-log based on id .\",\n      \"description\": \"This operation allows an  modify fields within a payment's `paymentResponse`.\\nThis is used by the financial institutions to update the status of a payment\\n\",\n      \"operationId\": \"patchPymentlog\",\n      \"parameters\": [\n        {\n          \"$ref\": \"#/components/parameters/id\"\n        }\n      ],\n      \"requestBody\": {\n        \"required\": true,\n        \"content\": {\n          \"application/json\": {\n            \"schema\": {\n              \"$ref\": \"#/components/schemas/CbuaePatchPaymentRecordBody\"\n            }\n          }\n        }\n      },\n      \"responses\": {\n        \"204\": {\n          \"description\": \"Indicates a successful operation.\\nThe response does not have a body.\\n\"\n        },\n        \"400\": {\n          \"description\": \"The request patch operation failed due to an error at the Consent Manager API.\",\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/error400Response\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"security\": [\n    {},\n    {\n      \"OzoneConnectJwtAuth\": []\n    }\n  ],\n  \"securitySchemes\": {\n    \"OzoneConnectJwtAuth\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Ozone-Connect-JWT-Auth\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get Payment Log",
+        "section": "API /payment-log/{id}",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "id": "19e4620a-f8fd-5f2e-9f1e-7c52f81172fd",
+      "chunk_key": "[\"section\",[\"\",\"API /payment-log/{id}\"],\"\"]:0:part:1",
+      "content_hash": "3b5c9e2c51905eee566c40ed8d0171b2ac23c3f2996d09cad5498eb15721b967",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+      "type": "section",
+      "text": "Get Payment Log > OpenAPI definition #/components/parameters/id\n\n{\n  \"name\": \"id\",\n  \"in\": \"path\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"Identifies the payment by an id\\n\"\n}",
+      "metadata": {
+        "title": "Get Payment Log",
+        "section": "OpenAPI definition #/components/parameters/id",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "9be11977-cddc-55f5-9169-a321e44dc10b",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/id\"],\"\"]:0",
+      "content_hash": "657a5fb1a7843b38894d2e5c55e004d22d019e62881d0c0f25a7ffdd8c315021",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+      "type": "section",
+      "text": "Get Payment Log > OpenAPI definition #/components/schemas/CbuaePatchPaymentRecordBody\n\n{\n  \"type\": \"object\",\n  \"description\": \"Describes the fields to be patched and their corresponding values.\\n\",\n  \"required\": [\n    \"paymentResponse.status\"\n  ],\n  \"additionalProperties\": false,\n  \"properties\": {\n    \"paymentResponse.status\": {\n      \"type\": \"string\",\n      \"description\": \"The current status of the payment, mapped to the payment state model defined in the Open Finance Framework standards.\",\n      \"enum\": [\n        \"Pending\",\n        \"AcceptedSettlementCompleted\",\n        \"AcceptedCreditSettlementCompleted\",\n        \"AcceptedWithoutPosting\",\n        \"Rejected\"\n      ]\n    },\n    \"paymentResponse.OpenFinanceBilling\": {\n      \"$ref\": \"#/components/schemas/AEServiceInitiationOpenFinancePaymentBillingPatch\"\n    },\n    \"paymentResponse.paymentTransactionId\": {\n      \"type\": \"string\",\n      \"description\": \"This is an end to end TransactionId that is generated by the\\nunderlying payment rails when it is sent from an Originating LFI to a\\nReceiving LFI:\\n\\n- For Aani transactions, this is the Aani-generated transaction identifier, and not the same value as the \\n  `transactionId` in the Bank Data Sharing API.\\n\\n- The `paymentTransactionId` must be populated if the payment is processed by the LFI.\\n\",\n      \"minLength\": 1,\n      \"maxLength\": 40\n    },\n    \"paymentResponse.rejectReasonCode\": {\n      \"$ref\": \"#/components/schemas/CbuaePaymentLogRejectReasonCode\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get Payment Log",
+        "section": "OpenAPI definition #/components/schemas/CbuaePatchPaymentRecordBody",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "0d6cc7c0-c04b-58a8-85d4-d0d8d2be4cc7",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaePatchPaymentRecordBody\"],\"\"]:0",
+      "content_hash": "4e863e84925567d58c043e17f6463b1479589b6e963fb721e442d36f7f5583fe",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+      "type": "section",
+      "text": "Get Payment Log > OpenAPI definition #/components/schemas/AEServiceInitiationOpenFinancePaymentBillingPatch\n\n{\n  \"type\": \"object\",\n  \"properties\": {\n    \"NumberOfSuccessfulTransactions\": {\n      \"type\": \"integer\",\n      \"description\": \"Number of individual transactions successfully executed by the LFI.\\nThis is returned by the LFI after the file is fully processed.\\n\"\n    }\n  },\n  \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Payment Log",
+        "section": "OpenAPI definition #/components/schemas/AEServiceInitiationOpenFinancePaymentBillingPatch",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "cdd3b00f-90bf-526b-9f9c-82d646455673",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEServiceInitiationOpenFinancePaymentBillingPatch\"],\"\"]:0",
+      "content_hash": "b2d4291b666e84d535181973058f77c9c24fa0b1ac25dba8db1372498bacfbc8",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+      "type": "section",
+      "text": "Get Payment Log > OpenAPI definition #/components/schemas/CbuaePaymentLogRejectReasonCode\n\n{\n  \"description\": \"A list of reject reason codes provided by the LFI. \\nWhere this list is patched repeatedly the LFI **MUST** append to the existing list **BEFORE** calling the patch  operation, to ensure all values are maintained, unless the reject reason was patched in error and the existing  value is being replaced.\\n\",\n  \"type\": \"array\",\n  \"minItems\": 1,\n  \"items\": {\n    \"description\": \"The reason for rejection of a given payment request as detected by the LFI. The `Code` and `Message` properties are transposed EXACTLY in event notifications sent to the TPP, so the `Message` value MUST be sanitized accordingly.\",\n    \"type\": \"object\",\n    \"required\": [\n      \"code\",\n      \"message\"\n    ],\n    \"properties\": {\n      \"code\": {\n        \"description\": \"Error code that follows the namespaced pattern standardised for the Open Finance Framework. AANI reason codes should be used as standard, and be applied in scenarios where payment instructions are rejected at the LFI, prior to submission to AANI. LFI specific codes can be provided as a fallback.\",\n        \"anyOf\": [\n          {\n            \"type\": \"string\",\n            \"pattern\": \"^(AANI|FTS|LFI)\\\\.[A-Za-z0-9]+$\"\n          },\n          {\n            \"$ref\": \"#/components/schemas/standardErrorCodePattern\"\n          }\n        ],\n        \"example\": \"AANI.AM04\"\n      },\n      \"message\": {\n        \"description\": \"Error message describing the rejection reason\",\n        \"type\": \"string\",\n        \"minLength\": 1,\n        \"maxLength\": 500,\n        \"example\": \"Payment request cannot be executed as insufficient funds at debtor account.\"\n      }\n    }\n  },\n  \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get Payment Log",
+        "section": "OpenAPI definition #/components/schemas/CbuaePaymentLogRejectReasonCode",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "0e4ed047-a5a5-5b43-88fe-839c7bebe3a6",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaePaymentLogRejectReasonCode\"],\"\"]:0",
+      "content_hash": "250c1cf23f583e0754a4a91ab3329088ebb136a3bb7516d941c1ea25603fbe1a",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+      "type": "section",
+      "text": "Get Payment Log > OpenAPI definition #/components/schemas/standardErrorCodePattern\n\n{\n  \"description\": \"Namespaced error codes, indicating the source of the error code prior to the period, and the error code itself after the period e.g. `AANI.AM04` indicates insufficient funds.\",\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Get Payment Log",
+        "section": "OpenAPI definition #/components/schemas/standardErrorCodePattern",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "ef752486-981d-511c-9ef8-c9bd728b9c16",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/standardErrorCodePattern\"],\"\"]:0",
+      "content_hash": "e2ae8656807624ac405e0f394c490892f22d4b06807ec193a8665a521dede5c8",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+      "type": "section",
+      "text": "Get Payment Log > OpenAPI definition #/components/schemas/error400Response\n\n{\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"$ref\": \"#/components/schemas/errorReasonCodes\"\n    },\n    \"errorMessage\": {\n      \"type\": \"string\",\n      \"description\": \"Message describing what problem has occurred\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get Payment Log",
+        "section": "OpenAPI definition #/components/schemas/error400Response",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "3b8f5412-0d5c-5fcc-ba93-c0fcda2a83e3",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/error400Response\"],\"\"]:0",
+      "content_hash": "a4c7eaf56f3820c92c8fbf923532b3d02df8cecdc013ee0b46a980c97cd4d477",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+      "type": "section",
+      "text": "Get Payment Log > OpenAPI definition #/components/schemas/errorReasonCodes\n\n{\n  \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed error code(s), a  code that observes the namespaced pattern, or a custom error codes specific to the API Hub.\",\n  \"anyOf\": [\n    {\n      \"$ref\": \"#/components/schemas/standardErrorCodes\"\n    },\n    {\n      \"$ref\": \"#/components/schemas/standardErrorCodePattern\"\n    },\n    {\n      \"type\": \"string\"\n    }\n  ]\n}",
+      "metadata": {
+        "title": "Get Payment Log",
+        "section": "OpenAPI definition #/components/schemas/errorReasonCodes",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "31a00ab7-26b7-5d9d-bcaa-6ce17df3fb16",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/errorReasonCodes\"],\"\"]:0",
+      "content_hash": "4ca28bd634a37bdeff81e09c63e1fdbb52b3c8cd4b4c588632f9d253887edf68",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+      "type": "section",
+      "text": "Get Payment Log > OpenAPI definition #/components/schemas/standardErrorCodes\n\n{\n  \"description\": \"Standardized error codes used across open finance components\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"AccessToken.InvalidScope\",\n    \"Body.InvalidFormat\",\n    \"Consent.AccountTemporarilyBlocked\",\n    \"Consent.BusinessRuleViolation\",\n    \"Consent.FailsControlParameters\",\n    \"Consent.Invalid\",\n    \"Consent.InvalidUserIdentifier\",\n    \"Consent.PermanentAccountAccessFailure\",\n    \"Consent.TransientAccountAccessFailure\",\n    \"Event.UnexpectedEvent\",\n    \"JWE.DecryptionError\",\n    \"JWE.InvalidHeader\",\n    \"JWS.InvalidClaim\",\n    \"JWS.InvalidHeader\",\n    \"JWS.InvalidSignature\",\n    \"JWS.Malformed\",\n    \"Resource.InvalidFormat\"\n  ]\n}",
+      "metadata": {
+        "title": "Get Payment Log",
+        "section": "OpenAPI definition #/components/schemas/standardErrorCodes",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/api-hub/consent-manager/open-api/payment-log-id",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "46491fbd5684c18fb2b7788c32341ae217ece510b3ba196e947d78f491cb96c6"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "248b5651-abaf-59f2-8012-5f4811b8fe86",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/standardErrorCodes\"],\"\"]:0",
+      "content_hash": "b4213f6d588f9182316bf5df665997b1133f984b12ccbcc95b77ec2ed7953715",
+      "schema_version": 2
+    }
+  ]
+}

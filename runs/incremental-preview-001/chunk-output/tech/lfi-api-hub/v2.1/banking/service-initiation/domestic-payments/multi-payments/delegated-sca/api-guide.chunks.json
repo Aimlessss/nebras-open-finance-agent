@@ -1,0 +1,1243 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+  "chunk_count": 39,
+  "chunks": [
+    {
+      "id": "a1a0d1bb-60d2-52f8-aa68-b56286cd0006",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "intro",
+      "text": "Delegated SCA — API Guide\n\nDelegated SCA lets a TPP initiate multiple domestic payments from a customer's account at your LFI via the API Hub, where the Strong Customer Authentication step is performed at the TPP rather than at the LFI. The customer authorises the consent once and selects the debtor account; on each subsequent payment the TPP attaches a fresh SCA assertion in Risk.DebtorIndicators.Authentication to evidence that the customer authenticated at the TPP for that specific payment, and no redirect back to the LFI is needed. The consent may fix a list of up to ten allowed creditors or leave the creditor list open (the \"open beneficiaries\" model), in which case the TPP supplies the creditor fresh on each payment. Payments run on AANI as the primary rail with UAEFTS as the fallback. This guide covers the Ozone Connect endpoints your LFI MUST implement so the Hub can serve every payment under the consent from creation through to execution and status retrieval.\n\nThe behavioural rules for each endpoint — validation conditions, error mappings, post-execution lifecycle — are in the Delegated SCA Requirements. This guide covers the request and response shape of each endpoint, with code walkthroughs for the parts that need them: decrypting the PII, validating the creditor list (or confirming it is open), matching the payment-time PII against the consent, validating the delegated authentication assertion, and applying the duplicate-in-flight check that is specific to on-demand consent types.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "c02f3d19b1950ee8a792d56fa94250c80636ee43b6b3066226a3e3bcc69ea4e0",
+      "schema_version": 2
+    },
+    {
+      "id": "0e3b7b90-5506-5e6c-9895-b41ebc79909d",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "section",
+      "text": "Delegated SCA — API Guide > Prerequisites > What must be in place before you implement\n\nBefore implementing Delegated SCA, ensure the following are in place:\n\n- API Hub onboarded — Your API Hub instance is provisioned and your environment-specific configuration is complete.\n- Enc1 key pair generated and registered — The TPP encrypts PII to your LFI's Enc1 public key. Your LFI MUST hold the corresponding private key and be able to look it up by kid.\n- Consent Journey implemented — The Consent Journey API Guide MUST be implemented first. A payment cannot be initiated without an authorized consent.\n- Ozone Connect connectivity verified — Bidirectional mTLS connectivity is confirmed between the API Hub and your Ozone Connect base URL. See Connectivity & Certificates.\n- Delegated SCA beneficiary models advertised — For each beneficiary model you support, the corresponding flag MUST be set to true on your authorisation server entry in the Trust Framework: ApiMetadata.DelegatedAuthentication.SingleBeneficiarySupported (consents carrying exactly 1 creditor), ApiMetadata.DelegatedAuthentication.MultipleBeneficiariesSupported (consents carrying 2–10 creditors), and/or ApiMetadata.DelegatedAuthentication.OpenBeneficiariesSupported (consents that omit Initiation.Creditor ). A consent for a model the LFI has not advertised MUST be rejected at consent validation.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "What must be in place before you implement",
+        "category": "Prerequisites",
+        "anchor": "prerequisites",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"prerequisites\",\"\"]:0",
+      "content_hash": "5e94403f13825da67a080e499e32f72c0e7f99c376cbed3fed25bd479fe06711",
+      "schema_version": 2
+    },
+    {
+      "id": "da44384c-9e7e-583c-89ce-37bffa475580",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "section",
+      "text": "Delegated SCA — API Guide > Consent Validation > Validate the consent before it is created\n\nWhen a TPP creates a payment consent, the API Hub calls your POST /consent/action/validate endpoint before the consent is created. Your LFI MUST validate the consent and respond with data.status: \"valid\" or data.status: \"invalid\". An invalid response prevents the consent being created and the TPP receives an error.\n\nThe full set of validation rules — standardVersion, Initiation.DebtorAccount, BaseConsentId, CurrencyRequest, beneficiary-model support, PII conformance, creditor checks — is enumerated in Delegated SCA Requirements — Consent Validation. The two parts that need a code walkthrough are decrypting the PII and validating the creditor list; both are covered below.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"consent-validation\",\"\"]:0",
+      "content_hash": "f75e629676242edcae0920c34d4b84dd9e58db7aa20cbe37968b46676a0eac50",
+      "schema_version": 2
+    },
+    {
+      "id": "81c21ad2-1360-5bf9-a6ce-956a9cc2006e",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Consent Validation > Validate the consent before it is created > Decrypting and validating the PII\n\nThe consent.PersonalIdentifiableInformation field arrives as a JWE compact string encrypted by the TPP to your LFI's Enc1 public key. The API Hub passes it through unchanged — it cannot inspect the contents and has not validated them. Decryption, schema validation, and field-level checks are entirely the LFI's responsibility.\n\nThe end-to-end flow is:\n\n- Read the kid from the JWE protected header and look up the matching Enc1 private key\n- Decrypt the JWE → recover the inner JWS\n- Decode the JWS payload (signature verification is optional — the outer Ozone Connect request is itself a JWS that the API Hub has already verified, so the PII cannot have been tampered with in transit)\n- Validate the decoded payload against the consent-time PII schema — AEBankServiceInitiationRichAuthorizationRequests.AEDomesticPaymentPII in uae-api-hub-consent-manager-openapi.yaml. additionalProperties: false is set at every level, so any unexpected field fails validation\n\nHappy-path snippet:\n\nFor the per-step deep dive — kid lookup conventions, key import options, the optional JWS signature verification, building the ajv / jsonschema validator with all $ref schemas registered — see How to Decrypt PII.\n\nThe decrypted consent-time PII for a Delegated SCA consent — shown here in the 2-creditor \"multiple beneficiaries\" shape — looks like:\n\nIn the \"open beneficiaries\" shape, Initiation.Creditor is omitted entirely and the creditor is supplied fresh on each payment at POST /payments time.\n\nIf decryption fails, schema validation fails, or any required field is missing, respond with invalid per Rejecting an invalid consent.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Decrypting and validating the PII",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Decrypting and validating the PII\"]:0",
+      "content_hash": "a100c4128356cf51dba339ad182e56c32ad043cd9068b3aad2b5ea8450f84f67",
+      "schema_version": 2
+    },
+    {
+      "id": "6ff73c3a-575b-5d55-acc8-70778b991220",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Consent Validation > Validate the consent before it is created > Validating the Creditor list\n\nFor Delegated SCA the creditor shape depends on the beneficiary model the TPP chose:\n\n- Single beneficiary — Initiation.Creditor is an array of exactly 1 entry ( ApiMetadata.DelegatedAuthentication.SingleBeneficiarySupported )\n- Multiple beneficiaries — Initiation.Creditor is an array of 2–10 entries ( ApiMetadata.DelegatedAuthentication.MultipleBeneficiariesSupported )\n- Open beneficiaries — Initiation.Creditor is omitted entirely ( ApiMetadata.DelegatedAuthentication.OpenBeneficiariesSupported ). The creditor is supplied and validated at payment time — see Validating an open-beneficiary creditor at payment time\n\nThe full Creditor rules — cardinality, mandatory fields, BIC derivation — are in Creditor. This section walks through the consent-time validation in code. Each entry in the list is checked independently against the same four-part rule:\n\n- Cardinality — 1–10 entries if present; if absent, the beneficiary model is \"open\" and per-entry validation is deferred to payment time\n- Mandatory fields — CreditorAccount.SchemeName == \"IBAN\", Identification is a syntactically valid UAE IBAN, at least one of Name.en or Name.ar is present\n- BIC consistency — derive the BIC from the IBAN; if CreditorAgent.Identification was supplied it MUST match\n- Domestic rail reachability — the receiving bank is reachable on AANI or UAEFTS, and (where the LFI can determine it) the receiving account is in a state that can accept a payment\n\nSteps 2–4 are universal; step 1 depends on the advertised beneficiary model. The snippet below covers all three models.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Validating the Creditor list",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Validating the Creditor list\"]:0",
+      "content_hash": "1d1f3f4f4ff4095a9f26d25c32de7bbb85a95891a7273636decc6f6f90246bf1",
+      "schema_version": 2
+    },
+    {
+      "id": "e8499adc-04dc-5f70-8b8b-e370bfa728a8",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Consent Validation > Validate the consent before it is created > Validating the DebtorAccount\n\nIf the TPP supplied Initiation.DebtorAccount in the consent PII, your LFI MUST also validate it before approving the consent: SchemeName is IBAN, the IBAN corresponds to an account held at this LFI and reachable through this API Hub integration, and the account is in a state that permits payment initiation (not blocked, dormant, or closed). Customer ownership of the account is not checked here — it is checked later during the authorisation journey, once the customer has authenticated.\n\nThe full check list and the invalid response shape (with code: InvalidDebtorAccount ) are in Debtor Account.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Validating the DebtorAccount",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Validating the DebtorAccount\"]:0",
+      "content_hash": "c80e9d82404f9458e8894f8e8fb038b97c2a422c500423eea8e6589b12598468",
+      "schema_version": 2
+    },
+    {
+      "id": "310a6d15-eef5-50c0-a0d7-7da4687f639f",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Consent Validation > Validate the consent before it is created > Returning the validate response\n\nIf validateCreditorList (or the DebtorAccount checks) returns a non-null result, return it inside data on the validate response:\n\nSee Consent Events & Actions — API Guide for the full validate request and response schema.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "Validate the consent before it is created",
+        "category": "Consent Validation",
+        "subsection": "Returning the validate response",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-validation\",\"Returning the validate response\"]:0",
+      "content_hash": "874ca7505d13b509babf05e1983a2024bef1d2fe38e3956ce569221d066eea0f",
+      "schema_version": 2
+    },
+    {
+      "id": "989c6533-5332-5a7d-a771-e2af33f0718e",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "section",
+      "text": "Delegated SCA — API Guide > Consent Flow > Authorize the customer once at your LFI\n\nAfter consent creation passes validation, the TPP redirects the customer to your LFI's authorization endpoint and your LFI runs the standard consent journey: authenticate the customer, retrieve the consent, present the debtor account selection screen subject to the rules in Authorization — Account Selection, patch the selected debtor account and customer identifier onto the consent, and redirect back to the Hub. The consent authorisation journey is the only point at which the customer interacts with your LFI for this consent — subsequent payments carry a TPP-issued SCA assertion rather than returning to the LFI for MFA.\n\nThe endpoints your LFI implements against the API Hub for this flow are:\n\nEndpoint | Direction | Purpose\nGET /auth | LFI → API Hub | Initiate the authorization interaction\nGET /consents/{consentId} | LFI → API Hub | Retrieve the full consent details\nPATCH /consents/{consentId} | LFI → API Hub | Update consent status, customer identifiers, and the selected debtor account\nPOST /auth/{interactionId}/doConfirm | LFI → API Hub | Complete the interaction and redirect back to the TPP successfully\nPOST /auth/{interactionId}/doFail | LFI → API Hub | Complete the interaction and redirect back to the TPP with a failure\n\nFull details are in the Consent Journey API Guide.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "Authorize the customer once at your LFI",
+        "category": "Consent Flow",
+        "anchor": "consent-flow",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"consent-flow\",\"\"]:0",
+      "content_hash": "48ab306ec1eb1a21ee6fd9ac8b219d9bc75be0c63112e1d025ea2b6c9ea5243d",
+      "schema_version": 2
+    },
+    {
+      "id": "76f04998-f29b-5474-ad11-7e6a988bc71e",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Consent Flow > Authorize the customer once at your LFI > After the consent is authorized\n\nWhen the TPP submits a payment instruction to the API Hub's resource server, the API Hub validates the access token, checks the consent is Authorised, checks the instructed amount is within the consent's control parameters (per-payment maximum, per-period cumulative limits, per-period count), and validates the request against the OpenAPI schema — all before forwarding to your Ozone Connect POST /payments endpoint covered in the next section.\n\nThe Hub does not decrypt or inspect the PII, and it does not validate the delegated-SCA authentication assertion carried in Risk.DebtorIndicators.Authentication. Re-validating the PII, matching it against the consent, and verifying the SCA assertion at payment time are all the LFI's responsibility.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "Authorize the customer once at your LFI",
+        "category": "Consent Flow",
+        "subsection": "After the consent is authorized",
+        "anchor": "consent-flow",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"consent-flow\",\"After the consent is authorized\"]:0",
+      "content_hash": "9e78d1318bb87ca621876d242ec50ba9dae3f067a8a4434748cdd67716d11b3a",
+      "schema_version": 2
+    },
+    {
+      "id": "c2aa88f6-a8e4-5231-a7b3-a1532ea25a23",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "section",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments\n\nPOST /payments is the central endpoint your LFI implements for payment execution. The API Hub calls it each time the TPP submits a payment under an authorized Delegated SCA consent. Your LFI MUST decrypt and validate the PII, match it against the consent's creditor list (or validate the freshly-supplied creditor for open-beneficiary consents), verify the delegated-SCA assertion in Risk.DebtorIndicators.Authentication, run the synchronous validations listed in POST /payments Requirements — including the duplicate-in-flight check that is specific to on-demand consent types — create the payment record, and return 201 with the assigned PaymentId.\n\nScreening, rail submission, and status propagation happen after the 201 response — see After returning 201.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"post-payments\",\"\"]:0",
+      "content_hash": "6e73fee8c6177990fe8ce4f8ad98a4d76c10618a4c6aa2643e73d88d758df455",
+      "schema_version": 2
+    },
+    {
+      "id": "5e9dcaee-4ddb-5063-9ea3-49b85cc0e853",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Common request headers\n\nHeader | Required | Description\no3-provider-id | Yes | Identifier for your LFI registered in the Hub\no3-aspsp-id | Yes (deprecated) | Deprecated alias for o3-provider-id. Will be removed in a future version — use o3-provider-id\no3-caller-org-id | Yes | Organisation ID of the TPP making the underlying request\no3-caller-client-id | Yes | OIDC client ID of the TPP application\no3-caller-software-statement-id | Yes | Software statement ID of the TPP application\no3-api-uri | Yes | The parameterised URL of the API being called by the TPP\no3-api-operation | Yes | The HTTP method of the operation carried out by the TPP ( POST )\no3-ozone-interaction-id | Yes | Hub-generated interaction ID. Equals o3-caller-interaction-id if the TPP provided one\no3-consent-id | Yes | The consentId for which this call is being made — the lookup key for the stored consent context (see Matching the PII against the consent )\no3-psu-identifier | Yes | Base64-encoded customer identifier JSON object — the opaque LFI-issued reference patched onto the consent at authorization\no3-caller-interaction-id | No | Interaction ID passed in by the TPP, if present\n\nThe headers the TPP set on its original call to the API Hub — including x-fapi-interaction-id, x-fapi-auth-date, x-fapi-customer-ip-address, x-customer-user-agent, and x-idempotency-key — are forwarded to your LFI inside the request body as requestHeaders, not on the HTTP headers of the API Hub → LFI call. Delegated SCA REQUIRES both x-fapi-auth-date (the time of the customer's SCA at the TPP) and x-fapi-customer-ip-address (the customer's IP address at the time of authentication) — the customer is present at the TPP for every payment. If either header is missing, reject with 400 Body.InvalidFormat.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Common request headers",
+        "anchor": "common-request-headers",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"common-request-headers\",\"Common request headers\"]:0",
+      "content_hash": "5cba6da65cf12bd3b1e8f5d07219fe6833b6b6cb352c6f5f6d7a5553eb442a61",
+      "schema_version": 2
+    },
+    {
+      "id": "9f3daab8-48b9-503f-91fc-09eba84275a0",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Request body\n\nContent-Type: application/json. The Hub sends a plain JSON payload (not a JWS) containing the payment details, the headers the TPP supplied, and the TPP's directory record.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Request body",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Request body\"]:0",
+      "content_hash": "634377781965de8937e71e010e156f35858a3c5c1ddc84c822be7ab3f30db75f",
+      "schema_version": 2
+    },
+    {
+      "id": "1754fff2-4deb-56c5-8d1c-a278bd852e80",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Top-level fields\n\nField | Type | Required | Description\nrequestUrl | string | No | The TPP-facing resource URL the TPP called, e.g. https://rs1.[LFICode].apihub.openfinance.ae/open-finance/payment/v2.1/payments\npaymentType | string | Yes | The payment type. MUST be cbuae-payment for domestic Delegated SCA\nrequest.Data | object | Yes | The payment payload — see request.Data below\nrequestHeaders | object | Yes | The complete set of HTTP headers the TPP sent to the API Hub. The TPP's FAPI headers live here — both x-fapi-auth-date and x-fapi-customer-ip-address MUST be present\ntpp | object | Yes | The TPP's directory record ( clientId, orgId, tppId, tppName, softwareStatementId, decodedSsa, optional directoryRecord )\nsupplementaryInformation | object | No | Free-form pass-through context. The LFI MUST safely ignore unrecognised properties",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Top-level fields",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Top-level fields\"]:0",
+      "content_hash": "f7bb99d247d17523a44353bbd565a9dc9645c2848b60a580b77ec7f3683317b3",
+      "schema_version": 2
+    },
+    {
+      "id": "0589fd1c-b03e-5225-a8de-f810cc2ab5d1",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > request.Data\n\nField | Type | Required | Description\nConsentId | string | Yes | The consent the payment is being executed under. MUST equal the o3-consent-id header\nInstruction.Amount.Amount | string | Yes | Decimal amount with two fraction digits, e.g. 125.50. The Hub has already enforced it is within the consent's per-payment maximum and periodic limits before forwarding\nInstruction.Amount.Currency | string | Yes | ISO-4217 currency code. MUST be AED for domestic payments\nPaymentPurposeCode | string | Yes | 3-letter ISO 20022 purpose code, e.g. GDDS\nPersonalIdentifiableInformation | string | Yes | Encrypted PII payload as a JWE compact string. Carries the creditor and the Risk.DebtorIndicators.Authentication block — required whether the consent fixed a list or left beneficiaries open — see Reading the PII at payment time\nDebtorReference | string | No | Reference shown on the debtor's statement\nCreditorReference | string | No | Reference shown on the creditor's statement\nOpenFinanceBilling.Type | string | Yes | Billing type, e.g. Collection, PushP2P, PullP2P, Me2Me\nOpenFinanceBilling.MerchantId | string | No | Optional merchant identifier\n\nFor the full schema — including tpp and decodedSsa field-by-field — see the POST /payments API Reference.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "request.Data",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"request.Data\"]:0",
+      "content_hash": "2bf4d8f699a948983bc7eec8ada75919dfaaa9cc23613253261c6d0dd59fd588",
+      "schema_version": 2
+    },
+    {
+      "id": "50c2f82f-8694-5926-a6bb-15f4b3316161",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Reading the PII at payment time\n\nThe payment-time PII follows a different shape from the consent-time PII:\n\n- Initiation.Creditor is a single object, not an array — each payment pays exactly one creditor, whether or not a list was fixed at consent time\n- DebtorAccount is absent — the debtor was selected and pinned during consent authorisation\n- Risk.DebtorIndicators.Authentication is present — the delegated-SCA assertion evidencing that the customer authenticated at the TPP for this specific payment. This field is unique to Delegated SCA\n- The schema to validate against is AEBankServiceInitiation.AEDomesticPaymentPIIProperties in uae-ozone-connect-bank-service-initiation-openapi.yaml — not the consent-time schema\n\nThe decrypt + decode flow is identical to consent time — read the kid, decrypt with the matching Enc1 private key, decode the JWS payload. Re-use the helper from Decrypting and validating the PII; only swap the schema:\n\nIf decryption fails, reject with 400 JWE.DecryptionError. If schema validation fails (missing required field — including Risk.DebtorIndicators.Authentication for Delegated SCA — wrong type, or additional property), reject with 400 Body.InvalidFormat.\n\nA decrypted payment-time PII for Delegated SCA looks like:",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Reading the PII at payment time",
+        "anchor": "read-pii",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"read-pii\",\"Reading the PII at payment time\"]:0",
+      "content_hash": "5d7fe09ccc601aad5faf7bed2467d9c530f646c4c89d0378ef02f7d2260385fd",
+      "schema_version": 2
+    },
+    {
+      "id": "c7881a48-7e26-507c-b8bf-63651bc19d68",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Validating the delegated-SCA authentication assertion\n\nRisk.DebtorIndicators.Authentication carries the proof that the customer authenticated at the TPP with Strong Customer Authentication for this specific payment. Your LFI MUST verify this block before creating the payment record — without a valid SCA assertion, the payment has no authorisation to debit the selected account.\n\nThe full rule set — Method values, required Factors, AuthenticatedAt freshness window, AssertionId uniqueness — is in Delegated SCA Requirements — Authentication Validation. The check has four parts:\n\n- Method — MUST be MFA. Any other value → 400 Consent.FailsControlParameters\n- Factors — MUST list at least two distinct SCA categories from Knowledge, Possession, Inherence\n- AuthenticatedAt freshness — MUST be within 5 minutes of the current server time. Stale assertions → 400 Consent.FailsControlParameters. This MUST also be consistent with the x-fapi-auth-date FAPI header\n- AssertionId — MUST be present, and MUST not have been seen under this consentId before (replay prevention). A duplicate → 400 Consent.FailsControlParameters\n\nYour LFI MAY apply additional risk-based checks — e.g. correlating x-fapi-customer-ip-address with the customer's known device profile, or rejecting assertions from IPs outside permitted geographies. Failures of such checks MUST also be returned as 400 Consent.FailsControlParameters (the consent's control parameters include \"the customer has performed SCA\"), not as 403.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Validating the delegated-SCA authentication assertion",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Validating the delegated-SCA authentication assertion\"]:0",
+      "content_hash": "0b5098fcb37b916349217cd91ae3db8287f57f8ce310ab2514176fe891790c16",
+      "schema_version": 2
+    },
+    {
+      "id": "88f1c654-61e7-55e3-8da6-42fc5ec12d32",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Matching the PII against the consent\n\nPer POST /payments Requirements rule 2, Delegated SCA splits into two flows at payment time depending on whether the consent fixed a list of creditors or left beneficiaries open:\n\n- Consent fixed a creditor list (1–10 entries) — the submitted creditor MUST exactly match one of the consent-time entries. Mismatch → 400 Consent.FailsControlParameters\n- Consent left beneficiaries open — there is nothing to match against; the deferred creditor validation runs here instead. A failed check → 400 Consent.FailsControlParameters\n\nThe link between the payment and the consent is the o3-consent-id request header (also surfaced as request.Data.ConsentId in the body). The fixed-list flow has two implementation patterns; the open-beneficiaries flow is a single path covered in the next subsection.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Matching the PII against the consent",
+        "anchor": "match-pii",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"match-pii\",\"Matching the PII against the consent\"]:0",
+      "content_hash": "f4abce2161109fa9862a37eb9ee4ada4961b68f73b6a869732a8a87c3089aaba",
+      "schema_version": 2
+    },
+    {
+      "id": "a628188e-5c1d-5ac1-ae59-27afedb16e58",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Pattern A — LFI persisted the decrypted creditor list at consent time\n\nThe most common pattern. At consent validation, after you decrypted and validated the consent-time PII, you persisted the creditor list keyed by consentId. At payment time you fetch it and search for an exact match against the payment-time creditor.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Pattern A — LFI persisted the decrypted creditor list at consent time",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Pattern A — LFI persisted the decrypted creditor list at consent time\"]:0",
+      "content_hash": "92c037d7d68be31bd0abee048fc1d8ab78e18ff9a418dc072219ed47420f2708",
+      "schema_version": 2
+    },
+    {
+      "id": "52d7028a-5d00-58ed-92b2-c3aa2ff12c38",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Pattern B — LFI did not persist the consent-time PII\n\nIf your LFI did not persist the decrypted PII at consent time, fetch the consent from the API Hub via GET /consents/{consentId}, decrypt the consent's PersonalIdentifiableInformation field, and run the same matching logic: for a fixed list, some(isExactMatch, paymentCreditor) against Initiation.Creditor; for an open-beneficiary consent (the field is absent), fall through to the open-beneficiary validation below.\n\nPattern B trades stored state for a network round-trip and a second decryption on every payment. Choose Pattern A unless persistence is not an option for your LFI.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Pattern B — LFI did not persist the consent-time PII",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Pattern B — LFI did not persist the consent-time PII\"]:0",
+      "content_hash": "3bbc0a65688d02b42f1ec84d3b67985c43d426cd358810f612bd49c9e3cdfce8",
+      "schema_version": 2
+    },
+    {
+      "id": "d23d9395-6156-5890-abf6-444fd24bd75f",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Validating an open-beneficiary creditor at payment time\n\nWhen the consent omitted Initiation.Creditor, the creditor validation that would normally run at consent-validate time is deferred to POST /payments. The checks are the same four-part rule from consent validation — mandatory fields, BIC consistency, domestic rail reachability. The only differences are the error shape (HTTP 400 with errorCode: Consent.FailsControlParameters, rather than the invalid JSON body) and the fact that only a single creditor is being checked.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Validating an open-beneficiary creditor at payment time",
+        "anchor": "open-beneficiary",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"open-beneficiary\",\"Validating an open-beneficiary creditor at payment time\"]:0",
+      "content_hash": "ffdfcb15f81d6cf7fcd267d28e8fd6649041231dde2a83b078f5cc82b3d50be7",
+      "schema_version": 2
+    },
+    {
+      "id": "0530ca64-7353-58c7-9577-b9a319578f5d",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Duplicate-in-flight check\n\nPer POST /payments Requirements rule 6, Delegated SCA payments are subject to a duplicate-in-flight check that on-demand consent types carry but one-off and scheduled payments do not. Before the payment record is created, your LFI MUST check whether another payment under the same consent, with the same creditor and the same instructed amount, is currently in Pending status. If so, reject the new request with 409 Payment.DuplicateInFlight.\n\nThis is distinct from x-idempotency-key handling: the idempotency key catches TPP retries of the same HTTP request, while this rule catches genuinely separate payment intents that happen to duplicate a still-in-flight one.\n\nOnce the prior payment has left Pending (reached AcceptedSettlementCompleted, AcceptedCreditSettlementCompleted, AcceptedWithoutPosting, or Rejected ), a subsequent identical payment is permitted.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Duplicate-in-flight check",
+        "anchor": "duplicate-in-flight",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"duplicate-in-flight\",\"Duplicate-in-flight check\"]:0",
+      "content_hash": "0b72bdf8480186fc271eb4b46f29922865232c8dea6e9b21cdb4d47b199ac6aa",
+      "schema_version": 2
+    },
+    {
+      "id": "b45d85db-8efa-5e4a-8a30-5dc6c41e51fc",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Response\n\nContent-Type: application/json. Return 201 on successful payment record creation.\n\nField | Type | Required | Description\ndata.id | string | Yes | The LFI-assigned PaymentId. MUST be unique within your payment system, MUST NOT be reassigned, and MUST resolve to the same payment for the full 1-year GET /payments/{paymentId} sustain window\ndata.consentId | string | No | The consent under which the payment was created\ndata.paymentTransactionId | string | No | End-to-end identifier from the rail. Omit until AANI/UAEFTS has assigned one — do not return an empty string\ndata.status | string | Yes | One of Pending, AcceptedSettlementCompleted, AcceptedCreditSettlementCompleted, AcceptedWithoutPosting, Rejected, Received\ndata.statusUpdateDateTime | string | Yes | ISO 8601 timestamp of the last status update\ndata.creationDateTime | string | Yes | ISO 8601 timestamp the payment record was created\ndata.instruction.Amount.amount / Amount.currency | string | No | The payment amount and currency\ndata.paymentPurposeCode | string | Yes | The purpose code from the request\ndata.openFinanceBilling.Type | string | Yes | The billing type from the request\nmeta | object | No | Free-form metadata",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Response\"]:0",
+      "content_hash": "113c09837b017c0ce503b3fb56e4308ec08ed8492fb390f29cf46ff9b582c215",
+      "schema_version": 2
+    },
+    {
+      "id": "b8de98e8-084f-5c4d-9221-b64c78a4973b",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > Error responses\n\nOnly return an error when the request is invalid or a server condition prevents you from responding. All error bodies MUST include errorCode and errorMessage. The errorCode values are drawn from the POST /payments OpenAPI schema Error400 / Error403 / Error409 enums.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "Error responses",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"Error responses\"]:0",
+      "content_hash": "7a7f171c3f8ba3347b32f0122b22dbbf29a2aa5732f4d229c51f8aaada5bcfbe",
+      "schema_version": 2
+    },
+    {
+      "id": "7f093b18-537c-5a2f-9697-001814b372d4",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > 400 — Bad request\n\nerrorCode | When to use\nBody.InvalidFormat | Body is absent, not valid JSON, or fails schema validation — including missing Risk.DebtorIndicators.Authentication, x-fapi-auth-date, or x-fapi-customer-ip-address\nResource.InvalidFormat | A field is present but not syntactically valid\nConsent.Invalid | The consent referenced by o3-consent-id is unknown to the LFI or has been revoked\nConsent.FailsControlParameters | The payment-time creditor does not match any entry on a fixed-list consent, fails open-beneficiary creditor validation, or the delegated-SCA assertion fails method / factor / freshness / replay checks\nConsent.BusinessRuleViolation | An LFI-side business rule blocks the payment\nJWE.DecryptionError | PII JWE cannot be decrypted with any registered Enc1 key\nJWE.InvalidHeader | PII JWE header is malformed\nJWS.InvalidSignature / JWS.Malformed / JWS.InvalidClaim / JWS.InvalidHeader | PII inner JWS fails verification (only relevant if you have opted in to verifying the TPP's signature)\nGenericRecoverableError | Recoverable validation error not covered above — Hub may retry\nGenericError | Unrecoverable validation error not covered above (including insufficient funds — see requirements rule 3)",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "400 — Bad request",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"400 — Bad request\"]:0",
+      "content_hash": "db9fe8973d25eab620ce5240c19529fbb7b68e057d45831d533a6cbdf13bc9b0",
+      "schema_version": 2
+    },
+    {
+      "id": "22bdbf86-3223-5ae0-8aeb-c9195cb7af48",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > 403 — Forbidden\n\nerrorCode | When to use\nAccessToken.InvalidScope | The Hub's token does not include the required scope\nConsent.AccountTemporarilyBlocked | Debtor account is Inactive, Dormant, or Suspended\nConsent.PermanentAccountAccessFailure | Debtor account is Closed, Deceased, or Unclaimed\nConsent.TransientAccountAccessFailure | Debtor account temporarily inaccessible — Hub may retry after a delay\nGenericRecoverableError / GenericError | Other forbidden conditions",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "403 — Forbidden",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"403 — Forbidden\"]:0",
+      "content_hash": "469a3aafafedd7d13afdf67275193fa55be2965b4e0294461ee68ac670a7fd31",
+      "schema_version": 2
+    },
+    {
+      "id": "9f014bbf-f414-5be5-9f4d-a937e83c6feb",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > 409 — Conflict\n\nerrorCode | When to use\nPayment.DuplicateInFlight | Another payment with the same creditor and amount under the same consent is still Pending — see Duplicate-in-flight check",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "409 — Conflict",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"409 — Conflict\"]:0",
+      "content_hash": "84f235b226bf91a49f59ade80d0cd5addb200526bf214d2491ddcdb6e15a4392",
+      "schema_version": 2
+    },
+    {
+      "id": "f73699a0-6d6b-5d1b-a212-d2709405cf2d",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > POST /payments > 500\n\n500 for transient/unrecoverable server errors. Use GenericRecoverableError if the Hub may retry, GenericError otherwise.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "POST /payments",
+        "category": "Endpoint",
+        "subsection": "500",
+        "anchor": "post-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"post-payments\",\"500\"]:0",
+      "content_hash": "8c0fc95954abb9cb80783aee56b9da816e6c2553ea990ae399622abe17223047",
+      "schema_version": 2
+    },
+    {
+      "id": "d71bcf90-ecb8-541b-a0ff-45dc0879c1e1",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "section",
+      "text": "Delegated SCA — API Guide > After returning 201 > Asynchronous lifecycle is the LFI's responsibility\n\nThe 201 returned to the API Hub means the payment record exists at your LFI; it does not mean the payment has settled. The lifecycle from here is asynchronous and is the LFI's responsibility:\n\nStage | LFI behaviour | Reference\nScreening | Run the LFI's standard fraud / sanctions / AML controls on the payment record. SHOULD complete within 3 seconds. On a screening failure, immediately PATCH the payment to Rejected with an LFI. -namespaced reject reason | Screening Checks\nRail submission | Submit to AANI as primary. Fall back to UAEFTS automatically if AANI is unavailable or the receiving bank cannot receive via AANI — no TPP/customer intervention | Rail Submission\nStatus propagation | On every rail status change that maps to an Open Finance status, call PATCH /payment-log/{id} on the API Hub Consent Manager. Once AANI/UAEFTS assigns the end-to-end identifier, include it as paymentTransactionId on the next PATCH | Payment Status\nRail rejection | If the rail rejects the payment, PATCH paymentResponse.status: Rejected with RejectReasonCode.Code namespaced as AANI. or FTS. and a sanitised Message for relay to the TPP | Rail Submission\nStatus retrieval | Continue serving GET /payments/{paymentId} for at least 1 year, with Status and paymentTransactionId consistent with the most recent PATCH | GET /payments/{paymentId} rules below\n\nPATCH delivery is durable: retry transient 5xx /timeout failures with exponential backoff; raise 4xx failures for operational investigation rather than retrying.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "Asynchronous lifecycle is the LFI's responsibility",
+        "category": "After returning 201",
+        "anchor": "after-201",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"after-201\",\"\"]:0",
+      "content_hash": "811decfa0e863b2612a9e2db71a0212a2e81bca1eadc5770cf1fedadba5e5edf",
+      "schema_version": 2
+    },
+    {
+      "id": "80fb4e19-21fc-508b-9187-d797f205c95f",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "section",
+      "text": "Delegated SCA — API Guide > Endpoint > PATCH /payment-log/{id}\n\nThis endpoint updates the payment status on the API Hub. The Hub uses the update to send asynchronous notifications to TPPs and to maintain accurate state for billing and limit calculations. The LFI calls it for every Open Finance-relevant status transition after the 201 has been returned to the Hub on POST /payments.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "PATCH /payment-log/{id}",
+        "category": "Endpoint",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"patch-payment-log\",\"\"]:0",
+      "content_hash": "547b3e96080f32a01a24972f393c235a5df55b0b90505c88466fc93656b43c1b",
+      "schema_version": 2
+    },
+    {
+      "id": "b629e940-9606-5d86-9047-89ad35a05a47",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > PATCH /payment-log/{id} > Request headers\n\nHeader | Required | Description\no3-provider-id | Yes | Identifier for your LFI registered in the Hub\no3-caller-org-id | Yes | Organisation ID of the TPP making the underlying request\no3-caller-client-id | Yes | OIDC client ID of the TPP application\no3-api-uri | Yes | The parameterised URL of the API being called by the TPP\no3-api-operation | Yes | The HTTP method of the operation carried out by the TPP ( PATCH )\no3-ozone-interaction-id | Yes | Hub-generated interaction ID. Equals o3-caller-interaction-id if the TPP provided one\no3-consent-id | Yes | The consent backing this payment\no3-psu-identifier | Yes | Base64-encoded psuIdentifier JSON object\no3-caller-interaction-id | No | Interaction ID passed in by the TPP, if present",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "PATCH /payment-log/{id}",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Request headers\"]:0",
+      "content_hash": "6353ada659a385b51a3ef6a8408c836aa7d517a29d1c4af9709089afa1cdb4a1",
+      "schema_version": 2
+    },
+    {
+      "id": "5c1ea4fa-4460-5a42-8bb0-9d2d4d40b66f",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > PATCH /payment-log/{id} > Path parameters\n\nParameter | Type | Description\nid | string | Identifier of the payment log entry being updated — the data.id returned from POST /payments",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "PATCH /payment-log/{id}",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Path parameters\"]:0",
+      "content_hash": "052018005402f4024c1fbea71f2a7a3c8a32071baa4fceee8d2c9dca4f03ca1b",
+      "schema_version": 2
+    },
+    {
+      "id": "50fd3b20-a366-5101-bbcb-ea8a7f1fdcfd",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > PATCH /payment-log/{id} > Request body\n\nContent-Type: application/json. The PATCH body uses literal flat-key JSON (the dots are part of the key, not nested objects):\n\nField | Type | Required | Description\npaymentResponse.status | string | Yes | Pending, AcceptedSettlementCompleted, AcceptedCreditSettlementCompleted, AcceptedWithoutPosting, or Rejected. See Payment Status\npaymentResponse.paymentTransactionId | string | Conditional | The end-to-end identifier assigned by the rail (AANI or UAEFTS). Set on the first PATCH that carries it; once set, MUST NOT change\npaymentResponse.OpenFinanceBilling.numberOfSuccessfulTransactions | integer | No | Number of successful transactions (typically 1 per payment)\npaymentResponse.RejectReasonCode[] | array | Conditional | Required when paymentResponse.status is Rejected. Append new reasons rather than replacing — preserves history\npaymentResponse.RejectReasonCode[].Code | string | Yes (in array) | Namespaced rejection code: LFI.… for an LFI-side rejection (e.g. screening), AANI.… or FTS.… for a rail rejection. Pattern: ^(LFI|AANI|FTS)\\.[A-Za-z0-9]+$\npaymentResponse.RejectReasonCode[].Message | string | Yes (in array) | Sanitised, customer-relayable description. MUST NOT reveal detection logic, sanctions matches, or internal case identifiers",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "PATCH /payment-log/{id}",
+        "category": "Endpoint",
+        "subsection": "Request body",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Request body\"]:0",
+      "content_hash": "4f374ec9e31878c1a46aa539fa52b98d3eee6e43cba14d37f14396850436d5e4",
+      "schema_version": 2
+    },
+    {
+      "id": "ee7a6705-efdb-5781-bd7c-6919263283f5",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > PATCH /payment-log/{id} > Response\n\nContent-Type: application/json. A successful PATCH returns 204 No Content with no body. See the PATCH /payment-log/:id API Reference for the full schema.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "PATCH /payment-log/{id}",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "patch-payment-log",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"patch-payment-log\",\"Response\"]:0",
+      "content_hash": "59f12aa18518a619a67f0e79a257879dae50df56ad9a1a588cbeb139dc812c46",
+      "schema_version": 2
+    },
+    {
+      "id": "dd359071-9c22-5e12-b25f-e8d5060c44dd",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "section",
+      "text": "Delegated SCA — API Guide > Endpoint > GET /payments/{paymentId}\n\nBacks the TPP request GET https://rs1.LFICODE.apihub.openfinance.ae/open-finance/payment/v2.1/payments/{PaymentId}.\n\nReturns the current state of a payment your LFI created via POST /payments. The TPP polls this to observe screening outcomes, rail settlement, and any subsequent rejection.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-payments-paymentid\",\"\"]:0",
+      "content_hash": "ec6d29ff73985851a05aa0612538418c1871cf9ef9074413b6bd36647c39617e",
+      "schema_version": 2
+    },
+    {
+      "id": "7587fd6c-caa2-5aaf-9dc9-3974f2000282",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > GET /payments/{paymentId} > Request headers\n\nSee Common request headers.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "subsection": "Request headers",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Request headers\"]:0",
+      "content_hash": "584feccfc5b44ae53d137fda07a6219dda11cfdbdedf30d445839fff36d17f9d",
+      "schema_version": 2
+    },
+    {
+      "id": "e941551b-6c42-50ff-9065-375dec425b48",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > GET /payments/{paymentId} > Path parameters\n\nParameter | Type | Description\npaymentId | string | The PaymentId your LFI returned from POST /payments",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "subsection": "Path parameters",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Path parameters\"]:0",
+      "content_hash": "b592cad86ed02c4f7741fd0de587d6664be1b98a653824106eb163369daf0ac9",
+      "schema_version": 2
+    },
+    {
+      "id": "277c53f5-1a55-5493-85af-57691d0ec269",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > GET /payments/{paymentId} > Response\n\nContent-Type: application/json. The response shape mirrors the POST /payments 201 response — same data envelope, with the current Status, paymentTransactionId (once assigned by the rail), and any rejection details.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "subsection": "Response",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Response\"]:0",
+      "content_hash": "299c143d38ae22df5e1c6871800e605ef4003cc049f095ff74cdf63dbade2a79",
+      "schema_version": 2
+    },
+    {
+      "id": "fe3ca4a5-cb58-5fe0-87ee-e57bb226fee6",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > GET /payments/{paymentId} > Behavioural rules\n\nPer GET /payments/{paymentId} Requirements:\n\n# | Rule\n1 | Sustain period — Serve GET /payments/{paymentId} for at least 1 year from the payment's creation date. Within this window, the response MUST reflect the current status, including any later screening, rail, or reversal outcomes\n2 | Status consistency with the API Hub — The Status returned MUST exactly match the most recent value PATCHed to the API Hub Consent Manager via PATCH /payment-log/{id}. Any change in the LFI's systems MUST be reflected on both surfaces before it becomes observable to the TPP\n3 | paymentTransactionId consistency — Once the rail has assigned the end-to-end identifier and the LFI has PATCHed it to the Consent Manager, this endpoint MUST return the same value. Before assignment, omit the field entirely — do not return an empty string",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "subsection": "Behavioural rules",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Behavioural rules\"]:0",
+      "content_hash": "4e73deefb25f55c4fdcba2b6036217eab02a118b78ae65d4ce75cab9b5a80282",
+      "schema_version": 2
+    },
+    {
+      "id": "ab1f95b5-007f-590b-8a9d-c57c1dabc635",
+      "document_id": "tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+      "type": "subsection",
+      "text": "Delegated SCA — API Guide > Endpoint > GET /payments/{paymentId} > Errors\n\nStatus | errorCode | When to use\n404 | Resource.NotFound | No payment exists for the supplied paymentId (or the payment exists but belongs to a different consent)\n403 | Consent.AccountTemporarilyBlocked / Consent.PermanentAccountAccessFailure | The debtor account has become inaccessible since the payment was created\n500 | GenericRecoverableError / GenericError | Transient or unrecoverable server error\n\nSee the GET /payments/{paymentId} API Reference for the full schema.",
+      "metadata": {
+        "title": "Delegated SCA — API Guide",
+        "section": "GET /payments/{paymentId}",
+        "category": "Endpoint",
+        "subsection": "Errors",
+        "anchor": "get-payments-paymentid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "cef2e539eb2e7042862ae86311c577339e450614652a84cab02d8b0d5262f53f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"get-payments-paymentid\",\"Errors\"]:0",
+      "content_hash": "15c3888e6a2614eca729946f35199ef5841c7133573770d2ccbb8c4dda3f77d1",
+      "schema_version": 2
+    }
+  ]
+}

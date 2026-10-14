@@ -1,0 +1,1680 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+  "chunk_count": 49,
+  "chunks": [
+    {
+      "id": "04fd6b4b-94e4-5667-a902-76eaca25d0d5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > Schema AEPaymentRequest\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - Bank Service Initiation APIs\",\n \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor Bank Service Initiation APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a Financial Institution so that Ozone can deliver Service Initiation capabilities to TPPs\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards\\n* Changed every date-time field to reference the shared `AEDateTime` Schema Object. `AEDateTime` states that a\\n date-time value identifies an instant, that the offset is part of the value and must be applied by the\\n recipient, and that two encodings of the same instant are equivalent and must behave identically. It carries\\n a `pattern` requiring an offset and forbidding `-00:00`; all other offsets remain conformant. Each field\\n description now states only what is specific to that field. Per OFP-014.\\n\\n### v2.1.8\\n\\n* Added a character-set `pattern` (`^[A-Za-z0-9 \\\\/?:().,'+-]+$`, the ISO 20022 / SWIFT \\\"x\\\" set) to the\\n free-text Creditor and Debtor references (`AECreditorReference` / `AEDebtorReference`), so every LFI\\n knows exactly which characters it must accept and store. Length (`minLength 1` / `maxLength 35`) is\\n unchanged. Per OFP-003.\\n\\n\\n### v2.1.7\\n\\n* Restructured the international Creditor PII (`PersonalIdentifiableInformation.Initiation.Creditor`) for\\n SWIFT SR2026: the Creditor party is now a `oneOf` of Individual and Organization variants, discriminated\\n by `IdentityType`.\\n\\n\\n* The Individual variant carries object-valued `FirstName` / `MiddleName` / `LastName` (`en` / `ar` / `ls`),\\n `RelationshipToSender`, `DateOfBirth`, `Occupation`, `Nationality`, `Gender`, `CountryOfBirth`,\\n `SourceOfIncome`, `SourceOfFunds`, and `Evidence`. The Organization variant carries `AnyBIC`, `LEI`, and\\n `Identification` + `SchemeName`. Both variants share `MobileNumber` / `Email` and an object-valued `Name`\\n (`en` / `ar` / `ls`).\\n\\n\\n* Added SWIFT SR2026 fields to the international `PostalAddress` (`PostCode`, `Room`, `Department`,\\n `SubDepartment`, `TownLocationName`, and now-mandatory `TownName`). It is now a single\\n `AEInternationalAddress` schema shared by both the Creditor and the Creditor Agent (the Creditor Agent\\n previously used the legacy `AEAddress`).\\n\\n\\n* Added a `CreditorAgent.Branch` object and `CreditorAccount.AccountType` (Savings / Current / Checking /\\n Prepaid). Domestic Creditor schemas are unchanged.\\n\\n\\n### v2.1.6\\n\\n* Aligned the `Risk` object with Standards: tightened `AERisk` and its descendants with `additionalProperties: false` throughout, matching the strictness on the Standards PAR side. `SupplementaryData` blocks remain open extension points and `AEAccountTypeCode` already carried `Retail / SME / Corporate`.\\n\\n### v2.1.5\\n\\n* Changed the `UAEAccountInformationAPI.AEActiveCurrencyAndAmount_SimpleType` `pattern` regex, which was\\n over-escaped in YAML and failed to validate decimal monetary values.\\n\\n\\n### v2.1.4\\n\\n* Changed PII Schema Objects to align with split domestic and international payment PII introduced to v2.1.\\n\\n### v2.1.3\\n\\n* Added `AccountId` to Account Opening operation responses\\n\\n### v2.1.2\\n\\n* Removed AccountNumber from `get /payment-consents/{ConsentId}/refund` SchemeName values.\\n\\n### v2.1.1\\n\\n* Added `emirates_id` to `DocumentEvidenceDetails`\\n\\n* Changed loan to finance for all Schema Objects names and object descriptions.\\n\\n* Changed CreditorReference and DebtorReference objects to remove pattern.\\n\\n* Changed CreditorReference, DebtorReference, and Reference objects to reduce maximum length to 35 characters.\\n\",\n \"version\": \"v2.2.1\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"display_path\": \"/payments\",\n \"schema\": {\n \"description\": \"Payment Request Schema\\n\",\n \"type\": \"object\",\n \"additionalProperties\": false,\n \"required\": [\n \"Data\"\n ],\n \"properties\": {\n \"Data\": {\n \"description\": \"Primary data for the request\",\n \"type\": \"object\",\n \"additionalProperties\": false,\n \"required\": [\n \"ConsentId\",\n \"Instruction\",\n \"PaymentPurposeCode\",\n \"OpenFinanceBilling\"\n ],\n \"properties\": {\n \"ConsentId\": {\n \"$ref\": \"#/components/schemas/AEConsentId\"\n },\n \"Instruction\": {\n \"type\": \"object\",\n \"additionalProperties\": false,\n \"required\": [\n \"Amount\"\n ],\n \"description\": \"The Initiation payload is sent by the initiating party to the LFI. It is used to request movement of funds from the debtor account to a creditor for a single payment.\",\n \"properties\": {\n \"Amount\": {\n \"description\": \"The Currency and Amount relating to the Payment\",\n \"type\": \"object\",\n \"required\": [\n \"Amount\",\n \"Currency\"\n ],\n \"properties\": {\n \"Amount\": {\n \"$ref\": \"#/components/schemas/AEActiveOrHistoricAmount\"\n },\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEActiveOrHistoricCurrencyCode\"\n }\n }\n }\n }\n },\n \"CurrencyRequest\": {\n \"description\": \"The details of the non-local currency or FX request that has been agreed between the User and the TPP. The requested ChargeBearer and ExchangeRateInformation are included in this object may be overwritten by the LFI in the returned Consent object.\",\n \"type\": \"object\",\n \"additionalProperties\": false,\n \"required\": [\n \"ExtendedPurpose\",\n \"CurrencyOfTransfer\"\n ],\n \"properties\": {\n \"InstructionPriority\": {\n",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "Schema AEPaymentRequest",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"Schema AEPaymentRequest\"],\"\"]:0:part:0",
+      "content_hash": "e796c534a12849024c660b41f87b3d2f14b87cc0e2a91429188ba9340ae9d4b3",
+      "schema_version": 2
+    },
+    {
+      "id": "bcc2255e-d146-5f1e-9f32-90ee899c3e50",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > Schema AEPaymentRequest\n\n \"description\": \"Indicator of the urgency or order of importance that the instructing party would like the instructed party to apply to the processing of the instruction.\",\n \"type\": \"string\",\n \"enum\": [\n \"Normal\",\n \"Urgent\"\n ]\n },\n \"ExtendedPurpose\": {\n \"description\": \"Specifies the purpose of an international payment.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"ChargeBearer\": {\n \"$ref\": \"#/components/schemas/AEChargeBearerType1Code\"\n },\n \"CurrencyOfTransfer\": {\n \"description\": \"Specifies the currency of the to be transferred amount, which is different from the currency of the debtor's account.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\"\n },\n \"DestinationCountryCode\": {\n \"description\": \"Country in which Credit Account is domiciled. Code to identify a country, a dependency, or another area of particular geopolitical interest, on the basis of country names obtained from the United Nations (ISO 3166, Alpha-2 code).\",\n \"type\": \"string\",\n \"pattern\": \"[A-Z]{2,2}\"\n },\n \"ExchangeRateInformation\": {\n \"type\": \"object\",\n \"additionalProperties\": false,\n \"required\": [\n \"UnitCurrency\",\n \"RateType\"\n ],\n \"description\": \"Provides details on the currency exchange rate and contract.\",\n \"properties\": {\n \"UnitCurrency\": {\n \"description\": \"Currency in which the rate of exchange is expressed in a currency exchange. In the example 1GBP = xxxCUR, the unit currency is GBP.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\"\n },\n \"ExchangeRate\": {\n \"description\": \"The factor used for conversion of an amount from one currency to another. This reflects the price at which one currency was bought with another currency.\",\n \"type\": \"number\"\n },\n \"RateType\": {\n \"description\": \"Specifies the type used to complete the currency exchange.\",\n \"type\": \"string\",\n \"enum\": [\n \"Actual\",\n \"Agreed\",\n \"Indicative\"\n ]\n },\n \"ContractIdentification\": {\n \"description\": \"Unique and unambiguous reference to the foreign exchange contract agreed between the initiating party/creditor and the debtor agent.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 256\n }\n }\n }\n }\n },\n \"FxQuoteId\": {\n \"$ref\": \"#/components/schemas/FxQuoteId\"\n },\n \"PersonalIdentifiableInformation\": {\n \"description\": \"Personal Identifiable Information, represented in both encoded and decoded form using a `anyOf`, to help implementers readily understand both the structure and serialized form of the property. Schema Objects are provided for both Domestic and International payments.\\n\\n**Implementations MUST reflect the AEJWEPaymentPII Schema Object structure and the notes provided on** **implementing a JWS and JWE.**\\n\\n**The decoded form AEPaymentPII is for guidance on content only.**\",\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiation.AEDomesticPaymentPIIProperties\"\n },\n {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiation.AEInternationalPaymentPIIProperties\"\n },\n {\n \"$ref\": \"#/components/schemas/AEJWEPaymentPII\"\n }\n ]\n },\n \"PaymentPurposeCode\": {\n \"$ref\": \"#/components/schemas/AEPaymentPurposeCode\"\n },\n \"DebtorReference\": {\n \"$ref\": \"#/components/schemas/AEDebtorReference\"\n },\n \"CreditorReference\": {\n \"$ref\": \"#/components/schemas/AECreditorReference\"\n },\n \"OpenFinanceBilling\": {\n \"$ref\": \"#/components/schemas/AEServiceInitiationOpenFinancePaymentBilling\"\n }\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n },\n \"OzoneConnectServiceInitiationToken\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Bearer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "Schema AEPaymentRequest",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"Schema AEPaymentRequest\"],\"\"]:0:part:1",
+      "content_hash": "dd43d6f4bbf6e591b7f46c7c78d11abe771f4296ff4e6db536304033cfd89028",
+      "schema_version": 2
+    },
+    {
+      "id": "2d336a24-8aa1-57b7-a4ef-a6cdf3d846fd",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEConsentId\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 128,\n \"description\": \"Unique identification assigned by the TPP to identify the consent resource.\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEConsentId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEConsentId\"],\"\"]:0",
+      "content_hash": "9eea8f4931cf19d995fc71ffcefb960f3735e6158a433d25838fdbe37852db66",
+      "schema_version": 2
+    },
+    {
+      "id": "f57c0b84-f2a9-54fe-9926-1d52435a4392",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEActiveOrHistoricAmount\n\n{\n \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n \"type\": \"string\",\n \"pattern\": \"^\\\\d{1,16}\\\\.\\\\d{2}$\",\n \"example\": \"100.00\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEActiveOrHistoricAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEActiveOrHistoricAmount\"],\"\"]:0",
+      "content_hash": "35a739ddd069598f850b119e47f2ecdf3b5e82e4fed2e7472db996da99fcd75d",
+      "schema_version": 2
+    },
+    {
+      "id": "0f281124-ee5a-567b-b02f-27352810edbf",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEActiveOrHistoricCurrencyCode\n\n{\n \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"example\": \"AED\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEActiveOrHistoricCurrencyCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEActiveOrHistoricCurrencyCode\"],\"\"]:0",
+      "content_hash": "fe89cd07f0a52d81941bc6471f9324f916a3c1198465bc30206a1a590e4f2a80",
+      "schema_version": 2
+    },
+    {
+      "id": "31297c6c-8213-5276-a014-cf15dd0f7804",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEChargeBearerType1Code\n\n{\n \"description\": \"Specifies which party/parties will bear the charges associated with the processing of the payment transaction.\",\n \"type\": \"string\",\n \"enum\": [\n \"BorneByCreditor\",\n \"BorneByDebtor\",\n \"Shared\"\n ]\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEChargeBearerType1Code",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEChargeBearerType1Code\"],\"\"]:0",
+      "content_hash": "5d8860dd906b53b9cdf4d3b530d6b38d5d47c7c47257fb0d9616927cf112d6be",
+      "schema_version": 2
+    },
+    {
+      "id": "0f887c2f-4a00-53ce-a785-232fa57110f8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/FxQuoteId\n\n{\n \"description\": \"Required where the consent or payment initiation request relates to a previously quoted FX trade. The TPP must provide the `QuoteId` value where a long-lived consent exists, meaning that each payment initiation request will relate to a different `QuoteId` value.\",\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/FxServiceInitiation.FxQuoteIdType\"\n }\n ]\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/FxQuoteId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/FxQuoteId\"],\"\"]:0",
+      "content_hash": "4928eb888a78967f827859f343eb6bbf1abf56195f23d28bd38e0df4f8e7e59c",
+      "schema_version": 2
+    },
+    {
+      "id": "f45d014d-380e-5363-a559-c79dcfd6e1e6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/FxServiceInitiation.FxQuoteIdType\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 128,\n \"format\": \"uuid\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/FxServiceInitiation.FxQuoteIdType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/FxServiceInitiation.FxQuoteIdType\"],\"\"]:0",
+      "content_hash": "3d07f4104eec88245ab78a587b73012b3f74cc24e5c365433276c8c6302c74c1",
+      "schema_version": 2
+    },
+    {
+      "id": "8a9ba5e7-f795-5382-9936-d272e84af5b8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiation.AEDomesticPaymentPIIProperties\n\n{\n \"title\": \"Domestic Payment PII Schema Object\",\n \"type\": \"object\",\n \"additionalProperties\": false,\n \"description\": \"Elements of Personal Identifiable Information data\",\n \"properties\": {\n \"Initiation\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditor\"\n },\n \"Risk\": {\n \"$ref\": \"#/components/schemas/AERisk\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiation.AEDomesticPaymentPIIProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiation.AEDomesticPaymentPIIProperties\"],\"\"]:0",
+      "content_hash": "d4aada37fca303aa160de1d8e5ace7dcbdcbfec17c4a6584346c1c0b2e6a5950",
+      "schema_version": 2
+    },
+    {
+      "id": "eae15b06-2dd4-5967-9b33-de07d7a47a9f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditor\n\n{\n \"type\": \"object\",\n \"required\": [\n \"CreditorAccount\"\n ],\n \"properties\": {\n \"CreditorAgent\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAgentProperties\"\n },\n \"Creditor\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorProperties\"\n },\n \"CreditorAccount\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditorAccountProperties\"\n },\n \"ConfirmationOfPayeeResponse\": {\n \"type\": \"string\",\n \"pattern\": \"^.+\\\\..+\\\\..+$\",\n \"description\": \"Response from Confirmation of Payee operation, when executed for the Creditor Account.\\n\\nThis is JSON Web Signature returned by the Payee Confirmation operation at the Confirmation of Payee API.\\n\\nThe value must be the full JWS string, including the header and signature, without decoding to an object.\\n\\nIf Confirmation of Payee is not performed this property can be omitted\"\n }\n },\n \"description\": \"Identification elements for a Creditor for a domestic payment instruction.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditor",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditor\"],\"\"]:0",
+      "content_hash": "2b059291a6b6916a5ffbf9f3196e086bd91a3ccf61f20319f5fd6db68f05cd49",
+      "schema_version": 2
+    },
+    {
+      "id": "fb13c378-e27f-5633-a891-047831dd0d69",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAgentProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"SchemeName\",\n \"Identification\"\n ],\n \"properties\": {\n \"SchemeName\": {\n \"type\": \"string\",\n \"description\": \"The identification scheme for uniquely identifying the Agent.\\n* BICFI: The BIC/SWIFT Code\\n* Other: Identifier based on non-SWIFT payment system or local market scheme.\\n\",\n \"enum\": [\n \"BICFI\",\n \"Other\"\n ]\n },\n \"Identification\": {\n \"description\": \"Identifier that can be the BIC/SWIFT code or target payment scheme identifier.\",\n \"type\": \"string\"\n },\n \"Name\": {\n \"description\": \"Name by which an agent is known and which is usually used to identify that agent.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"PostalAddress\": {\n \"$ref\": \"#/components/schemas/AEAddress\"\n }\n },\n \"description\": \"Properties of the Creditor Agent, which provides information on the Financial Institution that holds the Creditor Account.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAgentProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAgentProperties\"],\"\"]:0",
+      "content_hash": "1383edcc879c0cbe765cbb08877837f7efb6530f65e0a4fc44e923e018b38acc",
+      "schema_version": 2
+    },
+    {
+      "id": "dff303ee-1274-534e-99da-e8ebfaa2ce67",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEAddress\n\n{\n \"description\": \"One-or-more addresses related to a given subject.\",\n \"type\": \"array\",\n \"minItems\": 1,\n \"items\": {\n \"description\": \"Address properties based on ISO 20022 `PostalAddress27` definition\",\n \"type\": \"object\",\n \"required\": [\n \"AddressType\",\n \"AddressLine\",\n \"Country\"\n ],\n \"properties\": {\n \"AddressType\": {\n \"description\": \"The type of address.\",\n \"type\": \"string\",\n \"enum\": [\n \"Billing\",\n \"Business\",\n \"Correspondence\",\n \"DeliveryTo\",\n \"MailTo\",\n \"POBox\",\n \"Postal\",\n \"Permanent\",\n \"Residential\",\n \"Statement\",\n \"Other\"\n ]\n },\n \"AddressLine\": {\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\",\n \"type\": \"array\",\n \"minItems\": 1,\n \"maxItems\": 7,\n \"items\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n }\n },\n \"BuildingNumber\": {\n \"description\": \"The unit, apartment, or villa number within a building or community\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"BuildingName\": {\n \"description\": \"Name of the building or house.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"Floor\": {\n \"description\": \"Floor or storey within a building.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"StreetName\": {\n \"description\": \"The name of the street or road where the property is located.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"DistrictName\": {\n \"description\": \"The district, community, or neighbourhood where the property is located.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"PostBox\": {\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"TownName\": {\n \"description\": \"Name of a built-up area, such as a town or city.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"CountrySubDivision\": {\n \"description\": \"Country subdivision, such as state or province. Where the address is in the UAE this is the Emirate where the address is registered.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"AbuDhabi\",\n \"Ajman\",\n \"Dubai\",\n \"Fujairah\",\n \"RasAlKhaimah\",\n \"Sharjah\",\n \"UmmAlQuwain\"\n ]\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"Country\": {\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{2}$\"\n }\n },\n \"additionalProperties\": false\n }\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEAddress",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEAddress\"],\"\"]:0",
+      "content_hash": "76a29d6f81d640b3a1f56ea81c3cd37c526a47aa1e12a519b2e6fddc241a075d",
+      "schema_version": 2
+    },
+    {
+      "id": "543fed4c-ce94-58d9-b3a7-105f119e3929",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorProperties\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"Name\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"PostalAddress\": {\n \"$ref\": \"#/components/schemas/AEAddress\"\n }\n },\n \"description\": \"Party to which an amount of money is due.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorProperties\"],\"\"]:0",
+      "content_hash": "ce5db801870d6183df1e8de08829923dfa4966b3ad68b8bb1cf3e4014d011177",
+      "schema_version": 2
+    },
+    {
+      "id": "094e34ed-a9ad-5963-a48a-c75500f07777",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditorAccountProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"SchemeName\",\n \"Identification\",\n \"Name\"\n ],\n \"properties\": {\n \"SchemeName\": {\n \"type\": \"string\",\n \"enum\": [\n \"IBAN\"\n ],\n \"description\": \"Domestic payment scheme, restricted to `IBAN`\"\n },\n \"Identification\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIdentification\"\n },\n \"Name\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEName\"\n },\n \"TradingName\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName\"\n },\n \"Type\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAccountTypeCodes\"\n }\n },\n \"description\": \"Unambiguous identification of the account of the creditor to which a credit entry will be posted.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditorAccountProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEDomesticCreditorAccountProperties\"],\"\"]:0",
+      "content_hash": "433310545f418af3222ce8ef25f2a54ad6cdd95bb032ff840604b20433c739b5",
+      "schema_version": 2
+    },
+    {
+      "id": "67760f63-5316-5646-aabc-27a54e3b42cf",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIdentification\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"description\": \"Identification for the account assigned by the LFI based on the Account Scheme Name.\\nThis identification is known by the User account owner.\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIdentification",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIdentification\"],\"\"]:0",
+      "content_hash": "efa8b408068d0c15b08e34fcd42f16e90eb0461082a73b1ac76fa516ca752a8a",
+      "schema_version": 2
+    },
+    {
+      "id": "a5c7618a-2130-5bba-a7d5-3cd7746ac9b8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEName\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"maxLength\": 70,\n \"description\": \"English value of the string\"\n },\n \"ar\": {\n \"type\": \"string\",\n \"maxLength\": 70,\n \"description\": \"Arabic value of the string\"\n }\n },\n \"description\": \"The Account Holder Name is the name or names of the Account owner(s) represented at the account level\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEName\"],\"\"]:0",
+      "content_hash": "de5af69894607b34127d6660437129677d72026289243c91060647e1c80e5294",
+      "schema_version": 2
+    },
+    {
+      "id": "1d9e1fa5-e9db-578d-adbb-1f086f4e62a9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"maxLength\": 70,\n \"description\": \"English value of the string\"\n },\n \"ar\": {\n \"type\": \"string\",\n \"maxLength\": 70,\n \"description\": \"Arabic value of the string\"\n }\n },\n \"description\": \"The Trading Brand Name (if applicable) for the Creditor.\\nApplicable to Payments.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName\"],\"\"]:0",
+      "content_hash": "c0702d421ca8b50c634b461735b86644491574c86e79add426196c49228767b5",
+      "schema_version": 2
+    },
+    {
+      "id": "12b97394-1b92-57b6-81df-185ec79d73bb",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAccountTypeCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Individual\",\n \"Merchant\",\n \"Business\",\n \"Charity\",\n \"GovernmentBody\",\n \"Other\"\n ],\n \"description\": \"The Creditor (Payee) Type, based on an allowed list. This value is populated by TPPs to inform the User of the type of Creditor being authorized, which facilitates providing information during the Consent journey.\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAccountTypeCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAccountTypeCodes\"],\"\"]:0",
+      "content_hash": "79ce53397ddcea6996790da595e02913f350dda622c099baca59508f96a901ef",
+      "schema_version": 2
+    },
+    {
+      "id": "5c649ee3-9419-56eb-8fd2-953f3a9f0a49",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AERisk\n\n{\n \"additionalProperties\": false,\n \"description\": \"The Risk section is sent by the TPP to the LFI. It is used to specify additional details for risk/fraud scoring regarding Payments.\\n\",\n \"type\": \"object\",\n \"properties\": {\n \"DebtorIndicators\": {\n \"$ref\": \"#/components/schemas/AEDebtorIndicators\"\n },\n \"DestinationDeliveryAddress\": {\n \"type\": \"object\",\n \"description\": \"Destination Delivery Address\\n\",\n \"properties\": {\n \"RecipientType\": {\n \"type\": \"string\",\n \"description\": \"The recipient of the goods whether an individual or a corporation.\",\n \"enum\": [\n \"Individual\",\n \"Corporate\"\n ]\n },\n \"RecipientName\": {\n \"type\": \"object\",\n \"description\": \"The name of the recipient of the goods, whether an individual or a corporation.\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"description\": \"English value of the string\"\n },\n \"ar\": {\n \"type\": \"string\",\n \"description\": \"Arabic value of the string\"\n }\n },\n \"additionalProperties\": false\n },\n \"NationalAddress\": {\n \"$ref\": \"#/components/schemas/AEAddress\"\n }\n },\n \"additionalProperties\": false\n },\n \"TransactionIndicators\": {\n \"$ref\": \"#/components/schemas/AETransactionIndicators\"\n },\n \"CreditorIndicators\": {\n \"$ref\": \"#/components/schemas/AECreditorIndicators\"\n }\n }\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AERisk",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AERisk\"],\"\"]:0",
+      "content_hash": "1949fc9ddfc5e4444c71621260c377b92eaaae73a045077ba872ff6cd6199df0",
+      "schema_version": 2
+    },
+    {
+      "id": "ba4bc691-257c-5f12-a6f9-aa9a527c0b6b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEDebtorIndicators\n\n{\n \"type\": \"object\",\n \"description\": \"Debtor (User) Indicators\\n\",\n \"properties\": {\n \"Authentication\": {\n \"type\": \"object\",\n \"description\": \"The authentication method used by the User to access their account with the TPP\",\n \"properties\": {\n \"AuthenticationChannel\": {\n \"description\": \"Channel on which the User was authenticated\",\n \"type\": \"string\",\n \"enum\": [\n \"App\",\n \"Web\"\n ]\n },\n \"PossessionFactor\": {\n \"type\": \"object\",\n \"description\": \"The User's possession, that only the User possesses\",\n \"properties\": {\n \"IsUsed\": {\n \"type\": \"boolean\"\n },\n \"Type\": {\n \"type\": \"string\",\n \"enum\": [\n \"FIDO2SecurityKey\",\n \"Passkey\",\n \"OTPDevice\",\n \"OTPApp\",\n \"SMSOTP\",\n \"EmailOTP\",\n \"PushNotification\",\n \"WebauthnToken\",\n \"SecureEnclaveKey\",\n \"HardwareOTPKey\",\n \"TrustedDevice\",\n \"Other\"\n ]\n }\n },\n \"additionalProperties\": false\n },\n \"KnowledgeFactor\": {\n \"type\": \"object\",\n \"description\": \"The User's knowledge, that only the User knows\",\n \"properties\": {\n \"IsUsed\": {\n \"type\": \"boolean\"\n },\n \"Type\": {\n \"type\": \"string\",\n \"enum\": [\n \"PIN\",\n \"Password\",\n \"SecurityQuestion\",\n \"SMSOTP\",\n \"EmailOTP\",\n \"OTPPush\",\n \"Other\"\n ]\n }\n },\n \"additionalProperties\": false\n },\n \"InherenceFactor\": {\n \"type\": \"object\",\n \"description\": \"The User's inherance, that is unique to the User's physical characteristics\",\n \"properties\": {\n \"IsUsed\": {\n \"type\": \"boolean\"\n },\n \"Type\": {\n \"type\": \"string\",\n \"enum\": [\n \"Biometric\",\n \"Fingerprint\",\n \"FaceRecognition\",\n \"IrisScan\",\n \"VoiceRecognition\",\n \"FIDOBiometric\",\n \"DeviceBiometrics\",\n \"Other\"\n ]\n }\n },\n \"additionalProperties\": false\n },\n \"ChallengeOutcome\": {\n \"type\": \"string\",\n \"description\": \"The result of multi-factor authentication performed by the TPP, with NotPerformed indication the User was not required to authenticate before consenting to the requested payment\",\n \"enum\": [\n \"Pass\",\n \"Fail\",\n \"NotPerformed\"\n ]\n },\n \"AuthenticationFlow\": {\n \"type\": \"string\",\n \"enum\": [\n \"MFA\",\n \"Other\"\n ]\n },\n \"AuthenticationValue\": {\n \"type\": \"string\",\n \"description\": \"Cryptographic proof of authentication where supported by the device and protocol.\"\n },\n \"ChallengeDateTime\": {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n }\n },\n \"additionalProperties\": false\n },\n \"UserName\": {\n \"type\": \"object\",\n \"description\": \"The Name of the User initiating the Payment\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"description\": \"English value of the string\"\n },\n \"ar\": {\n \"type\": \"string\",\n \"description\": \"Arabic value of the string\"\n }\n },\n \"additionalProperties\": false\n },\n \"GeoLocation\": {\n \"type\": \"object\",\n \"description\": \"GPS to identify and track the whereabouts of the connected electronic device.\",\n \"required\": [\n \"Latitude\",\n \"Longitude\"\n ],\n \"properties\": {\n \"Latitude\": {\n \"type\": \"string\",\n \"description\": \"latitude\"\n },\n \"Longitude\": {\n \"type\": \"string\",\n \"description\": \"longitude\"\n }\n },\n \"additionalProperties\": false\n },\n \"DeviceInformation\": {\n \"type\": \"object\",\n \"description\": \"Detailed device information\",\n \"properties\": {\n \"DeviceId\": {\n \"type\": \"string\",\n \"description\": \"IMEISV number of the connected electronic device\"\n },\n \"AlternativeDeviceId\": {\n \"type\": \"string\",\n \"description\": \"Alternative identifier for the connected electronic device\"\n },\n \"DeviceOperatingSystem\": {\n \"type\": \"string\",\n \"description\": \"Device operating system\"\n },\n \"DeviceOperatingSystemVersion\": {\n \"type\": \"string\",\n \"description\": \"Device operating system version\"\n },\n \"DeviceBindingId\": {\n \"type\": \"string\",\n \"description\": \"An identifier that associates a device uniquely with a specific application\"\n },\n \"LastBindingDateTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"Date and time when the device was last bound to the application\"\n }\n ]\n },\n \"BindingDuration\": {\n \"type\": \"string\",\n \"format\": \"duration\",\n \"description\": \"ISO 8601 duration since device was last bound (e.g., P30D for 30 days)\"\n },\n \"BindingStatus\": {\n \"type\": \"string\",\n \"description\": \"Current status of the device binding\",\n \"enum\": [\n \"Active\",\n \"Expired\",\n \"Revoked\",\n \"Suspended\"\n ]\n },\n \"DeviceType\": {\n \"type\": \"string\",\n \"description\": \"Type of device used\",\n \"enum\": [\n \"Mobile\",\n \"Desktop\",\n \"Tablet\",\n \"Wearable\",\n \"Other\"\n ]\n },\n \"DeviceManufacturer\": {\n \"type\": \"object\",\n \"properties\": {\n \"Model\": {\n \"type\": \"string\",\n \"description\": \"Device model name\",\n \"maxLength\": 50\n },\n \"Manufacturer\": {\n \"type\": \"string\",\n \"description\": \"Device manufacturer\",\n \"maxLength\": 50\n }\n },\n \"additionalProperties\": false\n },\n \"DeviceLanguage\": {\n \"type\": \"string\",\n \"description\": \"Device language\"\n },\n \"DeviceLocalDateTime\": {\n \"type\": \"string\",\n \"description\": \"Device local time\"\n },\n \"ConnectionType\": {\n \"type\": \"string\",\n \"description\": \"Type of connection to the internet\",\n \"enum\": [\n \"WiFi\",\n \"Cellular\",\n \"Other\"\n ]\n },\n \"ScreenInformation\": {\n \"type\": \"object\",\n \"properties\": {\n \"PixelDensity\": {\n \"type\": \"number\",\n \"description\": \"Screen pixel density\"\n },\n \"Orientation\": {\n \"type\": \"string\",\n \"enum\": [\n \"Portrait\",\n \"Landscape\"\n ]\n }\n },\n \"additionalProperties\": false\n },\n \"BatteryStatus\": {\n \"type\": \"object\",\n \"properties\": {\n \"Level\": {\n \"type\": \"number\",\n \"minimum\": 0,\n \"maximum\": 100\n },\n \"IsCharging\": {\n \"type\": \"boolean\"\n }\n },\n \"additionalProperties\": false\n },\n \"TouchSupport\": {\n \"type\": \"object\",\n \"properties\": {\n \"Supported\": {\n \"type\": \"boolean\"\n },\n \"MaxTouchPoints\": {\n \"type\": \"integer\",\n \"minimum\": 0\n }\n },\n \"additionalProperties\": false\n },\n \"MotionSensors\": {\n \"type\": \"object\",\n \"properties\": {\n \"Status\": {\n \"type\": \"string\",\n \"enum\": [\n \"InMotion\",\n \"Stationary\"\n ]\n },\n \"Accelerometer\": {\n \"type\": \"boolean\"\n },\n \"Gyroscope\": {\n \"type\": \"boolean\"\n }\n },\n \"additionalProperties\": false\n },\n \"DeviceEnvironmentContext\": {\n \"type\": \"array\",\n \"description\": \"List of device environment context\",\n \"items\": {\n \"type\": \"string\",\n \"enum\": [\n \"VPNDetected\",\n \"EmulatorDetected\"\n ]\n }\n }\n },\n \"additionalProperties\": false\n },\n",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEDebtorIndicators",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDebtorIndicators\"],\"\"]:0:part:0",
+      "content_hash": "0d861a63bcc521366a70d59a95a6efce98c8fef1efb800da31a46d3829c423ef",
+      "schema_version": 2
+    },
+    {
+      "id": "b3f58644-0c7b-5058-8662-6d138b50f276",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEDebtorIndicators\n\n \"BiometricCapabilities\": {\n \"type\": \"object\",\n \"description\": \"Device biometric capabilities\",\n \"properties\": {\n \"SupportsBiometric\": {\n \"type\": \"boolean\",\n \"description\": \"Whether device supports biometric authentication\"\n },\n \"BiometricTypes\": {\n \"type\": \"array\",\n \"description\": \"Types of biometric authentication supported\",\n \"items\": {\n \"type\": \"string\",\n \"enum\": [\n \"Fingerprint\",\n \"FacialRecognition\",\n \"Iris\",\n \"VoicePrint\",\n \"Other\"\n ]\n }\n }\n },\n \"additionalProperties\": false\n },\n \"AppInformation\": {\n \"type\": \"object\",\n \"description\": \"Mobile application specific information\",\n \"properties\": {\n \"AppVersion\": {\n \"type\": \"string\",\n \"description\": \"Version of the mobile application\"\n },\n \"PackageName\": {\n \"type\": \"string\",\n \"description\": \"Application package identifier\"\n },\n \"BuildNumber\": {\n \"type\": \"string\",\n \"description\": \"Application build number\"\n }\n },\n \"additionalProperties\": false\n },\n \"BrowserInformation\": {\n \"type\": \"object\",\n \"description\": \"Browser-specific information\",\n \"properties\": {\n \"UserAgent\": {\n \"type\": \"string\",\n \"description\": \"Complete browser user agent string\"\n },\n \"IsCookiesEnabled\": {\n \"type\": \"boolean\",\n \"description\": \"Whether cookies are enabled in the browser\"\n },\n \"AvailableFonts\": {\n \"type\": \"array\",\n \"description\": \"List of available fonts\",\n \"items\": {\n \"type\": \"string\"\n }\n },\n \"Plugins\": {\n \"type\": \"array\",\n \"description\": \"List of installed browser plugins\",\n \"items\": {\n \"type\": \"string\"\n }\n },\n \"PixelRatio\": {\n \"type\": \"number\",\n \"description\": \"Device pixel ratio for scaling\"\n }\n },\n \"additionalProperties\": false\n },\n \"UserBehavior\": {\n \"type\": \"object\",\n \"description\": \"User behavior indicators\",\n \"properties\": {\n \"ScrollBehavior\": {\n \"type\": \"object\",\n \"properties\": {\n \"Direction\": {\n \"type\": \"string\",\n \"enum\": [\n \"Up\",\n \"Down\",\n \"Both\"\n ]\n },\n \"Speed\": {\n \"type\": \"number\",\n \"description\": \"Average scroll speed in pixels per second\"\n },\n \"Frequency\": {\n \"type\": \"number\",\n \"description\": \"Number of scroll events per minute\"\n }\n },\n \"additionalProperties\": false\n }\n },\n \"additionalProperties\": false\n },\n \"AccountRiskIndicators\": {\n \"type\": \"object\",\n \"description\": \"Risk indicators related to the account\",\n \"properties\": {\n \"UserOnboardingDateTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"The exact date and time when the User account was activated with the TPP.\"\n }\n ]\n },\n \"LastAccountChangeDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date that the User's account was last changed\"\n },\n \"LastPasswordChangeDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Date of the last password change by the User\"\n },\n \"SuspiciousActivity\": {\n \"type\": \"string\",\n \"description\": \"Indicates any suspicious activity associated with the account\",\n \"enum\": [\n \"NoSuspiciousActivity\",\n \"SuspiciousActivityDetected\"\n ]\n },\n \"TransactionHistory\": {\n \"type\": \"object\",\n \"properties\": {\n \"LastDay\": {\n \"type\": \"integer\",\n \"description\": \"Total transactions made by the account in the last 24 hours\",\n \"minimum\": 0\n },\n \"LastYear\": {\n \"type\": \"integer\",\n \"description\": \"Total transactions made by the account in the past year\",\n \"minimum\": 0\n }\n },\n \"additionalProperties\": false\n }\n },\n \"additionalProperties\": false\n },\n \"SupplementaryData\": {\n \"type\": \"object\",\n \"description\": \"Additional information that cannot be captured in the structured fields and/or any other specific block\\nThis may include information that is not available in the structured fields, such as a user's behavioural data\\nlike their typing speed and typing patterns.\\n\"\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEDebtorIndicators",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDebtorIndicators\"],\"\"]:0:part:1",
+      "content_hash": "32015f39adf2d060f05f428b5a7ae5e34e8290cf4ac1f3e9f7d5dde23de1e751",
+      "schema_version": 2
+    },
+    {
+      "id": "d180704c-de3d-54b4-bb1b-3036aac3c0bb",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEDateTime\n\n{\n \"title\": \"AEDateTime\",\n \"description\": \"An instant in time, per ISO 8601 / RFC 3339, with a mandatory offset. Recipients MUST apply the offset, and\\nMUST NOT read the date and time components as local time. Encodings of the same instant are equivalent and MUST\\nbehave identically: `2027-07-22T00:00:00Z` and `2027-07-22T04:00:00+04:00` identify the same moment.\\n\\nIssuers SHOULD emit UTC, using `Z` or `+00:00`. The negative zero offset `-00:00` MUST NOT be used. Fractional\\nseconds are optional and carry no specified precision; implementations MUST accept both their presence and\\ntheir absence.\\n\",\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}(\\\\.\\\\d+)?(Z|\\\\+\\\\d{2}:\\\\d{2}|-(?:0[1-9]|1[0-2]):\\\\d{2})$\",\n \"example\": \"2027-07-22T00:00:00Z\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEDateTime",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDateTime\"],\"\"]:0",
+      "content_hash": "35019aee1626c7eca3a0f8dec4298e6dbbe9e5a104b0944de120d699f5fb6736",
+      "schema_version": 2
+    },
+    {
+      "id": "0861faab-8dc0-54b5-ad0f-7fa5b3bcd295",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AETransactionIndicators\n\n{\n \"type\": \"object\",\n \"description\": \"Transaction Indicators\\n\",\n \"properties\": {\n \"IsCustomerPresent\": {\n \"description\": \"This field differentiates between automatic and manual payment initiation.\",\n \"type\": \"boolean\"\n },\n \"IsContractPresent\": {\n \"description\": \"Indicates if the Creditor has a contractual relationship with the TPP.\",\n \"type\": \"boolean\"\n },\n \"Channel\": {\n \"description\": \"Where the payment has been initiated from.\",\n \"type\": \"string\",\n \"enum\": [\n \"Web\",\n \"Mobile\"\n ]\n },\n \"ChannelType\": {\n \"type\": \"string\",\n \"description\": \"The channel through which the transaction is being conducted\",\n \"enum\": [\n \"ECommerce\",\n \"InStore\",\n \"InApp\",\n \"Telephone\",\n \"Mail\",\n \"RecurringPayment\",\n \"Other\"\n ]\n },\n \"SubChannelType\": {\n \"type\": \"string\",\n \"description\": \"More specific classification of the transaction channel\",\n \"enum\": [\n \"WebBrowser\",\n \"MobileApp\",\n \"SmartTV\",\n \"WearableDevice\",\n \"POSTerminal\",\n \"ATM\",\n \"KioskTerminal\",\n \"Other\"\n ]\n },\n \"PaymentProcess\": {\n \"type\": \"object\",\n \"description\": \"Metrics related to the payment process duration and attempts\",\n \"properties\": {\n \"TotalDuration\": {\n \"type\": \"integer\",\n \"description\": \"Total time in seconds from payment initiation to completion\",\n \"minimum\": 0\n },\n \"CurrentSessionAttempts\": {\n \"type\": \"integer\",\n \"description\": \"Number of payment attempts in the current session\",\n \"minimum\": 1\n },\n \"CurrentSessionFailedAttempts\": {\n \"type\": \"integer\",\n \"description\": \"Number of failed payment attempts in the current session\",\n \"minimum\": 0\n },\n \"Last24HourAttempts\": {\n \"type\": \"integer\",\n \"description\": \"Number of payment attempts in the last 24 hours\",\n \"minimum\": 0\n },\n \"Last24HourFailedAttempts\": {\n \"type\": \"integer\",\n \"description\": \"Number of failed payment attempts in the last 24 hours\",\n \"minimum\": 0\n }\n },\n \"additionalProperties\": false\n },\n \"MerchantRisk\": {\n \"type\": \"object\",\n \"description\": \"Risk indicator details provided by the merchant\",\n \"properties\": {\n \"DeliveryTimeframe\": {\n \"type\": \"string\",\n \"description\": \"Timeframe for the delivery of purchased items\",\n \"enum\": [\n \"ElectronicDelivery\",\n \"SameDayShipping\",\n \"OvernightShipping\",\n \"MoreThan1DayShipping\"\n ]\n },\n \"ReorderItemsIndicator\": {\n \"type\": \"string\",\n \"description\": \"Indicates if the transaction is a reorder\",\n \"enum\": [\n \"FirstTimeOrder\",\n \"Reorder\"\n ]\n },\n \"PreOrderPurchaseIndicator\": {\n \"type\": \"string\",\n \"description\": \"Indicates if this is a pre-ordered item\",\n \"enum\": [\n \"MerchandiseAvailable\",\n \"FutureAvailability\"\n ]\n },\n \"IsGiftCardPurchase\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates if the transaction includes a gift card\"\n },\n \"IsDeliveryAddressMatchesBilling\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates if delivery address matches billing address\"\n },\n \"AddressMatchLevel\": {\n \"type\": \"string\",\n \"description\": \"Level of match between delivery and billing addresses\",\n \"enum\": [\n \"FullMatch\",\n \"PartialMatch\",\n \"NoMatch\",\n \"NotApplicable\"\n ]\n }\n },\n \"additionalProperties\": false\n },\n \"SupplementaryData\": {\n \"type\": \"object\",\n \"description\": \"Additional information that cannot be captured in the structured fields and/or any other specific block\\n\"\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AETransactionIndicators",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AETransactionIndicators\"],\"\"]:0",
+      "content_hash": "44469576fdc0fbbd813033695f3f74efefb69843d92389690e85123155098070",
+      "schema_version": 2
+    },
+    {
+      "id": "ec11fa7d-d21c-5d70-80b2-5005e08510f1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AECreditorIndicators\n\n{\n \"type\": \"object\",\n \"description\": \"Creditor Indicators\\n\",\n \"properties\": {\n \"AccountType\": {\n \"$ref\": \"#/components/schemas/AEAccountTypeCode\"\n },\n \"IsCreditorPrePopulated\": {\n \"$ref\": \"#/components/schemas/AEIsCreditorPrePopulated\"\n },\n \"TradingName\": {\n \"$ref\": \"#/components/schemas/AETradingName\"\n },\n \"IsVerifiedByTPP\": {\n \"$ref\": \"#/components/schemas/AEIsVerifiedbyTPP\"\n },\n \"AdditionalAccountHolderIdentifiers\": {\n \"$ref\": \"#/components/schemas/AEAdditionalAccountHolderIdentifiers\"\n },\n \"MerchantDetails\": {\n \"type\": \"object\",\n \"description\": \"Details of the Merchant involved in the transaction.\\nMerchant Details are specified only for those merchant categories that are generally expected to originate retail financial transactions\\n\",\n \"properties\": {\n \"MerchantId\": {\n \"description\": \"MerchantId\",\n \"type\": \"string\",\n \"minLength\": 8,\n \"maxLength\": 20\n },\n \"MerchantName\": {\n \"description\": \"Name by which the merchant is known.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 350\n },\n \"MerchantSICCode\": {\n \"description\": \"SIC code stands for standard industrial classification (SIC) code.\\nThis four digit-number identifies a very specific short descriptor of the type of business a company is engaged in.\\nSIC can be obtained from the Chamber of Commerce.\\n\",\n \"type\": \"string\",\n \"minLength\": 3,\n \"maxLength\": 4\n },\n \"MerchantCategoryCode\": {\n \"description\": \"Category code values are used to enable the classification of merchants into specific categories based on the type of business, trade or services supplied. \\nCategory code conforms to ISO 18245, related to the type of services or goods the merchant provides for the transaction.\\n\",\n \"type\": \"string\",\n \"minLength\": 3,\n \"maxLength\": 4\n }\n },\n \"additionalProperties\": false\n },\n \"IsCreditorConfirmed\": {\n \"description\": \"Creditor account details have been confirmed successfully using Confirmation of Payee\",\n \"type\": \"boolean\"\n },\n \"SupplementaryData\": {\n \"type\": \"object\",\n \"description\": \"Additional information that cannot be captured in the structured fields and/or any other specific block\\n\"\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AECreditorIndicators",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECreditorIndicators\"],\"\"]:0",
+      "content_hash": "9498f855722ab3e8eb4b173190a9a920f8e27b9f60fe85a15972aeaaf3555215",
+      "schema_version": 2
+    },
+    {
+      "id": "ae42465a-5d7f-5b18-abd5-c466a42c90f3",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEAccountTypeCode\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Retail\",\n \"SME\",\n \"Corporate\"\n ],\n \"description\": \"Specifies the type of account (Retail, SME or Corporate).\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEAccountTypeCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEAccountTypeCode\"],\"\"]:0",
+      "content_hash": "659af2b1aaa12f7c8aa55a84387dcb9d4051300ea54176887f2b04e8aef53e55",
+      "schema_version": 2
+    },
+    {
+      "id": "575a5609-9ab5-5787-99c1-8e3cf9228219",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEIsCreditorPrePopulated\n\n{\n \"description\": \"Is Creditor populated\",\n \"type\": \"boolean\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEIsCreditorPrePopulated",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEIsCreditorPrePopulated\"],\"\"]:0",
+      "content_hash": "cb007a62d7a07b737c1630df17328c750f35bae700b248b8b0dcddddd64fa7c6",
+      "schema_version": 2
+    },
+    {
+      "id": "5e1a04f1-3734-5746-8363-03cd77254796",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AETradingName\n\n{\n \"type\": \"object\",\n \"description\": \"The Trading Brand Name (if applicable) for the Creditor. \\nApplicable to Payments.\\n\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"description\": \"English value of the string\",\n \"maxLength\": 70\n },\n \"ar\": {\n \"type\": \"string\",\n \"description\": \"Arabic value of the string\",\n \"maxLength\": 70\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AETradingName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AETradingName\"],\"\"]:0",
+      "content_hash": "e2f32150688b0b6e4f30ab8a618f24a22cecb4f4bde13ed779d7d4b28b6ebdce",
+      "schema_version": 2
+    },
+    {
+      "id": "ac60a0c4-849c-56e6-9dd6-d3487310a489",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEIsVerifiedbyTPP\n\n{\n \"description\": \"The TPP has onboarded the Creditor\",\n \"type\": \"boolean\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEIsVerifiedbyTPP",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEIsVerifiedbyTPP\"],\"\"]:0",
+      "content_hash": "5a62798c10174ee671ca1e0d9d55331eb6e9fe55ae7ea69a891181d34b439fdb",
+      "schema_version": 2
+    },
+    {
+      "id": "aa24bd0f-d6db-521b-99ac-7686771cfd15",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEAdditionalAccountHolderIdentifiers\n\n{\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"description\": \"Provides the details to identify an account.\",\n \"required\": [\n \"SchemeName\",\n \"Identification\"\n ],\n \"properties\": {\n \"SchemeName\": {\n \"$ref\": \"#/components/schemas/AERiskExternalAccountIdentificationCode\"\n },\n \"Identification\": {\n \"$ref\": \"#/components/schemas/AEIdentification\"\n },\n \"Name\": {\n \"$ref\": \"#/components/schemas/AEName\"\n }\n },\n \"additionalProperties\": false\n }\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEAdditionalAccountHolderIdentifiers",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEAdditionalAccountHolderIdentifiers\"],\"\"]:0",
+      "content_hash": "0cc32bbeb34b76aaa29e72d070309ec79a534a76567f03abf84041e30a563282",
+      "schema_version": 2
+    },
+    {
+      "id": "4bc63b13-4393-5303-a8bd-38b3e9c09ef8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AERiskExternalAccountIdentificationCode\n\n{\n \"description\": \"Name of the identification scheme, in a coded form as published in an external list.\",\n \"type\": \"string\",\n \"enum\": [\n \"EmiratesID\",\n \"TradeLicenceNumber\"\n ]\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AERiskExternalAccountIdentificationCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AERiskExternalAccountIdentificationCode\"],\"\"]:0",
+      "content_hash": "a7366846d41b62bfb958e95a7d606e8dff9162d2c6d35c933237478d089d0ef2",
+      "schema_version": 2
+    },
+    {
+      "id": "2e2b5145-cbeb-57e8-82f7-8ac05f94644f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEIdentification\n\n{\n \"description\": \"Identification for the account assigned by the LFI based on the Account Scheme Name. \\nThis identification is known by the User account owner.\\n\",\n \"type\": \"string\",\n \"minLength\": 1\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEIdentification",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEIdentification\"],\"\"]:0",
+      "content_hash": "4c5a71c261a4143fb7afff87cce1bdd85c5ce7591710387817e1f3a14dfa2f1d",
+      "schema_version": 2
+    },
+    {
+      "id": "97dc2268-c7e6-5ccf-8901-aeed63f486a7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEName\n\n{\n \"type\": \"object\",\n \"description\": \"The Account Holder Name is the name or names of the Account owner(s) represented at the account level\\n\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"description\": \"English value of the string\",\n \"maxLength\": 70\n },\n \"ar\": {\n \"type\": \"string\",\n \"description\": \"Arabic value of the string\",\n \"maxLength\": 70\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEName\"],\"\"]:0",
+      "content_hash": "caf1f3bb0344d012030aa06f7b36e0acf03855026d6ee889a64c40b116900d90",
+      "schema_version": 2
+    },
+    {
+      "id": "5fc663f3-3356-5873-813f-113db859fdbd",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiation.AEInternationalPaymentPIIProperties\n\n{\n \"title\": \"International Payment PII Schema Object\",\n \"type\": \"object\",\n \"properties\": {\n \"Initiation\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditor\"\n },\n \"Risk\": {\n \"$ref\": \"#/components/schemas/AERisk\"\n }\n },\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiation.AEInternationalPaymentPIIProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiation.AEInternationalPaymentPIIProperties\"],\"\"]:0",
+      "content_hash": "a0edd089d834ea237902543f6f8a715e2a6098386ffd347df2b079ead1a498e3",
+      "schema_version": 2
+    },
+    {
+      "id": "a05deca8-fe67-5322-9f01-d5933c91698f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditor\n\n{\n \"type\": \"object\",\n \"required\": [\n \"CreditorAccount\"\n ],\n \"properties\": {\n \"CreditorAgent\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorAgentProperties\"\n },\n \"Creditor\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorParty\"\n },\n \"CreditorAccount\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorAccountProperties\"\n }\n },\n \"description\": \"Identification elements for a Creditor for an international payment instruction. Please note that Confirmation of Payee is **NOT** required or expected for International Payments, as non-domestic Creditor accounts are not supported.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditor",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditor\"],\"\"]:0",
+      "content_hash": "e2ff9cabaf4ef1962924c9dd7092c39ce592c1e8c17ba88f325436e9228bbde2",
+      "schema_version": 2
+    },
+    {
+      "id": "2be3c93e-c369-58de-9e5e-aff33f110274",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorAgentProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"SchemeName\",\n \"Identification\"\n ],\n \"properties\": {\n \"SchemeName\": {\n \"type\": \"string\",\n \"description\": \"The identification scheme for uniquely identifying the Agent.\\n* BICFI: The BIC/SWIFT Code\\n* Other: Identifier based on non-SWIFT payment system or local market scheme.\\n\",\n \"enum\": [\n \"BICFI\",\n \"Other\"\n ]\n },\n \"Identification\": {\n \"description\": \"Identifier that can be the BIC/SWIFT code or target payment scheme identifier.\",\n \"type\": \"string\"\n },\n \"Name\": {\n \"description\": \"Name by which an agent is known and which is usually used to identify that agent.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"PostalAddress\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalAddress\"\n },\n \"Branch\": {\n \"type\": \"object\",\n \"required\": [\n \"Identification\"\n ],\n \"properties\": {\n \"Identification\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"Identification of the specific branch of the financial institution.\"\n },\n \"Name\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of the specific branch of the financial institution.\"\n }\n },\n \"description\": \"The specific branch of the financial institution that holds the Creditor Account. When the `Branch` object is present, `Identification` is mandatory.\",\n \"additionalProperties\": false\n }\n },\n \"description\": \"Properties of the Creditor Agent for an international payment, which provides information on the Financial Institution that holds the Creditor Account.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorAgentProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorAgentProperties\"],\"\"]:0",
+      "content_hash": "5378ec55eb726f26c4ff3b5ddae68aa55daa34fbc25f6c66338d1b4c37798815",
+      "schema_version": 2
+    },
+    {
+      "id": "7d7cdd5c-f798-55db-9d57-e02baf1d0417",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalAddress\n\n{\n \"description\": \"One-or-more addresses related to an international Creditor or Creditor Agent, based on the ISO 20022 `PostalAddress27` definition and extended for SWIFT SR2026.\",\n \"type\": \"array\",\n \"minItems\": 1,\n \"items\": {\n \"type\": \"object\",\n \"required\": [\n \"AddressType\",\n \"AddressLine\",\n \"TownName\",\n \"Country\"\n ],\n \"properties\": {\n \"AddressType\": {\n \"description\": \"The type of address.\",\n \"type\": \"string\",\n \"enum\": [\n \"Billing\",\n \"Business\",\n \"Correspondence\",\n \"DeliveryTo\",\n \"MailTo\",\n \"POBox\",\n \"Postal\",\n \"Permanent\",\n \"Residential\",\n \"Statement\",\n \"Other\"\n ]\n },\n \"Department\": {\n \"description\": \"Identification of a division of a large organisation or building.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"SubDepartment\": {\n \"description\": \"Identification of a sub-division of a large organisation or building.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"AddressLine\": {\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\",\n \"type\": \"array\",\n \"minItems\": 1,\n \"maxItems\": 7,\n \"items\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n }\n },\n \"BuildingNumber\": {\n \"description\": \"The unit, apartment, or villa number within a building or community\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"Room\": {\n \"description\": \"Building room number.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"BuildingName\": {\n \"description\": \"Name of the building or house.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"Floor\": {\n \"description\": \"Floor or storey within a building.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"PostBox\": {\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"PostCode\": {\n \"description\": \"Identifier consisting of a group of letters and/or numbers added to a postal address.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16\n },\n \"StreetName\": {\n \"description\": \"The name of the street or road where the property is located.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"TownLocationName\": {\n \"description\": \"Specific location name within the town.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"TownName\": {\n \"description\": \"Name of a built-up area, such as a town or city.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"DistrictName\": {\n \"description\": \"The district, community, or neighbourhood where the property is located.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"CountrySubDivision\": {\n \"description\": \"Country subdivision, such as state or province. Where the address is in the UAE this is the Emirate where the address is registered.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"AbuDhabi\",\n \"Ajman\",\n \"Dubai\",\n \"Fujairah\",\n \"RasAlKhaimah\",\n \"Sharjah\",\n \"UmmAlQuwain\"\n ]\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"Country\": {\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{2}$\"\n }\n },\n \"additionalProperties\": false\n }\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalAddress",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalAddress\"],\"\"]:0",
+      "content_hash": "94752fe2f00cd1bec51f7994af7319f67798269b3c1d36287be53f410372ceec",
+      "schema_version": 2
+    },
+    {
+      "id": "f7ecf274-daa0-5a41-acb2-a2319fe9aacc",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorParty\n\n{\n \"oneOf\": [\n {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalIndividualCreditor\"\n },\n {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalOrganisationCreditor\"\n }\n ],\n \"discriminator\": {\n \"propertyName\": \"IdentityType\",\n \"mapping\": {\n \"Individual\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalIndividualCreditor\",\n \"Organization\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalOrganisationCreditor\"\n }\n },\n \"description\": \"Party to which an amount of money is due, for an international payment. The Creditor is either an Individual (natural person) or an Organization, selected by the `IdentityType` discriminator.\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorParty",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorParty\"],\"\"]:0",
+      "content_hash": "edda46d71ccdfb7188c1058912e07dc2abe4c8e0868d90f483e7c1d3cbd9807f",
+      "schema_version": 2
+    },
+    {
+      "id": "53dbfe46-9637-5fa6-85a0-3e6758be1ddf",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalIndividualCreditor\n\n{\n \"type\": \"object\",\n \"required\": [\n \"IdentityType\"\n ],\n \"properties\": {\n \"IdentityType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Individual\"\n ],\n \"description\": \"Discriminator indicating the Creditor is an individual (natural person).\"\n },\n \"Name\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorName\"\n },\n \"FirstName\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorNameComponent\"\n },\n \"MiddleName\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorNameComponent\"\n },\n \"LastName\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorNameComponent\"\n },\n \"RelationshipToSender\": {\n \"type\": \"string\",\n \"enum\": [\n \"Self\",\n \"Spouse\",\n \"Parent\",\n \"Child\",\n \"Sibling\",\n \"Relative\",\n \"Friend\",\n \"Dependent\",\n \"Employer\",\n \"Employee\",\n \"Business\",\n \"Other\"\n ],\n \"description\": \"The Creditor's relationship to the sender (Debtor).\"\n },\n \"DateOfBirth\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\",\n \"description\": \"The Creditor's date of birth, in YYYY-MM-DD format.\"\n },\n \"Occupation\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"The Creditor's occupation. Free-text, as values are driven by varying regulator requirements.\"\n },\n \"Nationality\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{2}$\",\n \"description\": \"The Creditor's nationality, as an ISO 3166-1 alpha-2 country code.\"\n },\n \"Gender\": {\n \"type\": \"string\",\n \"enum\": [\n \"Male\",\n \"Female\",\n \"Other\"\n ],\n \"description\": \"The Creditor's gender.\"\n },\n \"CountryOfBirth\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{2}$\",\n \"description\": \"The Creditor's country of birth, as an ISO 3166-1 alpha-2 country code.\"\n },\n \"SourceOfIncome\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 256,\n \"description\": \"The Creditor's source of income.\"\n },\n \"SourceOfFunds\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 256,\n \"description\": \"The Creditor's source of funds. Free-text; populated where Enhanced Due Diligence (e.g. by a correspondent bank) requires further information about the transaction.\"\n },\n \"MobileNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^\\\\+[1-9]\\\\d{1,14}$\",\n \"description\": \"The Creditor's mobile number, in E.164 format.\"\n },\n \"Email\": {\n \"type\": \"string\",\n \"pattern\": \"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\",\n \"description\": \"The Creditor's email address.\"\n },\n \"PostalAddress\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalAddress\"\n },\n \"Evidence\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorEvidence\"\n }\n },\n \"description\": \"Identification elements for an individual (natural person) international Creditor.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalIndividualCreditor",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalIndividualCreditor\"],\"\"]:0",
+      "content_hash": "579491352c9b51e79bfc0b9491f3f216b3111d5e59d271f4fb1234290782265b",
+      "schema_version": 2
+    },
+    {
+      "id": "54bfd62f-5ec3-5f43-b75b-92fa6b7c2fc0",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorName\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"English value of the Creditor name.\"\n },\n \"ar\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Arabic value of the Creditor name.\"\n },\n \"ls\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Local script value of the Creditor name.\"\n }\n },\n \"description\": \"The Creditor name, represented in English (`en`), Arabic (`ar`) and/or local script (`ls`).\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorName\"],\"\"]:0",
+      "content_hash": "26b3a0d143d56221ffeb4c57d019414748e98c5f1d795d554e7a13df88d13ac3",
+      "schema_version": 2
+    },
+    {
+      "id": "ead80dc6-a232-54f5-ae03-f1462556112d",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorNameComponent\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"en\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"English value of the name component.\"\n },\n \"ar\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"Arabic value of the name component.\"\n },\n \"ls\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"Local script value of the name component.\"\n }\n },\n \"description\": \"A component of the Creditor's name (e.g. first, middle or last name), represented in English (`en`), Arabic (`ar`) and/or local script (`ls`).\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorNameComponent",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorNameComponent\"],\"\"]:0",
+      "content_hash": "f2b1366103b6b88c00e68b07d40087227e08584cc13156572a80894a5cc753ff",
+      "schema_version": 2
+    },
+    {
+      "id": "244b2a7b-35a1-5926-ba65-a7819018e6de",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorEvidence\n\n{\n \"type\": \"array\",\n \"minItems\": 1,\n \"description\": \"Identity documents evidencing the Creditor's identity. Applicable to individual Creditors.\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"Type\": {\n \"type\": \"string\",\n \"enum\": [\n \"Passport\",\n \"DrivingPermit\",\n \"IdCard\",\n \"ResidencePermit\"\n ],\n \"description\": \"The type of identity document.\"\n },\n \"DocumentNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"The document number.\"\n },\n \"PersonalNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"A personal number contained in the document.\"\n },\n \"SerialNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"A serial number contained in the document.\"\n },\n \"CalendarType\": {\n \"type\": \"string\",\n \"enum\": [\n \"IslamicCalendar\",\n \"GregorianCalendar\"\n ],\n \"description\": \"The calendar used for the document's issuance and expiry dates.\"\n },\n \"DateOfIssuance\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\",\n \"description\": \"The date the document was issued, in YYYY-MM-DD format.\"\n },\n \"DateOfExpiry\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}$\",\n \"description\": \"The date the document expires, in YYYY-MM-DD format.\"\n },\n \"Issuer\": {\n \"type\": \"object\",\n \"required\": [\n \"Name\",\n \"CountryCode\",\n \"Jurisdiction\"\n ],\n \"properties\": {\n \"Name\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of the authority that issued the document.\"\n },\n \"CountryCode\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{2}$\",\n \"description\": \"Country that issued the document, as an ISO 3166-1 alpha-2 country code.\"\n },\n \"Jurisdiction\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The jurisdiction under which the document was issued.\"\n }\n },\n \"description\": \"The authority that issued the document. When the `Issuer` object is present, `Name`, `CountryCode` and `Jurisdiction` are mandatory.\",\n \"additionalProperties\": false\n }\n },\n \"additionalProperties\": false\n }\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorEvidence",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorEvidence\"],\"\"]:0",
+      "content_hash": "35934f20bfd18ded97ce6692db612676c3d707432b2cbb1f5c5b5ac9abdd2ba3",
+      "schema_version": 2
+    },
+    {
+      "id": "6f805a76-7a8a-5452-b52c-a77514aa2431",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalOrganisationCreditor\n\n{\n \"type\": \"object\",\n \"required\": [\n \"IdentityType\"\n ],\n \"properties\": {\n \"IdentityType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Organization\"\n ],\n \"description\": \"Discriminator indicating the Creditor is an organisation.\"\n },\n \"Name\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorName\"\n },\n \"AnyBIC\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?$\",\n \"description\": \"The organisation's Business Identifier Code (BIC), per ISO 9362.\"\n },\n \"LEI\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z0-9]{18}[0-9]{2}$\",\n \"description\": \"The organisation's Legal Entity Identifier (LEI), per ISO 17442.\"\n },\n \"Identification\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"Other organisation identifier, used in the edge cases where neither `AnyBIC` nor `LEI` is available. The identification scheme is given in `SchemeName`.\"\n },\n \"SchemeName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"Name of the identification scheme used for `Identification` (e.g. TradeLicence, TaxID, DUNS). Free-text, as there is no definitive scheme list for these edge cases.\"\n },\n \"MobileNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^\\\\+[1-9]\\\\d{1,14}$\",\n \"description\": \"The Creditor's mobile number, in E.164 format.\"\n },\n \"Email\": {\n \"type\": \"string\",\n \"pattern\": \"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\",\n \"description\": \"The Creditor's email address.\"\n },\n \"PostalAddress\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalAddress\"\n }\n },\n \"description\": \"Identification elements for an organisation international Creditor.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalOrganisationCreditor",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalOrganisationCreditor\"],\"\"]:0",
+      "content_hash": "26064adf5bc635a24ca28541e7313cbbe984c1ab1961297a939959900e9ee53e",
+      "schema_version": 2
+    },
+    {
+      "id": "a9e46052-b890-55e0-95a0-dbcc5b65cb79",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorAccountProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"SchemeName\",\n \"Identification\",\n \"Name\"\n ],\n \"properties\": {\n \"SchemeName\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorExternalAccountIdentificationCode\"\n },\n \"Identification\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEIdentification\"\n },\n \"Name\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEName\"\n },\n \"TradingName\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AETradingName\"\n },\n \"Type\": {\n \"$ref\": \"#/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorAccountTypeCodes\"\n },\n \"AccountType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Savings\",\n \"Current\",\n \"Checking\",\n \"Prepaid\"\n ],\n \"description\": \"The type of the Creditor account. This is distinct from `Type`, which classifies the payee segment (e.g. Individual, Merchant).\"\n }\n },\n \"description\": \"Unambiguous identification of the account of the creditor to which a credit entry will be posted.\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorAccountProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AEInternationalCreditorAccountProperties\"],\"\"]:0",
+      "content_hash": "0cc3864fbfc11d5838fc8c4a0c37d005276b5b38999b8118d49a84ea59269d3d",
+      "schema_version": 2
+    },
+    {
+      "id": "cad48d0f-0b53-5883-b3a1-ea39e3e328ad",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorExternalAccountIdentificationCode\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"IBAN\",\n \"AccountNumber\"\n ],\n \"description\": \"Name of the identification scheme, in a coded form as published in an external list. For international payments TPP may use `IBAN`, but must use `AccountNumber` where a local scheme is used to identify the Creditor Account.\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorExternalAccountIdentificationCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEBankServiceInitiationRichAuthorizationRequests.AECreditorExternalAccountIdentificationCode\"],\"\"]:0",
+      "content_hash": "bbee90f6933fe0175ff088e9cc66fe6b130b65a56668592bfac858beeb8ea297",
+      "schema_version": 2
+    },
+    {
+      "id": "5c345c68-b1e7-5a91-82a4-bdb552736a72",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEJWEPaymentPII\n\n{\n \"type\": \"string\",\n \"description\": \"A JSON Web Encryption (JWE) object, which encapsulates a JWS. The value is a compact serialization of a JWE, which is a string consisting of five base64url-encoded parts joined by dots. \\nIt encapsulates encrypted content using JSON data structures. The decrypted JWS content has the structure of the AEPaymentPII schema.\\n\",\n \"example\": \"eyJhbGciOiJSU0EtT0FFUCIsImVuYyI6IkEyNTZHQ00ifQ....\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEJWEPaymentPII",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEJWEPaymentPII\"],\"\"]:0",
+      "content_hash": "47e24727b18f2183024aa40a543347cd03efc48ec12418787db7cffe7ac84a81",
+      "schema_version": 2
+    },
+    {
+      "id": "70237e01-f6ef-5179-9199-41715d7dc2ec",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEPaymentPurposeCode\n\n{\n \"description\": \"A category code that relates to the type of services or goods that corresponds to the underlying purpose of the payment. The code must conform to the published AANI payment purpose code list.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 4,\n \"pattern\": \"^[A-Z]{3}$\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEPaymentPurposeCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPaymentPurposeCode\"],\"\"]:0",
+      "content_hash": "d719370a8ce08402f1a46e9ab6e2007c0a9780057de715c102d620daf063cd8f",
+      "schema_version": 2
+    },
+    {
+      "id": "2daf68b9-bc92-5873-a477-6418ed1b2a69",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEDebtorReference\n\n{\n \"description\": \"A Debtor Reference is a note is for the reference of a given User that may be available as additional information in relation to a given payment instruction.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"pattern\": \"^[A-Za-z0-9 \\\\/?:().,'+-]+$\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEDebtorReference",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDebtorReference\"],\"\"]:0",
+      "content_hash": "ee8c45960ca3eff85bd963d54530ece3acd2228717a3dd7b05ee560370df2e53",
+      "schema_version": 2
+    },
+    {
+      "id": "7e100782-4479-5ba2-89a5-0245dd3f89c6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AECreditorReference\n\n{\n \"description\": \"A Creditor Reference is a note for a given Creditor or Creditor LFI that supports reconciliation of a given payment instruction.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"pattern\": \"^[A-Za-z0-9 \\\\/?:().,'+-]+$\"\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AECreditorReference",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECreditorReference\"],\"\"]:0",
+      "content_hash": "704e70961272b18394abd19446618eda3bd34d15dd8298a2597bceed7ad65bf4",
+      "schema_version": 2
+    },
+    {
+      "id": "df9b76ac-3409-5074-acc3-7131ce9f345a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+      "type": "section",
+      "text": "Create a Payment > OpenAPI definition #/components/schemas/AEServiceInitiationOpenFinancePaymentBilling\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Type\"\n ],\n \"properties\": {\n \"Type\": {\n \"enum\": [\n \"Collection\",\n \"LargeValueCollection\",\n \"PushP2P\",\n \"PullP2P\",\n \"Me2Me\"\n ],\n \"description\": \"The type payment for billing\",\n \"type\": \"string\"\n },\n \"MerchantId\": {\n \"description\": \"MerchantId\",\n \"type\": \"string\",\n \"minLength\": 8,\n \"maxLength\": 20\n }\n },\n \"description\": \"Billing parameters specified by the TPP for a payment initiation\",\n \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Create a Payment",
+        "section": "OpenAPI definition #/components/schemas/AEServiceInitiationOpenFinancePaymentBilling",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0ec68ac126e9a3f16e11a0e1435ac33ad984686928e59aadf6d0849cb0978dcc",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/open-api/payments",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "5c225fd4044bde50db7816fa9d4948588e4836da0bac7040fa6ab89a5da352e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEServiceInitiationOpenFinancePaymentBilling\"],\"\"]:0",
+      "content_hash": "41b7ea47603f2d2b95afa7195811b41d7ce51ae568d5e9929fa7d30103c1c18d",
+      "schema_version": 2
+    }
+  ]
+}

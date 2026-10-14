@@ -1,0 +1,188 @@
+{
+  "document_id": "tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements",
+  "chunk_count": 5,
+  "chunks": [
+    {
+      "id": "9071c186-a7ea-5525-b70c-b5922ea38a75",
+      "document_id": "tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements",
+      "type": "intro",
+      "text": "Variable Defined Schedule — Requirements\n\nThe Consent requirements\n and the User Journeys\n for this payment type also apply and must be adhered to.\n\nThe tables below list the validation rules that apply to Variable Defined Schedule. The Validated by\n column indicates where each rule is enforced. All requests require an active Trust Framework application\n with the BSIP\n role, a valid transport certificate\n presented on every request via mTLS, and an active signing key\n for JWT signing.",
+      "metadata": {
+        "title": "Variable Defined Schedule — Requirements",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "3911bd6845dfde07b04f1686030217d8b1f2e07d37a028d55277416e39fcda5c",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule",
+          "src/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule.ts",
+            "hash": "a673fafedc1df20ea9bb80d57f020e0f7f3333492fde54276c83b227ae22ba1b"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "5e496865fb531be3ff96c5a70abadc445974eeb183e1fe4acb8af017a1c299a6",
+      "schema_version": 2
+    },
+    {
+      "id": "81bb6d55-2a7a-59a5-b6d0-99dffd07d878",
+      "document_id": "tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements",
+      "type": "section",
+      "text": "Variable Defined Schedule — Requirements > Consent Creation\n\nThe consent is submitted inside a signed Request JWT\n sent to the Authorization Server. The consent.*\n fields referenced in the table below are nested as authorization_details[0].consent\n within that JWT. The POST body must also include a client assertion\n to authenticate the TPP application.\n\nField | Rule | Validated by\nRequest JWT | Must conform to the Request JWT requirements\n — correct aud\n, signing algorithm (PS256\n), and expiry window. | API Hub\nclient_assertion | Must be included in the POST body (client_assertion_type\n: urn:ietf:params:oauth:client-assertion-type:jwt-bearer\n). Authenticates the TPP application — see Client Assertion\n. | API Hub\nscope\n (in Request JWT) | Must be payments openid\n. If consent.Permissions\n includes any of ReadAccountsBasic\n, ReadAccountsDetail\n, or ReadBalances\n, must be accounts payments openid\n — see Account Permissions in a Payment Consent\n. | API Hub\nauthorization_details[0].type\n (in Request JWT) | Must be urn:openfinanceuae:service-initiation-consent:v2.1\n. | API Hub\nAPI version supported | The consent version in authorization_details[0].type\n (e.g. urn:openfinanceuae:service-initiation-consent:v2.1\n) restricts the version of the Payment Initiation endpoints the consent can be used to call (specified in the path, e.g. /open-finance/payment/v2.1/payments\n). It MUST resolve to an ApiVersion\n the LFI has published in the Trust Framework\n for the Payment Initiation API family. | LFI (/consent/action/validate)\nOpenAPI schema | The request must conform exactly to the POST /par\n OpenAPI schema\n. No additional or undocumented parameters are permitted. | API Hub\nconsent.PersonalIdentifiableInformation | The decrypted PII payload must conform exactly to the PII schema\n. No additional or undocumented parameters are permitted. | LFI (/consent/action/validate)\nconsent.PersonalIdentifiableInformation.Risk | The Risk\n block must be fully populated — every field that is known or derivable from the TPP's system must be included. See Risk\n. | Monitored by Nebras\nInitiation.DebtorAccount | If provided, must reference a valid UAE IBAN held at the LFI and reachable through this API Hub. The account must be in a state that permits payment initiation (e.g. not blocked, dormant, or closed). | LFI (/consent/action/validate)\nInitiation.Creditor | Required. Must contain exactly one creditor entry. The Creditor must be a valid UAE domestic creditor — the account must be reachable on a supported UAE domestic rail (AANI or UAEFTS) and, where the LFI can determine the state of the receiving account, in a state able to receive payments. Mandatory fields, IBAN, and BIC derivation rules apply — see creditor field validation requirements\n. | LFI (/consent/action/validate)\nconsent.ControlParameters.IsDelegatedAuthentication | Must be false\n or not provided (Delegated SCA is not permitted for this payment type). | API Hub\nconsent.ControlParameters.ConsentSchedule.MultiPayment.PeriodicSchedule.Type | Must be \"VariableDefinedSchedule\"\n. SinglePayment\n and FilePayment\n must not be present. | API Hub\nconsent.ControlParameters.ConsentSchedule.MultiPayment.PeriodicSchedule.Schedule | Required. Must be a non-empty array of schedule entries. | API Hub\nconsent.ControlParameters.ConsentSchedule.MultiPayment.PeriodicSchedule.Schedule[*].PaymentExecutionDate | Required on each entry. Each date must be unique within the schedule — duplicate execution dates are not permitted. | API Hub\nconsent.ControlParameters.ConsentSchedule.MultiPayment.PeriodicSchedule.Schedule[*].PaymentExecutionDate | Must be today or in the future. Past dates are not permitted. | API Hub\nconsent.ControlParameters.ConsentSchedule.MultiPayment.PeriodicSchedule.Schedule[*].MaximumIndividualAmount | Required on each entry. Defines the maximum amount that may be collected on that execution date. | API Hub\nconsent.ControlParameters.ConsentSchedule.MultiPayment.PeriodicSchedule.Schedule[*].MaximumIndividualAmount.Currency | Must be AED\n on each entry. | API Hub\nconsent.ControlParameters.ConsentSchedule.MultiPayment.MaximumCumulativeNumberOfPayments | If provided, defines the maximum total number of payments permitted across the lifetime of the consent. | API Hub\nconsent.ControlParameters.ConsentSchedule.MultiPayment.MaximumCumulativeValueOfPayments | If provided, defines the maximum total value of all payments permitted across the lifetime of the consent. | API Hub\nMaximumCumulativeValueOfPayments | If set, MaximumCumulativeValueOfPayments.Currency\n must be AED\n. | API Hub\nConsent (unsupported) | The LFI must advertise Variable Defined Schedule as supported via ApiMetadata.VariableDefinedSchedule.Supported\n on its authorisation server entry in the Trust Framework\n. If the payment type is not supported, the consent validation will fail. | LFI (/consent/action/validate)\nconsent.BaseConsentId | If provided, must reference a previous consent belonging to the same end user\n. If the original consent in the chain already had a BaseConsentId\n, the TPP must reuse that same BaseConsentId\n rather than the immediate prior ConsentId\n. | LFI (/consent/action/validate)\nconsent.IsSingleAuthorization | Optional; default is false\n. Omitting or setting to false\n asserts that the TPP supports the multi-authorization flow — the consent may remain pending while additional authorizers approve before reaching Authorized\n. Setting to true\n requests that only accounts solely authorizable by the authenticated customer be offered. The LFI must not reject the consent based on its own platform capability — this is a TPP-side assertion. See Multi-Authorization\n. | TPP\nconsent.AuthorizationExpirationDateTime | If provided, must not be in the past. Must not be after consent.ExpirationDateTime\n. | API Hub\nAuthorization window | If the TPP wishes to cap how long the User has to authorize the consent, it must do so with consent.AuthorizationExpirationDateTime\n. | TPP\n",
+      "metadata": {
+        "title": "Variable Defined Schedule — Requirements",
+        "section": "Consent Creation",
+        "anchor": "consent-creation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "3911bd6845dfde07b04f1686030217d8b1f2e07d37a028d55277416e39fcda5c",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule",
+          "src/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule.ts",
+            "hash": "a673fafedc1df20ea9bb80d57f020e0f7f3333492fde54276c83b227ae22ba1b"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",\"consent-creation\",\"\"]:0:part:0",
+      "content_hash": "90452f8bcacb56978905d9ee138c2c9f0990e946da1d9148a02b70b9ec162b51",
+      "schema_version": 2
+    },
+    {
+      "id": "ed523636-5cca-50ca-ab58-4ab851d770b6",
+      "document_id": "tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements",
+      "type": "section",
+      "text": "Variable Defined Schedule — Requirements > Consent Creation\n\nconsent.ExpirationDateTime | Must not be in the past. Must be less than one year in the future. The date portion of consent.ExpirationDateTime\n must exactly equal the last (latest) PaymentExecutionDate\n in the schedule. | API Hub\nconsent.Permissions | If ReadBalances\n is included, at least one of ReadAccountsBasic\n or ReadAccountsDetail\n must also be present. | API Hub\nconsent.CurrencyRequest | Must not be present. Domestic payments are denominated in AED only; CurrencyRequest\n is for non-local currency and international transfers. | LFI (/consent/action/validate)\nconsent.PaymentPurposeCode | If provided, must be a recognised AANI purpose code. | API Hub\nconsent.DebtorReference | The TPP SHOULD set the most meaningful Structured Reference\n for the consent. Where the reference is not dictated by the requirements of the payments use case, to a maximum of 35 characters: the User-provided free-text reference (to a maximum of 22 characters); a dash (-\n) separator; the Creditor LFI bank name (to a maximum of 8 characters) where the payment is not initiated on behalf of a Merchant; a dash; optionally the Merchant name (to a maximum of 8 characters) where the TPP initiates on behalf of a Merchant, followed by a dash; and the TPP name, as found in the Trust Framework or a recognisable alternative. | TPP\nx-fapi-interaction-id | Should be included. Should be a valid UUID (RFC 4122). An invalid value will not cause a failure but tracing will not be possible. | N/A",
+      "metadata": {
+        "title": "Variable Defined Schedule — Requirements",
+        "section": "Consent Creation",
+        "anchor": "consent-creation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "3911bd6845dfde07b04f1686030217d8b1f2e07d37a028d55277416e39fcda5c",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule",
+          "src/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule.ts",
+            "hash": "a673fafedc1df20ea9bb80d57f020e0f7f3333492fde54276c83b227ae22ba1b"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",\"consent-creation\",\"\"]:0:part:1",
+      "content_hash": "639200c6745c12e7fd034b2dd6b602c2a86182e40710528bd58329b1012b536f",
+      "schema_version": 2
+    },
+    {
+      "id": "0496ba09-220a-5352-80a4-b80a391ef929",
+      "document_id": "tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements",
+      "type": "section",
+      "text": "Variable Defined Schedule — Requirements > Authorization — Account Selection\n\nField | Rule | Validated by\nInitiation.DebtorAccount\n ownership | If Initiation.DebtorAccount\n was provided on the consent and the authenticated customer does not hold that account, the consent will be set to Rejected\n with error\n: invalid_request\n and error_description\n: user_does_not_own_debtor_account\n. | LFI\nconsent.IsSingleAuthorization | If true\n, only accounts that the authenticated customer can solely authorize (no subsequent approvers required) may be offered and selected. If false\n or not provided (default), accounts where the customer is one of multiple required authorizers may also be offered; subsequent authorizers must then approve the consent before the consent reaches Authorized\n status and any payment can be executed. See Multi-Authorization\n. | LFI\nEligible payment accounts | If the authenticated customer does not hold any account eligible to initiate a payment under this consent, the consent will be set to Rejected\n with error\n: invalid_request\n and error_description\n: user_lacks_eligible_accounts\n. The eligible set is constrained by consent.IsSingleAuthorization\n as described above. | LFI",
+      "metadata": {
+        "title": "Variable Defined Schedule — Requirements",
+        "section": "Authorization — Account Selection",
+        "anchor": "authorization-account-selection",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "3911bd6845dfde07b04f1686030217d8b1f2e07d37a028d55277416e39fcda5c",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule",
+          "src/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule.ts",
+            "hash": "a673fafedc1df20ea9bb80d57f020e0f7f3333492fde54276c83b227ae22ba1b"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"authorization-account-selection\",\"\"]:0",
+      "content_hash": "12a0fce9cf72017edd2905befbb82e68ea0eb23c539654e8703632ff7265d0e0",
+      "schema_version": 2
+    },
+    {
+      "id": "1a875f16-13e7-540b-9963-017d9304a0f6",
+      "document_id": "tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements",
+      "type": "section",
+      "text": "Variable Defined Schedule — Requirements > Payment Initiation\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token issued with the payments openid\n scope (or accounts payments openid\n where account permissions were included on the consent — see Account Permissions in a Payment Consent\n). The consent bound to the token must be in Authorized\n status and the ExpirationDateTime\n of the Consent must be in the future. | API Hub\nURL version | The version in the request URL path (e.g. v2.1\n in /open-finance/service-initiation/v2.1/payments\n) must match the version in the consent's authorization_details[0].type\n (urn:openfinanceuae:service-initiation-consent:v2.1\n). | API Hub\nData.ConsentId | Must match the ConsentId\n bound to the access token. The Consent must be in Authorized\n status and the ExpirationDateTime\n of the Consent must be in the future. | API Hub\nData.Instruction.Amount.Amount | Must be ≤ the MaximumIndividualAmount\n defined for the corresponding PaymentExecutionDate\n in the schedule. | API Hub\nData.Instruction.Amount.Currency | Must match the currency defined on the schedule entry. | API Hub\nMaximumCumulativeNumberOfPayments | If set on the consent, the payment must not cause the count of payments over the lifetime of the consent to exceed MaximumCumulativeNumberOfPayments\n. | API Hub\nMaximumCumulativeValueOfPayments | If set on the consent, the payment must not cause the value of payments over the lifetime of the consent to exceed MaximumCumulativeValueOfPayments.Amount\n. | API Hub\nData.PaymentPurposeCode | Can differ from consent.PaymentPurposeCode\n. If provided, must be a recognised AANI purpose code. | API Hub\nData.DebtorReference | Can differ from consent.DebtorReference\n — the TPP MAY set a per-payment Debtor Reference rather than reuse the consent value. Where it is not dictated by the requirements of the payments use case, it SHOULD still follow the Structured Reference\n convention described under Consent Creation. | TPP\nPaymentExecutionDate | Only one payment is permitted per PaymentExecutionDate\n. A second submission for the same date will be rejected. | API Hub\nOpenAPI schema | The request must conform exactly to the POST /payments\n OpenAPI schema\n. No additional or undocumented parameters are permitted. | API Hub\nPersonalIdentifiableInformation | The decrypted PII payload must conform exactly to the PII schema\n. No additional or undocumented parameters are permitted. | LFI\nPersonalIdentifiableInformation.Risk | The Risk\n block must be fully populated — every field that is known or derivable from the TPP's system must be included. See Risk\n. | Monitored by Nebras\nPersonalIdentifiableInformation\n (Creditor) | Initiation.Creditor[]\n had exactly 1 entry at consent time. The submitted creditor must exactly match that consent-time entry. See Creditor\n. | LFI\nx-fapi-interaction-id | Should be included. Should be a valid UUID (RFC 4122). An invalid value will not cause a failure but tracing will not be possible. | N/A\nx-idempotency-key | Must be included. Must be a stable, unique value per payment attempt — the same key must be reused on retries of the same payment. | API Hub\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. Must be a valid HTTP-date (RFC 7231), e.g. Tue, 11 Sep 2012 19:43:31 UTC\n. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. Must be a valid IPv4 or IPv6 address. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. Should reflect the user-agent of the customer's browser or device. | TPP",
+      "metadata": {
+        "title": "Variable Defined Schedule — Requirements",
+        "section": "Payment Initiation",
+        "anchor": "payment-initiation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "3911bd6845dfde07b04f1686030217d8b1f2e07d37a028d55277416e39fcda5c",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/service-initiation/domestic-payments/multi-payments/variable-defined-schedule/requirements",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule",
+          "src/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/tpp-standards-v2-1-banking-service-initiation-domestic-payments-multi-payments-variable-defined-schedule.ts",
+            "hash": "a673fafedc1df20ea9bb80d57f020e0f7f3333492fde54276c83b227ae22ba1b"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"payment-initiation\",\"\"]:0",
+      "content_hash": "b64b2055d8dbf2cb861fa52914834ad767672f6b5644d4746cad2921ef12282c",
+      "schema_version": 2
+    }
+  ]
+}

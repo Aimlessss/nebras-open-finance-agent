@@ -1,0 +1,422 @@
+{
+  "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+  "chunk_count": 13,
+  "chunks": [
+    {
+      "id": "c81ff527-60ed-5931-9fa9-5de56a2b28ac",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "intro",
+      "text": "Bank Data Sharing — Encrypted FinanceRates\n\nWhen a TPP holds the ReadProductFinanceRates permission and calls GET /accounts/{AccountId}/product for a credit card, finance, or mortgage account, the LFI MAY return the FinanceRates field as an encrypted JWE rather than a structured object. The TPP MUST present the rates to the customer without the unencrypted values ever reaching or being stored on its servers — decryption happens locally on the user's device using a one-time code sent to the customer by the LFI.",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "61c53e10491fd15021ebf3313e192eeb20e8c8f51942769fc814975d5de66cc2",
+      "schema_version": 2
+    },
+    {
+      "id": "1264b6a5-8db1-51bf-8640-e5c789a0458f",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "section",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > When this applies > Encrypted finance rates are an LFI-side choice\n\nThe FinanceRates field on GET /accounts/{AccountId}/product is defined as anyOf a structured AEProductFinanceRates object or an AEJwe compact string. Each LFI decides, per product, whether to return the rate in cleartext or as an encrypted JWE. A TPP holding ReadProductFinanceRates MUST therefore be ready for either shape on every call.\n\n- Cleartext — FinanceRates is a JSON object. Render the rates directly. No special handling required.\n- Encrypted (JWE) — FinanceRates is a compact JWE string. The TPP server MUST forward this opaque string to the user's device without inspecting, logging, or persisting it. Decryption happens in the browser using a one-time code the LFI sends to the customer.\n\nSome LFIs treat product finance rates as commercially sensitive and require an additional customer-present authentication step before the rate can be revealed. The encrypted JWE shape lets the rate flow through the TPP to the customer's screen without the TPP ever holding the cleartext value.",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "Encrypted finance rates are an LFI-side choice",
+        "category": "When this applies",
+        "anchor": "when-this-applies",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"when-this-applies\",\"\"]:0",
+      "content_hash": "27811fc98525a86e4649809ddfa15e3bce2c3cf0892b9b88ace8013d75b9a2bd",
+      "schema_version": 2
+    },
+    {
+      "id": "27336d4c-64b1-5183-834f-2d513320d9f4",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "section",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > Prerequisites > What you need before calling this endpoint\n\n- The Access Encrypted Resource Data optional certification — the TPP MUST hold this certification with Nebras before it requests ReadProductFinanceRates on any consent. An uncertified TPP MUST NOT include ReadProductFinanceRates in the authorization_details at consent creation; the API Hub rejects the consent if it does. See Access Encrypted Resource Data.\n- A consent that includes ReadProductFinanceRates — this permission MUST be requested in the authorization_details when the TPP creates the consent. See Step 1 — Constructing Authorization Details.\n- An active customer-present session — when the consent carries ReadProductFinanceRates, the TPP MUST only call GET /accounts/{AccountId}/product while the customer is actively using the TPP application. Background or scheduled calls are not permitted on a consent that carries this permission, because the encrypted-rate flow requires the customer to receive and enter the one-time code in real time.\n- A valid access token and the FAPI headers for a customer-present call — x-fapi-interaction-id, x-fapi-auth-date, and x-fapi-customer-ip-address. Because the call is always customer-present (see above), x-fapi-customer-ip-address MUST be set to the customer's device IP on every request; omitting it is not permitted on this endpoint when the consent carries ReadProductFinanceRates. See Request Headers.",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "What you need before calling this endpoint",
+        "category": "Prerequisites",
+        "anchor": "prerequisites",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"prerequisites\",\"\"]:0",
+      "content_hash": "6d3fc9bab9a244160478999695a32888d82f891c5990967c9c8018eb2441ceb2",
+      "schema_version": 2
+    },
+    {
+      "id": "a7851fe5-8d63-545d-a639-630738c73593",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "section",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > Step 1 — GET /accounts/{AccountId}/product > Call the product endpoint as normal\n\nWhether the LFI returns cleartext or an encrypted JWE, the request itself is unchanged. Make the call as you would for any other Bank Data Sharing endpoint:",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "Call the product endpoint as normal",
+        "category": "Step 1 — GET /accounts/{AccountId}/product",
+        "anchor": "step-1-call-product",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-1-call-product\",\"\"]:0",
+      "content_hash": "969bfbfa02229058e0e437134341ac1994de20bf3764bec8752a1ddc5731e7a2",
+      "schema_version": 2
+    },
+    {
+      "id": "2d5332cd-8bc5-5211-9ddc-62a7e9607d8e",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "subsection",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > Step 1 — GET /accounts/{AccountId}/product > Call the product endpoint as normal > Example response — encrypted JWE\n\nApart from FinanceRates, every other field in the response is returned in cleartext in both shapes — Charges, DepositRates, ProductName, Tenor, and so on. Only FinanceRates is ever encrypted.",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "Call the product endpoint as normal",
+        "category": "Step 1 — GET /accounts/{AccountId}/product",
+        "subsection": "Example response — encrypted JWE",
+        "anchor": "step-1-call-product",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-1-call-product\",\"Example response — encrypted JWE\"]:0",
+      "content_hash": "4c263e4cc6b8007d5552ae0be712fa5a045225b084265d4123ed94c823e56ba7",
+      "schema_version": 2
+    },
+    {
+      "id": "e148b22c-a4d4-51c4-84f9-0a93b9c75955",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "section",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > Step 2 — Detect the response shape > Branch on whether FinanceRates is a string\n\nIf FinanceRates is a JSON object, render its ProductFinanceRateProperties directly. If it is a string, treat it as an opaque compact JWE and forward it to the customer's browser. The TPP server MUST NOT attempt to decrypt the JWE, parse its header beyond detecting the string type, log its contents, or persist it.\n\nThe encrypted JWE is opaque to the TPP. Pass it through to the browser response and discard the server-side copy as soon as the response is sent. Do not write the JWE to application logs, request traces, or analytics pipelines — even though it is encrypted, persisting it would put the TPP in scope of the encrypted-rate handling requirements documented in Access Encrypted Resource Data.",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "Branch on whether FinanceRates is a string",
+        "category": "Step 2 — Detect the response shape",
+        "anchor": "step-2-detect-jwe",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-2-detect-jwe\",\"\"]:0",
+      "content_hash": "60f163fac12a7ee4d8f7edf974145929dd918553c90a217deab409cabbc411a9",
+      "schema_version": 2
+    },
+    {
+      "id": "37c0b838-88e1-553c-a064-52c91e87d842",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "section",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > Step 3 — Prompt the customer for the one-time code > Render an OTP input on the user's device\n\nWhen the LFI returns an encrypted FinanceRates, it also sends a one-time code to the customer directly, through a channel the LFI controls — an SMS, an email, or a push notification in the LFI's banking app. The TPP MUST display an input field where the customer can type that code, and a short explanation that matches the wording shown to the customer on the consent screen (“Your bank has sent you a one-time code — enter it below to see your finance rate”).",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "Render an OTP input on the user's device",
+        "category": "Step 3 — Prompt the customer for the one-time code",
+        "anchor": "step-3-prompt-otp",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-3-prompt-otp\",\"\"]:0",
+      "content_hash": "cafb32d6dcaf9392e72769a4c9b4984384956a389093021e4dcec95124f0cdd1",
+      "schema_version": 2
+    },
+    {
+      "id": "e1f4aa62-f053-5941-957e-d412aaa0f045",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "subsection",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > Step 3 — Prompt the customer for the one-time code > Render an OTP input on the user's device > What the customer receives\n\nThe LFI sends the code to the customer directly — the TPP never sees it. The message names the product, names your TradingName so the customer can tie it back to your application, and carries a 30-minute validity. Knowing the shape of the message helps you word your own prompt consistently with what the customer is reading on their phone:\n\n- Customer-present only — this flow only works when the customer is actively using the TPP. Do not call GET /accounts/{AccountId}/product on a schedule when you require the encrypted rate; there is no way to decrypt the JWE without the customer entering the OTP.\n- Display the rate types you are about to reveal — tell the customer which product the OTP unlocks (for example, “Platinum Credit Card — purchase APR”).\n- Offer to resend — if the customer does not receive the code, the TPP may re-call GET /accounts/{AccountId}/product to ask the LFI to issue a fresh code. Respect the rate limits described in Step 6 — Rate limits and retries.",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "Render an OTP input on the user's device",
+        "category": "Step 3 — Prompt the customer for the one-time code",
+        "subsection": "What the customer receives",
+        "anchor": "step-3-prompt-otp",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-3-prompt-otp\",\"What the customer receives\"]:0",
+      "content_hash": "83287e9e21b634505073e79c829a8be3a50a17cbb97e2149e7b01b5478bfe3f5",
+      "schema_version": 2
+    },
+    {
+      "id": "c46d1598-d046-52d2-b6eb-06622a0d14eb",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "section",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > Step 4 — Decrypt locally in the browser > Use the OTP as the PBES2 password\n\nThe JWE is encrypted with PBES2-HS512+A256KW for key wrapping and A256GCM for content encryption. The customer's one-time code is the PBES2 password; the JWE header carries the salt and iteration count, so the TPP does not need any additional material to decrypt.\n\nDecryption MUST run on the customer's device — the OTP and the decrypted rate MUST NOT be sent to the TPP server. Use a JOSE library loaded directly into the page, and bind the form submit to a local handler:\n\nThe OTP MUST be consumed in the browser. Do not POST it to your server for “server-side decryption”, do not include it in analytics events, and do not echo it back into a form field that submits to your domain. The same rule applies to the decrypted FinanceRates object: keep it inside the page's JavaScript scope, render it into the DOM, and discard it when the customer navigates away.\n\njose (Node.js, browser) and jwcrypto (Python) both support PBES2 JWE. However, decryption MUST happen on the user's device, which in practice means JavaScript loaded into the customer's browser or a native mobile SDK. Server-side Python/Node code paths are not appropriate for this step.",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "Use the OTP as the PBES2 password",
+        "category": "Step 4 — Decrypt locally in the browser",
+        "anchor": "step-4-decrypt-browser",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-4-decrypt-browser\",\"\"]:0",
+      "content_hash": "7b0d680f601e1a43432ae25cbd3b05f5359ee0cca96e448d71f87a4fee2247b2",
+      "schema_version": 2
+    },
+    {
+      "id": "7ea1933c-831c-5e6b-ac9f-87f0b5a6c087",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "section",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > Step 5 — Display until the JWE expires > The 30-minute display window\n\nThe JWE carries a fixed 30-minute lifetime as an exp claim inside its plaintext, set by the LFI. Within that window the TPP MAY re-decrypt and re-render the rate as the customer navigates between screens, provided the OTP is still held in browser memory.\n\nDecryption does not stop working when the window closes — a JWE and its OTP can technically be decrypted at any later time, so the 30-minute limit is not enforced by the cryptography. The TPP MUST enforce it: after decrypting, the TPP MUST read the exp claim from the plaintext and MUST NOT display the rate, or re-decrypt it for display, once exp has passed. This obligation is part of the TPP's Access Encrypted Resource Data certification.\n\nThe OTP keeps working after 30 minutes — nothing in the JWE itself prevents a late decryption. The window is held closed only by the TPP checking exp and by the certification commitments the TPP makes to Nebras. Treating exp as advisory, or relying on decryption to “just fail”, is a certification breach.\n\nWhen the window closes mid-session, prompt the customer to request a fresh code via a new call to GET /accounts/{AccountId}/product rather than continuing to show a stale rate. The customer's consent is unaffected — only the 30-minute display window has expired.",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "The 30-minute display window",
+        "category": "Step 5 — Display until the JWE expires",
+        "anchor": "step-5-display-window",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-5-display-window\",\"\"]:0",
+      "content_hash": "c96618b61a34631ad9585c5dbf8816a45ad8ee49e700d9e1f27ba74a4cb97469",
+      "schema_version": 2
+    },
+    {
+      "id": "5442e816-9f63-557a-8e95-56b9be477a55",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "section",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > Step 6 — Rate limits and retries > LFI-enforced caps on encrypted-rate requests\n\nEach call to GET /accounts/{AccountId}/product that returns an encrypted FinanceRates triggers a fresh OTP to the customer. LFIs MUST rate-limit these requests per consent to prevent OTP spam, while leaving enough headroom for legitimate retries (a code not received, a typo, an expired window).\n\nRule | Limit | Rationale\nMinimum interval between requests | 60 seconds per consent per account | Lets the customer ask for a fresh OTP if the first code is delayed, without enabling rapid-fire spam.\nDaily cap | 12 fresh OTPs per consent per account per rolling 24 hours | Covers retries and repeated re-display across the day, and acts as a backstop against runaway message volume rather than a limit normal traffic should approach.\nDecryption attempts | Unbounded within the 30-minute window of a single JWE | Re-decrypting an already-issued JWE in the customer's browser does not contact the LFI and so is not rate-limited.",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "LFI-enforced caps on encrypted-rate requests",
+        "category": "Step 6 — Rate limits and retries",
+        "anchor": "rate-limits",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"rate-limits\",\"\"]:0",
+      "content_hash": "7134147b040c88641d7e4a66168b95460064b6de07ab20cf8c99bef3aaf53380",
+      "schema_version": 2
+    },
+    {
+      "id": "2acbaf49-7b12-5dfb-ad26-defeecf2d6f3",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "subsection",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > Step 6 — Rate limits and retries > LFI-enforced caps on encrypted-rate requests > Handling the 429 response\n\nWhen either limit is breached, the LFI rejects the entire GET /accounts/{AccountId}/product request with 429 Too Many Requests. The API Hub forwards the response unchanged, so the TPP receives the same status and headers the LFI emitted — HTTP 429, no response body, a Retry-After header containing the integer seconds until the next call would succeed, and the echoed x-fapi-interaction-id for correlation.\n\n- Read Retry-After and surface a customer-facing message that includes the wait — \"Please wait about a minute and try again\" for short waits, \"You've reached today's limit for viewing this rate — please try again later\" when the daily cap is the cause.\n- Do not auto-retry inside the wait window. The LFI will reject again and the customer will receive another code request that cannot succeed.\n- A 429 never means the consent is invalid — it means too many fresh OTPs have been requested in too short a window. Other Data Sharing endpoints continue to work normally for this consent during the wait.\n\nIf the TPP did not request ReadProductFinanceRates on the consent, the response is a normal 200 with the FinanceRates field simply absent from the Product object — not a 429, not a 403. Treat these as two distinct conditions in your UI: permission-not-granted should prompt the customer to grant the permission on a new consent; 429 should prompt them to wait.",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "LFI-enforced caps on encrypted-rate requests",
+        "category": "Step 6 — Rate limits and retries",
+        "subsection": "Handling the 429 response",
+        "anchor": "rate-limits",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"rate-limits\",\"Handling the 429 response\"]:0",
+      "content_hash": "741c1682dc0f917315973143b46e415b43a62d6c7abf5824cd9c20b270e08926",
+      "schema_version": 2
+    },
+    {
+      "id": "fbf3aa2e-62dc-5801-8bc6-98fc69d22e52",
+      "document_id": "tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+      "type": "section",
+      "text": "Bank Data Sharing — Encrypted FinanceRates > TPP responsibilities > Normative rules for handling encrypted FinanceRates\n\n- The TPP MUST NOT transmit, store, log, or otherwise process the unencrypted FinanceRates on its servers in any form or capacity. The decrypted value lives only in the customer's browser session.\n- The TPP MUST perform all decryption of FinanceRates locally on the user's device, solely for the purpose of displaying the rate to the customer.\n- The TPP MUST NOT interact with the encrypted or unencrypted FinanceRates in any manner other than as described in this guide.\n- The TPP MUST submit its architectural plan for decryption and display of FinanceRates — including the relevant browser-side source — to Nebras for inspection and approval as part of the Access Encrypted Resource Data certification. Material changes to that process post go-live require Nebras sign-off before they are deployed.\n- The TPP MUST present the decrypted rate accurately and in context — for example, labelling a credit card APR as “purchase APR” rather than “interest rate” — so the customer sees the rate faithfully as the LFI provided it.",
+      "metadata": {
+        "title": "Bank Data Sharing — Encrypted FinanceRates",
+        "section": "Normative rules for handling encrypted FinanceRates",
+        "category": "TPP responsibilities",
+        "anchor": "tpp-responsibilities",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "0fd3b3ce4e0fb33638c071457056eb1d5ea0a312f06dfe5cd5c3b6da76801edd",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/data-sharing/api-guide/finance-rates",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "https://esm.sh/jose@5",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"tpp-responsibilities\",\"\"]:0",
+      "content_hash": "c4698300257cc2bc6f22b7605ffd350ca5dc8031d1fece3e13353af919ba2f23",
+      "schema_version": 2
+    }
+  ]
+}

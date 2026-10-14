@@ -1,0 +1,272 @@
+{
+  "document_id": "knowledge-base/articles/pii-signature-verification",
+  "chunk_count": 9,
+  "chunks": [
+    {
+      "id": "fd06f863-4157-5d48-8755-c43376fb4f00",
+      "document_id": "knowledge-base/articles/pii-signature-verification",
+      "type": "section",
+      "text": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS > The problem > One signature, two clocks\n\nThe PersonalIdentifiableInformation field arrives inside a request that the API Hub has already verified was signed by the authenticated TPP, so verifying the inner JWS is not required — it is a defence-in-depth measure. See Verifying the TPP JWS Signature for when an LFI might choose to. Nothing here makes it mandatory.\n\nThis article is the signing-key half of Pattern B on the decryption guide — the pattern you need whenever you handle the PII anywhere other than at consent creation. That guide also covers the other two consequences of the same drift: your own Enc1 key, and the timing claims.\n\nThe PII on a payment consent is a JWE that encapsulates a JWS. The TPP builds the PII object, signs it with its signing key, encrypts it to your Enc1 public key, and submits it at PAR. That signature is made exactly once and never changes.\n\nThe consent, however, can be long-lived. A multi-payment consent stays usable until its ExpirationDateTime, and each payment made under it carries the same PII — the same bytes, signed at the same original moment.\n\nMeanwhile the key that made the signature is on its own, entirely independent schedule:\n\n- Every Trust Framework signing certificate expires after 13 months.\n- A TPP may rotate whenever it likes — after an incident, on internal policy, or as routine hygiene. It does not need a reason and it does not tell you.\n- Rotation issues a new certificate with a new kid. It does not re-sign anything.\n- Once the old certificate is retired, its kid leaves the active JWKS.\n\nSo the two clocks drift apart. The signature stays fixed at the moment of consent creation while the TPP's published key set moves on without it. A consent authorised in March and paid against in October may have been signed with a key that stopped being active in June.\n\nThis is not a sandbox concern. Checked against the production keystore, ADCB already holds four active application keys and four retired ones — real rotations, on live organisations, while long-lived consents signed under the older keys remain in force.",
+      "metadata": {
+        "title": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS",
+        "section": "One signature, two clocks",
+        "category": "The problem",
+        "anchor": "problem",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/pii-signature-verification.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "bdbf53a340181fa79df6f64d2999c743794c7c6e4bc6215f4fe5e2e123cf723f",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/pii-signature-verification",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"problem\",\"\"]:0",
+      "content_hash": "18f0b196b4da865fcd0c53e6861a8cae1b937b0085cb200086de171be3ae1a89",
+      "schema_version": 2
+    },
+    {
+      "id": "60c7341e-108f-55eb-92ac-70ca8dc0de18",
+      "document_id": "knowledge-base/articles/pii-signature-verification",
+      "type": "section",
+      "text": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS > Where you verify > The point of verification decides which keys you need\n\nWhere you verify | Age of the signature | Key set you need | Pattern\nPOST /consent/action/validate | Seconds | Active JWKS only | A\nPOST /consent/event/post | Seconds | Active JWKS only | A\nThe consent authorisation journey | Minutes to hours | Active and inactive | B\nPOST /consent/event/patch | Minutes to hours | Active and inactive | B\nPOST /payments | Up to the consent lifetime | Active and inactive | B",
+      "metadata": {
+        "title": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS",
+        "section": "The point of verification decides which keys you need",
+        "category": "Where you verify",
+        "anchor": "when",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/pii-signature-verification.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "bdbf53a340181fa79df6f64d2999c743794c7c6e4bc6215f4fe5e2e123cf723f",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/pii-signature-verification",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"when\",\"\"]:0",
+      "content_hash": "6ea9d47685ad056421d58453933813cfa0d9727000caff996f53e3ffe6f02ff8",
+      "schema_version": 2
+    },
+    {
+      "id": "e815c859-862c-5ce5-ad68-f4e6fa2a4b0f",
+      "document_id": "knowledge-base/articles/pii-signature-verification",
+      "type": "subsection",
+      "text": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS > Where you verify > The point of verification decides which keys you need > The one safe moment: consent validate\n\n/consent/action/validate is called by the API Hub before the consent is created — synchronously, inside the TPP's PAR request. The signature is at most seconds old. A key cannot have been rotated out between the TPP signing the PII and the Hub calling you about it.\n\nIf you verify here, the active JWKS is sufficient. This is the conventional fresh-signature case, and the straightforward createRemoteJWKSet pattern works correctly. The same holds for the post consent event, which fires at the same moment in the lifecycle.",
+      "metadata": {
+        "title": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS",
+        "section": "The point of verification decides which keys you need",
+        "category": "Where you verify",
+        "subsection": "The one safe moment: consent validate",
+        "anchor": "when",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/pii-signature-verification.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "bdbf53a340181fa79df6f64d2999c743794c7c6e4bc6215f4fe5e2e123cf723f",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/pii-signature-verification",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"when\",\"The one safe moment: consent validate\"]:0",
+      "content_hash": "2fb48683669bf2e34af25c49c937f53fb173ae9bf501ead54144933c491a824f",
+      "schema_version": 2
+    },
+    {
+      "id": "e229ce20-dd19-5d8a-839f-3554a9e1ee81",
+      "document_id": "knowledge-base/articles/pii-signature-verification",
+      "type": "subsection",
+      "text": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS > Where you verify > The point of verification decides which keys you need > Everywhere else is “later”\n\nThe authorisation journey is already later. It is tempting to treat consent authorisation as still “at creation” — it is usually the same session, after all. It is not. Between the TPP creating the consent and the customer actually authenticating on your platform there can be a redirect the customer does not follow immediately, an app switch, a login they abandon and resume, a re-authentication, a device handover.\n\nPayment execution is much later. A single instant payment follows authorisation closely, but a multi-payment consent may execute against the same PII for as long as the consent lives. That is the case with no upper bound short of ExpirationDateTime.\n\nThe most common way to get this wrong is to reason “the customer authorises seconds after the TPP creates the consent, so the key must still be active”. Usually true; not reliably true. If you verify anywhere other than the creation-time hooks, you MUST be prepared for a key that is no longer active.",
+      "metadata": {
+        "title": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS",
+        "section": "The point of verification decides which keys you need",
+        "category": "Where you verify",
+        "subsection": "Everywhere else is “later”",
+        "anchor": "when",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/pii-signature-verification.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "bdbf53a340181fa79df6f64d2999c743794c7c6e4bc6215f4fe5e2e123cf723f",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/pii-signature-verification",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"when\",\"Everywhere else is “later”\"]:0",
+      "content_hash": "beca91080c702a3d8807f5589bd254eb05ee8296370eee46a75f6fbf597944e4",
+      "schema_version": 2
+    },
+    {
+      "id": "fb8a86f1-ccbc-51fe-a4d9-caf3c9957d10",
+      "document_id": "knowledge-base/articles/pii-signature-verification",
+      "type": "subsection",
+      "text": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS > Active & inactive JWKS > Retired keys are published at a parallel path > The URL format\n\nSandbox uses the same shape on its own host:\n\nThe inactive/ segment sits between the identifier and the filename — not appended to the filename, and not prefixed to the path.\n\nFor the PII signature, {id} is the TPP's software statement ID, which arrives on every relevant call in the o3-caller-software-statement-id header — including /consent/action/validate and POST /payments. You do not need to look it up.\n\nThe same inactive/ convention applies to transport.jwks, though that is not relevant to signature verification.",
+      "metadata": {
+        "title": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS",
+        "section": "Retired keys are published at a parallel path",
+        "category": "Active & inactive JWKS",
+        "subsection": "The URL format",
+        "anchor": "jwks",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/pii-signature-verification.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "bdbf53a340181fa79df6f64d2999c743794c7c6e4bc6215f4fe5e2e123cf723f",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/pii-signature-verification",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"jwks\",\"The URL format\"]:0",
+      "content_hash": "3ef86570780f19e61a4bc924c1b6f7892d031d8d2229890b621f998aef9e97b2",
+      "schema_version": 2
+    },
+    {
+      "id": "a0826e30-6fff-5e54-8217-f1ef45027c26",
+      "document_id": "knowledge-base/articles/pii-signature-verification",
+      "type": "subsection",
+      "text": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS > Active & inactive JWKS > Retired keys are published at a parallel path > What is in the inactive set\n\nThe response is an ordinary JWKS — the same format as the active set, with retired keys instead of current ones. Sampling a production organisation:\n\nEndpoint | Keys\napplication.jwks | 4\ninactive/application.jwks | 4\n\nEvery certificate sampled from an inactive/ set had a notAfter in the past, consistent with keys retired by expiry or rotation.\n\nThe set does not distinguish a certificate that expired normally, one superseded by a routine rotation, and one revoked for key compromise. If a revocation reason is material to your risk decision, obtain it from the certificate record in the Trust Framework — it cannot be inferred from which JWKS the key appeared in.",
+      "metadata": {
+        "title": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS",
+        "section": "Retired keys are published at a parallel path",
+        "category": "Active & inactive JWKS",
+        "subsection": "What is in the inactive set",
+        "anchor": "jwks",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/pii-signature-verification.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "bdbf53a340181fa79df6f64d2999c743794c7c6e4bc6215f4fe5e2e123cf723f",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/pii-signature-verification",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"jwks\",\"What is in the inactive set\"]:0",
+      "content_hash": "2077dfd275c0bbc75d58dee3c2c3e4359bb330b291614e2ac613e59229f5295b",
+      "schema_version": 2
+    },
+    {
+      "id": "c886f1b7-ccfa-54aa-9ec5-78f3e434796a",
+      "document_id": "knowledge-base/articles/pii-signature-verification",
+      "type": "subsection",
+      "text": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS > Active & inactive JWKS > Retired keys are published at a parallel path > Pin the algorithm yourself\n\nPublished JWKS entries carry kty, use, kid and x5c — and no alg. Your verifier must therefore pin the algorithm itself: PS256, the only algorithm in the UAE Open Finance FAPI profile. Do not accept whatever the JWS header proposes.",
+      "metadata": {
+        "title": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS",
+        "section": "Retired keys are published at a parallel path",
+        "category": "Active & inactive JWKS",
+        "subsection": "Pin the algorithm yourself",
+        "anchor": "jwks",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/pii-signature-verification.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "bdbf53a340181fa79df6f64d2999c743794c7c6e4bc6215f4fe5e2e123cf723f",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/pii-signature-verification",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"jwks\",\"Pin the algorithm yourself\"]:0",
+      "content_hash": "af8ddecba54ce81e20bcd04322a270b4f5acc2a5d3e170743d1f5e4fa14ce8be",
+      "schema_version": 2
+    },
+    {
+      "id": "c0d7613d-df8f-5da1-896d-a3493f85caf7",
+      "document_id": "knowledge-base/articles/pii-signature-verification",
+      "type": "section",
+      "text": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS > Verifying later > Resolve the kid across both sets\n\nIf you verify anywhere other than the creation-time hooks, resolve the kid across both sets:\n\n1. Read the kid from the JWS header of the decrypted PII.\n2. Look it up in the TPP's active JWKS.\n3. If it is not there, look it up in the TPP's inactive JWKS.\n4. Verify the signature against whichever key matched, pinning PS256.\n\nA kid found in the inactive set is the expected outcome for an older consent. It means the TPP rotated its signing key at some point after creating the consent, which is routine and entirely permitted. It is a key-lifecycle event, not a signature defect, and on its own it says nothing adverse about the signature or the TPP.\n\nMost consents you verify will be recent, so the active set will almost always hit. Treat the inactive lookup as the fallback, and cache both sets as you would any JWKS rather than fetching per request.\n\nThe straightforward pattern shown in the API guide resolves the active JWKS only:\n\nThat is correct at /consent/action/validate. Used at payment execution it will work for months and then begin failing on long-lived consents — with no change at either end, and in a way that presents as a signature error when the signature is fine.",
+      "metadata": {
+        "title": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS",
+        "section": "Resolve the kid across both sets",
+        "category": "Verifying later",
+        "anchor": "how",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/pii-signature-verification.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "bdbf53a340181fa79df6f64d2999c743794c7c6e4bc6215f4fe5e2e123cf723f",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/pii-signature-verification",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"how\",\"\"]:0",
+      "content_hash": "7db74cf903d1485c46c6e6eb3490f2e79a6b2a08d28cb489e4dc5d8c73e9a932",
+      "schema_version": 2
+    },
+    {
+      "id": "64f755f7-374f-519f-9a5a-e1e5bc615b80",
+      "document_id": "knowledge-base/articles/pii-signature-verification",
+      "type": "section",
+      "text": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS > Timing claims > The same default catches exp, iat and nbf\n\nexp, iat and nbf are set by the TPP at the instant it signs the PII — the same instant, and for the same reason, that fixes the kid. They bound the PAR submission window, not the moment you happen to be verifying. At payment execution on a long-lived consent they will normally have lapsed.\n\njwtVerify and its equivalents enforce exp and nbf against the current time by default, so this fails exactly where the active-JWKS-only lookup fails, and on the same consents.\n\nIf you verify the PII signature at a later point, evaluate its timing claims against the consent's CreationDateTime rather than against now, or do not evaluate them at all. iat is still worth checking for consistency with CreationDateTime. Whether the consent is still usable today is answered by the API Hub's consent validation on every request, not by a claim inside the PII.",
+      "metadata": {
+        "title": "Verifying the PII Signature — Rotated Keys and the Inactive JWKS",
+        "section": "The same default catches exp, iat and nbf",
+        "category": "Timing claims",
+        "anchor": "timing",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/knowledge-base/articles/pii-signature-verification.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "bdbf53a340181fa79df6f64d2999c743794c7c6e4bc6215f4fe5e2e123cf723f",
+        "url": "https://nebras-open-finance.com/knowledge-base/articles/pii-signature-verification",
+        "doc_version": "unversioned",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"timing\",\"\"]:0",
+      "content_hash": "8dfdd0b76e0ff38f71041c81e97e7e31e489a51b722697cf08cad682f569ceaa",
+      "schema_version": 2
+    }
+  ]
+}

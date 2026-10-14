@@ -1,0 +1,56 @@
+{
+  "id": "tech/lfi-api-hub/production/testing-certification/functional/delegated-sca",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/production/testing-certification/functional/delegated-sca/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "88380d35d64555b460841361d58e02d72a13bc61",
+    "hash": "997ee27245db14cf5966554da6ca4a85ee9daee9766391a61d12a37e63d2455c",
+    "dependencies": [
+      "@/data/functional-certification/delegated-sca",
+      "src/components/common/functional-certification/FcDelegatedScaExplainer.vue",
+      "src/data/functional-certification/delegated-sca.ts"
+    ],
+    "assets": [
+      {
+        "file": "src/data/functional-certification/delegated-sca.ts",
+        "hash": "21ff246e1c62624c6453fbc2168e4e400cf42260e6e16863f7eafc9eba769cd7"
+      },
+      {
+        "file": "src/components/common/functional-certification/FcDelegatedScaExplainer.vue",
+        "hash": "24b823b76d9835f89104cdf2f486527077525586067b89cc4c2ce97549c30a5a"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Functional Certification — Delegated SCA",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/production/testing-certification/functional/delegated-sca",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Functional Certification — Delegated SCA",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "Testing & Certification · Functional Certification \n Functional Certification — Delegated SCA 3 min read\n\n Delegated SCA is the delegated-authentication\n overlay on a payment consent, certified after Single Instant Payment. The consent carries IsDelegatedAuthentication: true\n with an empty ConsentSchedule\n — the TPP\n defines and manages the payment controls — so there is nothing to evidence about ControlParameters\n. Instead you evidence the payment limit you enforce, your Creditor / Risk handling, and one authorised consent for each beneficiary model. This page explains the evidence; the portal then builds your submission. \n Start your submission ↗\n\n\n\n\n Under Delegated SCA the customer authorises a consent that hands control of the payments to the TPP: IsDelegatedAuthentication\n is true\n and the ConsentSchedule\n is empty. Because the TPP sets and manages the controls, your LFI has no ControlParameters\n to store, display, or enforce — so unlike the six Multi-Payment types there are no control-parameter scenarios. See the Delegated SCA API guide\n for the delegated-authentication model. \n\n Delegated SCA certification collects three things: \nPayment limit\n — the maximum AED a single Delegated SCA payment can take on your LFI. The TPP manages the consent controls, but your own institutional limit still applies. \nCreditor validation & Risk handling\n — the Creditor arrives inside the encrypted PersonalIdentifiableInformation\n, so you evidence decrypting it and validating the creditor, and that the cleartext Risk\n object (AERisk) is used in your screening. This is the same evidence as Single Instant Payment, re-captured because it may differ slightly under delegation. \nBeneficiary models\n — one authorised pre-production consent for each of Single\n (one creditor), Multiple\n (2–10 fixed creditors) and Open\n (no creditor fixed at consent; supplied at POST /payments\n), each with the ConsentId\n and the authorization screen the customer saw. \n\n Delegated SCA builds on Single Instant Payment. You will be asked for the JIRA ticket of your completed Single Instant Payment certification, so have it to hand. \n\n To accept the Multiple and Open beneficiary models you must advertise support for each on your Trust Framework authorisation-server entry. The portal shows a reference decrypted PII for each model. See the Creditor PII page\n for the model definitions. \n\n\n When you have filled in the form and attached your screenshots, the portal generates a single ZIP containing a summary document and every screenshot. Attach it to a Service Desk\n certification-evidence ticket. Nothing is sent anywhere until you attach it — the submission is built entirely in your browser. \n Start your submission ↗"
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Certification configuration",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"kind\": \"delegated-sca\",\n  \"key\": \"delegated-sca\",\n  \"label\": \"Delegated SCA\",\n  \"apiName\": \"Bank Service Initiation\",\n  \"paymentType\": \"DelegatedSCA\",\n  \"role\": \"lfi\",\n  \"certType\": \"LFI Functional Certification Evidence\",\n  \"tppBaseUrlTemplate\": \"https://rs1.{LFICODE}.apihub.openfinance.ae/open-finance/payment/{VERSION}\",\n  \"segments\": [\n    \"Retail\",\n    \"SME\",\n    \"Corporate\"\n  ],\n  \"docHref\": \"/tech/lfi-api-hub/v2.1/banking/service-initiation/domestic-payments/multi-payments/delegated-sca/api-guide\",\n  \"creditorDocHref\": \"/tech/lfi-api-hub/v2.1/banking/service-initiation/personal-identifiable-information/creditor\",\n  \"sandboxEvidenceHref\": \"/tech/lfi-api-hub/getting-started/\",\n  \"beneficiaries\": [\n    {\n      \"key\": \"single\",\n      \"label\": \"Single Beneficiary\",\n      \"description\": \"The consent fixes exactly one creditor entry in Initiation.Creditor. Every payment under the consent must be to that beneficiary.\",\n      \"referencePii\": \"{\\n  \\\"Initiation\\\": {\\n    \\\"DebtorAccount\\\": {\\n      \\\"SchemeName\\\": \\\"IBAN\\\",\\n      \\\"Identification\\\": \\\"AE460090000000123456789\\\"\\n    },\\n    \\\"Creditor\\\": [\\n      {\\n        \\\"Creditor\\\": {\\n          \\\"Name\\\": \\\"Ivan England\\\"\\n        },\\n        \\\"CreditorAccount\\\": {\\n          \\\"SchemeName\\\": \\\"IBAN\\\",\\n          \\\"Identification\\\": \\\"AE070331234567890123456\\\",\\n          \\\"Name\\\": {\\n            \\\"en\\\": \\\"Ivan David England\\\"\\n          }\\n        }\\n      }\\n    ]\\n  }\\n}\"\n    },\n    {\n      \"key\": \"multiple\",\n      \"label\": \"Multiple Beneficiaries\",\n      \"description\": \"The consent fixes 2–10 creditor entries in Initiation.Creditor. Every payment must exactly match one of them.\",\n      \"trustFrameworkFlag\": \"ApiMetadata.DelegatedSCA.MultipleBeneficiariesSupported\",\n      \"referencePii\": \"{\\n  \\\"Initiation\\\": {\\n    \\\"DebtorAccount\\\": {\\n      \\\"SchemeName\\\": \\\"IBAN\\\",\\n      \\\"Identification\\\": \\\"AE460090000000123456789\\\"\\n    },\\n    \\\"Creditor\\\": [\\n      {\\n        \\\"Creditor\\\": {\\n          \\\"Name\\\": \\\"Ivan England\\\"\\n        },\\n        \\\"CreditorAccount\\\": {\\n          \\\"SchemeName\\\": \\\"IBAN\\\",\\n          \\\"Identification\\\": \\\"AE070331234567890123456\\\",\\n          \\\"Name\\\": {\\n            \\\"en\\\": \\\"Ivan David England\\\"\\n          }\\n        }\\n      },\\n      {\\n        \\\"Creditor\\\": {\\n          \\\"Name\\\": \\\"Al Noor Trading LLC\\\"\\n        },\\n        \\\"CreditorAccount\\\": {\\n          \\\"SchemeName\\\": \\\"IBAN\\\",\\n          \\\"Identification\\\": \\\"AE320260001234567890123\\\",\\n          \\\"Name\\\": {\\n            \\\"en\\\": \\\"Al Noor Trading LLC\\\"\\n          }\\n        }\\n      },\\n      {\\n        \\\"Creditor\\\": {\\n          \\\"Name\\\": \\\"Emirates Telecommunications Group\\\"\\n        },\\n        \\\"CreditorAccount\\\": {\\n          \\\"SchemeName\\\": \\\"IBAN\\\",\\n          \\\"Identification\\\": \\\"AE980350000009876543210\\\",\\n          \\\"Name\\\": {\\n            \\\"en\\\": \\\"Emirates Telecommunications Group\\\"\\n          }\\n        }\\n      }\\n    ]\\n  }\\n}\"\n    },\n    {\n      \"key\": \"open\",\n      \"label\": \"Open Beneficiaries\",\n      \"description\": \"The consent omits Initiation.Creditor entirely. No creditor is fixed at consent; the TPP supplies it on each POST /payments, where your Ozone Connect endpoint validates it.\",\n      \"trustFrameworkFlag\": \"ApiMetadata.DelegatedSCA.OpenBeneficiariesSupported\",\n      \"referencePii\": \"{\\n  \\\"Initiation\\\": {\\n    \\\"DebtorAccount\\\": {\\n      \\\"SchemeName\\\": \\\"IBAN\\\",\\n      \\\"Identification\\\": \\\"AE460090000000123456789\\\"\\n    }\\n  }\\n}\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

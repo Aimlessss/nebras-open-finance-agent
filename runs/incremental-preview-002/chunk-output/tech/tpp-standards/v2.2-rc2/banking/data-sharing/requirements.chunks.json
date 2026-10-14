@@ -1,0 +1,616 @@
+{
+  "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+  "chunk_count": 17,
+  "chunks": [
+    {
+      "id": "f8011c39-0293-5592-9093-863196fc752c",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "intro",
+      "text": "Bank Data Sharing — Requirements\n\nThe validation rules that apply to Bank Data Sharing. The Validated by\n column on each table indicates where each rule is enforced. Read alongside the Consent requirements\n and the User Journeys\n.\n\nAll requests require an active Trust Framework application\n with the BDSP\n role, a valid transport certificate\n presented on every request via mTLS, and an active signing key\n for JWT signing.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "26d6966b71c8ce1c1c3198a5976b3ac4d7d18328551367d56ea67d929a5808a9",
+      "schema_version": 2
+    },
+    {
+      "id": "a9b052fe-c627-5ee9-b61e-beb7c0014fb0",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Consent Creation\n\nField | Rule | Validated by\nRequest JWT | Must conform to the Request JWT requirements\n — correct aud\n, signing algorithm (PS256\n), and expiry window. | API Hub\nclient_assertion | Must be included in the POST body (client_assertion_type\n: urn:ietf:params:oauth:client-assertion-type:jwt-bearer\n). Authenticates the TPP application — see Client Assertion\n. | API Hub\nscope\n (in Request JWT) | Must be accounts openid\n. | API Hub\nauthorization_details[0].type\n (in Request JWT) | Must be urn:openfinanceuae:account-access-consent:v2.2\n. | API Hub\nAPI version supported | The consent version in authorization_details[0].type\n (e.g. urn:openfinanceuae:account-access-consent:v2.2\n) restricts the version of the Account Information endpoints the consent can be used to call (specified in the path, e.g. /open-finance/v2.2/accounts\n). It MUST resolve to an ApiVersion\n the LFI has published in the Trust Framework\n for the Account Information API family. | LFI (/consent/action/validate)\nOpenAPI schema | The request must conform exactly to the POST /par\n OpenAPI schema\n. No additional or undocumented parameters are permitted. | API Hub\nconsent.AccountType | Must be a value supported by the LFI. Supported account types are discoverable via the AccountTypes\n flag on the LFI's authorisation server entry in the Trust Framework\n. | LFI (/consent/action/validate)\nconsent.AccountSubType | If provided, each value must be a sub-type supported by the LFI. Supported sub-types are discoverable via the AccountSubTypes\n metadata on the LFI's authorisation server entry in the Trust Framework\n. | LFI (/consent/action/validate)\nconsent.Permissions | If any of ReadBalances\n, ReadBeneficiariesBasic\n, ReadBeneficiariesDetail\n, ReadTransactionsBasic\n, ReadTransactionsDetail\n, ReadProduct\n, ReadScheduledPaymentsBasic\n, ReadScheduledPaymentsDetail\n, ReadDirectDebits\n, ReadStandingOrdersBasic\n, ReadStandingOrdersDetail\n, ReadStatements\n, or ReadProductFinanceRates\n are included, at least one of ReadAccountsBasic\n or ReadAccountsDetail\n must also be present. | API Hub\nconsent.Permissions\n — ReadProductFinanceRates | ReadProductFinanceRates\n MUST only be requested by TPPs that hold the Access Encrypted Resource Data\n optional certification with Nebras. An uncertified TPP MUST NOT include this permission in authorization_details\n; if it does, the API Hub rejects the consent. Only certified TPPs are permitted to receive product finance rates, whether the LFI returns them in cleartext or as an encrypted JWE. | API Hub\nconsent.Permissions\n (unsupported) | If the provided Permissions include permissions not supported by the LFI (e.g. the LFI does not have the endpoint /accounts/{AccountId}/standing-orders\n published to the Trust Framework yet the consent request includes ReadStandingOrdersBasic\n or ReadStandingOrdersDetail\n), the consent validation will fail. | LFI (/consent/action/validate)\nconsent.BaseConsentId | If provided, must reference a previous consent belonging to the same end user\n. If the original consent in the chain already had a BaseConsentId\n, the TPP must reuse that same BaseConsentId\n rather than the immediate prior ConsentId\n. | LFI (/consent/action/validate)\nconsent.ExpirationDateTime | Must not be in the past. Must be less than one year in the future. | API Hub\nAuthorization window | If the TPP wishes to cap how long the User has to authorize the consent, it must do so with consent.AuthorizationExpirationDateTime\n. | TPP\nx-fapi-interaction-id | Should be included. Should be a valid UUID (RFC 4122). An invalid value will not cause a failure but tracing will not be possible. | N/A",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Consent Creation",
+        "anchor": "post-par",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"post-par\",\"\"]:0",
+      "content_hash": "e2f9667a7a0a1152ea5551590a0df1ba89cf40fe7f0181748a31321eb3be532a",
+      "schema_version": 2
+    },
+    {
+      "id": "a994f084-ec4a-51d6-8ccd-9655d73b06af",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Authorization — Account Selection\n\nField | Rule | Validated by\nEligible accounts | If the authenticated customer does not hold any accounts matching the requested consent parameters (e.g. AccountType\n, AccountSubType\n, or the permissions requested), the consent will be set to Rejected\n with error\n: invalid_request\n and error_description\n: user_lacks_eligible_accounts\n. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Authorization — Account Selection",
+        "anchor": "authorization",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"authorization\",\"\"]:0",
+      "content_hash": "008383952257657b2ccaa79ef87e6369a20cad6b925b396eceacae6bb46cc9e8",
+      "schema_version": 2
+    },
+    {
+      "id": "6f4986d0-7b33-5300-b1ad-1c2b0d60e120",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > List Accounts\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token issued with the accounts openid\n scope. The consent bound to the token must be in Authorized\n status and the ExpirationDateTime\n of the Consent must be in the future. | API Hub\nURL version | The version in the request URL path (e.g. v2.2\n in /open-finance/account-information/v2.2/accounts\n) must match the version in the consent's authorization_details[0].type\n (urn:openfinanceuae:account-access-consent:v2.2\n). | API Hub\nconsent.Permissions | The consent must include ReadAccountsBasic\n or ReadAccountsDetail\n. | API Hub\nx-fapi-interaction-id | Should be included. Should be a valid UUID (RFC 4122). An invalid value will not cause a failure but tracing will not be possible. | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. Must be a valid HTTP-date (RFC 7231), e.g. Tue, 11 Sep 2012 19:43:31 UTC\n. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. Must be a valid IPv4 or IPv6 address. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. Should reflect the user-agent of the customer's browser or device. | TPP\nAccountSubType | Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, Mortgage\n. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "List Accounts",
+        "anchor": "get-accounts",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-accounts\",\"\"]:0",
+      "content_hash": "1ec2f1972cf853b363f1e9f9407ff6d09253bd54ce6de676581ac3718e591bee",
+      "schema_version": 2
+    },
+    {
+      "id": "784db058-a3a4-52e3-8889-0493472ea1f4",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Account\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token issued with the accounts openid\n scope. The consent bound to the token must be in Authorized\n status and the ExpirationDateTime\n of the Consent must be in the future. | API Hub\nURL version | The version in the request URL path must match the version in the consent's authorization_details[0].type\n. | API Hub\nconsent.Permissions | The consent must include ReadAccountsBasic\n or ReadAccountsDetail\n. | API Hub\nAccountId | Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account. | LFI\nx-fapi-interaction-id | Should be included. Should be a valid UUID (RFC 4122). An invalid value will not cause a failure but tracing will not be possible. | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. Must be a valid HTTP-date (RFC 7231). | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. Must be a valid IPv4 or IPv6 address. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. Should reflect the user-agent of the customer's browser or device. | TPP\nAccountSubType | Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, Mortgage\n. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Account",
+        "anchor": "get-accountid",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-accountid\",\"\"]:0",
+      "content_hash": "2b26fa4fd624b2a1607583477f429c7273471e6c97ddd34620116c7b6bc984cd",
+      "schema_version": 2
+    },
+    {
+      "id": "25dcbe17-9b09-592f-80db-dbb1aaf633b1",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Balances\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token issued with the accounts openid\n scope. The consent bound to the token must be in Authorized\n status and not expired. | API Hub\nURL version | The version in the request URL path must match the consent version. | API Hub\nconsent.Permissions | The consent must include ReadBalances\n. | API Hub\nAccountId | Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account. | LFI\nx-fapi-interaction-id | Should be included. Should be a valid UUID (RFC 4122). | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. | TPP\nAccountSubType | Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, Mortgage\n. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Balances",
+        "anchor": "get-balances",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-balances\",\"\"]:0",
+      "content_hash": "8dee4288d0dd35953b816720a8afb7f91da725c4a874ea46eac176133576ed23",
+      "schema_version": 2
+    },
+    {
+      "id": "37ce912f-1871-59f1-b50d-6760587b7836",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Beneficiaries\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token bound to an Authorized\n consent. | API Hub\nURL version | Must match the consent version. | API Hub\nconsent.Permissions | The consent must include ReadBeneficiariesBasic\n or ReadBeneficiariesDetail\n. | API Hub\nAccountId | Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account. | LFI\nx-fapi-interaction-id | Should be a valid UUID (RFC 4122). | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. | TPP\nAccountSubType | Only supported for CurrentAccount\n and Savings\n accounts. Not available for CreditCard\n, Finance\n, or Mortgage\n accounts. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Beneficiaries",
+        "anchor": "get-beneficiaries",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-beneficiaries\",\"\"]:0",
+      "content_hash": "a8e93ef63e36298a08a8dcecb7a7cae67a2491010da9c8df9afbfaa17fb84228",
+      "schema_version": 2
+    },
+    {
+      "id": "b60aa475-cb2a-5fcc-a6bd-2038d9fbb202",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Direct Debits\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token bound to an Authorized\n consent. | API Hub\nURL version | Must match the consent version. | API Hub\nconsent.Permissions | The consent must include ReadDirectDebits\n. | API Hub\nAccountId | Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account. | LFI\nx-fapi-interaction-id | Should be a valid UUID (RFC 4122). | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. | TPP\nAccountSubType | Only supported for CurrentAccount\n and Savings\n accounts. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Direct Debits",
+        "anchor": "get-direct-debits",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-direct-debits\",\"\"]:0",
+      "content_hash": "3a4f29a21362b69fa23f0ef1b8d34346625616405761cc7de7283a1e20d9340d",
+      "schema_version": 2
+    },
+    {
+      "id": "af63a754-00c7-5ff1-b1b5-0589ce6550c9",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Product\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token bound to an Authorized\n consent. | API Hub\nURL version | Must match the consent version. | API Hub\nconsent.Permissions | The consent must include ReadProduct\n. ReadProductFinanceRates\n is required for finance rate data to be included in the response, and is only available to TPPs holding the Access Encrypted Resource Data\n certification — see Consent Creation\n. | API Hub\nAccountId | Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account. | LFI\nCustomer-present session | When the consent includes ReadProductFinanceRates\n, the TPP MUST only call this endpoint from an active customer-facing session — the customer must be using the TPP application at the time of the call. Background or scheduled calls are not permitted on a consent that carries ReadProductFinanceRates\n, because the encrypted-rate flow requires the customer to receive and enter the one-time code in real time. Consequently x-fapi-customer-ip-address\n and x-fapi-auth-date\n MUST be set on every such call. | TPP\nx-fapi-interaction-id | Should be a valid UUID (RFC 4122). | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. MUST be sent on every call when the consent carries ReadProductFinanceRates\n, because such calls are always customer-present. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. MUST be sent on every call when the consent carries ReadProductFinanceRates\n, because such calls are always customer-present. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. | TPP\nAccountSubType | Supported for all account subtypes. | LFI\nFinanceRates\n — key request | If FinanceRates\n is returned as a JWE, the TPP must prompt the User to enter the encryption key delivered to them by the LFI (e.g. via SMS or push notification) before decryption can proceed. | TPP\nFinanceRates\n — local decryption | Decryption of the JWE must be performed locally on the User's device. The decrypted data must not be transmitted to the TPP's servers or persisted in any storage accessible to the TPP's application. | TPP\nFinanceRates\n — data usage | The decrypted data must only be used to display the rates to the User within the active session. The TPP must not store, transmit, or otherwise process the unencrypted data. | TPP\nFinanceRates\n — expiry | The TPP must observe the exp\n value in the JWE header and discard any decrypted data once the expiry threshold has passed. If the data is still required, the TPP must repeat the API operation to retrieve a fresh response — the original consent must still be valid for this to succeed. | TPP\nFinanceRates\n — session discard | The TPP must discard all decrypted data from memory when the User closes their session, regardless of whether exp\n has been reached. | TPP",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Product",
+        "anchor": "get-product",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-product\",\"\"]:0",
+      "content_hash": "32b924381f818e1656199e4c1cee42d4c446634acea423c60b39f1fc45f6bf2e",
+      "schema_version": 2
+    },
+    {
+      "id": "e5fe2341-cac4-56ba-b29f-7b1ff4e46bf7",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Scheduled Payments\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token bound to an Authorized\n consent. | API Hub\nURL version | Must match the consent version. | API Hub\nconsent.Permissions | The consent must include ReadScheduledPaymentsBasic\n or ReadScheduledPaymentsDetail\n. | API Hub\nAccountId | Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account. | LFI\nx-fapi-interaction-id | Should be a valid UUID (RFC 4122). | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. | TPP\nAccountSubType | Only supported for CurrentAccount\n and Savings\n accounts. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Scheduled Payments",
+        "anchor": "get-scheduled-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-scheduled-payments\",\"\"]:0",
+      "content_hash": "e69611afb62be426870443f0c00d49cda077efb4ec6d5da6e3f5d0f68fbde9de",
+      "schema_version": 2
+    },
+    {
+      "id": "004176e2-4af7-5f7f-8c5e-9f632afcacb5",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Standing Orders\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token bound to an Authorized\n consent. | API Hub\nURL version | Must match the consent version. | API Hub\nconsent.Permissions | The consent must include ReadStandingOrdersBasic\n or ReadStandingOrdersDetail\n. | API Hub\nAccountId | Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account. | LFI\nx-fapi-interaction-id | Should be a valid UUID (RFC 4122). | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. | TPP\nAccountSubType | Only supported for CurrentAccount\n and Savings\n accounts. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Standing Orders",
+        "anchor": "get-standing-orders",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-standing-orders\",\"\"]:0",
+      "content_hash": "1add0416b7469005705abe14e67c179078bb79bfac4b8a5479bb548ed2c8cddc",
+      "schema_version": 2
+    },
+    {
+      "id": "a9ca6764-1360-5f5a-9831-17abb4536fcc",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Transactions\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token bound to an Authorized\n consent. | API Hub\nURL version | Must match the consent version. | API Hub\nconsent.Permissions | The consent must include ReadTransactionsBasic\n or ReadTransactionsDetail\n. ReadFXTransactionsBasic\n, ReadFXTransactionsDetail\n, or ReadFXRemittanceCharges\n are required for FX transaction data to be included. | API Hub\nAccountId | Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account. | LFI\nfromBookingDateTime | If provided, must be a valid ISO 8601 date-time (time component optional, defaults to 00:00:00\n) and must not be after toBookingDateTime\n. A contradictory range is rejected with 400\n Resource.InvalidFormat\n. Any timezone offset is ignored when filtering. | API Hub\ntoBookingDateTime | If provided, must be a valid ISO 8601 date-time (time component optional, defaults to 00:00:00\n) and must not be in the future. A future toBookingDateTime\n is rejected with 400\n Resource.InvalidFormat\n. Any timezone offset is ignored when filtering. | API Hub\nx-fapi-interaction-id | Should be a valid UUID (RFC 4122). | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. | TPP\nAccountSubType | Supported for all account subtypes. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Transactions",
+        "anchor": "get-transactions",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-transactions\",\"\"]:0",
+      "content_hash": "0803621ab21de8e8b860da262bba61a32cc20f1fbc4e102bf118f51318ed3261",
+      "schema_version": 2
+    },
+    {
+      "id": "bd2ed8f8-150b-5697-b5d9-98ea0d9322b0",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Statements\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token bound to an Authorized\n consent. | API Hub\nURL version | Must match the consent version. | API Hub\nconsent.Permissions | The consent must include ReadStatements\n. | API Hub\nAccountId | Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account. | LFI\nfromStatementDate | If provided, must be a valid ISO 8601 date and must not be after toStatementDate\n. A contradictory range is rejected with 400\n Resource.InvalidFormat\n. Filtering is open-ended if not provided. | API Hub\ntoStatementDate | If provided, must be a valid ISO 8601 date and must not be in the future. A future toStatementDate\n is rejected with 400\n Resource.InvalidFormat\n. Filtering is open-ended if not provided. | API Hub\nx-fapi-interaction-id | Should be a valid UUID (RFC 4122). | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. | TPP\nAccountSubType | Supported for all account subtypes. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Statements",
+        "anchor": "get-statements",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-statements\",\"\"]:0",
+      "content_hash": "04d265000cc4ed0a8f2faab72d402552bcc50f70f09a7cf448e3048a63abf779",
+      "schema_version": 2
+    },
+    {
+      "id": "9f951f64-25c3-5235-8181-30375be287bd",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Account Parties\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token bound to an Authorized\n consent. | API Hub\nURL version | Must match the consent version. | API Hub\nconsent.Permissions | The consent must include ReadParty\n, ReadPartyUser\n, or ReadPartyUserIdentity\n. | API Hub\nAccountId | Must be a valid account ID shared by the customer — i.e. returned by GET /accounts\n under the same consent. See Account Access Validation\n for the response when the customer does not hold the account. | LFI\nx-fapi-interaction-id | Should be a valid UUID (RFC 4122). | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. | TPP\nAccountSubType | Supported for all account subtypes. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Account Parties",
+        "anchor": "get-account-parties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-account-parties\",\"\"]:0",
+      "content_hash": "8bb91e71b35bc31575b89843c12a8929adc4e74282d92a44579a828728735de8",
+      "schema_version": 2
+    },
+    {
+      "id": "fb79b5d6-8a80-525a-be57-ac9c30a556c6",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Parties\n\nField | Rule | Validated by\nAuthorization | Must contain a valid Bearer access token bound to an Authorized\n consent. | API Hub\nURL version | Must match the consent version. | API Hub\nconsent.Permissions | The consent must include ReadParty\n, ReadPartyUser\n, or ReadPartyUserIdentity\n. | API Hub\nx-fapi-interaction-id | Should be a valid UUID (RFC 4122). | N/A\nx-fapi-auth-date | Must be sent when the customer is authenticated at the time of the call. | TPP\nx-fapi-customer-ip-address | Must be sent when the customer is actively present at the time of the call. | TPP\nx-customer-user-agent | Should be sent when the customer is actively present. | TPP\nAccountSubType | Supported for all account subtypes. | LFI",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Parties",
+        "anchor": "get-parties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-parties\",\"\"]:0",
+      "content_hash": "5621a844f9dde4bb266abf0382401375f21d0dec182f558e1a88941a9067cd02",
+      "schema_version": 2
+    },
+    {
+      "id": "a5ccb2ba-ef9f-5e36-ba98-714579d84911",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Account Access Validation\n\nScenario | Response\nAccountId\n is not held by the customer who authorized the consent | 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n and errorMessage\n: The account is permanently inaccessible.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Account Access Validation",
+        "anchor": "account-access",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"account-access\",\"\"]:0",
+      "content_hash": "bd340c7c339e5e2e249ffeabb5412d45726916384a3eaa26d1828bbc467f0357",
+      "schema_version": 2
+    },
+    {
+      "id": "26d6a546-bdf3-5415-95a5-61d36623d7a0",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Account Status Handling\n\nStatus | Response\nActive\n, Inactive\n, Dormant | Data is returned normally.\nSuspended | 403\n with errorCode\n: Consent.AccountTemporarilyBlocked\n and errorMessage\n: The account is temporarily blocked.\nUnclaimed\n, Deceased\n, Closed | 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n and errorMessage\n: The account is permanently inaccessible.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Account Status Handling",
+        "anchor": "account-status",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "25d6554e681c3ac8ac4b60a626f72b780d5828c8ae267a7de26082d303e4294e",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/banking-data-sharing-tpp",
+          "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/banking-data-sharing-tpp.ts",
+            "hash": "6d74d69b05cf53e4df04e32bdcbb38c7d8a9bde5941d27c1a2ecfabf8b53e31a"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"account-status\",\"\"]:0",
+      "content_hash": "d41d7baf0836c494162ccddf2ccc44a2f0b55578e1e9e031416ab4273334169e",
+      "schema_version": 2
+    }
+  ]
+}

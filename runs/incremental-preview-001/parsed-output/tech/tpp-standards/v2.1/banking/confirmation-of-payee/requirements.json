@@ -1,0 +1,155 @@
+{
+  "id": "tech/tpp-standards/v2.1/banking/confirmation-of-payee/requirements",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/banking/confirmation-of-payee/requirements.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "88380d35d64555b460841361d58e02d72a13bc61",
+    "hash": "765f1451279dfe0c090e9153cbaa56e05c352f72ff7813cf7d4e2df3d24bea50",
+    "dependencies": [
+      "@/data/requirements/tpp-standards-v2-1-banking-confirmation-of-payee",
+      "src/data/requirements/tpp-standards-v2-1-banking-confirmation-of-payee.ts"
+    ],
+    "assets": [
+      {
+        "file": "src/data/requirements/tpp-standards-v2-1-banking-confirmation-of-payee.ts",
+        "hash": "45fa0ad8fac1c8801d87028e4e82a09738335c134100c105d3d93a9b63e666fd"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Confirmation of Payee — Requirements",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/banking/confirmation-of-payee/requirements",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Confirmation of Payee — Requirements",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The User Journeys\n for this service also apply and must be adhered to."
+      },
+      {
+        "type": "paragraph",
+        "text": "The tables below list the validation rules that apply to Confirmation of Payee. The Validated by\n column indicates where each rule is enforced. All requests require an active Trust Framework application\n with the BSIP\n role, a valid transport certificate\n presented on every request via mTLS, and an active signing key\n for JWT signing."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Mandatory CoP Requirement",
+        "anchor": "mandatory-cop-requirement",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "For all Open Finance account-to-account transfers where the creditor is unknown to the TPP — for example, entered by the customer at the time of payment — a Confirmation of Payee request must\n be made prior to consent creation, provided the receiving bank supports the CoP service. A creditor is considered unknown when the TPP does not already hold a verified record of the payee (for example, a pre-enrolled beneficiary confirmed by a prior successful CoP check). Where CoP has been performed, the full raw JWS response from the /confirmation\n endpoint must be included in the ConfirmationOfPayeeResponse\n field of the creditor entry in the payment consent PII."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Payee Discovery",
+        "anchor": "payee-discovery",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token obtained via a client_credentials\n grant with the confirmation-of-payee\n scope.",
+                "API Hub"
+              ],
+              [
+                "Request body",
+                "Must be a compact signed JWT (Content-Type: application/jwt\n).",
+                "API Hub"
+              ],
+              [
+                "message.Data.Identification",
+                "Required. Must be a valid UAE IBAN.",
+                "API Hub"
+              ],
+              [
+                "OpenAPI schema",
+                "The request must conform exactly to the POST /discovery\n OpenAPI schema\n. No additional or undocumented parameters are permitted.",
+                "API Hub"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be included. Should be a valid UUID (RFC 4122). An invalid value will not cause a failure but tracing will not be possible.",
+                "N/A"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Name Match",
+        "anchor": "name-match",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Field",
+              "Rule",
+              "Validated by"
+            ],
+            "rows": [
+              [
+                "Authorization",
+                "Must contain a valid Bearer access token obtained via a client_credentials\n grant with the confirmation-of-payee\n scope.",
+                "API Hub"
+              ],
+              [
+                "Request body",
+                "Must be a compact signed JWT (Content-Type: application/jwt\n).",
+                "API Hub"
+              ],
+              [
+                "message.Data.Identification",
+                "Required. Must be a valid UAE IBAN.",
+                "API Hub"
+              ],
+              [
+                "ConfirmationOfPayeeResponse\n in PII",
+                "Where CoP has been performed, the full raw JWS response string from /confirmation\n must be included in the ConfirmationOfPayeeResponse\n field of the creditor entry in the payment consent PII.",
+                "TPP"
+              ],
+              [
+                "OpenAPI schema",
+                "The request must conform exactly to the POST /confirmation\n OpenAPI schema\n. No additional or undocumented parameters are permitted.",
+                "API Hub"
+              ],
+              [
+                "IBAN not recognised",
+                "If the IBAN is not recognised, the response will be 204\n with no body.",
+                "LFI"
+              ],
+              [
+                "Account state",
+                "The account identified by the IBAN must not be blocked from receiving payments. If the account is blocked for a temporary reason (e.g. account status is Suspended\n), the response will be 403\n with errorCode\n: Consent.AccountTemporarilyBlocked\n and errorMessage\n: The account is blocked from receiving payments.\n If the account is blocked permanently (e.g. account status is Closed\n, Deceased\n, or Unclaimed\n), the response will be 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n and errorMessage\n: The account is blocked from receiving payments.",
+                "LFI"
+              ],
+              [
+                "x-fapi-interaction-id",
+                "Should be included. Should be a valid UUID (RFC 4122). An invalid value will not cause a failure but tracing will not be possible.",
+                "N/A"
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

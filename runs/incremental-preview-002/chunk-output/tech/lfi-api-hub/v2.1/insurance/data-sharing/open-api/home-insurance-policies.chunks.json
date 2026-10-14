@@ -1,0 +1,1540 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+  "chunk_count": 45,
+  "chunks": [
+    {
+      "id": "ee19286e-9adb-51df-9575-1e2fffcaf0c5",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > API /home-insurance-policies\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - UAE Insurance API Description\",\n \"description\": \"## Ozone Connect - UAE Insurance API Description\\n\\nThis document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html) for Insurance APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a financial institution to facilitate integration with the API Hub.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where: \\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n\\n### v2.1.4\\n\\n* Removed the CAAP-specific header `o3-is-caap-consent-operation` from the `get /{insurance-type}-insurance-policies`\\n operations, the CAAP-conditional `ProductName`, `BodyType`, and `PlateNumber` properties from the insurance\\n policy schemas, and related CAAP-conditional language. CAAP variants of these endpoints have been moved to the\\n CAAP Operations OpenAPI description. `PolicyEndDate` is retained on the insurance policy schemas but is no longer\\n CAAP-conditional: it is now an ordinary optional property, returnable for all consent types, matching the\\n `get /{insurance-type}-insurance-policies` response in the UAE Insurance API description.\\n\\n\\n* Removed the `maximum` of 100 from `AEInsuranceServiceRatingRateOrRatio`, which is referenced by the\\n `ServiceRating` properties `SolvencyRatio`, `ClaimsPaymentCapacityRatio`, `AverageClaimSettlementTime`, and\\n `CustomerComplaintRate`. None of these is a 0-100 percentage: both ratios routinely exceed 100% for a solvent\\n insurer, and the other two are measured in calendar days and in complaints per 1,000 active policies\\n respectively. The two genuine percentages, `ClaimSettlementRatio` and `ClaimRejectionRate`, now reference a new\\n `AEInsuranceServiceRatingPercentage` schema, which retains `maximum: 100` and adds `minimum: 0`.\\n\\n\\n* Changed the `get /{industryType}-insurance-policies/{InsurancePolicyId}` operation to return an optional\\n `CreditDebitIndicator` within `Premium.Adjustments`, indicating whether a premium adjustment is a credit,\\n reducing the premium payable, or a debit, increasing the premium payable. `AdjustmentAmount` is unsigned and\\n carries no direction of its own. Where `CreditDebitIndicator` is absent, the adjustment must be treated as a\\n `Debit`, which is the reading that matches existing v2.1 behaviour.\\n\\n\\n* Removed `format: uuid` from `AEInsurance.AEInsuranceResourceIdentifierType`, the schema behind the\\n `InsurancePolicyId` and `QuoteId` path parameters and the `QuoteId`, `InsurancePolicyId` and related identifier\\n properties. A uuid v4 remains recommended for consistency but is no longer mandatory, so LFIs may use their own\\n identifier scheme within the existing 1-128 character bounds. This matches UAE standards v2.1-errata3.\\n\\n\\n### v2.1.3\\n\\n\\n* Changed the `get /{insurance-type}-insurance-quotes/{QuoteId}` operation to return the correct type for `Pending`\\n `QuoteStatus` responses.\\n\\n\\n### v2.1.2\\n\\n\\n* Changed the `insurancePolicyIds` parameter from optional to mandatory for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n* Changed the guidance for `insurancePolicyIds` parameter for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n### v2.1.1\\n\\n\\n* Initial version that delivers v2.1 requirements (see separate, detailed changelog for changes from last v2.1.x version).\\n\\n\",\n \"version\": \"v2.1.4\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/home-insurance-policies\",\n \"operations\": {\n \"post\": {\n \"operationId\": \"HomeInsuranceCreateInsurancePolicyOperation\",\n \"summary\": \"Create a home insurance policy from a quote\",\n \"description\": \"Create a home insurance policy based on a quote previously created by the\\nLFI. The TPP will send the `QuoteId` that has been saved by the LFI, together with\\nany additional data that is required to create the insurance policy. The\\nLFI will then invoke their BAU process to create the insurance policy.\\n\\nAfter the policy initiation request has been sent the User will be redirected to\\nthe LFI to complete the creation of the insurance policy.\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.ozoneInteractionId\"\n }\n ],\n \"responses\": {\n \"201\": {\n \"description\": \"The request has succeeded and a new resource has been created as a result.\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/AEInsuranceCreatePolicyResponse1\"\n }\n }\n }\n },\n \"400\": {\n \"$ref\": \"#/components/responses/error400Response\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/error403Response\"\n },\n \"409\": {\n \"$ref\": \"#/components/responses/error409Response\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/error500Response\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n },\n \"tags\": [\n \"Home Insurance\"\n ],\n \"requestBody\": {\n \"required\": true,\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "API /home-insurance-policies",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /home-insurance-policies\"],\"\"]:0:part:0",
+      "content_hash": "6e760949fc4783d06873d11aab7508cc2cd30c5e1439fa6b09467073fd1f934a",
+      "schema_version": 2
+    },
+    {
+      "id": "e61b53be-247f-5f13-a083-4f56cb31218e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > API /home-insurance-policies\n\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCreatePolicyData1\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n }\n },\n \"get\": {\n \"operationId\": \"HomeInsuranceReadInsurancePoliciesOperation\",\n \"summary\": \"Retrieve home insurance policies\",\n \"description\": \"Retrieve all insurance policies to which access has been granted by the User\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.ozoneInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.consentId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.psuIdentifier\"\n },\n {\n \"$ref\": \"#/components/parameters/InsurancePolicyIds\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.page\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.page-size\"\n }\n ],\n \"responses\": {\n \"200\": {\n \"description\": \"The request has succeeded.\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/AEReadInsurancePolicies1\"\n }\n }\n }\n },\n \"400\": {\n \"$ref\": \"#/components/responses/error400Response\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/error403Response\"\n },\n \"409\": {\n \"$ref\": \"#/components/responses/error409Response\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/error500Response\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n },\n \"tags\": [\n \"Home Insurance\"\n ]\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n },\n \"OzoneConnectServiceInitiationToken\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Bearer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "API /home-insurance-policies",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /home-insurance-policies\"],\"\"]:0:part:1",
+      "content_hash": "68ce0d7344271bb246e218d35ca6bfc92206bd29d2f5937e1c31c37bbf2fefb5",
+      "schema_version": 2
+    },
+    {
+      "id": "3c1cffe6-ec8c-53fd-8a31-4b7a8c723011",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targeted to\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.providerId\"],\"\"]:0",
+      "content_hash": "b7a2c5f51e7bcc0d060d282f34c8f63562ac797fd737f482a5d4db19ad958a0c",
+      "schema_version": 2
+    },
+    {
+      "id": "da77e706-cff2-5065-957b-617916e96bf4",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\"],\"\"]:0",
+      "content_hash": "457e8adc2613be4a3d6b8010d99c5e8f88eecc87fd6aea9f4547f92bf6f8941f",
+      "schema_version": 2
+    },
+    {
+      "id": "1984b7df-7a82-5eef-878b-45b47063060d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\"],\"\"]:0",
+      "content_hash": "3f14de3d79e692dabd4b2b4b861c289a2283d11b9e45b905b77d4d2961f52375",
+      "schema_version": 2
+    },
+    {
+      "id": "38056f6c-e0a5-5acf-95c2-b86471a77f3e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "bcdcf8f222a9b689c40fb3f992b1f4f661fe1381c603a54293af07869ecb1b29",
+      "schema_version": 2
+    },
+    {
+      "id": "fecd820c-5f08-5c01-b1c0-ec4f2fbbb29b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The URL of the API being called by the caller\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiUri\"],\"\"]:0",
+      "content_hash": "c0dd379e585f2c808268d61d77ab0fc932e69f86083d3bab8ce2ee8950a45690",
+      "schema_version": 2
+    },
+    {
+      "id": "62c09c8d-d2e6-5a31-9972-51f7d113f8fa",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\"],\"\"]:0",
+      "content_hash": "02169c4600d30b9cc2f881494385796de017e254ce99e9c8e18057c0343d0582",
+      "schema_version": 2
+    },
+    {
+      "id": "6280a8f7-a154-5322-bfdd-2a91fd72ed3a",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\"],\"\"]:0",
+      "content_hash": "8cb904217030560c86c2e58f43b74641fe8d44165ac93f4be1a56f50b432c033",
+      "schema_version": 2
+    },
+    {
+      "id": "11ea8bee-cc1a-5a9a-8454-da39dcd8c806",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "e3a2d1f6af1d8a501a7be9e55dc9f26e3f13315db75d72ca25713204968ebd8d",
+      "schema_version": 2
+    },
+    {
+      "id": "6018048f-ef34-58ea-9013-b10475b132f3",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsuranceCreatePolicyResponse1\n\n{\n \"type\": \"object\",\n \"required\": [\n \"data\"\n ],\n \"properties\": {\n \"data\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceInsurancePolicyResponseData1\"\n },\n \"links\": {\n \"type\": \"object\",\n \"properties\": {\n \"CreateInsurancePolicyRedirectUrl\": {\n \"type\": \"string\",\n \"format\": \"uri\",\n \"description\": \"A redirect URL provided by the LFI to complete creating the insurance policy. The TPP must redirect the User to this URL.\\nThe URL is optional as the LFI may have all required information through party data to complete account creation.\"\n }\n },\n \"minProperties\": 1,\n \"description\": \"Links to other resources. Can be omitted where `CreateInsurancePolicyRedirectUrl` is not returned.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsuranceCreatePolicyResponse1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsuranceCreatePolicyResponse1\"],\"\"]:0",
+      "content_hash": "dfae50d505d0ba7822fcb48f12578a593329bcb50a0f0253f759e40196c44541",
+      "schema_version": 2
+    },
+    {
+      "id": "4c62c3eb-5681-51c2-b73b-d395d152e751",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceInsurancePolicyResponseData1\n\n{\n \"type\": \"object\",\n \"required\": [\n \"InsurancePolicyId\"\n ],\n \"properties\": {\n \"InsurancePolicyId\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n }\n ],\n \"description\": \"Unique identifier for a given insurance policy\",\n \"example\": \"d330c5bb-0889-4596-86bb-17cc9a4a17b5\"\n },\n \"PostIssuanceResponse\": {\n \"type\": \"object\",\n \"properties\": {\n \"ClaimsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the LFI allows the TPP to handle customer claims processes after policy issuance.\"\n },\n \"EndorsementsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the LFI allows the TPP to handle policy endorsements after policy issuance.\"\n },\n \"RenewalsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the LFI allows the TPP to handle the policy renewal process.\"\n },\n \"CancellationAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the LFI allows the TPP to handle the policy cancellation when requested by the customer.\"\n }\n },\n \"required\": [\n \"ClaimsAllowed\",\n \"EndorsementsAllowed\",\n \"RenewalsAllowed\",\n \"CancellationAllowed\"\n ],\n \"description\": \"Defines whether the LFI allows or rejects the TPPs request for accountability over specific post-policy issuance activities.\"\n },\n \"Documents\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n },\n \"minItems\": 1,\n \"description\": \"Policy documents to be issued to the Customer via the TPP.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceInsurancePolicyResponseData1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceInsurancePolicyResponseData1\"],\"\"]:0",
+      "content_hash": "0bc7631dac5328ce1e0acca764c00793cf9c3d356e14c218853d19f26e8e89df",
+      "schema_version": 2
+    },
+    {
+      "id": "fe2c8f76-6242-5a5d-8212-dbc7a3221e95",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 128,\n \"description\": \"Unique identifier for a given insurance policy. \\n\\nA uuid v4 is recommended for consistency but not mandatory.\"\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"],\"\"]:0",
+      "content_hash": "005a1909faabdddb6a8d61e9a94fd1f0cec301ef36d964bd353fe096ff694f74",
+      "schema_version": 2
+    },
+    {
+      "id": "27772876-f3cf-50d6-b206-84e6aa912178",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Type\",\n \"FileName\",\n \"ContentType\",\n \"Content\",\n \"HashType\",\n \"Hash\"\n ],\n \"properties\": {\n \"Type\": {\n \"type\": \"string\",\n \"description\": \"The type of document that has been provided. For example, Policy Booklet, Terms & Conditions\"\n },\n \"FileName\": {\n \"type\": \"string\",\n \"description\": \"Original file name for operator reference (no paths). Should include a suitable extension (e.g., policy.pdf, terms.pdf).\"\n },\n \"ContentType\": {\n \"type\": \"string\",\n \"enum\": [\n \"application/pdf\",\n \"image/jpeg\",\n \"image/png\"\n ],\n \"description\": \"Content (MIME) type of the document, using IANA-registered media types, and based on types supported in the Open Finance Framework.\"\n },\n \"Content\": {\n \"type\": \"string\",\n \"format\": \"base64\",\n \"description\": \"Base64-encoded representation of the document content. The encoded string must be generated from the raw file bytes and decoded by the LFI to restore the original file.\"\n },\n \"HashType\": {\n \"type\": \"string\",\n \"enum\": [\n \"SHA256\"\n ],\n \"description\": \"Approach used to create checksum or hash of the file. SHA256 is supported.\"\n },\n \"Hash\": {\n \"type\": \"string\",\n \"description\": \"Checksum of the original file bytes created using the method indicated by `HashType`. Required to enable integrity verification by comparing with the hash or checksum calculated on the decoded file.\"\n },\n \"AdditionalInformation\": {\n \"type\": \"string\",\n \"maxLength\": 1000,\n \"description\": \"Optional free text notes providing context on the document.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\"],\"\"]:0",
+      "content_hash": "22b1d68a3dc3adbdf6884a32800d856a1b4c43ea6c4195e7a220780c0c4c32bb",
+      "schema_version": 2
+    },
+    {
+      "id": "3ff1696f-4029-56ba-9356-84be729d1c91",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/responses/error400Response\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/responses/error400Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error400Response\"],\"\"]:0",
+      "content_hash": "8599864ed272094977993c9d8f0f0feca641a911b85a1a6efe513a15c82c5366",
+      "schema_version": 2
+    },
+    {
+      "id": "95ac9b5a-dfda-5f32-ae86-b39ed0dce03b",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.Error400\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError400Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Default error response payload structure for Ozone Connect\"\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error400\"],\"\"]:0",
+      "content_hash": "c3d0d68ca4f83b9d23670cc3ae70f25110cbd80333397b3fc2cca3d73ec5d4d7",
+      "schema_version": 2
+    },
+    {
+      "id": "3c642e89-31eb-5e9f-b948-0e2adda2bb1e",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEError400Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWS.InvalidPayload\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError400Codes\"],\"\"]:0",
+      "content_hash": "5530000dc49589c56e32c7aa8f3c0ba03be16c2613a93bd07511ca2290838231",
+      "schema_version": 2
+    },
+    {
+      "id": "fa0ff1f4-a9dd-5fd6-b473-c2cf8c5b88f3",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AECustomErrorCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECustomErrorCode\"],\"\"]:0",
+      "content_hash": "531f0f8239188f9003e4088c18dcdd10e482ae6bfc52acbadc55f2282d712307",
+      "schema_version": 2
+    },
+    {
+      "id": "46d3b6b1-0b6c-5206-979c-b36a6bea1a4c",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\n\n{\n \"type\": \"string\",\n \"description\": \"Custom error code without prefix, retained for compatibility with version 1.2.\"\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\"],\"\"]:0",
+      "content_hash": "5dcd956c3a0d6b822cffe788313211622ba45ad11ae92f26b6e37f632c1b4c73",
+      "schema_version": 2
+    },
+    {
+      "id": "f0a39048-6b6f-54e6-ac33-716b71184995",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/responses/error403Response\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/responses/error403Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error403Response\"],\"\"]:0",
+      "content_hash": "ee39599fa81ae3fbbd4285340e28fd72988cb2eff794b1e2d19f491a64df2c23",
+      "schema_version": 2
+    },
+    {
+      "id": "fd64f66d-c7bf-526b-8383-d87cab1f8581",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.Error403\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError403Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n \\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error403\"],\"\"]:0",
+      "content_hash": "979275b123cbbad101a2feee6aed5686e82a2cb7f6a59eca12374aa3bbad2991",
+      "schema_version": 2
+    },
+    {
+      "id": "2b6e0fd4-110d-598e-9709-dca9d0566faf",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEError403Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError403Codes\"],\"\"]:0",
+      "content_hash": "25565bb2a8de35c62c8f385f13a4ca3fbc4b54405881aa59fcf55032c1d14b93",
+      "schema_version": 2
+    },
+    {
+      "id": "0c851c5d-2cb7-54b9-8087-ddb2cd45cdd8",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/responses/error409Response\n\n{\n \"description\": \"Operation failed due to a conflict\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error409\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/responses/error409Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error409Response\"],\"\"]:0",
+      "content_hash": "c21b49502265a54c93ce302821c6be5288cbe31e848e7a9039fa08fbdba91d5f",
+      "schema_version": 2
+    },
+    {
+      "id": "5bb7420f-d42d-561b-a3b7-3bfe21a44763",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.Error409\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error409",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error409\"],\"\"]:0",
+      "content_hash": "9a6f1a4afd60fc14ba75c1c4c2b297128b721370c7ad321f6765316c2d9becba",
+      "schema_version": 2
+    },
+    {
+      "id": "b1dc6c06-131b-5c87-b67e-93fd14c3ab68",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEErrorGenericCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEErrorGenericCodes\"],\"\"]:0",
+      "content_hash": "af1ef5f49b0bd1af5d729b6af184e3ef8bd98641f80114bc9e6587dae2681b5d",
+      "schema_version": 2
+    },
+    {
+      "id": "28f6b0c6-223c-59c7-9f8f-4dbb25b2bf9f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/responses/error500Response\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/responses/error500Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error500Response\"],\"\"]:0",
+      "content_hash": "d5c001a6cfa44e9f776cbae8c7d85a0f80169eda84345a8e3b5f0083697650a8",
+      "schema_version": 2
+    },
+    {
+      "id": "ac95c989-4487-5fa0-835f-3bf260bcb319",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.Error500\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error500\"],\"\"]:0",
+      "content_hash": "d601ce26a958a762f578ccf1749b0a30d6975573ae67ea403544aadddbabe5e5",
+      "schema_version": 2
+    },
+    {
+      "id": "a38ebfab-6a67-5f3a-b922-f0cbfd5f7367",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/responses/errorResponse\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.DefaultError\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "4f23f64c29ebfa2286da147bb3b0cee59a6e1627a0b3ec6976daaf17c5763c47",
+      "schema_version": 2
+    },
+    {
+      "id": "2d9e84b0-46b2-5046-83c3-6ddb97192378",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Generic error code set by the LFI. Non-namespaced error codes are allowed for compatibility versions prior to v2.0.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.DefaultError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\"],\"\"]:0",
+      "content_hash": "9223e3991b872abfdfed3075bf5b3aeb183ad6b88190817b741acefc2b6b1926",
+      "schema_version": 2
+    },
+    {
+      "id": "8a806b30-8c6c-568d-9ed8-32529e83a52d",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCreatePolicyData1\n\n{\n \"type\": \"object\",\n \"required\": [\n \"QuoteId\"\n ],\n \"properties\": {\n \"QuoteId\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n }\n ],\n \"description\": \"Unique identifier for a quote created by an LFI\",\n \"example\": \"47409fec-4b04-4356-b3a1-6f5508524a5a\"\n },\n \"PaymentReferenceId\": {\n \"type\": \"string\",\n \"description\": \"Payment reference generated when the Broker collects the payment from the customer on behalf of the LFI.\"\n },\n \"PaymentDetails\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentDetails\"\n }\n ],\n \"description\": \"Customer payment details that can optionally provided by the TPP, based on data\\nretrieved from an insurance\"\n },\n \"PostIssuanceRequest\": {\n \"type\": \"object\",\n \"properties\": {\n \"ClaimsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Broker requests to handle customer claims processes after policy issuance.\"\n },\n \"EndorsementsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Broker requests to handle policy endorsements after policy issuance.\"\n },\n \"RenewalsAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Broker requests to handle the policy renewal process.\"\n },\n \"CancellationAllowed\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates whether the Broker requests to handle the policy cancellation when requested by the customer.\"\n }\n },\n \"required\": [\n \"ClaimsAllowed\",\n \"EndorsementsAllowed\",\n \"RenewalsAllowed\",\n \"CancellationAllowed\"\n ],\n \"description\": \"Broker requests accountability for the following post-policy issuance activities:\"\n },\n \"SupplementaryData\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceSupplementaryData\"\n }\n ],\n \"description\": \"Additional information optionally supplied by the TPP that is not described by the Open Finance Framework standards.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCreatePolicyData1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCreatePolicyData1\"],\"\"]:0",
+      "content_hash": "d545e9441f7498275191325948f22e42bb5700b67e95483900c01a77d1a06dbd",
+      "schema_version": 2
+    },
+    {
+      "id": "2b1b69be-e097-5c4c-915d-6e9b532c7cac",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentDetails\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Account\",\n \"Bank\"\n ],\n \"properties\": {\n \"Account\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCashAccount\"\n }\n ],\n \"description\": \"Properties of the customer bank account\"\n },\n \"Bank\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceBankIdentification\"\n }\n ],\n \"description\": \"Properties of the bank and branch of the account-holder bank\"\n },\n \"AccountType\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 35,\n \"description\": \"Account Type\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentDetails",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentDetails\"],\"\"]:0",
+      "content_hash": "37ec272acc674837a83e483fb07f4176fa46cf758421627cc146368b7bca2fcb",
+      "schema_version": 2
+    },
+    {
+      "id": "42647a48-5ec1-5193-9674-2285ae0123a7",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCashAccount\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Identification\",\n \"SchemeName\",\n \"Name\"\n ],\n \"properties\": {\n \"Identification\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 34,\n \"description\": \"Account identification\"\n },\n \"SchemeName\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAccountSchemeName\"\n },\n \"Name\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Account Name\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCashAccount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCashAccount\"],\"\"]:0",
+      "content_hash": "516be14d2d911fcb9081aaffc844c8168cc0f20b4d3a3d769f0e446217e42ff3",
+      "schema_version": 2
+    },
+    {
+      "id": "6e424ade-b44b-502e-91f2-971f87cfb315",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAccountSchemeName\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AccountNumber\",\n \"IBAN\"\n ],\n \"description\": \"Name of the identification scheme for the account\"\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAccountSchemeName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAccountSchemeName\"],\"\"]:0",
+      "content_hash": "a3b9df3c4b4752ffc582d6499775c7d25468eddbd6588692cde881ee77342609",
+      "schema_version": 2
+    },
+    {
+      "id": "0698fe3e-f025-5165-aded-111b4f0585e7",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceBankIdentification\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"BICFI\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z0-9]{4,4}[A-Z]{2,2}[A-Z0-9]{2,2}([A-Z0-9]{3,3}){0,1}$\",\n \"description\": \"Bank Identification Code (BIC)\"\n },\n \"Name\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Bank Name\"\n },\n \"Identification\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Branch Name\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceBankIdentification",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceBankIdentification\"],\"\"]:0",
+      "content_hash": "eb8fc6f6fa895e2aac9f77aa30aa67de461bfebbfe2e9fcc10c9bb41900d9ee2",
+      "schema_version": 2
+    },
+    {
+      "id": "ad5b4351-65cf-50d2-a358-a0cf4918ce1f",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSupplementaryData\n\n{\n \"type\": \"object\",\n \"description\": \"Additional data sent by the TPP to finalise the quote ready for completion by the User\\nat the LFI\"\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSupplementaryData",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSupplementaryData\"],\"\"]:0",
+      "content_hash": "0d64e69d1b48479de9fba4b12c2e471c016509d66aa5ce5c584d14db674c85bf",
+      "schema_version": 2
+    },
+    {
+      "id": "ada64d84-6e5d-5ed7-acc5-9abf15f24321",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.consentId\n\n{\n \"name\": \"o3-consent-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The consentId for which this call is being made\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.consentId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.consentId\"],\"\"]:0",
+      "content_hash": "1d8bbcc01e5701f46e778cefa470174743258c67efd6bae7bb5dd86e34233a41",
+      "schema_version": 2
+    },
+    {
+      "id": "a1b138e2-8fde-5c7c-9bee-2b8ec368c836",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.psuIdentifier\n\n{\n \"name\": \"o3-psu-identifier\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"A Base64 encoded representation of the psuIdentifier JSON object.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.psuIdentifier",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.psuIdentifier\"],\"\"]:0",
+      "content_hash": "20d5af14c6f7bccf976dba689ab99eb30d263ac8bef5f29ea21d049229051be7",
+      "schema_version": 2
+    },
+    {
+      "id": "58ca501b-6d6a-5c4d-804e-f91f71727698",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/InsurancePolicyIds\n\n{\n \"name\": \"insurancePolicyIds\",\n \"in\": \"query\",\n \"required\": true,\n \"description\": \"A comma-separated list of insurance policy identifiers. Used to retrieve all insurance policies authorized by the User, which matches the `insurancePolicyIds` data for a given Consent at Consent Manager.\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"explode\": false\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/InsurancePolicyIds",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/InsurancePolicyIds\"],\"\"]:0",
+      "content_hash": "ba03abbc2c6c4322023dcf8476e44ce6ad9eeede2ffee68be917a3eb33adb68a",
+      "schema_version": 2
+    },
+    {
+      "id": "1f8f1130-2af6-5855-b329-869084ecfcb1",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.page\n\n{\n \"name\": \"page\",\n \"in\": \"query\",\n \"required\": true,\n \"description\": \"Page of results to request (standard pagination)\",\n \"schema\": {\n \"type\": \"integer\",\n \"default\": 1\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.page",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.page\"],\"\"]:0",
+      "content_hash": "e1a8620e16a1a1a3d81d2f172e270bc1012be0d5392c435cdb79154812840db4",
+      "schema_version": 2
+    },
+    {
+      "id": "8356f1e3-ccb5-5733-bafd-1a125e6079fc",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/parameters/OzoneConnect.page-size\n\n{\n \"name\": \"page-size\",\n \"in\": \"query\",\n \"required\": true,\n \"description\": \"Page size to request. Default is 100 to comply with the Operating Guidelines for the Open Finance Framework.\",\n \"schema\": {\n \"type\": \"integer\",\n \"default\": 100\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.page-size",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.page-size\"],\"\"]:0",
+      "content_hash": "6ba4de62e16c8927d328e0fdca1b6eabd3aeecc4f27ddf19a39dc8574a1b521a",
+      "schema_version": 2
+    },
+    {
+      "id": "c07ad4c6-525a-5a7e-890c-76b698a919da",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEReadInsurancePolicies1\n\n{\n \"type\": \"object\",\n \"required\": [\n \"data\"\n ],\n \"properties\": {\n \"data\": {\n \"$ref\": \"#/components/schemas/AEInsurancePolicies1\"\n },\n \"meta\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/PaginatedMetadata\"\n }\n ],\n \"description\": \"Metadata related to pagination. Can be omitted if response data is not paginated.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEReadInsurancePolicies1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEReadInsurancePolicies1\"],\"\"]:0",
+      "content_hash": "b2d1f46065fc9a5a38f7bfe363d9467526326c0a65f2b45c37c9f945f1fdce93",
+      "schema_version": 2
+    },
+    {
+      "id": "5de9ef18-3c7c-5163-9007-54edefdb27ee",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurancePolicies1\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Policies\"\n ],\n \"properties\": {\n \"Policies\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurancePolicyProperties\"\n },\n \"description\": \"List of available insurance policies.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurancePolicies1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurancePolicies1\"],\"\"]:0",
+      "content_hash": "e9934e6ee60dc615d48006c285c0017c14ca7a7fc3b4f4c9cf8026e3537f9cd6",
+      "schema_version": 2
+    },
+    {
+      "id": "9fdd2aa1-01ea-52c6-a74e-4e68bb0b70fb",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurancePolicyProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"InsurancePolicyId\",\n \"PolicyNumber\",\n \"PolicyStatus\",\n \"PolicyStartDate\"\n ],\n \"properties\": {\n \"InsurancePolicyId\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n }\n ],\n \"description\": \"Unique identifier for a given insurance policy\",\n \"example\": \"d330c5bb-0889-4596-86bb-17cc9a4a17b5\"\n },\n \"PolicyNumber\": {\n \"type\": \"string\",\n \"description\": \"The policy number assigned by the LFI.\"\n },\n \"PolicyStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePolicyStatusCodes\"\n }\n ],\n \"description\": \"The current status of the policy.\"\n },\n \"PolicyStartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy start date\"\n },\n \"PolicyEndDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy end date\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurancePolicyProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurancePolicyProperties\"],\"\"]:0",
+      "content_hash": "5aa3730585af107e0b5a12a20994b9aefe3e3a888d8a61c2a8cee036c6076bd7",
+      "schema_version": 2
+    },
+    {
+      "id": "738c6fff-e8e2-5182-b39d-3dcb3791d7c3",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePolicyStatusCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"New\",\n \"Renewed\",\n \"Expired\",\n \"Lapsed\",\n \"Cancelled\",\n \"PaidUp\",\n \"Converted\",\n \"Surrendered\",\n \"DeathClaim\",\n \"RiderClaim\"\n ],\n \"description\": \"The status of the policy, with the following definitions:\\n\\n* `New`: New policy issued\\n\\n* `Renewed`: The reissuing of the same policy for a subsequent term\\n\\n* `Expired`: Policy has been expired by date\\n\\n* `Lapsed`: No longer valid policy\\n\\n* `Cancelled`: Policy cancelled by insurer or insured\\n\\n* `PaidUp`: Policy paid up in full\\n\\n* `Converted`: Policy converted to another plan\\n\\n* `Surrendered`: Policy has been surrendered\\n\\n* `DeathClaim`: Policy paid due to death (only for Life)\\n\\n* `RiderClaim`: Rider paid (only for Life)\\n\"\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePolicyStatusCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePolicyStatusCodes\"],\"\"]:0",
+      "content_hash": "5cb5d405e12496f98bc9697bfdf8e99d7fd0361360016671739d4ff5d0a88566",
+      "schema_version": 2
+    },
+    {
+      "id": "50f5b8dc-a6ab-574a-9105-a1200cbece19",
+      "document_id": "tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+      "type": "section",
+      "text": "Get Home Insurance Policies > OpenAPI definition #/components/schemas/PaginatedMetadata\n\n{\n \"type\": \"object\",\n \"required\": [\n \"page\",\n \"pageSize\",\n \"totalPages\",\n \"totalRecords\"\n ],\n \"properties\": {\n \"page\": {\n \"type\": \"integer\",\n \"minimum\": 1,\n \"description\": \"The current page number.\"\n },\n \"pageSize\": {\n \"type\": \"integer\",\n \"minimum\": 1,\n \"description\": \"Number of records in the current page.\"\n },\n \"totalPages\": {\n \"type\": \"integer\",\n \"minimum\": 1,\n \"description\": \"Total number of pages available for response.\"\n },\n \"totalRecords\": {\n \"type\": \"integer\",\n \"minimum\": 1,\n \"description\": \"Total number of records across all pages\"\n }\n },\n \"description\": \"Provides information on paginated data\"\n}",
+      "metadata": {
+        "title": "Get Home Insurance Policies",
+        "section": "OpenAPI definition #/components/schemas/PaginatedMetadata",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies.vue",
+        "parser": "vue-sfc",
+        "source_commit": "88380d35d64555b460841361d58e02d72a13bc61",
+        "source_hash": "61a4d6be7a26fd3da798d05f70e3a5f029abe2ee508d3d940aef1cb37d6f20ad",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/insurance/data-sharing/open-api/home-insurance-policies",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/PaginatedMetadata\"],\"\"]:0",
+      "content_hash": "aae8fb3891a6133b9378b4ea0af71d195783f982011a04a88273daeaeec58403",
+      "schema_version": 2
+    }
+  ]
+}

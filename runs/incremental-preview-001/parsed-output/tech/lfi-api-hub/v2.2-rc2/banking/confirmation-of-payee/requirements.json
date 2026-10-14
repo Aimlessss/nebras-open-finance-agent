@@ -1,0 +1,125 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/requirements",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/requirements.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "88380d35d64555b460841361d58e02d72a13bc61",
+    "hash": "249e2ec16d17051d08d7ff5a2e31bb22373956cad141cd138d25fc60250c76ba",
+    "dependencies": [
+      "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-confirmation-of-payee",
+      "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-confirmation-of-payee.ts"
+    ],
+    "assets": [
+      {
+        "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-confirmation-of-payee.ts",
+        "hash": "eaaf572d2eab663fc79a042f1c4747478062339ebf6eea87ee2c1a5f127da12b"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Confirmation of Payee — Requirements",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/requirements",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Confirmation of Payee — Requirements",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The User Journeys\n for this service also apply and must be adhered to."
+      },
+      {
+        "type": "paragraph",
+        "text": "The tables below list the rules that apply to Confirmation of Payee. The Hub receives and validates the TPP's request, then calls your Ozone Connect POST /customers/action/cop-query\n\n endpoint with the IBAN alone. You are responsible for returning the name(s) you hold against that account, accurately — the Hub performs the name matching."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Create Cop Query",
+        "anchor": "create-cop-query",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Condition",
+              "Rule"
+            ],
+            "rows": [
+              [
+                "1",
+                "Any request",
+                "Look the account up by data.account.identification\n (the IBAN). The request carries no name from v2.2, so there is nothing to compare against: you must not\n attempt to match, and must not\n filter, rank, or omit holders on any basis. The Hub owns the matching rules and applies them to what you return."
+              ],
+              [
+                "2",
+                "Account found, holder not opted out",
+                "Return 200\n with a data\n array containing one entry per account holder\n — a joint account returns one entry per holder, in any order. Each entry carries id\n and name\n. For personal accounts, name.fullName\n is mandatory; firstName\n, middleName\n, lastName\n, fullNameAr\n and alsoKnownAs\n are optional — supply them where held separately. For business accounts, populate name.businessName\n; businessNameAr\n and alsoKnownAs\n are optional."
+              ],
+              [
+                "3",
+                "Any response",
+                "Return name data only. The verifiedClaims\n / verification\n envelope and the wider customer data it carried in v2.1 — emiratesId\n, birthDate\n, nationality\n, residentialAddress\n, salary\n, and the rest — are removed from this operation and must not\n be sent. Confirmation of Payee is not carried out under a consent."
+              ],
+              [
+                "4",
+                "IBAN not recognised at this LFI",
+                "Return 200\n with an empty data\n array. Do not use 204\n, 404\n, 201\n, or 202\n."
+              ],
+              [
+                "5",
+                "Account is blocked from receiving payments — temporary",
+                "Return 403\n with errorCode\n: Consent.AccountTemporarilyBlocked\n and errorMessage\n: The account is blocked from receiving payments.\n Applies when the block is temporary — e.g. account status is Suspended\n."
+              ],
+              [
+                "6",
+                "Account is blocked from receiving payments — permanent",
+                "Return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n and errorMessage\n: The account is blocked from receiving payments.\n Applies when the block is permanent — e.g. account status is Closed\n, Deceased\n, or Unclaimed\n."
+              ],
+              [
+                "7",
+                "Account holder has opted out of CoP",
+                "Return 200\n with an empty data\n array."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Opt-out",
+        "anchor": "opt-out",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule"
+            ],
+            "rows": [
+              [
+                "1",
+                "LFIs must not\n provide users with a general opt-out option for the CoP service. Opt-out is only permitted in exceptional circumstances — for example, where the account holder is a national or Emirati leader or their immediate family."
+              ],
+              [
+                "2",
+                "The opt-out process is not defined by the Open Finance Framework. LFIs must implement opt-out as part of their own BAU processes."
+              ],
+              [
+                "3",
+                "When an account holder has opted out, the LFI must return no data in the response — i.e. 200\n with an empty data\n array (see row 7 of the table above)."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}
