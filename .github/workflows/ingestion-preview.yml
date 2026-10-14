@@ -35,15 +35,18 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::916861645417:role/GitHubNebrasIngestion
           aws-region: eu-north-1
-          allowed-account-ids: '916861645417'
       - name: Verify identity and restore original baseline from S3
         run: |
           set -euo pipefail
-          aws sts get-caller-identity
+          account_id="$(aws sts get-caller-identity --query Account --output text)"
+          if [ "$account_id" != "916861645417" ]; then
+            echo "Unexpected AWS account: $account_id" >&2
+            exit 1
+          fi
           baseline_key="baselines/baseline-ts5.tar.gz"
           # A failed listing is an error, never treated as an empty bucket.
           aws s3api list-objects-v2 --bucket "$STATE_BUCKET" --prefix "$baseline_key" --output json > "$RUNNER_TEMP/baseline-list.json"
-          count="$(node -e "const fs=require('fs');const r=JSON.parse(fs.readFileSync(process.argv[1]));console.log((r.Contents||[]).filter(o=>o.Key===process.argv[2]).length)" "$RUNNER_TEMP/baseline-list.json" "$baseline_key")
+          count="$(node -e "const fs=require('fs');const r=JSON.parse(fs.readFileSync(process.argv[1]));console.log((r.Contents||[]).filter(o=>o.Key===process.argv[2]).length)" "$RUNNER_TEMP/baseline-list.json" "$baseline_key")"
           if [ "$count" = "0" ]; then
             node -e "require('./src/scripts/embed-upload').loadRun('runs/baseline-ts5/manifest.json')"
             tar -czf "$RUNNER_TEMP/baseline.tar.gz" -C runs/baseline-ts5 manifest.json chunk-output
@@ -80,9 +83,9 @@ jobs:
             | tee "$RUNNER_TEMP/ingestion-plan.json"
           {
             echo '### Dry-run plan'
-            echo '\`\`\`json'
+            echo '```json'
             cat "$RUNNER_TEMP/ingestion-plan.json"
-            echo '\`\`\`'
+            echo '```'
             echo 'No Qdrant writes or embedding calls. This preview does not advance the uploaded baseline.'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Save preview separately in S3
