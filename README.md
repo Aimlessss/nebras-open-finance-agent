@@ -16,7 +16,11 @@ Use a clean Community Standards checkout at the agreed revision. The output dire
 
 Default scope is public technical docs (`src/pages/tech`) and knowledge-base pages. It excludes internal material, developer examples, interactive submission forms and dynamic placeholders. The API endpoint catch-all is separately expanded from the website's own endpoint registry. Other dynamic placeholders (release notes, errata and changelog registries) are recorded under `excluded` and need dedicated expansion before claiming complete coverage. Generated listing pages are not currently expanded; endpoint pages are.
 
-This is an initial source selection, not an approved pilot policy. Both v2.1 and v2.2-rc2 are prepared with version metadata; the latter is draft content. Confirm permitted versions before connecting the collection to the pilot.
+Public preparation now excludes path segments `_dev`, `_shared`, `internal` and `biopay`, explicit `draft`/`drafts` directories, and prerelease versions marked rc, alpha, beta, preview, draft, dev or snapshot. This applies to authored pages (including selected-file runs) and generated endpoint routes/versions. Stable v2.1 and unversioned public pages remain eligible. This is a naming-based policy, not a check that a page is deployed; drafts marked by other conventions require additional rules.
+
+The manifest records `policy_version: public-docs-2`. Filtering runs before document reuse, so excluded pages cannot survive via the previous manifest. Shared source files can still be read as dependencies of eligible pages. `--scope all` remains an audit mode, not a pilot upload mode.
+
+When migrating from an older `public-docs` baseline, prepare a new full manifest and review the incremental deletion plan: previously indexed excluded chunks will be scheduled for deletion. Preparation and dry runs do not modify Qdrant. Keep the last actually uploaded baseline until execution succeeds; do not use a preview as the uploaded checkpoint.
 
 For selected-file runs, pass a JSON array of repository-relative source paths:
 
