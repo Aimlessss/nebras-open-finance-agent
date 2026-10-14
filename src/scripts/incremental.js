@@ -32,7 +32,7 @@ function loadPair(previousFile, nextFile) {
   if(previous.manifest.source_repo!==next.manifest.source_repo || previous.manifest.scope!==next.manifest.scope)throw new Error('Source repository and scope must match; scope migrations need a separate collection.')
   return {previous,next}
 }
-async function runIncremental({previousFile,nextFile,stateDir,model,dimensions,collection,qdrantUrl,qdrantKey,geminiKey,taskType='',execute=false,fetcher=fetch}) {
+async function runIncremental({previousFile,nextFile,stateDir,model,dimensions,collection,qdrantUrl,qdrantKey,geminiKey,taskType='',execute=false,fetcher=fetch,onCheckpoint=async()=>{}}) {
   const {previous,next}=loadPair(previousFile,nextFile)
   const plan=planChanges(previous.chunks,next.chunks)
   const counts=Object.fromEntries(Object.entries(plan).map(([k,v])=>[k,v.length]))
@@ -81,6 +81,7 @@ async function runIncremental({previousFile,nextFile,stateDir,model,dimensions,c
       for(const c of next.chunks)if(!old.has(c.id)&&remote.has(c.id))throw new Error('New ID already exists outside the baseline.')
     }
     state={config_hash:configHash,from,to,status:'running',source_commit:next.manifest.source_commit}
+    await onCheckpoint(state) // Persist remotely before the first Qdrant mutation.
     atomic(stateFile,state)
     const cacheDir=path.join(root,'embedding-cache',fingerprint({model,dimensions,taskType,normalization:'l2'}));fs.mkdirSync(cacheDir,{recursive:true})
     // Upsert replacement text before deleting obsolete IDs. Existing vectors survive metadata-only updates.
@@ -113,6 +114,7 @@ async function runIncremental({previousFile,nextFile,stateDir,model,dimensions,c
     const verified=await retrieve()
     for(const c of next.chunks)if(fingerprint(verified.get(c.id))!==fingerprint(payload(c)))throw new Error('Final verification failed at '+c.id)
     for(const id of plan.delete)if(verified.has(id))throw new Error('Obsolete point still exists: '+id)
+    await onCheckpoint({...state,status:'complete'})
     atomic(stateFile,{...state,status:'complete'})
     return {plan,counts,status:'complete'}
   } finally {fs.closeSync(fd);fs.unlinkSync(path.join(root,'incremental.lock'))}
