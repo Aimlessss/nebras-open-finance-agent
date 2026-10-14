@@ -40,10 +40,20 @@ test('incremental execution retains unchanged vectors, resumes cached embeddings
   const options={previousFile:before.file,nextFile:after.file,stateDir:path.join(tmp,'state'),model:'test-model',dimensions:2,collection:'test',qdrantUrl:'https://qdrant.example',geminiKey:'test',fetcher}
   const dry=await runIncremental({...options,fetcher:()=>{throw new Error('offline dry run made a request')}})
   assert.deepEqual(dry.counts,{add:1,update:1,metadata:1,unchanged:0,delete:1})
+  let durableCheckpoint
+  options.onCheckpoint=async state=>{durableCheckpoint=JSON.parse(JSON.stringify(state))}
+  await assert.rejects(runIncremental({...options,execute:true,onCheckpoint:async()=>{throw Error('S3 unavailable')}}),/S3 unavailable/)
+  assert.equal(embeddings,0)
+  assert.deepEqual([...remote.values()].map(p=>p.payload),before.chunks.map(payload))
   await assert.rejects(runIncremental({...options,execute:true}),/connection lost/)
+  assert.equal(durableCheckpoint.status,'running')
   assert.equal(embeddings,2);assert.equal(deleted,false)
   assert.equal(JSON.parse(fs.readFileSync(path.join(options.stateDir,'incremental-state.json'))).status,'running')
+  // Fresh runner: only the durable checkpoint survives, with no vector cache.
+  options.stateDir=path.join(tmp,'fresh-runner');fs.mkdirSync(options.stateDir)
+  fs.writeFileSync(path.join(options.stateDir,'incremental-state.json'),JSON.stringify(durableCheckpoint))
   await runIncremental({...options,execute:true})
+  assert.equal(durableCheckpoint.status,'complete')
   assert.equal(embeddings,2);assert.equal(deleted,true);assert.equal(remote.size,3)
   assert.deepEqual(remote.get(before.chunks[0].id).vector,[1,0])
   assert.deepEqual(remote.get(after.chunks[1].id).vector,[0.6,0.8])
