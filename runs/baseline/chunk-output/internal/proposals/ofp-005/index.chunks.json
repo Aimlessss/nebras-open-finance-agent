@@ -1,0 +1,426 @@
+{
+  "document_id": "internal/proposals/ofp-005",
+  "chunk_count": 12,
+  "chunks": [
+    {
+      "id": "3724e14e-0d61-510d-bd86-5f0421214c0f",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "intro",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked\n\nWhen a consent is revoked, expires, or is consumed, the TPP must review and delete the data it no longer has a lawful basis to hold, but the API Hub, the consent source of truth, holds no confirmation that it happened. Add an append-only attestations sub-resource so a TPP can attest — per data category — what it deleted or lawfully retained, across every consent type and within 45 days, with no new state model.\n\nThe voting period has ended. The votes cast are shown below.\n\nSign in with the Trust Framework to vote — For, Against, or Abstain — recorded in the open with your reasoning. Your organisation and name come from your directory profile, and each person may vote once.",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "3ee95f24519c10f6a843b03dbdd12c7cb356c513143232b8ac99cc37014b355a",
+      "schema_version": 2
+    },
+    {
+      "id": "7fa097aa-4795-53eb-89a4-87a7c97366fd",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "section",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked > Revocation ends access, but leaves the data\n\nA consent is the customer's permission for a TPP to hold and use their data. When that consent reaches a terminal status — revoked (by the TPP, the LFI, or the customer), expired, or consumed (a payment consent, once fully used) — the permission is gone, and the TPP must review and delete what it no longer has a lawful basis to hold. That is not always everything: a TPP may be required to retain certain records to meet other legal obligations, such as anti-money-laundering rules. Ending the consent stops future access at the gateway; it does nothing about the data the TPP has already pulled and stored.\n\nThe API Hub is the source of truth for consent: it creates, stores, and manages every consent, and validates it on every request. That makes it the natural place to hold the confirmation of what happened to the data afterwards — yet today it has none. When a consent ends the Hub records the ending itself — a revocation, or a move to Expired or Consumed — and nothing more:\n\nThe requirement here is deliberately contained: give the TPP a way to attest that it has completed its data review and deletion — or lawful retention — in line with its statutory obligations, and let the Hub hold that attestation against the consent. It is not a request for a deletion workflow or a status model — just a durable, timestamped attestation, allied to the consent it concerns, submitted within a defined window.",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "section": "Revocation ends access, but leaves the data",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"Revocation ends access, but leaves the data\"],\"\"]:0",
+      "content_hash": "445db5f11d817e590dfe7454960f8a60107d58f67935e7477f2a244c5ab79702",
+      "schema_version": 2
+    },
+    {
+      "id": "c21c1442-b469-5a7a-b34c-d50d36a9812f",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "section",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked > An append-only attestations sub-resource on the consent\n\nAdd an attestations sub-resource to each consent. A TPP POST s an Attestation Event to confirm it has completed its data review and deletion once the consent ended, whether revoked, expired, or consumed. A TPP GET s the sub-resource to read the events it has posted. The event hangs off the consent it concerns, so the confirmation is allied to the consent with nothing to reconcile.\n\nA TPP's answer is not a single flag: the same data was not necessarily all handled the same way. So the event carries a DataActions array with one entry per category of data — and an event must list every category the consent covers. Each entry states its AttestationType: Deleted (the data is gone), or Retained / Anonymised / ArchivedRestricted (the data is kept in some form — a RetentionReason, a RetainedUntilDate, and an AccessRestriction are then required). The category is AllConsentedData where one action covers everything, or a specific Permission Code, AnalyticsData, or AuditRecords where it does not:\n\nEach POST records a new, immutable event, treated as a single atomic event uncorrelated with any other. There is no state model and no correction endpoint: an AttestationType is data on the event, not a status the consent moves through, the Hub applies no de-duplication, and all successfully recorded events are stored. If a TPP posts more than once, it has still met its obligation; which event is surfaced in reporting — the earliest, the latest, or all — is a reporting-layer matter, not consent state. The event's top-level AttestationType is the extension point — DataRetentionDeletion is the only value defined today, and a future obligation to attest to something else against a consent becomes a new value, not a new API. The 201 response is a receipt, and a GET returns the list:\n\nThe sub-resource is a child of the consent (nothing to reconcile) and append-only (no state model) — two properties the other shapes we looked at could not both offer, as Alternatives considered below sets out. Authorisation is the same as getting a consent: the sub-resource is called with the very client credentials access token a TPP already uses to create and retrieve the consent itself (for example GET /account-access-consents ). So there is no new auth flow, and no dependence on a token that dies with the consent. The attestation obligation and its 45-day window are documented on the consent requirements page; whether every required attestation was posted is a reporting-layer question, kept out of the consent itself.",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "section": "An append-only attestations sub-resource on the consent",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"An append-only attestations sub-resource on the consent\"],\"\"]:0",
+      "content_hash": "017c47c616380d77c154f957bc922c96ba12153cbf7b9053dc03730a1a8c6873",
+      "schema_version": 2
+    },
+    {
+      "id": "7de833ad-802c-529e-9b21-6c0b043f2fd0",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "section",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked > Attest within 45 days of the consent ending\n\nThe obligation attaches only when a consent reaches one of three terminal statuses, and it carries a defined deadline. Within 45 days of the consent reaching that status, the TPP MUST complete its data review and deletion (or record a lawful retention) and POST the Attestation Event. The receipt's RegulatoryDeadlineMetIndicator tells the TPP, there and then, whether it attested inside the window.\n\n- Revoked — the consent was withdrawn, by the TPP, the LFI, or the customer.\n- Expired — the consent's ExpirationDateTime passed and the Hub moved it to Expired.\n- Consumed — a payment consent that has been fully used. This is why Service Initiation is in scope (see below).\n\nNo other terminal status is in scope for v2.2 — Rejected, for example, is not, because no data was shared under it. The requirement applies to consents created under Standards v2.2 or later, and to earlier consents that are still Authorized on the CBUAE-mandated v2.2 implementation date and subsequently become Revoked, Expired, or Consumed. Consents that were already terminal before that date are out of scope.\n\nThe clock and the deadline live in the reporting layer, not on the consent: the consent holds no deletion state, and the 45-day rule is enforced by monitoring which consents have a recorded attestation, not by a new consent status. This proposal deliberately leaves the monitoring, reminder, and escalation processes — and any correction process for a mistaken attestation — out of scope.",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "section": "Attest within 45 days of the consent ending",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"Attest within 45 days of the consent ending\"],\"\"]:0",
+      "content_hash": "a5087c3fb60e789d1b0dc108c1d53d15b27fe3fa43f9756413cabc18f2e54ed7",
+      "schema_version": 2
+    },
+    {
+      "id": "1a17134a-56e8-5355-bdf4-042903833d01",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "section",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked > Why a sub-resource, and not the two obvious alternatives\n\nTwo other shapes were worked through first. Both can be made to work; each carries a cost the sub-resource avoids.\n\nA field on the consent revoke ( PATCH ). The first instinct was to add a DataDeletion object to the existing consent PATCH body — a small Status (say Completed, NotRequired, RetainedUnderLegalObligation ) and a timestamp — so the TPP confirms deletion in the same call it uses to revoke. It is appealingly small and needs no new operation. But it couples an attestation to a status transition, and the two do not share a lifetime. Once the consent has already ended — revoked at the LFI, or expired — which is exactly when the confirmation is needed, there is no transition left to make: the PATCH would have to be relaxed to accept a body with no status change, on a consent already in a terminal state. That is a carve-out in the revoke contract — and because the field would live on the consent itself, the consent now carries deletion state, the very thing the requirement does not ask it to hold. (An AttestationType on a separate, immutable Attestation Event, as recommended above, is different: it describes a single confirmation, and the consent holds no deletion state of its own.)\n\nA standalone events API. The other option was a new top-level resource — a /revocation-events endpoint, say — that the TPP posts to. This cleanly separates the report from the consent, but it buys a new problem: every event must then be reconciled back to the consent it concerns, with its own rules for matching, ordering, and orphaned records. It is not the endpoint that is expensive so much as the reconciliation around it.\n\nThe sub-resource takes the good part of each. Like the events API it is a distinct, append-only Attestation Event rather than a field bolted onto a status change — so it behaves identically whether the consent is active, revoked, expired, or consumed. Like the PATCH field it is allied to the consent — the event is a child of the consent, so there is nothing to reconcile. And because each post is an immutable event, there is no state model to build or enforce in the consent layer. Any enforcement that emerges later — checking a required attestation was posted by its deadline — sits in the reporting layer over these events, leaving the events themselves immutable and the consent stateless.",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "section": "Why a sub-resource, and not the two obvious alternatives",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"Why a sub-resource, and not the two obvious alternatives\"],\"\"]:0",
+      "content_hash": "16ecaae9f364731825223cdfcde618f270c535d498499d93e876c75a33a50541",
+      "schema_version": 2
+    },
+    {
+      "id": "21e3670b-6fb8-501e-8354-c2d9bb4a4245",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "section",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked > One event shape, however the consent ends\n\nA consent reaches the end of its life in more than one way, and an append-only POST serves them all without special cases — because it never depends on the consent's status.\n\nPath A — the TPP revokes. The TPP revokes the consent ( PATCH to Status: Revoked ) as it does today, deletes the data, and POST s an Attestation Event to the consent's attestations sub-resource.\n\nPath B — the customer revokes at the LFI. The customer withdraws consent in their bank's or insurer's app. The LFI tells the Hub, the Hub sets the consent to Revoked, and the Hub notifies the TPP through the existing Consent Status Event. The TPP deletes its data and POST s the same event.\n\nPath C — the consent expires. No one revokes it: its ExpirationDateTime passes and the Hub moves it to Expired on its own, firing the same Consent Status Event. The TPP's basis to hold the data ends just as it does on revocation, so it deletes the data and POST s the same event. Expiry is a quiet case — there is no deliberate act by anyone to prompt the clean-up — which is exactly why it must be in scope.\n\nPath D — a payment consent is consumed. A Service Initiation consent that has been fully used moves to Consumed. Like expiry, it is a status the Hub sets on its own, firing the same Consent Status Event — and the payment consent still holds data (see the next section). The TPP deletes it and POST s the same event.\n\nThe one event shape carries all four because it is appended, not a status change: it does not matter that the consent is already Revoked, Expired, or Consumed, since there is no transition to fight — as there would be if the confirmation were a PATCH of the consent's status. And because the sub-resource is authorised with the same client credentials token used to create and get the consent — not a consent-bound token — it works the same way whether the consent is still active or already terminal: there is no token that expires with the consent, and no new authorisation flow to add.\n\nThe TPP learns the consent has ended either from the Consent Status Event webhook (Paths B, C, and D) or, where it has not subscribed, by checking the consent status on its own schedule. Either way, the absence of a webhook subscription does not remove the obligation to notice the terminal status and attest.",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "section": "One event shape, however the consent ends",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"One event shape, however the consent ends\"],\"\"]:0",
+      "content_hash": "c2df1eee0f6b61a16b97632a7c9532bb5aa3b1b925513021f8a819c84f001ffa",
+      "schema_version": 2
+    },
+    {
+      "id": "3d81ca2f-9550-5748-8bf7-2e899feeb053",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "section",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked > This applies to all consent types — including Service Initiation\n\nEvery consent type carries data the TPP may have retrieved and stored, so the sub-resource applies uniformly to all three:\n\n- Bank Data Sharing — POST /account-access-consents/{ConsentId}/attestations. The obvious case: account, balance, transaction, and party data pulled under the consent.\n- Bank Service Initiation — POST /payment-consents/{ConsentId}/attestations. See the call-out below — a payment consent is not empty.\n- Insurance — POST /insurance-consents/{ConsentId}/attestations, across every insurance type (Motor, Health, Home, Life, Travel, and the rest), each carrying policy and claims data.\n\nService Initiation is the one to call out, because it is the easiest to wave through. It is filed under \"payments\", not \"data sharing\", so it is tempting to assume a payment consent holds nothing to delete once the money has moved. That is wrong. A Service Initiation consent carries data: the debtor and creditor account identifiers and names, the amounts, references, and the charge and exchange-rate information attached to the consent ( Charges, ExchangeRate ) — and any account data the TPP retrieved to set the payment up. That is personal and financial data held under a consent, and when the consent ends — revoked, expired, or consumed — it falls under the same deletion obligation as any Data Sharing consent. Excluding Service Initiation would leave exactly the data people assume is not there.",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "section": "This applies to all consent types — including Service Initiation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"This applies to all consent types — including Service Initiation\"],\"\"]:0",
+      "content_hash": "8622e8bb9842419cb0373c056ccc89a5a0ced7e9b501378b244c2b72aa7e807e",
+      "schema_version": 2
+    },
+    {
+      "id": "866fd9af-4192-59e2-a3b0-056981e17f61",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "section",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked > What changes in the spec\n\nA new sub-resource on each consent, a shared Attestation Event schema, and storage against the consent. No new top-level API, no change to the consent status model.\n\nAdd POST and GET on /{consent}/attestations to the three TPP-facing consent specs: Bank Data Sharing ( /account-access-consents ), Bank Service Initiation ( /payment-consents ), and Insurance ( /insurance-consents ). The POST records an Attestation Event; the GET lists them. No PATCH or DELETE — events are immutable. Authorisation is the same as the consent endpoints: the client credentials token used to create and get the consent (the client_credentials grant), with the same scope as the parent consent — not the consent-bound ( authorization_code ) token.\n\nA shared event: a top-level AttestationType ( DataRetentionDeletion today, extensible), the envelope date-times ( AttestationStatusAppliedDateTime, DataAccessCeasedDateTime, optional ConsentRevocationDateTime ), and a DataActions array of one entry per DataCategory. Each action's AttestationType ( Deleted / Retained / Anonymised / ArchivedRestricted ) selects whether RetentionReason, RetainedUntilDate, and AccessRestriction are required. The Hub returns a receipt: AttestationId, AttestationReceivedDateTime, and RegulatoryDeadlineMetIndicator.\n\nMandatory properties, enum values, and date-time formats are enforced by schema validation — not restated as technical rules. The rule layer covers only what schema cannot: the temporal ordering of the date-times and the conditional requirements. A rule failure returns 400 with Attestation.ValidationError.\n\nThe Consent Manager stores each Attestation Event against its ConsentId. All successfully recorded events are kept; the Hub applies no de-duplication and offers no correction endpoint. Whether a required attestation was posted, and within the 45 days, is derived in the reporting layer — not held as state on the consent — so the consent layer needs no new state machine.\n\nDocument the obligation and its 45-day window on the consent requirements page, and add the attestation step to the consent API guide and the Consent Status Event guide (on receiving a revocation, expiry, or consumption event, delete and post an Attestation Event).",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "section": "What changes in the spec",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"What changes in the spec\"],\"\"]:0",
+      "content_hash": "9e4b574f2455de7652b89ec26f5449cb27a76f96f671bb7746b6a66583ab5215",
+      "schema_version": 2
+    },
+    {
+      "id": "99eddad3-f27f-5388-8e2c-b06566debfb6",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "section",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked > The sub-resource, written out\n\nA working draft attached to this proposal — the attestations sub-resource on all three consent types, with its shared Attestation Event schema. It opens in the same rendered view as the published API specs.",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "section": "The sub-resource, written out",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"The sub-resource, written out\"],\"\"]:0",
+      "content_hash": "4d39245e9d6fb8205e294ac78481f0cab27b6c595c8989029ffcbefbacd5c299",
+      "schema_version": 2
+    },
+    {
+      "id": "839152d5-d4ea-588e-8a2e-cc0a481ff6cf",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "subsection",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked > The sub-resource, written out > attestation-schema.yaml\n\nThe append-only attestations sub-resource — POST and GET on /{consent}/attestations across Bank Data Sharing, Bank Service Initiation, and Insurance.\n\nField | Required | Type | Description\n\nField | Required | Type | Description",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "section": "The sub-resource, written out",
+        "subsection": "attestation-schema.yaml",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",[\"\",\"The sub-resource, written out\"],\"attestation-schema.yaml\"]:0",
+      "content_hash": "eb05fc68008d1f3e4ce59ce7101b1dabda61d7cc585949c58aff95670d202881",
+      "schema_version": 2
+    },
+    {
+      "id": "e4712593-1fd1-51b9-9f3d-2cc132ccefc5",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "section",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked > What an attestations sub-resource buys\n\n- ✓",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "section": "What an attestations sub-resource buys",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"What an attestations sub-resource buys\"],\"\"]:0",
+      "content_hash": "d09c9dbe6de5018bae0f2ee483da6003bd40477122eaffb3fef11058ab46df3e",
+      "schema_version": 2
+    },
+    {
+      "id": "0111954e-ed6f-5c30-acd5-7e7a27a83804",
+      "document_id": "internal/proposals/ofp-005",
+      "type": "section",
+      "text": "OFP-005 · Confirm data deletion when a consent is revoked > What it costs\n\n- ×",
+      "metadata": {
+        "title": "OFP-005 · Confirm data deletion when a consent is revoked",
+        "section": "What it costs",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/internal/proposals/ofp-005/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "91543902e5e820b804871252cc94e5e6c161b534",
+        "source_hash": "c8e70ee065fc5d6ea47d5a4c6317c15af692cf9111c5aefa90a0aaca68162073",
+        "url": "https://nebras-open-finance.com/internal/proposals/ofp-005",
+        "doc_version": "unversioned",
+        "parser_version": "2",
+        "chunker_version": "2",
+        "dependencies": [
+          "@/components/proposals/PvProposalTabs.vue",
+          "@/components/proposals/PvStatusPill.vue",
+          "@/components/proposals/PvVotePanel.vue",
+          "@/composables/useProposals",
+          "@/data/proposals",
+          "@unhead/vue",
+          "vue"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"What it costs\"],\"\"]:0",
+      "content_hash": "33a57bd86f878d58ef26ade652f55262ec4dd5007b8fc4d77d840c41f4343300",
+      "schema_version": 2
+    }
+  ]
+}

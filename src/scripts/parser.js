@@ -1,5 +1,9 @@
 const fs = require("node:fs")
 const path = require("node:path")
+const { execFileSync } = require("node:child_process")
+const { extractOpenApi } = require("./openapi-extractor")
+const { extractStructured } = require("./structured-extractor")
+const { PARSER_VERSION, hashText, pageUrl } = require("./chunk-contract")
 
 const { parse: parseVue } = require("@vue/compiler-sfc")
 const { parse: parseTemplate } = require("@vue/compiler-dom")
@@ -14,7 +18,7 @@ const agentRoot = path.resolve(__dirname, "../..")
 
 const communityRepoRoot = path.resolve(
   agentRoot,
-  "../community-standards",
+  process.env.SOURCE_ROOT || "../community-standards",
 )
 
 const defaultInput = path.resolve(
@@ -1461,7 +1465,7 @@ function main() {
       template.navigation,
     )
 
-  const content = {
+  let content = {
     title:
       metadata.title ||
       template.title,
@@ -1473,6 +1477,23 @@ function main() {
       template.sections,
   }
 
+  const structured = extractStructured(descriptor, communityRepoRoot, createDocumentId(inputPath).match(/(?:^|\/)(v\d+\.[^/]+)(?:\/|$)/)?.[1])
+  if (structured.content) content = structured.content
+  const extractedApi = extractOpenApi(descriptor.template?.content, communityRepoRoot, descriptor.scriptSetup?.content)
+  content.sections.push(...extractedApi.sections)
+  const sourceText = fs.readFileSync(inputPath, "utf8")
+  let commit = process.env.SOURCE_COMMIT || null
+  if (!commit) {
+    try { commit = execFileSync("git", ["-C", communityRepoRoot, "rev-parse", "HEAD"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() } catch {}
+  }
+  const dependencies = [...extractedApi.dependencies, ...structured.dependencies]
+  const warnings = []
+  // Record import specifiers; resolution/transitive dependency tracking belongs to the engine.
+  for (const match of sourceText.matchAll(/(?:from\s*|import\s*\()(['"])([^'"]+)\1/g)) dependencies.push(match[2])
+  if (dependencies.length || /\{\{|v-for|:[a-zA-Z]/.test(sourceText)) warnings.push("Static extraction may omit imported or dynamic content; review before indexing.")
+  const documentId = createDocumentId(inputPath)
+  const url = pageUrl(documentId)
+  if (!url) warnings.push("Generated or excluded route requires explicit URL resolution.")
   const output = {
     id:
       createDocumentId(
@@ -1488,11 +1509,16 @@ function main() {
           inputPath,
         ),
 
-      parser:
-        "vue-sfc",
+      parser: "vue-sfc",
+      parser_version: PARSER_VERSION,
+      commit,
+      hash: hashText(sourceText),
+      dependencies: [...new Set(dependencies)].sort(),
+      assets: [...extractedApi.assets, ...structured.assets],
+      extraction_warnings: warnings,
     },
 
-    metadata,
+    metadata: { ...metadata, url, doc_version: documentId.match(/(?:^|\/)(v\d+\.[^/]+)(?:\/|$)/)?.[1] || "unversioned" },
 
     content,
 

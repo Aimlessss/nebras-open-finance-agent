@@ -1,0 +1,520 @@
+{
+  "id": "tech/lfi-api-hub/getting-started/bank-rollout-plan",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/getting-started/bank-rollout-plan.vue",
+    "parser": "vue-sfc",
+    "parser_version": "2",
+    "commit": "91543902e5e820b804871252cc94e5e6c161b534",
+    "hash": "f9d668dfa67cbdd45a1a2cf05ff9bc79b5c35ec90642b932a91b3b1ac5bcf004",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Recommended Bank Rollout Plan",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/getting-started/bank-rollout-plan",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Recommended Bank Rollout Plan",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "This page proposes a sensible delivery sequence for an LFI working through Step 3 of the LFI Integration Journey. It is intended as a starting path that breaks the work into manageable increments — once you have completed Phase 1 you will be well-placed to decide the order of subsequent capabilities based on your own priorities and constraints."
+      },
+      {
+        "type": "paragraph",
+        "text": "This rollout plan is guidance. The Central Bank of the UAE sets the actual regulatory requirements and deadlines — those MUST always take precedence. It is the LFI's responsibility to assess how best to meet their obligations. This page recommends a delivery order; it does not define scope or timing."
+      },
+      {
+        "type": "paragraph",
+        "text": "Each phase below is a self-contained delivery increment. A phase can be taken end-to-end through Step 3 → Step 9 (build, certify, go live) before the next phase is started, or phases can be run in parallel where resourcing allows."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Foundations and Retail Core",
+        "level": 2,
+        "anchor": "phase-1",
+        "category": "Phase 1",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Phase 1 establishes the foundational integration with the API Hub and delivers the first customer-facing capability (Retail Data Sharing) followed by the simplest payment journey."
+          },
+          {
+            "type": "paragraph",
+            "text": "The steps are ordered so each builds on the last — ordering within the phase is a recommendation, not a hard dependency graph, except where an API clearly depends on another being present (e.g. Refunds requires a completed payment)."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "1. Consent Validate",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Implement the POST /consent/action/validate endpoint on your Ozone Connect server."
+              },
+              {
+                "type": "paragraph",
+                "text": "This endpoint is called by the API Hub before a consent is stored, and lets your LFI signal which consent types and permissions you support. Building this first means you can safely reject any consent type you haven't yet implemented, and then expand the accepted set as each subsequent capability comes online."
+              },
+              {
+                "type": "paragraph",
+                "text": "See the Consent Events API Guide for implementation details."
+              }
+            ]
+          },
+          {
+            "heading": "2. Consent Journey",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Implement the authorization interaction between your LFI and the API Hub. These are the five endpoints your LFI calls against the Hub to drive a consent through customer authentication, authorization, and return to TPP:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Endpoint",
+                  "Direction",
+                  "Purpose"
+                ],
+                "rows": [
+                  [
+                    "GET /auth",
+                    "LFI → API Hub",
+                    "Initiate the authorization interaction"
+                  ],
+                  [
+                    "GET /consents/{consentId}",
+                    "LFI → API Hub",
+                    "Retrieve the full consent details"
+                  ],
+                  [
+                    "PATCH /consents/{consentId}",
+                    "LFI → API Hub",
+                    "Update consent status, customer identifiers, and account IDs"
+                  ],
+                  [
+                    "POST /auth/{interactionId}/doConfirm",
+                    "LFI → API Hub",
+                    "Complete the authorization interaction and redirect back to TPP successfully"
+                  ],
+                  [
+                    "POST /auth/{interactionId}/doFail",
+                    "LFI → API Hub",
+                    "Complete the authorization interaction and redirect back to TPP with a failure"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See the Consent Journey API Guide for the end-to-end sequence, including customer authentication requirements ( SCA ) and identifier rules."
+              }
+            ]
+          },
+          {
+            "heading": "3. Retail Data Sharing — Current & Savings Accounts",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Implement Bank Data Sharing for retail Current Accounts and Savings Accounts. Data Sharing is recommended as the first productised capability because it exercises the full consent journey end-to-end without the additional complexity of payment execution or encrypted PII."
+              },
+              {
+                "type": "paragraph",
+                "text": "Prioritise the following endpoints:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Endpoint",
+                  "Purpose"
+                ],
+                "rows": [
+                  [
+                    "GET /accounts",
+                    "List the accounts covered by the consent"
+                  ],
+                  [
+                    "GET /accounts/{AccountId}",
+                    "Retrieve details for a single account"
+                  ],
+                  [
+                    "GET /accounts/{AccountId}/balances",
+                    "Retrieve balances for an account"
+                  ],
+                  [
+                    "GET /accounts/{AccountId}/transactions",
+                    "Retrieve the transaction history for an account"
+                  ],
+                  [
+                    "GET /customer",
+                    "Retrieve the customer details covered by the consent"
+                  ],
+                  [
+                    "GET /accounts/{AccountId}/customer",
+                    "Retrieve customer details for a specific account"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See Data Sharing — Requirements and the Data Sharing API Guide."
+              },
+              {
+                "type": "paragraph",
+                "text": "Once live, update the POST /consent/action/validate response to accept Bank Data Sharing consents."
+              }
+            ]
+          },
+          {
+            "heading": "4. Retail Domestic — Single Instant Payment",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Implement the Single Instant Payment journey for retail customers. This introduces payment execution and the handling of encrypted PII on payment consents."
+              },
+              {
+                "type": "paragraph",
+                "text": "Key endpoints:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Endpoint",
+                  "Purpose"
+                ],
+                "rows": [
+                  [
+                    "POST /payments",
+                    "Execute an authorised payment"
+                  ],
+                  [
+                    "GET /payments/{PaymentId}",
+                    "Retrieve the status of a payment"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See the Single Instant Payment API Guide, Payment Rails and Status, and the Personal Identifiable Information guide for PII decryption."
+              },
+              {
+                "type": "paragraph",
+                "text": "Extend POST /consent/action/validate to accept Single Instant Payment consents."
+              }
+            ]
+          },
+          {
+            "heading": "5. Refunds",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Implement Refunds against completed payment consents. Refunds depend on the payment capability from the previous step being live."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Endpoint",
+                  "Purpose"
+                ],
+                "rows": [
+                  [
+                    "GET /payment-consents/{ConsentId}/refund",
+                    "Retrieve refund details for a payment consent"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See the Refunds API Guide."
+              }
+            ]
+          },
+          {
+            "heading": "6. Confirmation of Payee",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Implement Confirmation of Payee (CoP). CoP does not use the consent journey — it is a direct LFI-exposed API proxied via the Hub — so it can be delivered in parallel with the earlier payment and data sharing work if resourcing allows."
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Endpoint",
+                  "Purpose"
+                ],
+                "rows": [
+                  [
+                    "POST /customers/action/cop-query",
+                    "Verify a payee's name against an account identifier"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See the CoP API Guide and user journeys."
+              }
+            ]
+          },
+          {
+            "heading": "7. Consent Management Interface",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Provide a Consent Management Interface (CMI) in your retail banking channels so customers can view and revoke their active consents."
+              },
+              {
+                "type": "paragraph",
+                "text": "The CMI is sequenced last in Phase 1 because it consumes consents created by the earlier capabilities. It is built against the Hub's Consent Manager APIs:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Endpoint",
+                  "Purpose"
+                ],
+                "rows": [
+                  [
+                    "GET /psu/{userId}/consents",
+                    "List all consents for a given customer"
+                  ],
+                  [
+                    "GET /consents/{consentId}",
+                    "Retrieve the full details of a consent"
+                  ],
+                  [
+                    "POST /consents/{consentId}/action/revoke",
+                    "Revoke a specific consent"
+                  ],
+                  [
+                    "POST /consent-groups/{consentGroupId}/consents/action/revoke",
+                    "Revoke a group of related consents"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "See CMI — Bank Data Sharing Requirements, Bank Service Initiation Requirements, the corresponding User Experience pages, and the CMI API Guide."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Extend Retail",
+        "level": 2,
+        "anchor": "phase-2",
+        "category": "Phase 2",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Phase 2 rounds out the retail offering with the more complex payment types and the discovery APIs."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Domestic Multi-Payments (all flavours)",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Implement all remaining domestic payment types for retail customers:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Variable On-Demand",
+                  "Fixed On-Demand",
+                  "Variable Periodic Schedule",
+                  "Fixed Periodic Schedule",
+                  "Variable Defined Schedule",
+                  "Fixed Defined Schedule",
+                  "Delegated SCA"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "Extend POST /consent/action/validate to accept each multi-payment consent type as you bring it live."
+              }
+            ]
+          },
+          {
+            "heading": "Products & Leads",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Implement the Products & Leads APIs. See the Products & Leads API Guide."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Data Sharing Breadth and SME Foundations",
+        "level": 2,
+        "anchor": "phase-3",
+        "category": "Phase 3",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Phase 3 extends Data Sharing to additional product types and introduces the SME proposition."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Extended Retail Data Sharing",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Add Data Sharing for additional retail product categories:"
+              },
+              {
+                "type": "list",
+                "items": [
+                  "Credit Card accounts",
+                  "Finance accounts",
+                  "Mortgage accounts"
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "These reuse the same Data Sharing endpoints delivered in Phase 1 — the additional work is in mapping your core banking product data into the Data Sharing schemas."
+              }
+            ]
+          },
+          {
+            "heading": "SME Data Sharing — Current & Savings Accounts",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Deliver Data Sharing for SME Current Accounts and Savings Accounts, prioritising the same endpoints as retail in Phase 1 ( /accounts, /accounts/{AccountId}, /balances, /transactions, /customer, /accounts/{AccountId}/customer )."
+              }
+            ]
+          },
+          {
+            "heading": "SME Single Instant Payment",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Deliver Single Instant Payment for SME customers."
+              }
+            ]
+          },
+          {
+            "heading": "SME Refunds",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Deliver Refunds for SME payment consents."
+              }
+            ]
+          },
+          {
+            "heading": "SME Confirmation of Payee",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Deliver CoP for SME customers."
+              }
+            ]
+          },
+          {
+            "heading": "SME Consent Management Interface",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Provide a Consent Management Interface in your SME banking channels, using the same Consent Manager APIs as the retail CMI."
+              },
+              {
+                "type": "paragraph",
+                "text": "SME propositions will typically require a second API Hub instance alongside the retail one, because each Hub exposes only one authorization endpoint. The second Hub can be pointed at the same Ozone Connect deployment — routing internally on the o3-provider-id header — and the LFI-held certificates (C3, S4, Sig4, Enc1) are shared across both Hubs. See Multi-Segment LFIs — How to Structure API Hubs Across Customer Segments for the full deployment pattern and Trust Framework implications."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "SME Complex Payments",
+        "level": 2,
+        "anchor": "phase-4",
+        "category": "Phase 4",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Phase 4 completes the SME proposition with the more complex payment flows."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "SME Multi-Payments (all flavours)",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Deliver all domestic multi-payment types for SME — the same set as Phase 2, applied to SME accounts."
+              }
+            ]
+          },
+          {
+            "heading": "SME Multi-Authorization",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Implement Multi-Authorization for SME payment consents that require multiple authorisers (for example, a business account with two-signatory rules)."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Ongoing version upgrades and regulatory change",
+        "level": 2,
+        "anchor": "after-phase-4",
+        "category": "After Phase 4",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "By the end of Phase 4 you will have delivered all of the current Open Finance capabilities across both retail and SME propositions. From here, ongoing work is driven by version upgrades, new API families, errata, and regulatory changes — continue to track the API Hub Release Notes schedule and plan subsequent work against your own delivery cycles."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

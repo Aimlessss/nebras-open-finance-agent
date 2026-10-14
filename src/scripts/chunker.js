@@ -1,5 +1,6 @@
 const fs = require("node:fs")
 const path = require("node:path")
+const { finalizeChunks } = require("./chunk-contract")
 
 const inputPath = path.resolve(process.argv[2])
 
@@ -203,10 +204,10 @@ function buildChunk({
           }
         : {}),
 
-      ...(section?.anchor
+      ...((subsection?.anchor || section?.anchor)
         ? {
             anchor:
-              section.anchor,
+              subsection?.anchor || section.anchor,
           }
         : {}),
 
@@ -442,7 +443,7 @@ function chunkDocument(document) {
     ...navigationResult.chunks,
   )
 
-  return chunks
+  return finalizeChunks(document, chunks)
 }
 
 // ---------------------------------------------------------

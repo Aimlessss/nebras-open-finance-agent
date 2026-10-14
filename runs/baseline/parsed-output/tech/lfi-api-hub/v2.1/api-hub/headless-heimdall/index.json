@@ -1,0 +1,126 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/api-hub/headless-heimdall",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/api-hub/headless-heimdall/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "2",
+    "commit": "91543902e5e820b804871252cc94e5e6c161b534",
+    "hash": "b5df01922e9da1407cf984e8c6cdf9c35624133bca601673efd515a6b6d3d941",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Headless Heimdall Auth Server",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/api-hub/headless-heimdall",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Headless Heimdall Auth Server",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Headless Heimdall Auth Server is an API provided by the API Hub that powers the consent authorisation journey. It shields your authorisation server from the complexity of raw OIDC and FAPI 2.0 — your system calls three endpoints at the appropriate points in the customer journey and the API Hub handles the rest."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Per-environment Headless Heimdall hosts",
+        "level": 2,
+        "anchor": "base-url",
+        "category": "Base URL",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Environment",
+              "URL"
+            ],
+            "rows": [
+              [
+                "Pre-production",
+                "https://hh.{lfiCode}.preprod.apihub.openfinance.ae"
+              ],
+              [
+                "Production",
+                "https://hh.{lfiCode}.apihub.openfinance.ae"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Where {lfiCode} is the LFI Code assigned during API Hub onboarding."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "C3-hh-cm-client over mTLS, optionally JWT-signed",
+        "level": 2,
+        "anchor": "authentication",
+        "category": "Authentication",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "All requests to the Headless Heimdall Auth Server MUST be made using the C3-hh-cm-client application registered in the Trust Framework. This is the same client used to call the Consent Manager."
+          },
+          {
+            "type": "paragraph",
+            "text": "Requests MUST be made over mutual TLS using the C3 transport client certificate. If your API Hub is configured for JWT Auth, you MUST also include a signed JWT in the Authorization header, signed with the Sig4 signing key."
+          },
+          {
+            "type": "paragraph",
+            "text": "See Connectivity & Certificates for the full certificate mapping, and Creating the C3-hh-cm-client Application for setup instructions."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Three endpoints, one FAPI 2.0 authorisation code flow",
+        "level": 2,
+        "anchor": "consent-journey",
+        "category": "How it fits into the consent journey",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When a TPP initiates a consent request, the API Hub creates the consent record and redirects the end user to your authorisation endpoint. From that point, your authorisation server interacts with the Headless Heimdall Auth Server to coordinate the FAPI 2.0 authorisation code flow:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "GET /auth — Your authorisation server calls this at the start of every authorisation code grant. The API Hub validates the FAPI/OIDC request and returns the interaction context and the decoded consent details. Your system uses these details to present the consent to the end user for approval.",
+              "POST /auth/{interactionId}/doConfirm — After the end user has authenticated and authorised the consent, your system calls this to complete the interaction. The API Hub updates the consent state and issues tokens to the TPP.",
+              "POST /auth/{interactionId}/doFail — If authentication fails or the end user rejects the consent, your system calls this to end the interaction. The API Hub initiates an error redirect back to the TPP."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "During the authorisation journey, your system will typically also call the Consent Manager to read the full consent object and update its state. Both APIs work together to complete the journey."
+          },
+          {
+            "type": "paragraph",
+            "text": "For the full API flow, see the Consent Journey API Guide."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Where to find the endpoints",
+        "level": 2,
+        "anchor": "api-reference",
+        "category": "API Reference",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The full API reference for each endpoint is available in the sidebar under API Reference. Use GET /hello-mtls to verify your mTLS connectivity before calling other endpoints."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

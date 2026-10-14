@@ -1,0 +1,282 @@
+{
+  "id": "tech/lfi-api-hub/v2.1/api-hub/onboarding/application-layer-auth",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.1/api-hub/onboarding/application-layer-auth.vue",
+    "parser": "vue-sfc",
+    "parser_version": "2",
+    "commit": "91543902e5e820b804871252cc94e5e6c161b534",
+    "hash": "87492b1b16b1914a655ad63098ca90a1cb99adc29fd4c4f4c0e92bf19c81db57",
+    "dependencies": [],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Application Layer Authentication",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.1/api-hub/onboarding/application-layer-auth",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Application Layer Authentication",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "All communication between the API Hub and an LFI is secured at the transport layer using mutual TLS (mTLS). In addition to mTLS, the API Hub supports several application layer authentication methods that provide defense-in-depth."
+      },
+      {
+        "type": "paragraph",
+        "text": "LFIs MUST select an application layer authentication method during onboarding. If you are unsure which method to choose, we recommend JWT Auth."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Indicate your choice on the Service Desk ticket",
+        "level": 2,
+        "anchor": "how-to-request",
+        "category": "How to request configuration",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Indicate your chosen application layer authentication method, via the relevant API Hub Onboarding Service Desk ticket."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Two directions, not all methods supported in both",
+        "level": 2,
+        "anchor": "communication-directions",
+        "category": "Communication directions",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Application layer authentication applies to two directions of communication:"
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Direction",
+              "Description"
+            ],
+            "rows": [
+              [
+                "API Hub to LFI (Ozone Connect)",
+                "Requests the API Hub sends to your Ozone Connect endpoints when proxying TPP API calls."
+              ],
+              [
+                "LFI to API Hub (Consent Manager & Headless Heimdall Auth Server)",
+                "Requests your authorisation server sends to the API Hub's Consent Manager and Headless Heimdall Auth Server during consent and authorisation flows."
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Not all methods are supported in both directions. The table below summarises availability."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Method-by-direction support matrix",
+        "level": 2,
+        "anchor": "available-methods",
+        "category": "Available methods",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Method",
+              "API Hub to LFI (Ozone Connect)",
+              "LFI to API Hub (CM & Headless Heimdall)"
+            ],
+            "rows": [
+              [
+                "mTLS Only (Off)",
+                "Yes",
+                "Yes"
+              ],
+              [
+                "API Key",
+                "Yes",
+                "No"
+              ],
+              [
+                "Client Credentials Grant",
+                "Yes",
+                "No"
+              ],
+              [
+                "JWT Auth",
+                "Yes",
+                "Yes"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "If you are unsure which method to select, choose JWT Auth. It offers strong security without requiring additional infrastructure, and is the only method (besides mTLS only) that is supported in both directions."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "No application-layer auth, mTLS only",
+        "level": 2,
+        "anchor": "mtls-only",
+        "category": "mTLS Only (Off)",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "In this configuration, application layer authentication is switched off. The integration relies solely on the mutual TLS connection for authentication."
+          },
+          {
+            "type": "paragraph",
+            "text": "This is the simplest option to implement — no additional application-layer work is required beyond configuring mTLS."
+          },
+          {
+            "type": "paragraph",
+            "text": "The main drawback is the lack of defense-in-depth: security relies on a single layer."
+          },
+          {
+            "type": "paragraph",
+            "text": "This setting can be applied in both directions."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Shared secret in request headers",
+        "level": 2,
+        "anchor": "api-key",
+        "category": "API Key",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "An API Key is a shared secret used between the LFI and the API Hub. The API Hub includes the key in requests to your Ozone Connect endpoints."
+          },
+          {
+            "type": "paragraph",
+            "text": "API Keys are the most basic form of application layer authentication. While they provide limited security benefit compared to other methods, they MAY be appropriate as a starting point or for LFIs that use an existing API Gateway that enforces API Key validation."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Constraints",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Supported for Ozone Connect only (API Hub to LFI direction).",
+                  "NOT supported for Consent Manager or Headless Heimdall Auth Server APIs.",
+                  "The API Key MUST have a validity of 12 months or more. Key rotation is supported annually."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "OIDC token from an LFI-hosted authorisation server",
+        "level": 2,
+        "anchor": "client-credentials",
+        "category": "Client Credentials Grant",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The API Hub obtains an access token via an OIDC Client Credentials Grant from an authorisation server managed by the LFI. The API Hub then includes this token in requests to your Ozone Connect endpoints."
+          },
+          {
+            "type": "paragraph",
+            "text": "This is a well-established and secure mechanism. Security can be further strengthened by implementing a FAPI profile on the LFI's authorisation server."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Constraints",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "Supported for Ozone Connect only (API Hub to LFI direction).",
+                  "NOT supported for Consent Manager or Headless Heimdall Auth Server APIs.",
+                  "Requires the LFI to operate its own authorisation server.",
+                  "MAY result in a small increase in latency, as the API Hub makes an additional call to obtain the access token.",
+                  "Where a client_secret is used, it MUST have a validity of 12 months or more. Secret rotation is supported annually.",
+                  "scope values are configured during onboarding based on LFI requirements."
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Recommended — PS256-signed JWT in headers",
+        "level": 2,
+        "anchor": "jwt-auth",
+        "category": "JWT Auth",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "JWT Auth is a standard for secure and efficient application layer authentication. The requestor creates a signed JWT using a private key and a set of well-defined claims. The receiver verifies the token using the corresponding public key published on a JWKS endpoint hosted by the Trust Framework."
+          },
+          {
+            "type": "paragraph",
+            "text": "JWT Auth is the recommended method. It offers the following advantages:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Uses PS256 — a secure asymmetric algorithm that does not rely on shared secrets.",
+              "No additional infrastructure is required — signing keys are generated and managed through the Trust Framework.",
+              "Key rotation is managed by the sending party; the receiver uses the JWKS for verification.",
+              "JWT claims bind the token to the certificates used in the underlying mTLS layer, providing strong binding between transport and application layers."
+            ]
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Constraints",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "LFIs MUST implement JWT creation (as client) and JWT validation (as server) in their integration."
+                ]
+              }
+            ]
+          },
+          {
+            "heading": "Supported in both directions",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "list",
+                "items": [
+                  "API Hub to LFI (Ozone Connect) — the API Hub sends a JWT Auth token with each request to your Ozone Connect endpoints. Your server validates the token.",
+                  "LFI to API Hub (Consent Manager & Headless Heimdall Auth Server) — if you choose to enable this, your authorisation server sends a JWT Auth token with each request to the Consent Manager and Headless Heimdall Auth Server. The API Hub validates the token."
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "When selecting JWT Auth, you MAY also choose to send JWT Auth headers on your requests to the Consent Manager and Headless Heimdall Auth Server. This is configured separately — indicate your preference on the Service Desk ticket."
+              },
+              {
+                "type": "paragraph",
+                "text": "For full technical detail on constructing and validating JWT Auth tokens, see JWT Auth — Server-side (your Ozone Connect server validating tokens from the API Hub) and JWT Auth — Client-side (your authorisation server sending tokens to the API Hub)."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

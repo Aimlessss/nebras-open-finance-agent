@@ -1,0 +1,175 @@
+{
+  "id": "proposals/ofp-004",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/proposals/ofp-004/index.vue",
+    "parser": "vue-sfc",
+    "parser_version": "2",
+    "commit": "91543902e5e820b804871252cc94e5e6c161b534",
+    "hash": "507fda71c6dea5d22396679ddf0769325b1bc36bfdb431a42bb3834476b27207",
+    "dependencies": [
+      "@/components/proposals/PvProposalTabs.vue",
+      "@/components/proposals/PvStatusPill.vue",
+      "@/components/proposals/PvVotePanel.vue",
+      "@/composables/useProposals",
+      "@/data/proposals",
+      "@unhead/vue",
+      "vue"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "OFP-004 · Enforce a minimum ExpirationDateTime for consents",
+    "url": "https://nebras-open-finance.com/proposals/ofp-004",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "OFP-004 · Enforce a minimum ExpirationDateTime for consents",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "A consent can be created today that expires in seconds — long before the customer can be redirected to the LFI, authenticate, and authorise it. Add a minimum ExpirationDateTime at consent creation so a consent is never born already doomed to expire mid-journey."
+      },
+      {
+        "type": "paragraph",
+        "text": "The voting period has ended. The votes cast are shown below."
+      },
+      {
+        "type": "paragraph",
+        "text": "Sign in with the Trust Framework to vote — For, Against, or Abstain — recorded in the open with your reasoning. Your organisation and name come from your directory profile, and each person may vote once."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "A consent that expires before it can be used",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Every consent — whatever its type — carries an ExpirationDateTime, the AEPushedAuthorizationRequests.AEConsentExpirationDateTime field set by the TPP in the consent request, that fixes the date and time the consent will expire. Today the API Hub applies a single rule to it at consent creation: it must be in the future. There is no minimum. A past value is rejected; everything else is accepted. The behaviour described here is the same for all consent types; the figures below were measured on the Model Bank sandbox, and the lifecycle and validation they reveal are shared across every type."
+          },
+          {
+            "type": "paragraph",
+            "text": "We tested this directly against the Model Bank sandbox. A consent set to expire 30 seconds in the future is accepted just as readily as one a year out:"
+          },
+          {
+            "type": "paragraph",
+            "text": "That is the problem. Authorising a consent is not instant: the customer is redirected to the LFI, authenticates, reviews and approves the consent, is redirected back, and only then does the TPP exchange the code for a token and make its first call. That journey takes minutes. A consent whose ExpirationDateTime falls inside that window is dead on arrival — it lapses before anyone can finish using it. A one-second expiry is not a hypothetical: the platform accepts it."
+          },
+          {
+            "type": "paragraph",
+            "text": "(Separately, the API Hub cleans up consents that are never authorised. That is independent of the ExpirationDateTime the TPP sets, and this proposal is solely about that value — the consent’s usable lifetime.)"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "A journey-based minimum, set to 15 minutes",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Reject, at consent creation, any ExpirationDateTime less than 15 minutes in the future. The check sits alongside the two bounds already in place — “must be in the future” and the one-year maximum — and fails with the same kind of request-validation 400 a past value gets today. Fifteen minutes is comfortably longer than the authorisation journey (redirect, customer authentication, approval, return, token exchange, and a first call), while still short enough that a TPP can keep a single-use consent tight."
+          },
+          {
+            "type": "paragraph",
+            "text": "The minimum is anchored to the journey — the time a customer needs to be redirected, authenticate, approve, and return — which is a stable, real-world constraint. Fifteen minutes clears it comfortably while still letting a TPP keep a single-use consent tight."
+          },
+          {
+            "type": "paragraph",
+            "text": "This proposal changes validation only. It does not touch the consent status model or how the API Hub cleans up consents that are never authorised. A TPP sets ExpirationDateTime in the consent request for every type; the Data Sharing API guide shows one example."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The same floor applies to multi-authorisation payments",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "One consent type carries a second expiry. When a TPP creates a Bank Service Initiation (payment) consent and sets IsSingleAuthorization to false, it also sets AuthorizationExpirationDateTime in the Rich Authorization Request — the AEBankServiceInitiationRichAuthorizationRequests.AuthorizationExpirationDateTime field — being the date and time by which every remaining authoriser must have acted for the consent to reach Authorized. This field exists only for payments: the ExpirationDateTime above is carried by every consent type, but this second deadline is specific to multi-authorisation, which is why it is treated separately here."
+          },
+          {
+            "type": "paragraph",
+            "text": "Multi-authorisation covers payments that need more than one person to approve. The first customer goes through the OAuth flow and authorises the consent at the LFI as usual; the consent then stays in AwaitingAuthorization while the subsequent authorisers each approve in turn. AuthorizationExpirationDateTime is the clock on those subsequent authorisers — if the consent has not reached Authorized by then, it will not proceed. See the Multi-Authorization guide for the full journey."
+          },
+          {
+            "type": "paragraph",
+            "text": "The reasoning is essentially the same as for the consent expiry. Today the only bound on AuthorizationExpirationDateTime is that it MUST NOT be after ExpirationDateTime — an upper bound. There is no lower bound, so a value seconds or minutes in the future is accepted, and the subsequent authorisers then have no realistic chance to act before it lapses. A multi-authorisation deadline set too tight is dead on arrival for exactly the reason a consent expiry is."
+          },
+          {
+            "type": "paragraph",
+            "text": "Apply the same 15-minute floor. Reject, at consent creation, any AuthorizationExpirationDateTime less than 15 minutes in the future — the subsequent authorisers need at least as much time as a single customer does to complete their step. The existing upper bound (no later than ExpirationDateTime ) is unchanged."
+          },
+          {
+            "type": "list",
+            "items": [
+              "ExpirationDateTime (consent expiry) — more than 15 minutes and no more than one year in the future.",
+              "AuthorizationExpirationDateTime (multi-authorisation deadline, payments only) — more than 15 minutes in the future and on or before the consent's ExpirationDateTime."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What changes in the spec",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Two new validation bounds and a documentation note — no new fields, endpoints, or schemas, and no change to the consent status model."
+          },
+          {
+            "type": "paragraph",
+            "text": "At the API Hub, validate that ExpirationDateTime is at least 15 minutes in the future at consent creation (PAR), in addition to the existing “must be in the future” check and the documented one-year maximum. A value below the floor is rejected as a standard request-validation error — not silently clamped. This is a Hub-side validation rule; the field definition itself is unchanged."
+          },
+          {
+            "type": "paragraph",
+            "text": "For Bank Service Initiation (payment) consents, validate that AuthorizationExpirationDateTime — when present, i.e. when IsSingleAuthorization is false — is at least 15 minutes in the future at consent creation, in addition to the existing upper bound that it MUST NOT be after ExpirationDateTime. A value below the floor is rejected as a standard request-validation error. This applies only to payments, where the field exists."
+          },
+          {
+            "type": "paragraph",
+            "text": "Document the new 15-minute minimum on the consent lifecycle pages and the per-type API guides, alongside the existing “must be in the future” and one-year-maximum bounds, so TPPs size ExpirationDateTime against the authorisation journey. Update the Multi-Authorization guide to state the matching floor on AuthorizationExpirationDateTime. The consent-expiry rule applies to every consent type; the authorisation-expiry rule applies to payments only."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What a journey-based minimum buys",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "✓"
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What it costs",
+        "level": 2,
+        "anchor": null,
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "×"
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}
