@@ -1,6 +1,6 @@
 const { createHash } = require('node:crypto')
 const SCHEMA_VERSION = 2
-const PARSER_VERSION = '3'
+const PARSER_VERSION = '4'
 const CHUNKER_VERSION = '4'
 const hashText = text => createHash('sha256').update(text, 'utf8').digest('hex')
 
