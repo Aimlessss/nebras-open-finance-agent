@@ -1,0 +1,301 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/requirements",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/requirements.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "34ef52ae1e89f560561fcb765fcd9b0d5e60e74083aa4f65a98af0c12d06a5ec",
+    "dependencies": [
+      "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-insurance-data-sharing",
+      "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-insurance-data-sharing.ts"
+    ],
+    "assets": [
+      {
+        "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-insurance-data-sharing.ts",
+        "hash": "cf9864a6404b32a50a89f801c1578da6431e25af09862fba275536fed86b8aa9"
+      }
+    ],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Insurance Data Sharing — Requirements",
+    "isIndex": true,
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/data-sharing/requirements",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Insurance Data Sharing — Requirements",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The Authentication requirements\n, Authorization requirements\n, and User Journeys\n must be adhered to."
+      },
+      {
+        "type": "paragraph",
+        "text": "The tables below list the rules that apply to Insurance Data Sharing. All request validation of the TPP's credentials, access token, and consent is performed by the Hub before your Ozone Connect endpoints are called. The rules below cover what your Ozone Connect endpoints must validate and what they must return. The cross-cutting Policy Access Validation\n check applies to GET /{type}-insurance-policies/{InsurancePolicyId}\n. Insurance has a five-year data retention floor\n — your Ozone Connect endpoints MUST return policies from the last five years regardless of current PolicyStatus\n; there is no status-based 403\n."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Consent Validation",
+        "anchor": "consent-validation",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "When a TPP creates an insurance consent, the API Hub calls your POST /consent/action/validate\n\n endpoint before the consent is created. You MUST validate the consent and respond with status: \"valid\"\n or status: \"invalid\"\n. If you respond with invalid\n, the API Hub will not create the consent and the TPP will receive an error. This validation runs before the customer is involved — there is no authentication or authorization at this stage. The purpose is to reject consents early that your systems cannot fulfil. The field names in the rules below match the Ozone Connect newConsent\n payload the Hub delivers — consentType\n is cbuae-insurance-consents\n, standardVersion\n sits at the top level of the consent object, and Permissions\n sits under consentBody.Data\n as an array of { InsuranceType, Permissions[] }\n blocks."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Rule",
+              "Detail"
+            ],
+            "rows": [
+              [
+                "1",
+                "Unsupported standardVersion",
+                "The consent's standardVersion\n (a top-level property on the consent object) is the URL path version the TPP will call on subsequent insurance requests. If you do not support that version for the Insurance API family, respond with invalid\n. \n\n Where you are dual-running multiple versions during a deprecation window (see Major Version Deprecation\n) — for example v2.0\n alongside v3.1\n — you MUST respond valid\n for every version you serve. \n\n Minor versions are backward compatible (see Version Management\n), so prior minors within each major you run are also valid (e.g. running v2.0\n and v3.1\n means v2.0\n, v3.0\n, and v3.1\n all resolve to valid\n)."
+              ],
+              [
+                "2",
+                "Unsupported InsuranceType",
+                "If any per-sector block in consent.Permissions\n references an InsuranceType\n the LFI does not underwrite (e.g. the LFI does not offer Renters\n products but the consent requests Renters\n), respond with invalid\n. Validate against the sectors you have onboarded with Nebras."
+              ],
+              [
+                "3",
+                "Unsupported permissions",
+                "If a per-sector block requests a permission the LFI does not surface for that sector (e.g. the consent includes ReadCustomerClaims\n for Motor\n but the LFI does not yet expose claims for Motor policies), respond with invalid\n."
+              ],
+              [
+                "4",
+                "ReadInsurancePolicies\n required per sector",
+                "Every per-sector block MUST contain ReadInsurancePolicies\n — it is the base permission that gates list and detail access. If a block omits it, respond with invalid\n."
+              ],
+              [
+                "5",
+                "Invalid BaseConsentId",
+                "If the consent includes a BaseConsentId\n, validate that: The BaseConsentId\n references an existing consent known to the LFI.\nThe referenced consent is an Insurance Data Sharing consent (authorization_details[0].type\n is urn:openfinanceuae:insurance-consent:*\n).\nThe referenced consent does not itself have a BaseConsentId\n — if it does, the TPP has incorrectly linked to an intermediate consent in the chain rather than the root consent. The BaseConsentId\n must always reference the original root consent.\n\n If any of these checks fail, respond with invalid\n."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Authorization — Policy Selection",
+        "anchor": "authorization-policy-selection",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The generic Authorization requirements\n apply to this journey. The rules below cover the additional policy selection logic specific to Insurance Data Sharing. During the consent authorization journey, the customer selects which of their policies to share with the TPP, scoped to the sectors the consent grants."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Field",
+              "Rule"
+            ],
+            "rows": [
+              [
+                "1",
+                "consent.Permissions[*].InsuranceType",
+                "Only present policies of sectors listed in consent.Permissions\n. A consent that grants Motor\n and Home\n only surfaces policies in those two sectors — Travel and Health policies the customer may also hold MUST NOT appear."
+              ],
+              [
+                "2",
+                "Five-year selection window",
+                "Within each consented sector, present every policy the customer holds or has held in the last five years\n, regardless of current PolicyStatus\n. Historical policies (Expired\n, Lapsed\n, Cancelled\n, Surrendered\n, etc.) MUST be selectable so the customer can share historical insurance history for switching, broking, and advisory use cases. Each row MUST clearly label the policy's current PolicyStatus\n so the customer is not misled into thinking a lapsed policy is still active."
+              ],
+              [
+                "3",
+                "No eligible policies",
+                "If the authenticated customer does not hold any policies within the five-year window across any of the consented sectors, PATCH the consent to Rejected\n and call doFail\n with error\n: invalid_request\n and error_description\n: user_lacks_eligible_policies\n. See Authorization requirements\n for details."
+              ],
+              [
+                "4",
+                "Multiple selection",
+                "The policy selection screen must allow the customer to select more than one policy and to select policies across different sectors in a single consent. A consent with no policies selected must not be authorised."
+              ],
+              [
+                "5",
+                "insurancePolicyIds\n patch",
+                "On successful authorization, PATCH the consent with insurancePolicyIds\n set to the array of InsurancePolicyId\n values the customer selected. This array is the authoritative consented set used by every subsequent data sharing request — see Policy Access Validation\n."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "List Policies (per sector)",
+        "anchor": "list-policies",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Hub calls this endpoint with the sector slug (employment\n, health\n, home\n, life\n, motor\n, renters\n, or travel\n) baked into the path and passes InsurancePolicyIds\n as a query parameter listing the IDs the consent authorised for that sector."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Field",
+              "Rule"
+            ],
+            "rows": [
+              [
+                "1",
+                "InsurancePolicyIds",
+                "Return the policies whose InsurancePolicyId\n matches one of the values in the InsurancePolicyIds\n query parameter and whose sector matches the URL path. Populate the PolicyStatus\n field on each policy so the TPP can see the current state."
+              ],
+              [
+                "2",
+                "Five-year retention",
+                "Return every consented policy from the last five years\n regardless of current PolicyStatus\n. This is a minimum availability floor, not a query limit — the endpoint MAY return policies older than five years where it holds them. A PolicyStatus\n of Expired\n, Lapsed\n, Cancelled\n, Surrendered\n, etc. MUST NOT cause the policy to be omitted from the response within the retention window."
+              ],
+              [
+                "3",
+                "Data completeness",
+                "All fields that exist or are derivable from your systems must be populated on each policy. All fields marked as required in the OpenAPI spec must be present, including InsurancePolicyId\n, PolicyNumber\n, PolicyStatus\n, Insurer\n, and the sector-specific identifiers."
+              ],
+              [
+                "4",
+                "Premium",
+                "If the consent for this sector includes ReadInsurancePremium\n, populate the Premium\n field on each policy in either the cleartext or JWE shape per Premium Encryption\n. If the consent does not include ReadInsurancePremium\n, omit the Premium\n field entirely — do not return an empty object or a placeholder."
+              ],
+              [
+                "5",
+                "Permission-scoped fields",
+                "Populate optional field sets only when the matching permission is granted in the per-sector block: ReadCustomerBasic\n / ReadCustomerDetail\n for policy-holder identity; ReadCustomerPaymentDetails\n for payment methods; ReadInsuranceProduct\n for underwritten product detail; ReadCustomerClaims\n for claims history. Fields the consent does not unlock MUST be omitted."
+              ],
+              [
+                "6",
+                "No pagination",
+                "Return every matching policy in a single response. There is no page\n query parameter on the TPP-facing API, and Meta\n MUST NOT include TotalPages\n or TotalRecords\n. The full consented set for the sector MUST fit in one payload."
+              ],
+              [
+                "7",
+                "Empty result",
+                "If the customer holds no policies in the sector within the five-year window, return 200\n with an empty Policy\n array. Do not return 404\n."
+              ],
+              [
+                "8",
+                "Policy access",
+                "For every InsurancePolicyId\n in the InsurancePolicyIds\n query parameter, validate that the policy is held — or was held within the five-year window — by the customer resolved from o3-psu-identifier\n. If any requested policy is not held by the customer, return 403\n per Policy Access Validation\n."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Get a Policy",
+        "anchor": "get-policy",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Field",
+              "Rule"
+            ],
+            "rows": [
+              [
+                "1",
+                "policy",
+                "Return the single policy whose InsurancePolicyId\n matches the value in the path parameter and whose sector matches the URL path."
+              ],
+              [
+                "2",
+                "Five-year retention",
+                "Return the policy regardless of current PolicyStatus\n, provided its end date (or last activity date) is within the last five years\n. There is no status-based 403\n on this endpoint — the policy is the artifact, and the customer has consented to share it."
+              ],
+              [
+                "3",
+                "Data completeness",
+                "All fields that exist or are derivable from your systems must be populated, consistent with what is returned by the list endpoint for the same policy. All fields marked as required in the OpenAPI spec must be present."
+              ],
+              [
+                "4",
+                "Premium",
+                "If the consent includes ReadInsurancePremium\n, populate Premium\n in either the cleartext or JWE shape per Premium Encryption\n. Otherwise omit the field."
+              ],
+              [
+                "5",
+                "Permission-scoped fields",
+                "Populate optional field sets only when the matching permission is granted in the per-sector block. Fields the consent does not unlock MUST be omitted from the detail response, the same way as on the list response."
+              ],
+              [
+                "6",
+                "Policy access",
+                "Validate that the InsurancePolicyId\n in the path parameter is part of the consented set held by the customer resolved from o3-psu-identifier\n. Apply the Policy Access Validation\n check before returning — an ID outside the consented set MUST return 403\n with errorCode\n: Consent.PermanentPolicyAccessFailure\n."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Premium Encryption",
+        "anchor": "premium-encryption",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Premium\n field on every insurance policy response is defined as anyOf\n a structured AEInsurance.AEInsuranceDataSharingPremiumProperties\n object or an AEInsurance.AEInsurancePremiumJWE\n compact string. Your LFI decides, per policy, which shape to return. The rules below cover both shapes. See the producer-side walkthrough\n for end-to-end detail."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "#",
+              "Field",
+              "Rule"
+            ],
+            "rows": [
+              [
+                "1",
+                "Permission gating",
+                "Only populate Premium\n when the per-sector block in consent.Permissions\n includes ReadInsurancePremium\n. If the permission is absent, omit the field entirely."
+              ],
+              [
+                "2",
+                "Premium\n format",
+                "Premium\n may be returned as either a cleartext AEInsurance.AEInsuranceDataSharingPremiumProperties\n JSON object or as a JWE compact serialisation string. Encryption is at the LFI's discretion per policy."
+              ],
+              [
+                "3",
+                "Premium\n — JWE",
+                "If encrypting Premium\n, generate an ephemeral symmetric encryption key per response (must not be reused). Encrypt the structured premium payload as a JWE using the content encryption algorithm required by the Security Profile. Set exp\n to 30 minutes from the time of the response and set kid\n to the value of x-fapi-interaction-id\n. Transmit the encryption key to the User via an existing LFI channel (e.g. SMS or push notification) — do not include it in the API response."
+              ],
+              [
+                "4",
+                "Shape exclusivity",
+                "A single policy response carries exactly one of the two shapes — either the cleartext object or the JWE string. Do not include both, do not embed the JWE inside the structured object, and do not return a partially populated structured object alongside a JWE."
+              ]
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Policy Access Validation",
+        "anchor": "policy-access-validation",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Every endpoint that takes a policy identifier — whether as the InsurancePolicyId\n path parameter on GET /{type}-insurance-policies/{InsurancePolicyId}\n or as values in the InsurancePolicyIds\n query parameter on GET /{type}-insurance-policies\n — MUST validate that each policy is part of the consented set held by the customer resolved from the o3-psu-identifier\n header before applying the per-endpoint rules above. Policy ownership is authoritative on the LFI side — the Hub stores the insurancePolicyIds\n patched onto the consent at authorization, but the LFI is the source of truth for which policies the customer actually holds or has held."
+          },
+          {
+            "type": "paragraph",
+            "text": "If any requested policy is not part of the consented set, return 403\n with errorCode\n: Consent.PermanentPolicyAccessFailure\n and errorMessage\n: The policy is permanently inaccessible.\n This check applies uniformly regardless of PolicyStatus\n — a policy that is Lapsed\n or Expired\n is still readable provided it is in the consented set; a policy that is Active\n but outside the consented set MUST NOT be returned."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

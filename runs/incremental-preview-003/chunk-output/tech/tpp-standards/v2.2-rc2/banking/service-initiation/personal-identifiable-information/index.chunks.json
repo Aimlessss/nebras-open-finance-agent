@@ -1,0 +1,261 @@
+{
+  "document_id": "tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+  "chunk_count": 8,
+  "chunks": [
+    {
+      "id": "b1a119d8-5455-5375-9258-1fc54e053f33",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+      "type": "intro",
+      "text": "Personal Identifiable Information (PII)\n\nEvery payment instruction carries sensitive data about who is paying and who is receiving the funds. This data — the creditor account details, optional debtor account, and risk indicators — is collectively referred to as Personal Identifiable Information (PII).\n\nPII is encrypted and embedded at two points in the payment lifecycle:\n\nStage | Endpoint | PII form\nConsent staging | POST /par | Embedded in consent.PersonalIdentifiableInformation\nPayment creation | POST /payments | Embedded in payment.PersonalIdentifiableInformation\n\nThe Risk structure is the same at both stages. DebtorAccount is only present at POST /par — by the time POST /payments is called, the debtor account has already been fixed through the consent authorisation flow. The creditor data also differs between stages — both in structure and cardinality. See Creditor for the full breakdown.",
+      "metadata": {
+        "title": "Personal Identifiable Information (PII)",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "2cfc911d8a91d80fef9ca9fc4ed94ccbc35bad5a83d95fbc0c0172013330d195",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "uuid"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "7f5241b8e15076a80be055509ba90b47c8d9066c645cba9610678bfc127e0a37",
+      "schema_version": 2
+    },
+    {
+      "id": "4d235832-b760-59b3-8839-0090633d01f2",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+      "type": "section",
+      "text": "Personal Identifiable Information (PII) > Why PII is encrypted > End-to-end encryption between TPP and LFI\n\nPayment consents are stored centrally at Nebras, the UAE Open Finance Hub. Because Nebras acts as an intermediary between TPPs and LFIs, PII is encrypted end-to-end before it leaves the TPP — ensuring that Nebras, and any other party in transit, cannot read the sensitive payment details.\n\nThe encryption uses the destination LFI's public key (see Message Encryption for full cryptographic details). Only the LFI can decrypt the payload. Nebras passes the opaque JWE through without inspection — all PII validation is performed by the LFI after the consent is authorised.",
+      "metadata": {
+        "title": "Personal Identifiable Information (PII)",
+        "section": "End-to-end encryption between TPP and LFI",
+        "category": "Why PII is encrypted",
+        "anchor": "why-encrypted",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "2cfc911d8a91d80fef9ca9fc4ed94ccbc35bad5a83d95fbc0c0172013330d195",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "uuid"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"why-encrypted\",\"\"]:0",
+      "content_hash": "3bdaf21601f095dbed1b06b505f8799f914c8563c93123333b2d80d492f654df",
+      "schema_version": 2
+    },
+    {
+      "id": "e1609be9-8dfd-5c90-a096-057590fe62ed",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+      "type": "section",
+      "text": "Personal Identifiable Information (PII) > Steps to encrypt PII > Sign, then encrypt — Nested JWT (JWS inside JWE)\n\nThe PersonalIdentifiableInformation field MUST be sent as a compact JWE — a signed-then-encrypted token (Nested JWT). The process is:\n\n- Build the PII JSON — construct the PII object for the stage you are at ( POST /par or POST /payments ). See The PII payload structure below.\n- Sign — sign the PII payload as a JWS using your TPP signing key. The JWS MUST include standard claims ( iat, exp, jti, iss, sub, aud ).\n- Fetch the LFI's encryption key — retrieve the LFI's JWKS and select the key where \"use\": \"enc\".\n- Encrypt — encrypt the signed JWS into a compact JWE using RSA-OAEP-256 / A256GCM.\n- Embed — place the resulting JWE string in the PersonalIdentifiableInformation field of your request.",
+      "metadata": {
+        "title": "Personal Identifiable Information (PII)",
+        "section": "Sign, then encrypt — Nested JWT (JWS inside JWE)",
+        "category": "Steps to encrypt PII",
+        "anchor": "encrypt-steps",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "2cfc911d8a91d80fef9ca9fc4ed94ccbc35bad5a83d95fbc0c0172013330d195",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "uuid"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"encrypt-steps\",\"\"]:0",
+      "content_hash": "d400a24b15e478f1435119300ef291808d1eadb7d91c6744e5a2992feeb68970",
+      "schema_version": 2
+    },
+    {
+      "id": "b2cc1956-3294-5ed3-b8c1-571958f3b298",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+      "type": "subsection",
+      "text": "Personal Identifiable Information (PII) > Steps to encrypt PII > Sign, then encrypt — Nested JWT (JWS inside JWE) > Example\n\nFor the full breakdown of JWKS discovery, key selection, and JWE structure, see Message Encryption.\n\nThe sandbox provides an O3 Utility endpoint that accepts your private key and JWKS URL and returns a ready-made encrypted PII token — useful for validating your payload structure before writing your own encryption code. See O3 Sandbox Utilities.",
+      "metadata": {
+        "title": "Personal Identifiable Information (PII)",
+        "section": "Sign, then encrypt — Nested JWT (JWS inside JWE)",
+        "category": "Steps to encrypt PII",
+        "subsection": "Example",
+        "anchor": "encrypt-steps",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "2cfc911d8a91d80fef9ca9fc4ed94ccbc35bad5a83d95fbc0c0172013330d195",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "uuid"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"encrypt-steps\",\"Example\"]:0",
+      "content_hash": "fb6a4ad174a4f94ce176ba3701544416dfa5064aba9b828fe97a9c1969cea28b",
+      "schema_version": 2
+    },
+    {
+      "id": "9843a8c5-18a9-5b13-9da5-09506e5a351d",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+      "type": "section",
+      "text": "Personal Identifiable Information (PII) > Structure of the PII object > oneOf — three variants, one form sent in requests\n\nThe PersonalIdentifiableInformation field is defined as a oneOf:\n\nVariant | Form | Purpose\nDomestic Payment PII Schema Object | object | Unencrypted reference form for domestic payments\nInternational Payment PII Schema Object | object | Unencrypted reference form for international payments\nEncrypted PII Object ( AEJWEPaymentPII ) | string (compact JWE) | The form that MUST be sent at both POST /par and POST /payments\n\nThe two object variants document the structure implementers MUST follow when constructing the PII payload before encryption. The encrypted form — AEJWEPaymentPII — is a compact JWE string wrapping a signed JWS containing the serialised PII JSON.",
+      "metadata": {
+        "title": "Personal Identifiable Information (PII)",
+        "section": "oneOf — three variants, one form sent in requests",
+        "category": "Structure of the PII object",
+        "anchor": "object-structure",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "2cfc911d8a91d80fef9ca9fc4ed94ccbc35bad5a83d95fbc0c0172013330d195",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "uuid"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"object-structure\",\"\"]:0",
+      "content_hash": "eeeafbfc05c285100c3469e8dfab7a1fa98d7b58c6b2634207a38de359a94941",
+      "schema_version": 2
+    },
+    {
+      "id": "19daf375-45c7-5a9d-b5f4-3ad75016b790",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+      "type": "section",
+      "text": "Personal Identifiable Information (PII) > The PII payload structure > Different shape at consent staging vs. payment creation\n\nThe structure of the unencrypted PII differs between the two stages.",
+      "metadata": {
+        "title": "Personal Identifiable Information (PII)",
+        "section": "Different shape at consent staging vs. payment creation",
+        "category": "The PII payload structure",
+        "anchor": "payload-structure",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "2cfc911d8a91d80fef9ca9fc4ed94ccbc35bad5a83d95fbc0c0172013330d195",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "uuid"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"payload-structure\",\"\"]:0",
+      "content_hash": "c649d81e60ca516e9d55729e789cef5e35acdbc000d406c03dfcad76d7f5c3b8",
+      "schema_version": 2
+    },
+    {
+      "id": "ee54e8c8-ffb6-5cc6-b74b-2d477b879b73",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+      "type": "subsection",
+      "text": "Personal Identifiable Information (PII) > The PII payload structure > Different shape at consent staging vs. payment creation > At POST /payments (payment creation)\n\nThe key difference: at POST /par the creditor data is inside an Initiation.Creditor[] array (allowing 1–10 entries, or omitted for open beneficiary). At POST /payments the same fields sit directly on Initiation as a single creditor.\n\nProperty | POST /par | POST /payments\nInitiation.DebtorAccount | Optional object | Not present — debtor account is fixed by consent\nInitiation.Creditor | Array of creditor entry objects (0–10) | Object — the party name/address ( { Name, PostalAddress } )\nInitiation.CreditorAccount | Nested inside each Creditor[] entry | Direct field on Initiation\nInitiation.CreditorAgent | Nested inside each Creditor[] entry | Direct field on Initiation\nInitiation.ConfirmationOfPayeeResponse | Nested inside each Creditor[] entry | Direct field on Initiation\nRisk | Required object | Required object\n\nSee the sub-pages for full schema and rules:\n\n- Debtor Account — optional at POST /par only; not part of the POST /payments PII\n- Creditor — consent-time models (single/multiple/open), payment-time structure, and match requirements\n- Risk — debtor and creditor risk indicators",
+      "metadata": {
+        "title": "Personal Identifiable Information (PII)",
+        "section": "Different shape at consent staging vs. payment creation",
+        "category": "The PII payload structure",
+        "subsection": "At POST /payments (payment creation)",
+        "anchor": "payload-structure",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "2cfc911d8a91d80fef9ca9fc4ed94ccbc35bad5a83d95fbc0c0172013330d195",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "uuid"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"payload-structure\",\"At POST /payments (payment creation)\"]:0",
+      "content_hash": "7027512f0bfb8e399b2e1ddb858f0c1f28098867848c1f9b1dfa063b8bb61a5a",
+      "schema_version": 2
+    },
+    {
+      "id": "466b1f13-c8b0-562c-9b75-83cc8a116684",
+      "document_id": "tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+      "type": "section",
+      "text": "Personal Identifiable Information (PII) > Decentralised validation > Each LFI validates PII independently after decryption\n\nBecause PII is encrypted using the LFI's public key, Nebras cannot decrypt or validate it. The LFI is solely responsible for decrypting and validating the PII — at consent time and at payment time.\n\nValidation is therefore performed independently by each LFI rather than centrally. The standards place explicit validation requirements on every LFI — each LFI must validate the decrypted PII against the schema before accepting a consent or processing a payment.\n\nA consent that is accepted by one LFI may be rejected by another if the PII does not meet the required format. TPPs should ensure that the PII they construct is strictly valid according to the schema for the payment type being instructed.\n\nSee Creditor for the specific validation rules that LFIs apply to the Creditor array for domestic payments.",
+      "metadata": {
+        "title": "Personal Identifiable Information (PII)",
+        "section": "Each LFI validates PII independently after decryption",
+        "category": "Decentralised validation",
+        "anchor": "decentralised-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "2cfc911d8a91d80fef9ca9fc4ed94ccbc35bad5a83d95fbc0c0172013330d195",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/banking/service-initiation/personal-identifiable-information",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "jose",
+          "uuid"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"decentralised-validation\",\"\"]:0",
+      "content_hash": "4dafd0400f085e93fccc2b13cc35a22b1c4ceb444dc9856126d17d365f8ae1b3",
+      "schema_version": 2
+    }
+  ]
+}

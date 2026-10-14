@@ -1,0 +1,616 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+  "chunk_count": 17,
+  "chunks": [
+    {
+      "id": "10339deb-20f4-5f9b-99b3-2046c682fd51",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "intro",
+      "text": "Bank Data Sharing — Requirements\n\nThe Authentication requirements\n, Authorization requirements\n, and User Journeys\n must be adhered to.\n\nThe tables below list the rules that apply to Bank Data Sharing. All request validation of the TPP's credentials, access token, and consent is performed by the Hub before your Ozone Connect endpoints are called. The rules below cover what your Ozone Connect endpoints must validate and what they must return. Two cross-cutting checks apply to every endpoint under /accounts/{accountId}\n and /accounts/{accountId}/…\n: Account Access Validation\n (the account is held by the resolved customer) and Account Status Handling\n (the account is in a readable state).",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "d736aa8ebdd780f56611ebd76e0f10c78a4a48781989f23482a5ddbcb89252af",
+      "schema_version": 2
+    },
+    {
+      "id": "b6a59dc6-8dad-5583-8d38-84350e791ef3",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Consent Validation\n\nWhen a TPP creates a consent, the API Hub calls your POST /consent/action/validate\n\n endpoint before the consent is created. You MUST validate the consent and respond with status: \"valid\"\n or status: \"invalid\"\n. If you respond with invalid\n, the API Hub will not create the consent and the TPP will receive an error. This validation runs before the customer is involved — there is no authentication or authorization at this stage. The purpose is to reject consents early that your systems cannot fulfil. The field names in the rules below match the Ozone Connect newConsent\n payload the Hub delivers — standardVersion\n sits at the top level of the consent object; BaseConsentId\n, AccountType\n, AccountSubType\n, and Permissions\n sit under consentBody.Data\n.\n\n# | Rule | Detail\n1 | Unsupported standardVersion | The consent's standardVersion\n (a top-level property on the consent object) is the URL path version the TPP will call on subsequent data sharing requests. If you do not support that version for the Account Information API family, respond with invalid\n. \n\n Where you are dual-running multiple versions during a deprecation window (see Major Version Deprecation\n) — for example v2.0\n alongside v3.1\n — you MUST respond valid\n for every version you serve. \n\n Minor versions are backward compatible (see Version Management\n), so prior minors within each major you run are also valid (e.g. running v2.0\n and v3.1\n means v2.0\n, v3.0\n, and v3.1\n all resolve to valid\n).\n2 | Unsupported AccountType | If the consent's AccountType\n array contains a value that is not supported by the API Hub integration the consent was received on, respond with invalid\n. Each API Hub integration is scoped to a single segment (Retail\n, SME\n, or Corporate\n). If the LFI serves multiple segments, each segment MUST be configured as a separate API Hub integration because the API Hub has a single authorization endpoint. Validate that every requested AccountType\n is within scope of the integration that received the consent.\n3 | Unsupported AccountSubType | If the consent's AccountSubType\n array contains a value not supported by this LFI, respond with invalid\n. For example, if the LFI does not offer Mortgage\n products but the consent requests Mortgage\n, the consent MUST be rejected at validation.\n4 | Unsupported permissions | If the consent includes permissions that reference an endpoint the LFI has not yet delivered, respond with invalid\n. For example, if the consent includes ReadStandingOrdersBasic\n or ReadStandingOrdersDetail\n but GET /accounts/{AccountId}/standing-orders\n is not yet available, the consent MUST be rejected at validation.\n5 | Invalid BaseConsentId | If the consent includes a BaseConsentId\n, validate that: The BaseConsentId\n references an existing consent known to the LFI.\nThe referenced consent is a Data Sharing consent (authorization_details[0].type\n is urn:openfinanceuae:account-access-consent:*\n).\nThe referenced consent does not itself have a BaseConsentId\n — if it does, the TPP has incorrectly linked to an intermediate consent in the chain rather than the root consent. The BaseConsentId\n must always reference the original root consent.\n\n If any of these checks fail, respond with invalid\n.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Consent Validation",
+        "anchor": "consent-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"consent-validation\",\"\"]:0",
+      "content_hash": "f3492e6f6b9549ce3d16c31fe7cd9d5e2dc07faa25d1ac9ec57aad5389876ec4",
+      "schema_version": 2
+    },
+    {
+      "id": "0475a3c4-e480-59d8-9475-00005d8a9a7c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Authorization — Account Selection\n\nThe generic Authorization requirements\n apply to this journey. The rules below cover the additional account selection logic specific to Bank Data Sharing. During the consent authorization journey, the customer selects which of their accounts to share with the TPP. The LFI is responsible for presenting the eligible accounts and applying any filters the TPP has specified in the consent.\n\n# | Field | Rule\n1 | consent.AccountType | If the consent specifies AccountType\n, only present accounts whose type matches one of the specified values (Retail\n, SME\n, Corporate\n). If not specified, present accounts of all types supported by this API Hub integration.\n2 | consent.AccountSubType | If the consent specifies AccountSubType\n, only present accounts whose subtype matches one of the specified values. If not specified, present accounts of all subtypes.\n3 | No eligible accounts | If the authenticated customer does not hold any accounts matching the requested consent parameters (e.g. AccountType\n, AccountSubType\n, or the permissions requested), PATCH the consent to Rejected\n and call doFail\n with error\n: invalid_request\n and error_description\n: user_lacks_eligible_accounts\n. See Authorization requirements\n for details.\n4 | Multiple selection | The account selection screen must allow the customer to select more than one account. A consent with no accounts selected must not be authorised.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Authorization — Account Selection",
+        "anchor": "authorization-account-selection",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"authorization-account-selection\",\"\"]:0",
+      "content_hash": "75728ad9684993b9b376fc2b8c32235f786602bd219f18efe65ce4a986d39094",
+      "schema_version": 2
+    },
+    {
+      "id": "6dea9e00-dfb9-53b3-86d8-356f4a7c53b5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > List Accounts\n\n# | Field | Rule\n1 | accountIds | Return the accounts whose id\n matches one of the values in the accountIds\n query parameter. Populate the Status\n field on each account so the TPP can see the current state.\n2 | Data completeness | All fields that exist or are derivable from your systems must be populated on each account. All fields marked as required in the OpenAPI spec must be present. This includes accountHolderName\n, status\n, currency\n, accountType\n, and accountSubType\n where held.\n3 | accountNumbers | Must contain at least one entry. schemeName\n and identification\n are required on each entry.\n4 | accountNumbers.schemeName | Must reflect the account identifier type: IBAN\n for CurrentAccount\n and Savings\n; MaskedPAN\n for CreditCard\n; MortgageReference\n for Mortgage\n; FinanceReference\n for Finance\n.\n5 | customers | For non-business accounts, customers\n must contain at least one entry. For business accounts, populate businessCustomer\n instead.\n6 | AccountSubType | Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, and Mortgage\n.\n7 | Account access | For every accountId\n in the accountIds\n query parameter, validate that the account is held by the customer resolved from o3-psu-identifier\n. Apply the Account Access Validation\n check before returning — if any of the requested accounts is not held by the customer, return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n.\n8 | Account status | Return all consented accounts regardless of Status\n. Accounts that are Inactive\n, Dormant\n, Suspended\n, Unclaimed\n, Deceased\n, or Closed\n MUST still be included — the Status\n field on each account reflects the current state so the TPP can observe it. This endpoint is exempt from the Account Status Handling\n mapping.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "List Accounts",
+        "anchor": "list-accounts",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"list-accounts\",\"\"]:0",
+      "content_hash": "59b7260fed69d34cdd6ec57105e3ca35198641c543e447a02d4200fc3717848f",
+      "schema_version": 2
+    },
+    {
+      "id": "03236530-a1f7-54a5-b386-ec8a743bb75f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Account\n\n# | Field | Rule\n1 | account | Return the account whose id\n matches the value in the accountId\n path parameter.\n2 | Data completeness | All fields that exist or are derivable from your systems must be populated, consistent with what is returned by GET /accounts\n for the same account. All fields marked as required in the OpenAPI spec must be present.\n3 | accountNumbers | Must contain at least one entry. schemeName\n and identification\n are required on each entry.\n4 | accountNumbers.schemeName | Must reflect the account identifier type: IBAN\n for CurrentAccount\n and Savings\n; MaskedPAN\n for CreditCard\n; MortgageReference\n for Mortgage\n; FinanceReference\n for Finance\n.\n5 | AccountSubType | Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, and Mortgage\n.\n6 | Account access | Validate that the account in the accountId\n path parameter is held by the customer resolved from o3-psu-identifier\n. Apply the Account Access Validation\n check before status handling — a non-held account MUST return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n.\n7 | Account status | If the account is not Active\n, do not return the resource. Apply the Account Status Handling\n mapping to return 403\n with the corresponding errorCode\n and errorMessage\n.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Account",
+        "anchor": "get-account",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-account\",\"\"]:0",
+      "content_hash": "da1807dd042be48cfc6dcb481092512fe6fb0404370d99a2db596825ef270bff",
+      "schema_version": 2
+    },
+    {
+      "id": "f873dcae-b2e0-5ccc-b4ec-f9eb41edc144",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > List Balances\n\n# | Field | Rule\n1 | account | Return the balances for the account whose id\n matches the value in the accountId\n path parameter.\n2 | Data completeness | All balance types that exist for the account must be returned. All fields marked as required in the OpenAPI spec must be present on each record, including accountId\n, balanceType\n, amount\n (with amount\n and currency\n), creditDebitIndicator\n, and timestamp\n.\n3 | Multiple balance types | Return one record per distinct balance type held for the account. More than one record per account is permitted and expected where multiple balance types exist. Include creditLines\n where applicable.\n4 | InterimAvailable | For CurrentAccount\n and Savings\n accounts, a record with balanceType: InterimAvailable\n must always be included. This is the real-time available balance on the account.\n5 | AccountSubType | Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, and Mortgage\n.\n6 | Account access | Validate that the account in the accountId\n path parameter is held by the customer resolved from o3-psu-identifier\n. Apply the Account Access Validation\n check before status handling — a non-held account MUST return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n.\n7 | Account status | If the account is not Active\n, do not return the resource. Apply the Account Status Handling\n mapping to return 403\n with the corresponding errorCode\n and errorMessage\n.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "List Balances",
+        "anchor": "list-balances",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"list-balances\",\"\"]:0",
+      "content_hash": "93802aa110b9a45abd73040c9c078bdbe1c0061e39a9d874636ca5f65406d254",
+      "schema_version": 2
+    },
+    {
+      "id": "7ccc4d0c-e524-55c9-8d48-b645ef0cc898",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > List Beneficiaries\n\n# | Field | Rule\n1 | account | Return the beneficiaries linked to the account whose id\n matches the value in the accountId\n path parameter.\n2 | Required fields | Every beneficiary record must include accountId\n, beneficiaryId\n, beneficiaryType\n, and addedViaOF\n.\n3 | Data completeness | All fields that exist or are derivable must be populated, including creditorAccount\n (with schemeName\n and identification\n), servicer\n, and reference\n where held.\n4 | Empty result | If the account holds no beneficiaries, return 200\n with an empty data\n array. Do not return 404\n.\n5 | AccountSubType | Only supported for CurrentAccount\n and Savings\n accounts. Not available for CreditCard\n, Finance\n, or Mortgage\n accounts.\n6 | Account access | Validate that the account in the accountId\n path parameter is held by the customer resolved from o3-psu-identifier\n. Apply the Account Access Validation\n check before status handling — a non-held account MUST return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n.\n7 | Account status | If the account is not Active\n, do not return the resource. Apply the Account Status Handling\n mapping to return 403\n with the corresponding errorCode\n and errorMessage\n.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "List Beneficiaries",
+        "anchor": "list-beneficiaries",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"list-beneficiaries\",\"\"]:0",
+      "content_hash": "af8b6fd2a89504219762a026255a963a3296706c46902c467849003287cdf4fb",
+      "schema_version": 2
+    },
+    {
+      "id": "d4fe858f-a527-537c-bbdd-a6fabf16fdc3",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > List Direct Debits\n\n# | Field | Rule\n1 | account | Return the direct debits linked to the account whose id\n matches the value in the accountId\n path parameter.\n2 | Required fields | Every direct debit record must include accountId\n, directDebitId\n, directDebitStatusCode\n, mandateIdentification\n, name\n, and frequency\n.\n3 | Data completeness | Include previousPaymentDateTime\n and previousPaymentAmount\n where available.\n4 | Empty result | If the account holds no direct debits, return 200\n with an empty data\n array. Do not return 404\n.\n5 | AccountSubType | Only supported for CurrentAccount\n and Savings\n accounts. Not available for CreditCard\n, Finance\n, or Mortgage\n accounts.\n6 | Account access | Validate that the account in the accountId\n path parameter is held by the customer resolved from o3-psu-identifier\n. Apply the Account Access Validation\n check before status handling — a non-held account MUST return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n.\n7 | Account status | If the account is not Active\n, do not return the resource. Apply the Account Status Handling\n mapping to return 403\n with the corresponding errorCode\n and errorMessage\n.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "List Direct Debits",
+        "anchor": "list-direct-debits",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"list-direct-debits\",\"\"]:0",
+      "content_hash": "2433ad3c1b097828e21b8abc8b7ab1dd516d3a628ade5f88aea92541ba8269d0",
+      "schema_version": 2
+    },
+    {
+      "id": "10deffa1-b54d-5371-9c8c-e10e5825e722",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > List Scheduled Payments\n\n# | Field | Rule\n1 | account | Return the scheduled payments linked to the account whose id\n matches the value in the accountId\n path parameter.\n2 | Required fields | Every scheduled payment record must include accountId\n, scheduledPaymentId\n, scheduledType\n, scheduledPaymentDateTime\n, and instructedAmount\n (with amount\n and currency\n).\n3 | Data completeness | Include creditorAccount\n (with schemeName\n and identification\n), creditorAgent\n, creditorReference\n, and debtorReference\n where held.\n4 | Empty result | If the account holds no scheduled payments, return 200\n with an empty data\n array. Do not return 404\n.\n5 | AccountSubType | Only supported for CurrentAccount\n and Savings\n accounts. Not available for CreditCard\n, Finance\n, or Mortgage\n accounts.\n6 | Account access | Validate that the account in the accountId\n path parameter is held by the customer resolved from o3-psu-identifier\n. Apply the Account Access Validation\n check before status handling — a non-held account MUST return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n.\n7 | Account status | If the account is not Active\n, do not return the resource. Apply the Account Status Handling\n mapping to return 403\n with the corresponding errorCode\n and errorMessage\n.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "List Scheduled Payments",
+        "anchor": "list-scheduled-payments",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"list-scheduled-payments\",\"\"]:0",
+      "content_hash": "e5879f26b406476ba7432e65ccf595d8f7e617c9c874cb8032b8f623e4352c7b",
+      "schema_version": 2
+    },
+    {
+      "id": "481fb1a8-da88-5feb-858c-a333f95a3d5c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > List Standing Orders\n\n# | Field | Rule\n1 | account | Return the standing orders linked to the account whose id\n matches the value in the accountId\n path parameter.\n2 | Required fields | Every standing order record must include accountId\n, standingOrderId\n, frequency\n, firstPaymentDateTime\n, standingOrderStatusCode\n, and firstPaymentAmount\n (with amount\n and currency\n).\n3 | Data completeness | Include nextPaymentDateTime\n, nextPaymentAmount\n, lastPaymentDateTime\n, lastPaymentAmount\n, finalPaymentDateTime\n, finalPaymentAmount\n, numberOfPayments\n, creditorAccount\n, creditorAgent\n, and standingOrderType\n where held.\n4 | Empty result | If the account holds no standing orders, return 200\n with an empty data\n array. Do not return 404\n.\n5 | AccountSubType | Only supported for CurrentAccount\n and Savings\n accounts. Not available for CreditCard\n, Finance\n, or Mortgage\n accounts.\n6 | Account access | Validate that the account in the accountId\n path parameter is held by the customer resolved from o3-psu-identifier\n. Apply the Account Access Validation\n check before status handling — a non-held account MUST return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n.\n7 | Account status | If the account is not Active\n, do not return the resource. Apply the Account Status Handling\n mapping to return 403\n with the corresponding errorCode\n and errorMessage\n.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "List Standing Orders",
+        "anchor": "list-standing-orders",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"list-standing-orders\",\"\"]:0",
+      "content_hash": "21f53c69b902f258e084a3b9e7be7bbabcd28a7721ea7eb0bf4f163594f54648",
+      "schema_version": 2
+    },
+    {
+      "id": "798c3a31-05c9-5b41-8eff-738ba1f2ef32",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > List Statements\n\n# | Field | Rule\n1 | account | Return the statements for the account whose id\n matches the value in the accountId\n path parameter.\n2 | fromStatementDate | If provided, return only statements with a statement date on or after this date. Filtering is open-ended (from the earliest available statement) if not provided.\n3 | toStatementDate | If provided, return only statements with a statement date on or before this date. Filtering is open-ended (to the latest available statement) if not provided.\n4 | Required fields | Every statement record must include accountId\n, accountSubType\n, statementId\n, statementDate\n, openingDate\n, closingDate\n, openingBalance\n (with creditDebitIndicator\n, amount\n, and currency\n), closingBalance\n (with creditDebitIndicator\n, amount\n, and currency\n), and summary\n (with creditDebitIndicator\n, subTransactionType\n, amount\n, and count\n per entry).\n5 | Data completeness | All fields that exist or are derivable for each statement must be returned, including creditLine\n where applicable.\n6 | Data retention | The endpoint must support retrieval of at least the last two years of statements. This is a minimum availability floor, not a query limit — the endpoint MAY return statements older than two years where it holds them.\n7 | Range handling | A request whose fromStatementDate\n or toStatementDate\n extends beyond two years into the past is well-formed and MUST NOT be rejected — return 200\n with the matching subset (empty where none).\n8 | Empty result | If no statements exist within the requested range, return 200\n with an empty data\n array. Do not return 404\n.\n9 | Invalid range | The API Hub rejects malformed date-range requests before proxying — an unparseable date, a contradictory range (fromStatementDate\n after toStatementDate\n), or a toStatementDate\n in the future — returning 400\n with errorCode\n: Resource.InvalidFormat\n. The endpoint therefore receives only well-formed ranges and does not re-validate them.\n10 | Pagination | Pagination must be supported. meta.paginated\n, meta.totalRecords\n, and meta.totalPages\n must be accurate.\n11 | AccountSubType | Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, and Mortgage\n.\n12 | Account access | Validate that the account in the accountId\n path parameter is held by the customer resolved from o3-psu-identifier\n. Apply the Account Access Validation\n check before status handling — a non-held account MUST return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n.\n13 | Account status | If the account is not Active\n, do not return the resource. Apply the Account Status Handling\n mapping to return 403\n with the corresponding errorCode\n and errorMessage\n.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "List Statements",
+        "anchor": "list-statements",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"list-statements\",\"\"]:0",
+      "content_hash": "8ee7de7494d65a24999162187f04594862bdef8949733d7ee4195b06ad62814b",
+      "schema_version": 2
+    },
+    {
+      "id": "a5bad09d-5053-530e-8b0d-5583e8794d17",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > List Transactions\n\n# | Field | Rule\n1 | account | Return the transactions for the account whose id\n matches the value in the accountId\n path parameter.\n2 | fromBookingDateTime | If provided, return only transactions booked on or after this date-time. Filtering is open-ended if not provided.\n3 | toBookingDateTime | If provided, return only transactions booked on or before this date-time. Filtering is open-ended if not provided.\n4 | Timezone | Any timezone offset in fromBookingDateTime\n or toBookingDateTime\n must be ignored. Filter against local booking date-time only.\n5 | Required fields | Every transaction record must include accountId\n, transactionId\n, transactionDateTime\n, transactionType\n, subTransactionType\n, creditDebitIndicator\n, status\n, bookingDateTime\n, amount\n (with amount\n and currency\n), and transactionInformation\n.\n6 | Data completeness | All fields that exist or are derivable must be populated, including balance\n (with creditDebitIndicator\n, balanceType\n, and amount\n) where available, merchantDetails\n, creditorAccount\n, debtorAccount\n, cardInstrument\n, currencyExchange\n, flags\n, and paymentPurposeCode\n where held.\n7 | Transaction context | transactionInformation\n is REQUIRED on every transaction from v2.2 — see the v2.1 → v2.2 changelog, §5\n. It must carry a human-readable narrative by which the customer can recognise the entry, of 1 to 500 characters. Where your core banking system holds no stored narrative for a transaction, derive one from the data you do hold — the merchant name, the counterparty, or the transaction type. Whitespace-only values and non-informative placeholders such as N/A\n, -\n, or Unknown\n do not satisfy this rule. transactionReference\n must be provided where held.\n8 | Data retention | The endpoint must support retrieval of at least the last two years of transactions. This is a minimum availability floor, not a query limit — the endpoint MAY return transactions older than two years where it holds them.\n9 | Range handling | A request whose fromBookingDateTime\n or toBookingDateTime\n extends beyond two years into the past is well-formed and MUST NOT be rejected — return 200\n with the matching subset (empty where none).\n10 | Empty result | If no transactions exist within the requested range, return 200\n with an empty data\n array. Do not return 404\n.\n11 | Invalid range | The API Hub rejects malformed date-range requests before proxying — an unparseable date-time, a contradictory range (fromBookingDateTime\n after toBookingDateTime\n), or a toBookingDateTime\n in the future — returning 400\n with errorCode\n: Resource.InvalidFormat\n. The endpoint therefore receives only well-formed ranges and does not re-validate them.\n12 | Pagination | Pagination must be supported. meta.paginated\n, meta.totalRecords\n, and meta.totalPages\n must be accurate.\n13 | AccountSubType | Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, and Mortgage\n.\n14 | Account access | Validate that the account in the accountId\n path parameter is held by the customer resolved from o3-psu-identifier\n. Apply the Account Access Validation\n check before status handling — a non-held account MUST return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n.\n15 | Account status | If the account is not Active\n, do not return the resource. Apply the Account Status Handling\n mapping to return 403\n with the corresponding errorCode\n and errorMessage\n.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "List Transactions",
+        "anchor": "list-transactions",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"list-transactions\",\"\"]:0",
+      "content_hash": "e6741f57b86386e7051856f7025b88bdc1f9b48bb898bf0554000dfbec3dcafe",
+      "schema_version": 2
+    },
+    {
+      "id": "abe26eac-7b03-5eaa-bc21-052679d54e29",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > List Products\n\n# | Field | Rule\n1 | account | Return the products associated with the account whose id\n matches the value in the accountId\n path parameter.\n2 | Data completeness | All product data that exists or is derivable from your systems must be returned, including fees, charges, rates, rewards, benefits, and eligibility criteria where held. Every field other than FinanceRates\n is always returned in cleartext, regardless of which response shape is chosen for FinanceRates\n (see below).\n3 | FinanceRates\n — permission gating | Only include the FinanceRates\n field on a Product\n record when the consent carries the ReadProductFinanceRates\n permission. If the permission is absent, omit the field entirely — do not substitute null\n, an empty object, or a placeholder JWE. See Encrypted FinanceRates — Step 1\n for the permission-check pattern.\n4 | FinanceRates\n — response shape | When ReadProductFinanceRates\n is present, the LFI MAY return FinanceRates\n as either a cleartext AEProductFinanceRates\n JSON object or as an AEJwe\n compact serialisation string. The choice is at the LFI's discretion, typically per product type (e.g. cleartext for deposit accounts, JWE for credit cards, finance accounts, and mortgages where the rate is commercially sensitive).\n5 | FinanceRates\n — cleartext path | If returning cleartext, serve the AEProductFinanceRates\n object alongside the rest of the Product\n record in the standard JSON response, exactly as every other field on this endpoint is served. No additional handling — no OTP, no encryption, no rate limits beyond the standard ones — applies.\n6 | FinanceRates\n — JWE path | If returning an encrypted JWE, the LFI MUST follow the Encrypted FinanceRates\n guide in full — generate a fresh one-time code per call, deliver it to the customer on a channel the LFI controls, encrypt the cleartext AEProductFinanceRates\n as a PBES2-HS512+A256KW / A256GCM JWE with the OTP as the password, embed a 30-minute exp\n in the plaintext, and enforce the per-(consent, account) rate limits (60-second interval, 12 fresh OTPs per rolling 24 hours) by rejecting breaches with 429 Too Many Requests\n and a Retry-After\n header.\n7 | Empty result | If no product data exists for the account, return 200\n with an empty data\n array. Do not return 404\n.\n8 | AccountSubType | Supported for all account subtypes: CurrentAccount\n, Savings\n, CreditCard\n, Finance\n, and Mortgage\n.\n9 | Account access | Validate that the account in the accountId\n path parameter is held by the customer resolved from o3-psu-identifier\n. Apply the Account Access Validation\n check before status handling — a non-held account MUST return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n.\n10 | Account status | If the account is not Active\n, do not return the resource. Apply the Account Status Handling\n mapping to return 403\n with the corresponding errorCode\n and errorMessage\n.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "List Products",
+        "anchor": "list-products",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"list-products\",\"\"]:0",
+      "content_hash": "3ec4fd7509b38104ce054721412c17253b0902dbb7ec13a0823780094a4fced4",
+      "schema_version": 2
+    },
+    {
+      "id": "d87938d7-bc48-5cd2-a3d4-48ac424aceb9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Customer\n\n# | Field | Rule\n1 | account | Return the customers associated with the account whose id\n matches the value in the accountId\n path parameter.\n2 | Multiple customers | Return one record per customer associated with the account. Joint accounts must return a record for each joint holder.\n3 | Required fields | Every customer record must include id\n, claims\n verifiedClaims\n, customerType\n, customerCategory\n, and accountRole\n.\n4 | Person claims | For retail customers, verifiedClaims[].claims\n must include identityType\n, fullName\n, givenName\n, familyName\n, emiratesId\n, emiratesIdExpiryDate\n, and residentialAddress\n. Include all optional fields (middleName\n, birthDate\n, mobileNumber\n, email\n, nationality\n, etc.) where held.\n5 | Corporate claims | For SME/Corporate customers, verifiedClaims[].claims\n must include identityType\n, businessName\n, and tradeLicenceNumber\n. Include all optional fields (taxIdentificationNumber\n, dateOfIncorporation\n, countryOfIncorporation\n, corporateAddress\n, etc.) where held.\n6 | Data completeness | All fields that exist or are derivable from your systems must be populated on each customer record.\n7 | Empty result | If no customer records are associated with the account, return 200\n with an empty data\n array. Do not return 404\n.\n8 | Account access | Validate that the account in the accountId\n path parameter is held by the customer resolved from o3-psu-identifier\n. Apply the Account Access Validation\n check before status handling — a non-held account MUST return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n.\n9 | Account status | If the account is not Active\n, do not return the resource. Apply the Account Status Handling\n mapping to return 403\n with the corresponding errorCode\n and errorMessage\n.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Customer",
+        "anchor": "get-customer",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-customer\",\"\"]:0",
+      "content_hash": "c7f663715ad2652c733e1da7b7dde8fbf070c3f13cbce8507d8b86b63f3bb175",
+      "schema_version": 2
+    },
+    {
+      "id": "d11501b0-c371-5f1e-8bc0-b5a01d973acf",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Get Customer\n\n# | Field | Rule\n1 | Customer identification | Identify the customer from the o3-psu-identifier\n header passed by the Hub.\n2 | Required fields | The customer record must include id\n, verifiedClaims\n, and customerCategory\n.\n3 | Person claims | For retail customers, verifiedClaims[].claims\n must include identityType\n, fullName\n, givenName\n, familyName\n, emiratesId\n, emiratesIdExpiryDate\n, and residentialAddress\n. Include all optional fields where held.\n4 | Corporate claims | For SME/Corporate customers, verifiedClaims[].claims\n must include identityType\n, businessName\n, and tradeLicenceNumber\n. Include all optional fields where held.\n5 | Data completeness | All fields that exist or are derivable from your systems must be populated.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Get Customer",
+        "anchor": "get-customer",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"get-customer\",\"\"]:1",
+      "content_hash": "b81dc3cff7c6ed393b7fc110b9768ddaf2643a1cf18b19a4aca9ba368eea814f",
+      "schema_version": 2
+    },
+    {
+      "id": "b27c61cc-ec6c-54c3-914e-51ac004cc869",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Account Access Validation\n\nEvery endpoint that takes an account identifier — whether as the accountId\n path parameter under /accounts/{accountId}\n and /accounts/{accountId}/…\n, or as values in the accountIds\n query parameter on GET /accounts\n — MUST validate that each account is held by the customer resolved from the o3-psu-identifier\n header before applying the per-endpoint rules above. Account ownership is authoritative on the LFI side — the Hub stores the accountIds\n patched onto the consent at authorization, but the LFI is the source of truth for which accounts the customer actually holds. If the patched set ever drifted from the customer's actual holdings, only the LFI can detect it.\n\nIf any requested account is not held by the resolved customer, return 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n and errorMessage\n: The account is permanently inaccessible.\n Apply this check before the Account Status Handling\n mapping — a non-held account MUST NOT leak status information.\n\nGET /customer\n is exempt — it is resolved from o3-psu-identifier\n and not scoped to a specific account.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Account Access Validation",
+        "anchor": "account-access-validation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"account-access-validation\",\"\"]:0",
+      "content_hash": "bd4872eb42b02005ef2475429fabe2d4cec364c78eee20a8de994ab884295ac3",
+      "schema_version": 2
+    },
+    {
+      "id": "45dbba21-7867-5bb3-8a79-e2ae6349c764",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+      "type": "section",
+      "text": "Bank Data Sharing — Requirements > Account Status Handling\n\nThe rules above assume the account is in a readable state. The table below summarises how each value of AEAccountStatusCode\n\n maps to a response for endpoints under /accounts/{accountId}\n.\n\nStatus | Readable | Response if not readable\nActive | ✅ | —\nInactive | ✅ | —\nDormant | ✅ | —\nSuspended | ❌ | 403\n with errorCode\n: Consent.AccountTemporarilyBlocked\n and errorMessage\n: The account is temporarily blocked.\nUnclaimed | ❌ | 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n and errorMessage\n: The account is permanently inaccessible.\nDeceased | ❌ | 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n and errorMessage\n: The account is permanently inaccessible.\nClosed | ❌ | 403\n with errorCode\n: Consent.PermanentAccountAccessFailure\n and errorMessage\n: The account is permanently inaccessible.\n\nGET /accounts\n is exempt from this mapping — it returns all consented accounts regardless of status, with the Status\n field populated so the TPP can see the current state.",
+      "metadata": {
+        "title": "Bank Data Sharing — Requirements",
+        "section": "Account Status Handling",
+        "anchor": "account-status-handling",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "290814da8bc40c25a7cb2bb1cfc10c4205f258655ad6887e81e9f699b52257ec",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/requirements",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "@/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing",
+          "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts"
+        ],
+        "assets": [
+          {
+            "file": "src/data/requirements/v2.2-rc2/lfi-api-hub-v2-1-banking-data-sharing.ts",
+            "hash": "76fa1b03302e40aaf2143e524d248df97d3e97f853718555d6e32b1dac61748d"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"account-status-handling\",\"\"]:0",
+      "content_hash": "24c4c1d8838c7e31c40d306573c76846275e3b5cbee6bb9ae314ca216bdfa154",
+      "schema_version": 2
+    }
+  ]
+}
