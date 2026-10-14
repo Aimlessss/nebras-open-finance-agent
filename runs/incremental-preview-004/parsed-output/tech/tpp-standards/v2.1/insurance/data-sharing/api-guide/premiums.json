@@ -1,0 +1,160 @@
+{
+  "id": "tech/tpp-standards/v2.1/insurance/data-sharing/api-guide/premiums",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/tpp-standards/v2.1/insurance/data-sharing/api-guide/premiums.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "e1e848d7da6ac8bc6f4ff0343e7467708663a809545ee4b2b54b28b9c681dffc",
+    "dependencies": [
+      "node:crypto"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Insurance Data Sharing — Encrypted Premiums",
+    "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.1/insurance/data-sharing/api-guide/premiums",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Insurance Data Sharing — Encrypted Premiums",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "When a TPP holds the ReadInsurancePremium permission and calls any /{type}-insurance-policies endpoint, the LFI MAY return the Premium field as an encrypted JWE rather than a structured object. The TPP MUST present the premium to the customer without the unencrypted value ever reaching or being stored on its servers — decryption happens locally on the customer’s device."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Encrypted premiums are an LFI-side choice",
+        "level": 2,
+        "anchor": "when-this-applies",
+        "category": "When this applies",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The Premium field on every insurance policy response is defined as anyOf a structured AEInsuranceDataSharingPremiumProperties object or an AEInsurancePremiumJWE compact string. Each LFI decides, per policy, whether to return the premium in cleartext or as an encrypted JWE. A TPP holding ReadInsurancePremium MUST therefore be ready for either shape on every call."
+          },
+          {
+            "type": "list",
+            "items": [
+              "Cleartext — Premium is a JSON object containing PremiumAmountExcludingVAT, PremiumVATAmount, TotalPremiumAmount, Currency, and PremiumFrequency. Render directly. No special handling required.",
+              "Encrypted (JWE) — Premium is a compact JWE string. The TPP server MUST forward this opaque string to the customer’s device without inspecting, logging, or persisting it. Decryption happens in the browser or mobile app using key material tied to the customer’s authenticated session."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Some insurers treat the premium as commercially sensitive — in particular for switching and quote-comparison use cases where premium parity is a competitive lever. The encrypted JWE shape lets the premium flow through the TPP to the customer’s screen without the TPP ever holding the cleartext value."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "What you need before calling these endpoints",
+        "level": 2,
+        "anchor": "prerequisites",
+        "category": "Prerequisites",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "A consent that includes ReadInsurancePremium for the relevant InsuranceType — this permission MUST be present in the per-sector block of authorization_details.consent.Permissions when the TPP creates the consent. See Constructing Authorization Details.",
+              "The Access Encrypted Resource Data optional certification — before requesting ReadInsurancePremium on a live LFI, the TPP MUST hold this certification with Nebras. See Access Encrypted Resource Data.",
+              "A valid access token and the standard FAPI headers — x-fapi-interaction-id, x-fapi-auth-date, and x-fapi-customer-ip-address. See Request Headers."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Fetch the policy detail as normal",
+        "level": 2,
+        "anchor": "step-1-call-policy",
+        "category": "Step 1 — GET /{type}-insurance-policies/{InsurancePolicyId}",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Premium values are returned on the per-policy detail endpoint. Use an InsurancePolicyId obtained from a prior GET /{type}-insurance-policies call (Step 8 of the API Guide ) and request the detailed policy."
+          },
+          {
+            "type": "paragraph",
+            "text": "Whether the LFI returns cleartext or an encrypted JWE for Premium, the request itself is unchanged. Make the call as you would for any other Insurance Data Sharing endpoint:"
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Example response — cleartext",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Example response — encrypted JWE",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "Apart from Premium, every other field on the policy is returned in cleartext in both shapes — PolicyNumber, PolicyStatus, Insurer, dates, coverage, riders, and so on. Only Premium is ever encrypted."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Branch on whether Premium is a string",
+        "level": 2,
+        "anchor": "step-2-detect-jwe",
+        "category": "Step 2 — Detect the response shape",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "If Premium is a JSON object, render its fields directly. If it is a string, treat it as an opaque compact JWE and forward it to the customer’s browser or mobile app. The TPP server MUST NOT attempt to decrypt the JWE, parse its header beyond detecting the string type, log its contents, or persist it."
+          },
+          {
+            "type": "paragraph",
+            "text": "The encrypted JWE is opaque to the TPP. Pass it through to the customer device and discard the server-side copy as soon as the response is sent. Do not write the JWE to application logs, request traces, or analytics pipelines — even though it is encrypted, persisting it would put the TPP in scope of the encrypted-data handling requirements documented in Access Encrypted Resource Data."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The decrypted premium never leaves the device",
+        "level": 2,
+        "anchor": "step-3-decrypt-device",
+        "category": "Step 3 — Decrypt locally on the customer device",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Decryption MUST run on the customer’s device — the cleartext premium MUST NOT be sent to the TPP server or any third party. The mechanism mirrors the Bank Data Sharing encrypted-rate flow described in Encrypted FinanceRates; use the same JOSE-library pattern, keep the OTP/key material in browser memory only, and discard the decrypted premium when the customer navigates away."
+          },
+          {
+            "type": "paragraph",
+            "text": "The decrypted Premium object MUST stay inside the page’s JavaScript scope. Do not POST it back to your server for “processing”, do not include it in analytics events, and do not echo it back into a form that submits to your domain. The same rule applies to any key material used to unlock the JWE."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "See also",
+        "level": 2,
+        "anchor": "related",
+        "category": "Related",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              "Encrypted FinanceRates — the Bank Data Sharing equivalent. Insurance follows the same mechanism, only the field name and consented permission differ.",
+              "Access Encrypted Resource Data — the optional certification a TPP must hold before requesting any encrypted resource field, including Premium."
+            ]
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

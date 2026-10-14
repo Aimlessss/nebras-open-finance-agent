@@ -1,0 +1,427 @@
+{
+  "id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+  "source": {
+    "repo": "Nebras-Open-Finance/community-standards",
+    "file": "src/pages/tech/api-specs/[...slug].vue",
+    "hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "parser": "api-registry",
+    "parser_version": "3",
+    "dependencies": [
+      "src/data/endpoints/index.ts",
+      "src/data/versions.ts",
+      "src/data/endpoints/standards.ts",
+      "src/data/endpoints/api-hub.ts",
+      "src/data/endpoints/ozone-connect.ts",
+      "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+    ],
+    "assets": [
+      {
+        "file": "src/data/endpoints/index.ts",
+        "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+      },
+      {
+        "file": "src/data/versions.ts",
+        "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+      },
+      {
+        "file": "src/data/endpoints/standards.ts",
+        "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+      },
+      {
+        "file": "src/data/endpoints/api-hub.ts",
+        "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+      },
+      {
+        "file": "src/data/endpoints/ozone-connect.ts",
+        "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+      },
+      {
+        "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+        "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+      }
+    ],
+    "extraction_warnings": []
+  },
+  "metadata": {
+    "title": "Get a Payment by PaymentId",
+    "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Get a Payment by PaymentId",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "API /payments/{paymentId}",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"info\": {\n    \"title\": \"Ozone Connect - Bank Service Initiation APIs\",\n    \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor Bank Service Initiation APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a Financial Institution so that Ozone can deliver Service Initiation capabilities to TPPs\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.1.8\\n\\n* Added a character-set `pattern` (`^[A-Za-z0-9 \\\\/?:().,'+-]+$`, the ISO 20022 / SWIFT \\\"x\\\" set) to the\\n  free-text Creditor and Debtor references (`AECreditorReference` / `AEDebtorReference`), so every LFI\\n  knows exactly which characters it must accept and store. Length (`minLength 1` / `maxLength 35`) is\\n  unchanged. Per OFP-003.\\n\\n\\n### v2.1.7\\n\\n* Restructured the international Creditor PII (`PersonalIdentifiableInformation.Initiation.Creditor`) for\\n  SWIFT SR2026: the Creditor party is now a `oneOf` of Individual and Organization variants, discriminated\\n  by `IdentityType`.\\n\\n\\n* The Individual variant carries object-valued `FirstName` / `MiddleName` / `LastName` (`en` / `ar` / `ls`),\\n  `RelationshipToSender`, `DateOfBirth`, `Occupation`, `Nationality`, `Gender`, `CountryOfBirth`,\\n  `SourceOfIncome`, `SourceOfFunds`, and `Evidence`. The Organization variant carries `AnyBIC`, `LEI`, and\\n  `Identification` + `SchemeName`. Both variants share `MobileNumber` / `Email` and an object-valued `Name`\\n  (`en` / `ar` / `ls`).\\n\\n\\n* Added SWIFT SR2026 fields to the international `PostalAddress` (`PostCode`, `Room`, `Department`,\\n  `SubDepartment`, `TownLocationName`, and now-mandatory `TownName`). It is now a single\\n  `AEInternationalAddress` schema shared by both the Creditor and the Creditor Agent (the Creditor Agent\\n  previously used the legacy `AEAddress`).\\n\\n\\n* Added a `CreditorAgent.Branch` object and `CreditorAccount.AccountType` (Savings / Current / Checking /\\n  Prepaid). Domestic Creditor schemas are unchanged.\\n\\n\\n### v2.1.6\\n\\n* Aligned the `Risk` object with Standards: tightened `AERisk` and its descendants with `additionalProperties: false` throughout, matching the strictness on the Standards PAR side. `SupplementaryData` blocks remain open extension points and `AEAccountTypeCode` already carried `Retail / SME / Corporate`.\\n\\n### v2.1.5\\n\\n* Changed the `UAEAccountInformationAPI.AEActiveCurrencyAndAmount_SimpleType` `pattern` regex, which was\\n  over-escaped in YAML and failed to validate decimal monetary values.\\n\\n\\n### v2.1.4\\n\\n* Changed PII Schema Objects to align with split domestic and international payment PII introduced to v2.1.\\n\\n### v2.1.3\\n\\n* Added `AccountId` to Account Opening operation responses\\n\\n### v2.1.2\\n\\n* Removed AccountNumber from `get /payment-consents/{ConsentId}/refund` SchemeName values.\\n\\n### v2.1.1\\n\\n* Added `emirates_id` to `DocumentEvidenceDetails`\\n\\n* Changed loan to finance for all Schema Objects names and object descriptions.\\n\\n* Changed CreditorReference and DebtorReference objects to remove pattern.\\n\\n* Changed CreditorReference, DebtorReference, and Reference objects to reduce maximum length to 35 characters.\\n\",\n    \"version\": \"v2.1.8\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://[Ozone_Connect_API]\"\n    }\n  ],\n  \"source_path\": \"/payments/{paymentId}\",\n  \"operations\": {\n    \"get\": {\n      \"operationId\": \"getPayment\",\n      \"tags\": [\n        \"Payments\"\n      ],\n      \"summary\": \"Get a payment\",\n      \"description\": \"Ozone can call this API from Financial Institutions to retrieve payment information.\\n\",\n      \"parameters\": [\n        {\n          \"$ref\": \"#/components/parameters/providerId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/aspspId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerOrgId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerClientId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerSoftwareStatementId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/apiUri\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/apiOperation\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/consentId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerInteractionId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/ozoneInteractionId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/psuIdentifier\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/paymentId\"\n        }\n      ],\n      \"responses\": {\n        \"200\": {\n          \"description\": \"successful operation\",\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/AEPaymentIdResponse\"\n              }\n            }\n          }\n        },\n        \"400\": {\n          \"$ref\": \"#/components/responses/error400Response\"\n        },\n        \"403\": {\n          \"$ref\": \"#/components/responses/error403Response\"\n        },\n        \"500\": {\n          \"$ref\": \"#/components/responses/error500Response\"\n        },\n        \"default\": {\n          \"$ref\": \"#/components/responses/errorResponse\"\n        }\n      }\n    }\n  },\n  \"security\": [\n    {},\n    {\n      \"OzoneConnectApiKey\": []\n    },\n    {\n      \"OzoneConnectClientCredentials\": [\n        \"placeholder\"\n      ]\n    },\n    {\n      \"OzoneConnectJwtAuth\": []\n    }\n  ],\n  \"securitySchemes\": {\n    \"OzoneConnectApiKey\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n      \"type\": \"apiKey\",\n      \"in\": \"header\",\n      \"name\": \"Authorization\"\n    },\n    \"OzoneConnectClientCredentials\": {\n      \"type\": \"oauth2\",\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n      \"flows\": {\n        \"clientCredentials\": {\n          \"tokenUrl\": \"https://example.lfi.ae/token\",\n          \"scopes\": {\n            \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n          }\n        }\n      }\n    },\n    \"OzoneConnectJwtAuth\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Ozone-Connect-JWT-Auth\"\n    },\n    \"OzoneConnectServiceInitiationToken\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Bearer\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/providerId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-provider-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"Identifier for the Financial Institution that the request is targeted to\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/aspspId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-aspsp-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"deprecated\": true,\n  \"description\": \"Identifier for the financial institution that the request is targeted to. This header is deprecated and will be removed in a future version of Ozone Connect. Use `o3-provider-id` instead.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/callerOrgId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-org-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the organization calling the API\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/callerClientId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-client-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the OIDC clientId calling the API\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/callerSoftwareStatementId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-software-statement-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the software statement calling the API\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/apiUri",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-api-uri\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The parameterised URL of the API being called by the caller\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/apiOperation",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-api-operation\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/consentId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-consent-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The consentId for which this call is being made\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/callerInteractionId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-interaction-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": false,\n  \"description\": \"The interaction ID passed in by the caller, if any\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/ozoneInteractionId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-ozone-interaction-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/psuIdentifier",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-psu-identifier\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"A Base64 encoded representation of the psuIdentifier JSON object.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/paymentId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"paymentId\",\n  \"description\": \"The identifier for a given payment instruction\",\n  \"in\": \"path\",\n  \"required\": true,\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEPaymentIdResponse",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"The payment response to be passed on to the TPP.\\n\\nThe structure of this response is aligned to the structure of the response for the CBUAE payment initiation API.\\n\",\n  \"type\": \"object\",\n  \"additionalProperties\": false,\n  \"required\": [\n    \"data\"\n  ],\n  \"properties\": {\n    \"data\": {\n      \"type\": \"object\",\n      \"description\": \"Required fields are common for all the payments including file payment. Apart from that, paymentTransactionId is required for all payments except file payments\",\n      \"additionalProperties\": false,\n      \"required\": [\n        \"id\",\n        \"status\",\n        \"statusUpdateDateTime\",\n        \"creationDateTime\",\n        \"paymentPurposeCode\"\n      ],\n      \"properties\": {\n        \"id\": {\n          \"description\": \"An API specific unique identification as assigned by the LFI to identify the domestic Payment resource.\",\n          \"type\": \"string\"\n        },\n        \"consentId\": {\n          \"description\": \"Unique identification assigned by the TPP to identify the consent resource.\",\n          \"type\": \"string\"\n        },\n        \"paymentTransactionId\": {\n          \"description\": \"This is an end-to-end identifier that is generated by the underlying payment rails when it is sent from an Originating LFI to a Receiving LFI.\\nFor IPP transactions, this is the IPP generated identifier.\\n\\nThis property is not the same as the `transactionId` in the Bank Data Sharing Transactions API.\\n\\nThe `paymentTransactionId` must be populated if the payment is processed by the LFI, and updated at the Consent Manager Payment Log API using the `patch` operation.\\n\",\n          \"type\": \"string\"\n        },\n        \"status\": {\n          \"description\": \"Specifies the status of the payment information group\\n* Pending: Payment initiation or individual transaction included in the payment initiation is pending. Further checks and status update will be performed.\\n* Rejected: The payment initiation has been rejected\\n* AcceptedSettlementCompleted: Settlement of the Debtor's account has been completed\\n* AcceptedCreditSettlementCompleted: When the Creditor account has been credited with the funds of the payment initiated via the TPP\\n* AcceptedWithoutPosting:  When the Recipient Bank has accepted the payment but has not applied the credit to the Creditor account yet.\\n\",\n          \"type\": \"string\",\n          \"enum\": [\n            \"Pending\",\n            \"AcceptedSettlementCompleted\",\n            \"AcceptedCreditSettlementCompleted\",\n            \"AcceptedWithoutPosting\",\n            \"Rejected\",\n            \"Received\"\n          ]\n        },\n        \"statusUpdateDateTime\": {\n          \"description\": \"Date and time at which the resource status was updated.\",\n          \"type\": \"string\",\n          \"format\": \"date-time\"\n        },\n        \"rejectReasonCode\": {\n          \"items\": {\n            \"description\": \"Rejection Reason\",\n            \"type\": \"object\",\n            \"required\": [\n              \"code\",\n              \"message\"\n            ],\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"code\": {\n                \"description\": \"Rejected Reason Code is a namespaced rejection reason code. The first part of the code is the namespace, which is the name of the organisation or system (e.g., AANI) that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nPayments that are rejected by AANI will have the AANI prefix, followed by the specific ANNI reason code.\\n\\nThe Payment resouce is updated with the rejection reason code if a Rejected payment is initially created in a Pending state. \\nIf the Payment resource is rejected, and no Payment resource is created - a 4xx HTTP status code is returned to the TPP with the appropriate Error Response.\\n\",\n                \"type\": \"string\",\n                \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n              },\n              \"message\": {\n                \"description\": \"Message\",\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"type\": \"array\",\n          \"minItems\": 1\n        },\n        \"creationDateTime\": {\n          \"description\": \"Date and time at which the message was created.\",\n          \"type\": \"string\",\n          \"format\": \"date-time\"\n        },\n        \"charges\": {\n          \"$ref\": \"#/components/schemas/AECharges\"\n        },\n        \"exchangeRate\": {\n          \"$ref\": \"#/components/schemas/AEExchangeRateInformation\"\n        },\n        \"currencyRequest\": {\n          \"$ref\": \"#/components/schemas/AECurrencyRequest\"\n        },\n        \"instruction\": {\n          \"$ref\": \"#/components/schemas/AEPaymentInstruction\"\n        },\n        \"paymentPurposeCode\": {\n          \"$ref\": \"#/components/schemas/AEPaymentPurposeCode\"\n        },\n        \"debtorReference\": {\n          \"$ref\": \"#/components/schemas/AEDebtorReference\"\n        },\n        \"openFinanceBilling\": {\n          \"$ref\": \"#/components/schemas/AEServiceInitiationOpenFinancePaymentBillingGet\"\n        }\n      }\n    },\n    \"meta\": {\n      \"$ref\": \"#/components/schemas/Meta\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AECharges",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"List of charges associated with the payment request\",\n  \"type\": \"array\",\n  \"items\": {\n    \"type\": \"object\",\n    \"additionalProperties\": false,\n    \"description\": \"Set of elements used to provide details of a charge for the payment initiation.\\n* For Payments, these Charges are on the Debtor.\\n\",\n    \"required\": [\n      \"chargeBearer\",\n      \"type\",\n      \"amount\"\n    ],\n    \"properties\": {\n      \"chargeBearer\": {\n        \"$ref\": \"#/components/schemas/AEChargeBearerType1Code\"\n      },\n      \"type\": {\n        \"$ref\": \"#/components/schemas/AEExternalPaymentChargeTypeCode\"\n      },\n      \"amount\": {\n        \"$ref\": \"#/components/schemas/AEActiveCurrencyAmount\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEChargeBearerType1Code",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Specifies which party/parties will bear the charges associated with the processing of the payment transaction.\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"BorneByCreditor\",\n    \"BorneByDebtor\",\n    \"Shared\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEExternalPaymentChargeTypeCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Charge type, in a coded form.\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"VAT\",\n    \"Fees\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEActiveCurrencyAmount",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"The Currency and Amount relating to the Payment\",\n  \"type\": \"object\",\n  \"required\": [\n    \"amount\",\n    \"currency\"\n  ],\n  \"properties\": {\n    \"amount\": {\n      \"$ref\": \"#/components/schemas/AEActiveOrHistoricAmount\"\n    },\n    \"currency\": {\n      \"$ref\": \"#/components/schemas/AEActiveOrHistoricCurrencyCode\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEActiveOrHistoricAmount",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n  \"type\": \"string\",\n  \"pattern\": \"^\\\\d{1,16}\\\\.\\\\d{2}$\",\n  \"example\": \"100.00\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEActiveOrHistoricCurrencyCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Z]{3,3}$\",\n  \"example\": \"AED\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEExchangeRateInformation",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"additionalProperties\": false,\n  \"required\": [\n    \"unitCurrency\",\n    \"exchangeRate\",\n    \"rateType\"\n  ],\n  \"description\": \"Further detailed information on the exchange rate that has been used in the payment transaction.\",\n  \"properties\": {\n    \"unitCurrency\": {\n      \"description\": \"Currency in which the rate of exchange is expressed in a currency exchange. In the example 1GBP = xxxCUR, the unit currency is GBP.\",\n      \"type\": \"string\",\n      \"pattern\": \"^[A-Z]{3,3}$\"\n    },\n    \"exchangeRate\": {\n      \"description\": \"The factor used for conversion of an amount from one currency to another. This reflects the price at which one currency was bought with another currency.\",\n      \"type\": \"number\"\n    },\n    \"rateType\": {\n      \"description\": \"Specifies the type used to complete the currency exchange.\",\n      \"type\": \"string\",\n      \"enum\": [\n        \"Actual\",\n        \"Agreed\",\n        \"Indicative\"\n      ]\n    },\n    \"contractIdentification\": {\n      \"description\": \"Unique and unambiguous reference to the foreign exchange contract agreed between the initiating party/creditor and the debtor agent.\",\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 256\n    },\n    \"expirationDateTime\": {\n      \"description\": \"Specified date and time the exchange rate agreement will expire.All dates in the JSON payloads are represented in ISO 8601 date-time format. \\nAll date-time fields in responses must include the timezone. An example is below:\\n2017-04-05T10:43:07+00:00\",\n      \"type\": \"string\",\n      \"format\": \"date-time\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AECurrencyRequest",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"The details of the non-local currency or FX request that has been agreed between the User and the TPP.\\nThe requested ChargeBearer and ExchangeRateInformation are included in this object may be overwritten by the LFI in the returned Consent object.\\n\",\n  \"type\": \"object\",\n  \"additionalProperties\": false,\n  \"required\": [\n    \"currencyOfTransfer\"\n  ],\n  \"properties\": {\n    \"instructionPriority\": {\n      \"description\": \"Indicator of the urgency or order of importance that the instructing party would like the instructed party to apply to the processing of the instruction.\",\n      \"type\": \"string\",\n      \"enum\": [\n        \"Normal\",\n        \"Urgent\"\n      ]\n    },\n    \"extendedPurpose\": {\n      \"description\": \"Specifies the purpose of an international payment.\",\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 140\n    },\n    \"chargeBearer\": {\n      \"$ref\": \"#/components/schemas/AEChargeBearerType1Code\"\n    },\n    \"currencyOfTransfer\": {\n      \"description\": \"Specifies the currency of the to be transferred amount, which is different from the currency of the debtor's account.\",\n      \"type\": \"string\",\n      \"pattern\": \"^[A-Z]{3,3}$\"\n    },\n    \"destinationCountryCode\": {\n      \"description\": \"Country in which Credit Account is domiciled. Code to identify a country, a dependency, or another area of particular geopolitical interest, on the basis of country names obtained from the United Nations (ISO 3166, Alpha-2 code).\",\n      \"type\": \"string\",\n      \"pattern\": \"[A-Z]{2,2}\"\n    },\n    \"exchangeRateInformation\": {\n      \"type\": \"object\",\n      \"additionalProperties\": false,\n      \"required\": [\n        \"unitCurrency\",\n        \"rateType\"\n      ],\n      \"description\": \"Provides details on the currency exchange rate and contract.\",\n      \"properties\": {\n        \"unitCurrency\": {\n          \"description\": \"Currency in which the rate of exchange is expressed in a currency exchange. In the example 1GBP = xxxCUR, the unit currency is GBP.\",\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Z]{3,3}$\"\n        },\n        \"exchangeRate\": {\n          \"description\": \"The factor used for conversion of an amount from one currency to another. This reflects the price at which one currency was bought with another currency.\",\n          \"type\": \"number\"\n        },\n        \"rateType\": {\n          \"description\": \"Specifies the type used to complete the currency exchange.\",\n          \"type\": \"string\",\n          \"enum\": [\n            \"Actual\",\n            \"Agreed\",\n            \"Indicative\"\n          ]\n        },\n        \"contractIdentification\": {\n          \"description\": \"Unique and unambiguous reference to the foreign exchange contract agreed between the initiating party/creditor and the debtor agent.\",\n          \"type\": \"string\",\n          \"minLength\": 1,\n          \"maxLength\": 256\n        }\n      }\n    },\n    \"fxQuoteId\": {\n      \"$ref\": \"#/components/schemas/FxQuoteId\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/FxQuoteId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Required where the consent or payment initiation request relates to a previously quoted FX trade. The TPP must provide the `QuoteId` value where a long-lived consent exists, meaning that each payment initiation request will relate to a different `QuoteId` value.\",\n  \"allOf\": [\n    {\n      \"$ref\": \"#/components/schemas/FxServiceInitiation.FxQuoteIdType\"\n    }\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/FxServiceInitiation.FxQuoteIdType",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 128,\n  \"format\": \"uuid\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEPaymentInstruction",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"additionalProperties\": false,\n  \"required\": [\n    \"Amount\"\n  ],\n  \"description\": \"The Initiation payload is sent by the initiating party to the LFI. It is used to request movement of funds from the debtor account to a creditor for a single payment.\",\n  \"properties\": {\n    \"Amount\": {\n      \"$ref\": \"#/components/schemas/AEActiveCurrencyAmount\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEPaymentPurposeCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A category code that relates to the type of services or goods that corresponds to the underlying purpose of the payment. The code must conform to the published AANI payment purpose code list.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 4,\n  \"pattern\": \"^[A-Z]{3}$\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEDebtorReference",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"A Debtor Reference is a note is for the reference of a given User that may be available as additional information in relation to a given payment instruction.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 35,\n  \"pattern\": \"^[A-Za-z0-9 \\\\/?:().,'+-]+$\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEServiceInitiationOpenFinancePaymentBillingGet",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Type\"\n  ],\n  \"properties\": {\n    \"NumberOfSuccessfulTransactions\": {\n      \"type\": \"integer\",\n      \"description\": \"Number of individual transactions successfully executed by the LFI.\\nThis is returned by the LFI after the file is fully processed.\\n\"\n    },\n    \"Type\": {\n      \"enum\": [\n        \"Collection\",\n        \"LargeValueCollection\",\n        \"PushP2P\",\n        \"PullP2P\",\n        \"Me2Me\"\n      ],\n      \"description\": \"The type payment for billing\",\n      \"type\": \"string\"\n    },\n    \"MerchantId\": {\n      \"description\": \"MerchantId\",\n      \"type\": \"string\",\n      \"minLength\": 8,\n      \"maxLength\": 20\n    }\n  },\n  \"description\": \"Billing parameters specified by the TPP for a payment initiation\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/Meta",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Metadata relevant to the resource.\",\n  \"type\": \"object\",\n  \"additionalProperties\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/error400Response",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Operation failed due to a invalid request parameter\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error400\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/Error400",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Default error response payload structure for Ozone Connect\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"Consent.Invalid\",\n            \"Consent.BusinessRuleViolation\",\n            \"Consent.FailsControlParameters\",\n            \"Consent.InvalidUserIdentifier\",\n            \"JWS.InvalidSignature\",\n            \"JWS.Malformed\",\n            \"JWS.InvalidClaim\",\n            \"JWS.InvalidHeader\",\n            \"JWE.DecryptionError\",\n            \"JWE.InvalidHeader\",\n            \"GenericRecoverableError\",\n            \"GenericError\",\n            \"Event.UnexpectedEvent\",\n            \"Body.InvalidFormat\",\n            \"Resource.InvalidFormat\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/ErrorMessage",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Message describing what problem has occurred\",\n  \"type\": \"string\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/error403Response",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Operation failed as access to the requested resource is forbidden\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error403\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/Error403",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"AccessToken.InvalidScope\",\n            \"Consent.TransientAccountAccessFailure\",\n            \"Consent.AccountTemporarilyBlocked\",\n            \"Consent.PermanentAccountAccessFailure\",\n            \"GenericRecoverableError\",\n            \"GenericError\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/error500Response",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Operation failed due to an internal server error\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error500\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/Error500",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"GenericRecoverableError\",\n            \"GenericError\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/errorResponse",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Default error response\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"errorCode\": {\n            \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n            \"type\": \"string\"\n          },\n          \"errorMessage\": {\n            \"$ref\": \"#/components/schemas/ErrorMessage\"\n          }\n        }\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

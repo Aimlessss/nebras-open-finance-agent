@@ -950,7 +950,18 @@ function extractTemplateStructure(
       // ---------------------------------------------------
       // Navigation section
       // ---------------------------------------------------
+      if (tag === "endpointpage") {
+        const eyebrow = cleanText(
+          getAttribute(node, "eyebrow") || ""
+        );
 
+        if (eyebrow) {
+          addBlock({
+            type: "paragraph",
+            text: eyebrow,
+          });
+        }
+      }
       if (
         tag === "section" &&
         hasClass(

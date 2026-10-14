@@ -1,0 +1,2176 @@
+{
+  "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+  "chunk_count": 38,
+  "chunks": [
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > API /payments/{paymentId}\n\n{\n  \"info\": {\n    \"title\": \"Ozone Connect - Bank Service Initiation APIs\",\n    \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor Bank Service Initiation APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a Financial Institution so that Ozone can deliver Service Initiation capabilities to TPPs\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.1.8\\n\\n* Added a character-set `pattern` (`^[A-Za-z0-9 \\\\/?:().,'+-]+$`, the ISO 20022 / SWIFT \\\"x\\\" set) to the\\n  free-text Creditor and Debtor references (`AECreditorReference` / `AEDebtorReference`), so every LFI\\n  knows exactly which characters it must accept and store. Length (`minLength 1` / `maxLength 35`) is\\n  unchanged. Per OFP-003.\\n\\n\\n### v2.1.7\\n\\n* Restructured the international Creditor PII (`PersonalIdentifiableInformation.Initiation.Creditor`) for\\n  SWIFT SR2026: the Creditor party is now a `oneOf` of Individual and Organization variants, discriminated\\n  by `IdentityType`.\\n\\n\\n* The Individual variant carries object-valued `FirstName` / `MiddleName` / `LastName` (`en` / `ar` / `ls`),\\n  `RelationshipToSender`, `DateOfBirth`, `Occupation`, `Nationality`, `Gender`, `CountryOfBirth`,\\n  `SourceOfIncome`, `SourceOfFunds`, and `Evidence`. The Organization variant carries `AnyBIC`, `LEI`, and\\n  `Identification` + `SchemeName`. Both variants share `MobileNumber` / `Email` and an object-valued `Name`\\n  (`en` / `ar` / `ls`).\\n\\n\\n* Added SWIFT SR2026 fields to the international `PostalAddress` (`PostCode`, `Room`, `Department`,\\n  `SubDepartment`, `TownLocationName`, and now-mandatory `TownName`). It is now a single\\n  `AEInternationalAddress` schema shared by both the Creditor and the Creditor Agent (the Creditor Agent\\n  previously used the legacy `AEAddress`).\\n\\n\\n* Added a `CreditorAgent.Branch` object and `CreditorAccount.AccountType` (Savings / Current / Checking /\\n  Prepaid). Domestic Creditor schemas are unchanged.\\n\\n\\n### v2.1.6\\n\\n* Aligned the `Risk` object with Standards: tightened `AERisk` and its descendants with `additionalProperties: false` throughout, matching the strictness on the Standards PAR side. `SupplementaryData` blocks remain open extension points and `AEAccountTypeCode` already carried `Retail / SME / Corporate`.\\n\\n### v2.1.5\\n\\n* Changed the `UAEAccountInformationAPI.AEActiveCurrencyAndAmount_SimpleType` `pattern` regex, which was\\n  over-escaped in YAML and failed to validate decimal monetary values.\\n\\n\\n### v2.1.4\\n\\n* Changed PII Schema Objects to align with split domestic and international payment PII introduced to v2.1.\\n\\n### v2.1.3\\n\\n* Added `AccountId` to Account Opening operation responses\\n\\n### v2.1.2\\n\\n* Removed AccountNumber from `get /payment-consents/{ConsentId}/refund` SchemeName values.\\n\\n### v2.1.1\\n\\n* Added `emirates_id` to `DocumentEvidenceDetails`\\n\\n* Changed loan to finance for all Schema Objects names and object descriptions.\\n\\n* Changed CreditorReference and DebtorReference objects to remove pattern.\\n\\n* Changed CreditorReference, DebtorReference, and Reference objects to reduce maximum length to 35 characters.\\n\",\n    \"version\": \"v2.1.8\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://[Ozone_Connect_API]\"\n    }\n  ],\n  \"source_path\": \"/payments/{paymentId}\",\n  \"operations\": {\n    \"get\": {\n      \"operationId\": \"getPayment\",\n      \"tags\": [\n        \"Payments\"\n      ],\n      \"summary\": \"Get a payment\",\n      \"description\": \"Ozone can call this API from Financial Institutions to retrieve payment information.\\n\",\n      \"parameters\": [\n        {\n          \"$ref\": \"#/components/parameters/providerId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/aspspId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerOrgId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerClientId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerSoftwareStatementId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/apiUri\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/apiOperation\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/consentId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/callerInteractionId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/ozoneInteractionId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/psuIdentifier\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/paymentId\"\n        }\n      ],\n      \"responses\": {\n        \"200\": {\n          \"description\": \"successful operation\",\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/AEPaymentIdResponse\"\n              }\n            }\n          }\n        },\n        \"400\": {\n          \"$ref\": \"#/components/responses/error400Response\"\n        },\n        \"403\": {\n          \"$ref\": \"#/components/responses/error403Response\"\n        },\n        \"500\": {\n          \"$ref\": \"#/components/responses/error500Response\"\n        },\n        \"default\": {\n          \"$ref\": \"#/components/responses/errorResponse\"\n        }\n      }\n    }\n  },\n  \"security\": [\n    {},\n    {\n      \"OzoneConnectApiKey\": []\n    },\n    {\n      \"OzoneConnectClientCredentials\": [\n        \"placeholder\"\n      ]\n    },\n    {\n      \"OzoneConnectJwtAuth\": []\n    }\n  ],",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "API /payments/{paymentId}",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "id": "61b44c47-1b73-5a31-9b8e-9a49f0326db9",
+      "chunk_key": "[\"section\",[\"\",\"API /payments/{paymentId}\"],\"\"]:0:part:0",
+      "content_hash": "f4ed84e46589b515f58c4d206616492ea6897b2cb5da18d24c2388835d7287db",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > API /payments/{paymentId}\n\n\n  \"securitySchemes\": {\n    \"OzoneConnectApiKey\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n      \"type\": \"apiKey\",\n      \"in\": \"header\",\n      \"name\": \"Authorization\"\n    },\n    \"OzoneConnectClientCredentials\": {\n      \"type\": \"oauth2\",\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n      \"flows\": {\n        \"clientCredentials\": {\n          \"tokenUrl\": \"https://example.lfi.ae/token\",\n          \"scopes\": {\n            \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n          }\n        }\n      }\n    },\n    \"OzoneConnectJwtAuth\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Ozone-Connect-JWT-Auth\"\n    },\n    \"OzoneConnectServiceInitiationToken\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Bearer\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "API /payments/{paymentId}",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "id": "4ae8021b-ad84-55d3-a871-aa5e44303baf",
+      "chunk_key": "[\"section\",[\"\",\"API /payments/{paymentId}\"],\"\"]:0:part:1",
+      "content_hash": "aa91468ac95565f2c913ba36d60b82cf0050f53671f51713e4173824620938f4",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/providerId\n\n{\n  \"name\": \"o3-provider-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"Identifier for the Financial Institution that the request is targeted to\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/providerId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "a9327f9d-efbb-5728-9f8f-d7b1debe68c3",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/providerId\"],\"\"]:0",
+      "content_hash": "e22f30bdb805d2a9440966cfaee7dff7f3979f47be6af572de98bd4186c54511",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/aspspId\n\n{\n  \"name\": \"o3-aspsp-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"deprecated\": true,\n  \"description\": \"Identifier for the financial institution that the request is targeted to. This header is deprecated and will be removed in a future version of Ozone Connect. Use `o3-provider-id` instead.\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/aspspId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "e0ea477c-d13d-5fd7-be2c-1033bc76c48e",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/aspspId\"],\"\"]:0",
+      "content_hash": "f4c3a9546c8ad928bae80e7921fe465098cf63043244312367651d3b9be32db8",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/callerOrgId\n\n{\n  \"name\": \"o3-caller-org-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the organization calling the API\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/callerOrgId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "91873bde-86af-5afd-9e33-4f7a1b42b1f5",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerOrgId\"],\"\"]:0",
+      "content_hash": "ff101a963623a559a51370075cb78b2ba52197f851c2c50bbbfe2c50e6cdfb9b",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/callerClientId\n\n{\n  \"name\": \"o3-caller-client-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the OIDC clientId calling the API\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/callerClientId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "ee21512f-da77-5859-b6ed-368aa9bae3e8",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerClientId\"],\"\"]:0",
+      "content_hash": "cf44f9248c250d535b4af8d72fede085122df2347ff5445a81bc31a92c8177e1",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/callerSoftwareStatementId\n\n{\n  \"name\": \"o3-caller-software-statement-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An identifier for the software statement calling the API\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/callerSoftwareStatementId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "c5300fbc-1748-5350-ba0f-4f27d3d76500",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "0d3be377041dd85bacbb649c38c19c0d45ff0dbb7c8ba28785ddbab7655b6558",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/apiUri\n\n{\n  \"name\": \"o3-api-uri\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The parameterised URL of the API being called by the caller\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/apiUri",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "49c39cd6-c1b2-55db-a24f-2956c4124be1",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiUri\"],\"\"]:0",
+      "content_hash": "4dba3d3ced3d7f88db81cf709f818a5931ab53e2284e861cf306a04c37aec83b",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/apiOperation\n\n{\n  \"name\": \"o3-api-operation\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/apiOperation",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "21b2eaf6-29b5-5797-a52f-c0e583041c18",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiOperation\"],\"\"]:0",
+      "content_hash": "adfa77f0416657cbb3d496d699f6a756aea76fc4fe252c558aefd13ca90ef358",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/consentId\n\n{\n  \"name\": \"o3-consent-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"The consentId for which this call is being made\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/consentId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "54d2c644-1908-5905-88b4-e386dcc81c4b",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/consentId\"],\"\"]:0",
+      "content_hash": "fac241a8b7e0799ffa48207d0b07011c87ee859d9ec266101a17d66a990af5a7",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/callerInteractionId\n\n{\n  \"name\": \"o3-caller-interaction-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": false,\n  \"description\": \"The interaction ID passed in by the caller, if any\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/callerInteractionId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "cf043956-b9ca-572a-ab0d-57937712af9c",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerInteractionId\"],\"\"]:0",
+      "content_hash": "804aae2651de8c85c4e0eae69ae3bdae55b2e15eebea6ab3f080839de6a9ca46",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/ozoneInteractionId\n\n{\n  \"name\": \"o3-ozone-interaction-id\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/ozoneInteractionId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "87158799-c9dd-5be3-95f3-4578d7d68034",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "1c6b5e6f11deaa26634c0c2c0a7178accdc3ccfbd6d8cf566ccfd8fcb47a9f57",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/psuIdentifier\n\n{\n  \"name\": \"o3-psu-identifier\",\n  \"in\": \"header\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"required\": true,\n  \"description\": \"A Base64 encoded representation of the psuIdentifier JSON object.\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/psuIdentifier",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "f0233303-8037-50b2-8081-1e53f536099e",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/psuIdentifier\"],\"\"]:0",
+      "content_hash": "2883eeb203225439b7200e51877df0d22850c5e7326160236e79cc25075ffd59",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/parameters/paymentId\n\n{\n  \"name\": \"paymentId\",\n  \"description\": \"The identifier for a given payment instruction\",\n  \"in\": \"path\",\n  \"required\": true,\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/parameters/paymentId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "7720d171-1782-5b35-bf42-b9fbc5e7995e",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/paymentId\"],\"\"]:0",
+      "content_hash": "e8d3250e57980f5e1bc10e52273117c45edef40d93520ed821dac99c3029632f",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AEPaymentIdResponse\n\n{\n  \"description\": \"The payment response to be passed on to the TPP.\\n\\nThe structure of this response is aligned to the structure of the response for the CBUAE payment initiation API.\\n\",\n  \"type\": \"object\",\n  \"additionalProperties\": false,\n  \"required\": [\n    \"data\"\n  ],\n  \"properties\": {\n    \"data\": {\n      \"type\": \"object\",\n      \"description\": \"Required fields are common for all the payments including file payment. Apart from that, paymentTransactionId is required for all payments except file payments\",\n      \"additionalProperties\": false,\n      \"required\": [\n        \"id\",\n        \"status\",\n        \"statusUpdateDateTime\",\n        \"creationDateTime\",\n        \"paymentPurposeCode\"\n      ],\n      \"properties\": {\n        \"id\": {\n          \"description\": \"An API specific unique identification as assigned by the LFI to identify the domestic Payment resource.\",\n          \"type\": \"string\"\n        },\n        \"consentId\": {\n          \"description\": \"Unique identification assigned by the TPP to identify the consent resource.\",\n          \"type\": \"string\"\n        },\n        \"paymentTransactionId\": {\n          \"description\": \"This is an end-to-end identifier that is generated by the underlying payment rails when it is sent from an Originating LFI to a Receiving LFI.\\nFor IPP transactions, this is the IPP generated identifier.\\n\\nThis property is not the same as the `transactionId` in the Bank Data Sharing Transactions API.\\n\\nThe `paymentTransactionId` must be populated if the payment is processed by the LFI, and updated at the Consent Manager Payment Log API using the `patch` operation.\\n\",\n          \"type\": \"string\"\n        },\n        \"status\": {\n          \"description\": \"Specifies the status of the payment information group\\n* Pending: Payment initiation or individual transaction included in the payment initiation is pending. Further checks and status update will be performed.\\n* Rejected: The payment initiation has been rejected\\n* AcceptedSettlementCompleted: Settlement of the Debtor's account has been completed\\n* AcceptedCreditSettlementCompleted: When the Creditor account has been credited with the funds of the payment initiated via the TPP\\n* AcceptedWithoutPosting:  When the Recipient Bank has accepted the payment but has not applied the credit to the Creditor account yet.\\n\",\n          \"type\": \"string\",\n          \"enum\": [\n            \"Pending\",\n            \"AcceptedSettlementCompleted\",\n            \"AcceptedCreditSettlementCompleted\",\n            \"AcceptedWithoutPosting\",\n            \"Rejected\",\n            \"Received\"\n          ]\n        },\n        \"statusUpdateDateTime\": {\n          \"description\": \"Date and time at which the resource status was updated.\",\n          \"type\": \"string\",\n          \"format\": \"date-time\"\n        },\n        \"rejectReasonCode\": {\n          \"items\": {\n            \"description\": \"Rejection Reason\",\n            \"type\": \"object\",\n            \"required\": [\n              \"code\",\n              \"message\"\n            ],\n            \"additionalProperties\": false,\n            \"properties\": {\n              \"code\": {\n                \"description\": \"Rejected Reason Code is a namespaced rejection reason code. The first part of the code is the namespace, which is the name of the organisation or system (e.g., AANI) that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nPayments that are rejected by AANI will have the AANI prefix, followed by the specific ANNI reason code.\\n\\nThe Payment resouce is updated with the rejection reason code if a Rejected payment is initially created in a Pending state. \\nIf the Payment resource is rejected, and no Payment resource is created - a 4xx HTTP status code is returned to the TPP with the appropriate Error Response.\\n\",\n                \"type\": \"string\",\n                \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n              },\n              \"message\": {\n                \"description\": \"Message\",\n                \"type\": \"string\"\n              }\n            }\n          },\n          \"type\": \"array\",\n          \"minItems\": 1\n        },\n        \"creationDateTime\": {\n          \"description\": \"Date and time at which the message was created.\",\n          \"type\": \"string\",\n          \"format\": \"date-time\"\n        },\n        \"charges\": {\n          \"$ref\": \"#/components/schemas/AECharges\"\n        },\n        \"exchangeRate\": {\n          \"$ref\": \"#/components/schemas/AEExchangeRateInformation\"\n        },\n        \"currencyRequest\": {\n          \"$ref\": \"#/components/schemas/AECurrencyRequest\"\n        },\n        \"instruction\": {\n          \"$ref\": \"#/components/schemas/AEPaymentInstruction\"\n        },\n        \"paymentPurposeCode\": {\n          \"$ref\": \"#/components/schemas/AEPaymentPurposeCode\"\n        },\n        \"debtorReference\": {\n          \"$ref\": \"#/components/schemas/AEDebtorReference\"\n        },\n        \"openFinanceBilling\": {\n          \"$ref\": \"#/components/schemas/AEServiceInitiationOpenFinancePaymentBillingGet\"\n        }\n      }\n    },\n    \"meta\": {\n      \"$ref\": \"#/components/schemas/Meta\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AEPaymentIdResponse",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "f6b98051-6355-567f-9b4e-cf79d3b9fb9b",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPaymentIdResponse\"],\"\"]:0",
+      "content_hash": "0ffec08a10996a837c5afe03372bcb16284dc1b5ca16ce9848f0dfc342263ff2",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AECharges\n\n{\n  \"description\": \"List of charges associated with the payment request\",\n  \"type\": \"array\",\n  \"items\": {\n    \"type\": \"object\",\n    \"additionalProperties\": false,\n    \"description\": \"Set of elements used to provide details of a charge for the payment initiation.\\n* For Payments, these Charges are on the Debtor.\\n\",\n    \"required\": [\n      \"chargeBearer\",\n      \"type\",\n      \"amount\"\n    ],\n    \"properties\": {\n      \"chargeBearer\": {\n        \"$ref\": \"#/components/schemas/AEChargeBearerType1Code\"\n      },\n      \"type\": {\n        \"$ref\": \"#/components/schemas/AEExternalPaymentChargeTypeCode\"\n      },\n      \"amount\": {\n        \"$ref\": \"#/components/schemas/AEActiveCurrencyAmount\"\n      }\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AECharges",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "288ba4b4-50e4-5030-8107-acf451b84460",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECharges\"],\"\"]:0",
+      "content_hash": "5f341f607b26feb0b306977db48027b59a0d01b0cb50290002aedffebae9eea2",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AEChargeBearerType1Code\n\n{\n  \"description\": \"Specifies which party/parties will bear the charges associated with the processing of the payment transaction.\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"BorneByCreditor\",\n    \"BorneByDebtor\",\n    \"Shared\"\n  ]\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AEChargeBearerType1Code",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "51c53285-e9bd-59cb-b16c-da96860ee6f1",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEChargeBearerType1Code\"],\"\"]:0",
+      "content_hash": "cae22aa3b0691d69b9fe0e14137e44101a3338e163abe24567bb604a9fb2d407",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AEExternalPaymentChargeTypeCode\n\n{\n  \"description\": \"Charge type, in a coded form.\",\n  \"type\": \"string\",\n  \"enum\": [\n    \"VAT\",\n    \"Fees\"\n  ]\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AEExternalPaymentChargeTypeCode",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "09d85fca-fd74-59af-80a7-bbb2e5cdeb79",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEExternalPaymentChargeTypeCode\"],\"\"]:0",
+      "content_hash": "7035707059cca4b18682bc94dba85c50b1fbc832de8eb06861d16fc0ea040dfc",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AEActiveCurrencyAmount\n\n{\n  \"description\": \"The Currency and Amount relating to the Payment\",\n  \"type\": \"object\",\n  \"required\": [\n    \"amount\",\n    \"currency\"\n  ],\n  \"properties\": {\n    \"amount\": {\n      \"$ref\": \"#/components/schemas/AEActiveOrHistoricAmount\"\n    },\n    \"currency\": {\n      \"$ref\": \"#/components/schemas/AEActiveOrHistoricCurrencyCode\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AEActiveCurrencyAmount",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "61b10be7-4c6e-554e-8182-d3c264c63117",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEActiveCurrencyAmount\"],\"\"]:0",
+      "content_hash": "4f8d79bccdbed99ac63834acfdf9ca98f4931820152c8443abd79fabe0d3b751",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AEActiveOrHistoricAmount\n\n{\n  \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n  \"type\": \"string\",\n  \"pattern\": \"^\\\\d{1,16}\\\\.\\\\d{2}$\",\n  \"example\": \"100.00\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AEActiveOrHistoricAmount",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "3584307e-4d6d-5a12-99b3-4a2643c84f24",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEActiveOrHistoricAmount\"],\"\"]:0",
+      "content_hash": "eac8fe19a27574e8d44520522821b367c4a61f356e051bed4231a5d925c4fdb4",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AEActiveOrHistoricCurrencyCode\n\n{\n  \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Z]{3,3}$\",\n  \"example\": \"AED\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AEActiveOrHistoricCurrencyCode",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "2f51df54-bb14-5de4-9b64-2af30aa21a66",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEActiveOrHistoricCurrencyCode\"],\"\"]:0",
+      "content_hash": "0d6baf88c52e046e9220684801d8abc86ec144add1c4ee4b25c5b0057e3ffb2f",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AEExchangeRateInformation\n\n{\n  \"type\": \"object\",\n  \"additionalProperties\": false,\n  \"required\": [\n    \"unitCurrency\",\n    \"exchangeRate\",\n    \"rateType\"\n  ],\n  \"description\": \"Further detailed information on the exchange rate that has been used in the payment transaction.\",\n  \"properties\": {\n    \"unitCurrency\": {\n      \"description\": \"Currency in which the rate of exchange is expressed in a currency exchange. In the example 1GBP = xxxCUR, the unit currency is GBP.\",\n      \"type\": \"string\",\n      \"pattern\": \"^[A-Z]{3,3}$\"\n    },\n    \"exchangeRate\": {\n      \"description\": \"The factor used for conversion of an amount from one currency to another. This reflects the price at which one currency was bought with another currency.\",\n      \"type\": \"number\"\n    },\n    \"rateType\": {\n      \"description\": \"Specifies the type used to complete the currency exchange.\",\n      \"type\": \"string\",\n      \"enum\": [\n        \"Actual\",\n        \"Agreed\",\n        \"Indicative\"\n      ]\n    },\n    \"contractIdentification\": {\n      \"description\": \"Unique and unambiguous reference to the foreign exchange contract agreed between the initiating party/creditor and the debtor agent.\",\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 256\n    },\n    \"expirationDateTime\": {\n      \"description\": \"Specified date and time the exchange rate agreement will expire.All dates in the JSON payloads are represented in ISO 8601 date-time format. \\nAll date-time fields in responses must include the timezone. An example is below:\\n2017-04-05T10:43:07+00:00\",\n      \"type\": \"string\",\n      \"format\": \"date-time\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AEExchangeRateInformation",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "ebc6e4fe-2d83-562e-8a14-972f45418cbc",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEExchangeRateInformation\"],\"\"]:0",
+      "content_hash": "9870258a0d7cf4d85ae72e79a78af8e4d720f10577e565a943ba51ee15cf8953",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AECurrencyRequest\n\n{\n  \"description\": \"The details of the non-local currency or FX request that has been agreed between the User and the TPP.\\nThe requested ChargeBearer and ExchangeRateInformation are included in this object may be overwritten by the LFI in the returned Consent object.\\n\",\n  \"type\": \"object\",\n  \"additionalProperties\": false,\n  \"required\": [\n    \"currencyOfTransfer\"\n  ],\n  \"properties\": {\n    \"instructionPriority\": {\n      \"description\": \"Indicator of the urgency or order of importance that the instructing party would like the instructed party to apply to the processing of the instruction.\",\n      \"type\": \"string\",\n      \"enum\": [\n        \"Normal\",\n        \"Urgent\"\n      ]\n    },\n    \"extendedPurpose\": {\n      \"description\": \"Specifies the purpose of an international payment.\",\n      \"type\": \"string\",\n      \"minLength\": 1,\n      \"maxLength\": 140\n    },\n    \"chargeBearer\": {\n      \"$ref\": \"#/components/schemas/AEChargeBearerType1Code\"\n    },\n    \"currencyOfTransfer\": {\n      \"description\": \"Specifies the currency of the to be transferred amount, which is different from the currency of the debtor's account.\",\n      \"type\": \"string\",\n      \"pattern\": \"^[A-Z]{3,3}$\"\n    },\n    \"destinationCountryCode\": {\n      \"description\": \"Country in which Credit Account is domiciled. Code to identify a country, a dependency, or another area of particular geopolitical interest, on the basis of country names obtained from the United Nations (ISO 3166, Alpha-2 code).\",\n      \"type\": \"string\",\n      \"pattern\": \"[A-Z]{2,2}\"\n    },\n    \"exchangeRateInformation\": {\n      \"type\": \"object\",\n      \"additionalProperties\": false,\n      \"required\": [\n        \"unitCurrency\",\n        \"rateType\"\n      ],\n      \"description\": \"Provides details on the currency exchange rate and contract.\",\n      \"properties\": {\n        \"unitCurrency\": {\n          \"description\": \"Currency in which the rate of exchange is expressed in a currency exchange. In the example 1GBP = xxxCUR, the unit currency is GBP.\",\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Z]{3,3}$\"\n        },\n        \"exchangeRate\": {\n          \"description\": \"The factor used for conversion of an amount from one currency to another. This reflects the price at which one currency was bought with another currency.\",\n          \"type\": \"number\"\n        },\n        \"rateType\": {\n          \"description\": \"Specifies the type used to complete the currency exchange.\",\n          \"type\": \"string\",\n          \"enum\": [\n            \"Actual\",\n            \"Agreed\",\n            \"Indicative\"\n          ]\n        },\n        \"contractIdentification\": {\n          \"description\": \"Unique and unambiguous reference to the foreign exchange contract agreed between the initiating party/creditor and the debtor agent.\",\n          \"type\": \"string\",\n          \"minLength\": 1,\n          \"maxLength\": 256\n        }\n      }\n    },\n    \"fxQuoteId\": {\n      \"$ref\": \"#/components/schemas/FxQuoteId\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AECurrencyRequest",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "d811bc08-f439-572d-ada1-058fbab54919",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECurrencyRequest\"],\"\"]:0",
+      "content_hash": "273751b6d2aed84bf24efed815f7ec4f274684eefbdce35cd2b0e49d572306c1",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/FxQuoteId\n\n{\n  \"description\": \"Required where the consent or payment initiation request relates to a previously quoted FX trade. The TPP must provide the `QuoteId` value where a long-lived consent exists, meaning that each payment initiation request will relate to a different `QuoteId` value.\",\n  \"allOf\": [\n    {\n      \"$ref\": \"#/components/schemas/FxServiceInitiation.FxQuoteIdType\"\n    }\n  ]\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/FxQuoteId",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "5250c827-6af9-5209-a70f-25fe3291cfa7",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/FxQuoteId\"],\"\"]:0",
+      "content_hash": "f812b456ccdaf1490da38ac29d01f16950a467c2a73b8d249b128fc39a39114f",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/FxServiceInitiation.FxQuoteIdType\n\n{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 128,\n  \"format\": \"uuid\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/FxServiceInitiation.FxQuoteIdType",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "88d555c3-4289-5bf8-814c-e2a84dc9aa38",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/FxServiceInitiation.FxQuoteIdType\"],\"\"]:0",
+      "content_hash": "8e6c80f880db346fede26437bc137e192b50c7b2722b8d9f93238e6e5878e7ea",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AEPaymentInstruction\n\n{\n  \"type\": \"object\",\n  \"additionalProperties\": false,\n  \"required\": [\n    \"Amount\"\n  ],\n  \"description\": \"The Initiation payload is sent by the initiating party to the LFI. It is used to request movement of funds from the debtor account to a creditor for a single payment.\",\n  \"properties\": {\n    \"Amount\": {\n      \"$ref\": \"#/components/schemas/AEActiveCurrencyAmount\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AEPaymentInstruction",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "daabf970-2d69-5f80-b3b2-4ad3ffc9f5d8",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPaymentInstruction\"],\"\"]:0",
+      "content_hash": "1eae175a2d84f46ad8046d9a38b40d9b75921a52eb8e9464c8bcfbe6af85fd36",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AEPaymentPurposeCode\n\n{\n  \"description\": \"A category code that relates to the type of services or goods that corresponds to the underlying purpose of the payment. The code must conform to the published AANI payment purpose code list.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 4,\n  \"pattern\": \"^[A-Z]{3}$\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AEPaymentPurposeCode",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "dcc898dc-c5d7-5c16-ac9d-9e33c571dc27",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEPaymentPurposeCode\"],\"\"]:0",
+      "content_hash": "1cd2664e8dcf9b113016f673f2f43cf30b8e3a32076c5f52ddb9d907b6376732",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AEDebtorReference\n\n{\n  \"description\": \"A Debtor Reference is a note is for the reference of a given User that may be available as additional information in relation to a given payment instruction.\",\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 35,\n  \"pattern\": \"^[A-Za-z0-9 \\\\/?:().,'+-]+$\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AEDebtorReference",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "b45a65b9-1c19-58bb-8ece-814589c4cc5c",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDebtorReference\"],\"\"]:0",
+      "content_hash": "3fff672d15afc458d6217b4e5baa820d3ff51cd226d36f474502a8269369241b",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/AEServiceInitiationOpenFinancePaymentBillingGet\n\n{\n  \"type\": \"object\",\n  \"required\": [\n    \"Type\"\n  ],\n  \"properties\": {\n    \"NumberOfSuccessfulTransactions\": {\n      \"type\": \"integer\",\n      \"description\": \"Number of individual transactions successfully executed by the LFI.\\nThis is returned by the LFI after the file is fully processed.\\n\"\n    },\n    \"Type\": {\n      \"enum\": [\n        \"Collection\",\n        \"LargeValueCollection\",\n        \"PushP2P\",\n        \"PullP2P\",\n        \"Me2Me\"\n      ],\n      \"description\": \"The type payment for billing\",\n      \"type\": \"string\"\n    },\n    \"MerchantId\": {\n      \"description\": \"MerchantId\",\n      \"type\": \"string\",\n      \"minLength\": 8,\n      \"maxLength\": 20\n    }\n  },\n  \"description\": \"Billing parameters specified by the TPP for a payment initiation\",\n  \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/AEServiceInitiationOpenFinancePaymentBillingGet",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "b4e3aaa6-e05b-5ab6-b05b-79b63822de6c",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEServiceInitiationOpenFinancePaymentBillingGet\"],\"\"]:0",
+      "content_hash": "a6f776551ca7ad659c1f0514c0a7d4824edcaf9c1073c75db96ad0359be90e9e",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/Meta\n\n{\n  \"description\": \"Metadata relevant to the resource.\",\n  \"type\": \"object\",\n  \"additionalProperties\": false\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/Meta",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "e382b6ec-7346-55da-94aa-c3f6c0afdabd",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Meta\"],\"\"]:0",
+      "content_hash": "2a85c1a9a106cfdde43bb42f44544177e65dd68a549301e85e0089c1ced1abba",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/responses/error400Response\n\n{\n  \"description\": \"Operation failed due to a invalid request parameter\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error400\"\n      }\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/responses/error400Response",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "e868fddc-37e7-533c-9b68-674c30839028",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error400Response\"],\"\"]:0",
+      "content_hash": "10cf5be0461bb58b07c1d1b7fa67bf5addf360f706290b9cf33ece6b9dbd6fec",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/Error400\n\n{\n  \"description\": \"Default error response payload structure for Ozone Connect\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"Consent.Invalid\",\n            \"Consent.BusinessRuleViolation\",\n            \"Consent.FailsControlParameters\",\n            \"Consent.InvalidUserIdentifier\",\n            \"JWS.InvalidSignature\",\n            \"JWS.Malformed\",\n            \"JWS.InvalidClaim\",\n            \"JWS.InvalidHeader\",\n            \"JWE.DecryptionError\",\n            \"JWE.InvalidHeader\",\n            \"GenericRecoverableError\",\n            \"GenericError\",\n            \"Event.UnexpectedEvent\",\n            \"Body.InvalidFormat\",\n            \"Resource.InvalidFormat\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/Error400",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "c27c887b-4bdd-5ff1-9d49-fb2f5b53d13a",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error400\"],\"\"]:0",
+      "content_hash": "f25bd461484f30fbb917c0b17803b4b6f0061616a5268deb97b48bb9b6fc97ea",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/ErrorMessage\n\n{\n  \"description\": \"Message describing what problem has occurred\",\n  \"type\": \"string\"\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/ErrorMessage",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "90039e6f-836f-5fdd-8e9d-18b5aa8fae71",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ErrorMessage\"],\"\"]:0",
+      "content_hash": "6bfa7dd16e2867aa9cd1ad7d5645f3e8291fc4866eab89d49bd7395d78b7532e",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/responses/error403Response\n\n{\n  \"description\": \"Operation failed as access to the requested resource is forbidden\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error403\"\n      }\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/responses/error403Response",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "3e969c69-e600-5e4b-b1be-8bb5693c49c6",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error403Response\"],\"\"]:0",
+      "content_hash": "54389a5a9e4916d825a87a1403857ac50db7b2be7f286bf37df41150fce62f97",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/Error403\n\n{\n  \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"AccessToken.InvalidScope\",\n            \"Consent.TransientAccountAccessFailure\",\n            \"Consent.AccountTemporarilyBlocked\",\n            \"Consent.PermanentAccountAccessFailure\",\n            \"GenericRecoverableError\",\n            \"GenericError\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/Error403",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "40422727-f077-5214-a294-0f9929015568",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error403\"],\"\"]:0",
+      "content_hash": "7b808b1560157b83095f56378d23fa0d68607f6c071baad6a31915b235bd65d5",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/responses/error500Response\n\n{\n  \"description\": \"Operation failed due to an internal server error\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/Error500\"\n      }\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/responses/error500Response",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "e59bf744-7719-588d-81f9-da3ce36e5042",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error500Response\"],\"\"]:0",
+      "content_hash": "a685d773e3a5c2a30f26bce67cac60d039d5bbbf2d30fbced496a58de8c57b59",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/schemas/Error500\n\n{\n  \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n      \"anyOf\": [\n        {\n          \"type\": \"string\",\n          \"enum\": [\n            \"GenericRecoverableError\",\n            \"GenericError\"\n          ]\n        },\n        {\n          \"type\": \"string\",\n          \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n        },\n        {\n          \"type\": \"string\"\n        }\n      ]\n    },\n    \"errorMessage\": {\n      \"$ref\": \"#/components/schemas/ErrorMessage\"\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/schemas/Error500",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "e2818786-c5ce-53ab-b29b-19813b18b10d",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error500\"],\"\"]:0",
+      "content_hash": "568bc8284986a843604cc97e56803e42d630bdcefff56a1d7faedfb437ee16ba",
+      "schema_version": 2
+    },
+    {
+      "document_id": "tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+      "type": "section",
+      "text": "Get a Payment by PaymentId > OpenAPI definition #/components/responses/errorResponse\n\n{\n  \"description\": \"Default error response\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"errorCode\": {\n            \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n            \"type\": \"string\"\n          },\n          \"errorMessage\": {\n            \"$ref\": \"#/components/schemas/ErrorMessage\"\n          }\n        }\n      }\n    }\n  }\n}",
+      "metadata": {
+        "title": "Get a Payment by PaymentId",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_file": "src/pages/tech/api-specs/[...slug].vue",
+        "parser": "api-registry",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+        "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/service-initiation/payments-PaymentId",
+        "doc_version": "v2.1",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "src/data/endpoints/index.ts",
+          "src/data/versions.ts",
+          "src/data/endpoints/standards.ts",
+          "src/data/endpoints/api-hub.ts",
+          "src/data/endpoints/ozone-connect.ts",
+          "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "src/data/endpoints/index.ts",
+            "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+          },
+          {
+            "file": "src/data/versions.ts",
+            "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+          },
+          {
+            "file": "src/data/endpoints/standards.ts",
+            "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+          },
+          {
+            "file": "src/data/endpoints/api-hub.ts",
+            "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+          },
+          {
+            "file": "src/data/endpoints/ozone-connect.ts",
+            "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+          },
+          {
+            "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-bank-service-initiation-openapi.yaml",
+            "hash": "dbb5cd69d233fb08e3a370cf1cc7bbf74d137919212617f931788edfa9b24cbe"
+          }
+        ],
+        "extraction_warnings": []
+      },
+      "id": "bc2d9f54-02ea-53aa-9978-ada80aa1fae7",
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "2dcca03c9eb0edf5575e26d30b0b9b81d9d890ab97ffc028d341020085e9ef26",
+      "schema_version": 2
+    }
+  ]
+}

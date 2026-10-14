@@ -1,0 +1,407 @@
+{
+  "id": "tech/api-specs/v2.1/ozone-connect/insurance-data-sharing/life-insurance-policies",
+  "source": {
+    "repo": "Nebras-Open-Finance/community-standards",
+    "file": "src/pages/tech/api-specs/[...slug].vue",
+    "hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "parser": "api-registry",
+    "parser_version": "3",
+    "dependencies": [
+      "src/data/endpoints/index.ts",
+      "src/data/versions.ts",
+      "src/data/endpoints/standards.ts",
+      "src/data/endpoints/api-hub.ts",
+      "src/data/endpoints/ozone-connect.ts",
+      "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+    ],
+    "assets": [
+      {
+        "file": "src/data/endpoints/index.ts",
+        "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+      },
+      {
+        "file": "src/data/versions.ts",
+        "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+      },
+      {
+        "file": "src/data/endpoints/standards.ts",
+        "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+      },
+      {
+        "file": "src/data/endpoints/api-hub.ts",
+        "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+      },
+      {
+        "file": "src/data/endpoints/ozone-connect.ts",
+        "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+      },
+      {
+        "file": "public/openapi/v2.1/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+        "hash": "287ef9b390908a791aeca9a4ec3350fd45f11b67f7b09b04cc21c079ae88c71e"
+      }
+    ],
+    "extraction_warnings": []
+  },
+  "metadata": {
+    "title": "Get Life Insurance Policies",
+    "url": "https://nebras-open-finance.com/tech/api-specs/v2.1/ozone-connect/insurance-data-sharing/life-insurance-policies",
+    "doc_version": "v2.1"
+  },
+  "content": {
+    "title": "Get Life Insurance Policies",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "API /life-insurance-policies",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"info\": {\n    \"title\": \"Ozone Connect - UAE Insurance API Description\",\n    \"description\": \"## Ozone Connect - UAE Insurance API Description\\n\\nThis document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html) for Insurance APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a financial institution to facilitate integration with the API Hub.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:  \\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n\\n### v2.1.4\\n\\n* Removed the CAAP-specific header `o3-is-caap-consent-operation` from the `get /{insurance-type}-insurance-policies`\\n  operations, the CAAP-conditional `ProductName`, `BodyType`, and `PlateNumber` properties from the insurance\\n  policy schemas, and related CAAP-conditional language. CAAP variants of these endpoints have been moved to the\\n  CAAP Operations OpenAPI description. `PolicyEndDate` is retained on the insurance policy schemas but is no longer\\n  CAAP-conditional: it is now an ordinary optional property, returnable for all consent types, matching the\\n  `get /{insurance-type}-insurance-policies` response in the UAE Insurance API description.\\n\\n\\n* Removed the `maximum` of 100 from `AEInsuranceServiceRatingRateOrRatio`, which is referenced by the\\n  `ServiceRating` properties `SolvencyRatio`, `ClaimsPaymentCapacityRatio`, `AverageClaimSettlementTime`, and\\n  `CustomerComplaintRate`. None of these is a 0-100 percentage: both ratios routinely exceed 100% for a solvent\\n  insurer, and the other two are measured in calendar days and in complaints per 1,000 active policies\\n  respectively. The two genuine percentages, `ClaimSettlementRatio` and `ClaimRejectionRate`, now reference a new\\n  `AEInsuranceServiceRatingPercentage` schema, which retains `maximum: 100` and adds `minimum: 0`.\\n\\n\\n* Changed the `get /{industryType}-insurance-policies/{InsurancePolicyId}` operation to return an optional\\n  `CreditDebitIndicator` within `Premium.Adjustments`, indicating whether a premium adjustment is a credit,\\n  reducing the premium payable, or a debit, increasing the premium payable. `AdjustmentAmount` is unsigned and\\n  carries no direction of its own. Where `CreditDebitIndicator` is absent, the adjustment must be treated as a\\n  `Debit`, which is the reading that matches existing v2.1 behaviour.\\n\\n\\n* Removed `format: uuid` from `AEInsurance.AEInsuranceResourceIdentifierType`, the schema behind the\\n  `InsurancePolicyId` and `QuoteId` path parameters and the `QuoteId`, `InsurancePolicyId` and related identifier\\n  properties. A uuid v4 remains recommended for consistency but is no longer mandatory, so LFIs may use their own\\n  identifier scheme within the existing 1-128 character bounds. This matches UAE standards v2.1-errata3.\\n\\n\\n### v2.1.3\\n\\n\\n* Changed the `get /{insurance-type}-insurance-quotes/{QuoteId}` operation to return the correct type for `Pending`\\n  `QuoteStatus` responses.\\n\\n\\n### v2.1.2\\n\\n\\n* Changed the `insurancePolicyIds` parameter from optional to mandatory for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n* Changed the guidance for `insurancePolicyIds` parameter for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n### v2.1.1\\n\\n\\n* Initial version that delivers v2.1 requirements (see separate, detailed changelog for changes from last v2.1.x version).\\n\\n\",\n    \"version\": \"v2.1.4\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://[Ozone_Connect_API]\"\n    }\n  ],\n  \"source_path\": \"/life-insurance-policies\",\n  \"operations\": {\n    \"get\": {\n      \"operationId\": \"LifeInsuranceReadInsurancePoliciesOperation\",\n      \"summary\": \"Retrieve life insurance policies\",\n      \"description\": \"Retrieve all insurance policies to which access has been granted by the User\",\n      \"parameters\": [\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.providerId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.callerOrgId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.callerClientId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.callerSoftwareStatementId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.apiUri\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.apiOperation\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.callerInteractionId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.ozoneInteractionId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.consentId\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.psuIdentifier\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/InsurancePolicyIds\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.page\"\n        },\n        {\n          \"$ref\": \"#/components/parameters/OzoneConnect.page-size\"\n        }\n      ],\n      \"responses\": {\n        \"200\": {\n          \"description\": \"The request has succeeded.\",\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/AEReadLifeInsurancePolicies1\"\n              }\n            }\n          }\n        },\n        \"400\": {\n          \"$ref\": \"#/components/responses/error400Response\"\n        },\n        \"403\": {\n          \"$ref\": \"#/components/responses/error403Response\"\n        },\n        \"409\": {\n          \"$ref\": \"#/components/responses/error409Response\"\n        },\n        \"500\": {\n          \"$ref\": \"#/components/responses/error500Response\"\n        },\n        \"default\": {\n          \"$ref\": \"#/components/responses/errorResponse\"\n        }\n      },\n      \"tags\": [\n        \"Life Insurance\"\n      ]\n    }\n  },\n  \"security\": [\n    {},\n    {\n      \"OzoneConnectApiKey\": []\n    },\n    {\n      \"OzoneConnectClientCredentials\": [\n        \"placeholder\"\n      ]\n    },\n    {\n      \"OzoneConnectJwtAuth\": []\n    }\n  ],\n  \"securitySchemes\": {\n    \"OzoneConnectApiKey\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n      \"type\": \"apiKey\",\n      \"in\": \"header\",\n      \"name\": \"Authorization\"\n    },\n    \"OzoneConnectClientCredentials\": {\n      \"type\": \"oauth2\",\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n      \"flows\": {\n        \"clientCredentials\": {\n          \"tokenUrl\": \"https://example.lfi.ae/token\",\n          \"scopes\": {\n            \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n          }\n        }\n      }\n    },\n    \"OzoneConnectJwtAuth\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Ozone-Connect-JWT-Auth\"\n    },\n    \"OzoneConnectServiceInitiationToken\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Bearer\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.providerId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-provider-id\",\n  \"in\": \"header\",\n  \"required\": true,\n  \"description\": \"Identifier for the financial institution that the request is targeted to\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-org-id\",\n  \"in\": \"header\",\n  \"required\": true,\n  \"description\": \"An identifier for the organization calling the API\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.callerClientId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-client-id\",\n  \"in\": \"header\",\n  \"required\": true,\n  \"description\": \"An identifier for the OIDC clientId calling the API\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-software-statement-id\",\n  \"in\": \"header\",\n  \"required\": true,\n  \"description\": \"An identifier for the software statement calling the API\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.apiUri",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-api-uri\",\n  \"in\": \"header\",\n  \"required\": true,\n  \"description\": \"The URL of the API being called by the caller\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.apiOperation",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-api-operation\",\n  \"in\": \"header\",\n  \"required\": true,\n  \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-caller-interaction-id\",\n  \"in\": \"header\",\n  \"required\": false,\n  \"description\": \"The interaction ID passed in by the caller, if any\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-ozone-interaction-id\",\n  \"in\": \"header\",\n  \"required\": true,\n  \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.consentId",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-consent-id\",\n  \"in\": \"header\",\n  \"required\": true,\n  \"description\": \"The consentId for which this call is being made\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.psuIdentifier",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"o3-psu-identifier\",\n  \"in\": \"header\",\n  \"required\": true,\n  \"description\": \"A Base64 encoded representation of the psuIdentifier JSON object.\",\n  \"schema\": {\n    \"type\": \"string\"\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/InsurancePolicyIds",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"insurancePolicyIds\",\n  \"in\": \"query\",\n  \"required\": true,\n  \"description\": \"A comma-separated list of insurance policy identifiers. Used to retrieve all insurance policies authorized by the User, which matches the `insurancePolicyIds` data for a given Consent at Consent Manager.\",\n  \"schema\": {\n    \"type\": \"string\"\n  },\n  \"explode\": false\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.page",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"page\",\n  \"in\": \"query\",\n  \"required\": true,\n  \"description\": \"Page of results to request (standard pagination)\",\n  \"schema\": {\n    \"type\": \"integer\",\n    \"default\": 1\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/parameters/OzoneConnect.page-size",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"name\": \"page-size\",\n  \"in\": \"query\",\n  \"required\": true,\n  \"description\": \"Page size to request. Default is 100 to comply with the Operating Guidelines for the Open Finance Framework.\",\n  \"schema\": {\n    \"type\": \"integer\",\n    \"default\": 100\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEReadLifeInsurancePolicies1",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"data\"\n  ],\n  \"properties\": {\n    \"data\": {\n      \"$ref\": \"#/components/schemas/AELifeInsurancePolicies1\"\n    },\n    \"meta\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/PaginatedMetadata\"\n        }\n      ],\n      \"description\": \"Metadata related to pagination. Can be omitted if response data is not paginated.\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AELifeInsurancePolicies1",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"Policies\"\n  ],\n  \"properties\": {\n    \"Policies\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"$ref\": \"#/components/schemas/AELifeInsurancePolicyProperties\"\n      },\n      \"description\": \"List of available insurance policies.\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AELifeInsurancePolicyProperties",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"InsurancePolicyId\",\n    \"PolicyNumber\",\n    \"PolicyStatus\",\n    \"PolicyStartDate\"\n  ],\n  \"properties\": {\n    \"InsurancePolicyId\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n        }\n      ],\n      \"description\": \"Unique identifier for a given insurance policy\",\n      \"example\": \"d330c5bb-0889-4596-86bb-17cc9a4a17b5\"\n    },\n    \"PolicyNumber\": {\n      \"type\": \"string\",\n      \"description\": \"The policy number assigned by the LFI.\"\n    },\n    \"PolicyStatus\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEInsurance.AELifeInsurancePolicyStatusCodes\"\n        }\n      ],\n      \"description\": \"The current status of the policy.\"\n    },\n    \"PolicyStartDate\": {\n      \"type\": \"string\",\n      \"format\": \"date\",\n      \"description\": \"Policy start date\"\n    },\n    \"PolicyEndDate\": {\n      \"type\": \"string\",\n      \"description\": \"The date on which cover ends.\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"minLength\": 1,\n  \"maxLength\": 128,\n  \"description\": \"Unique identifier for a given insurance policy. \\n\\nA uuid v4 is recommended for consistency but not mandatory.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEInsurance.AELifeInsurancePolicyStatusCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"New\",\n    \"Renewed\",\n    \"Expired\",\n    \"Lapsed\",\n    \"Cancelled\",\n    \"PaidUp\",\n    \"Converted\",\n    \"Surrendered\",\n    \"DeathClaim\",\n    \"RiderClaim\",\n    \"InForce\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/PaginatedMetadata",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"page\",\n    \"pageSize\",\n    \"totalPages\",\n    \"totalRecords\"\n  ],\n  \"properties\": {\n    \"page\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"description\": \"The current page number.\"\n    },\n    \"pageSize\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"description\": \"Number of records in the current page.\"\n    },\n    \"totalPages\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"description\": \"Total number of pages available for response.\"\n    },\n    \"totalRecords\": {\n      \"type\": \"integer\",\n      \"minimum\": 1,\n      \"description\": \"Total number of records across all pages\"\n    }\n  },\n  \"description\": \"Provides information on paginated data\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/error400Response",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Operation failed due to a invalid request parameter\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/OzoneConnect.Error400\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/OzoneConnect.Error400",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"anyOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEError400Codes\"\n        },\n        {\n          \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n        },\n        {\n          \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n        }\n      ],\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n    },\n    \"errorMessage\": {\n      \"type\": \"string\",\n      \"description\": \"Message describing what problem has occurred\"\n    }\n  },\n  \"description\": \"Default error response payload structure for Ozone Connect\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"Consent.Invalid\",\n    \"Consent.BusinessRuleViolation\",\n    \"Consent.FailsControlParameters\",\n    \"Consent.InvalidUserIdentifier\",\n    \"JWS.InvalidSignature\",\n    \"JWS.Malformed\",\n    \"JWS.InvalidClaim\",\n    \"JWS.InvalidHeader\",\n    \"JWS.InvalidPayload\",\n    \"JWE.DecryptionError\",\n    \"JWE.InvalidHeader\",\n    \"GenericRecoverableError\",\n    \"GenericError\",\n    \"Event.UnexpectedEvent\",\n    \"Body.InvalidFormat\",\n    \"Resource.InvalidFormat\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"description\": \"Custom error code without prefix, retained for compatibility with version 1.2.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/error403Response",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Operation failed as access to the requested resource is forbidden\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/OzoneConnect.Error403\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/OzoneConnect.Error403",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"anyOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEError403Codes\"\n        },\n        {\n          \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n        },\n        {\n          \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n        }\n      ],\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n      \\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n    },\n    \"errorMessage\": {\n      \"type\": \"string\",\n      \"description\": \"Message describing what problem has occurred\"\n    }\n  },\n  \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"AccessToken.InvalidScope\",\n    \"Consent.TransientAccountAccessFailure\",\n    \"Consent.AccountTemporarilyBlocked\",\n    \"Consent.PermanentAccountAccessFailure\",\n    \"GenericRecoverableError\",\n    \"GenericError\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/error409Response",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Operation failed due to a conflict\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/OzoneConnect.Error409\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/OzoneConnect.Error409",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"anyOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n        },\n        {\n          \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n        },\n        {\n          \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n        }\n      ],\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n    },\n    \"errorMessage\": {\n      \"type\": \"string\",\n      \"description\": \"Message describing what problem has occurred\"\n    }\n  },\n  \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"string\",\n  \"enum\": [\n    \"GenericRecoverableError\",\n    \"GenericError\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/error500Response",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Operation failed due to an internal server error\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/OzoneConnect.Error500\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/OzoneConnect.Error500",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"required\": [\n    \"errorCode\",\n    \"errorMessage\"\n  ],\n  \"properties\": {\n    \"errorCode\": {\n      \"anyOf\": [\n        {\n          \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n        },\n        {\n          \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n        },\n        {\n          \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n        }\n      ],\n      \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n    },\n    \"errorMessage\": {\n      \"type\": \"string\",\n      \"description\": \"Message describing what problem has occurred\"\n    }\n  },\n  \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/responses/errorResponse",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"description\": \"Default error response\",\n  \"content\": {\n    \"application/json\": {\n      \"schema\": {\n        \"$ref\": \"#/components/schemas/OzoneConnect.DefaultError\"\n      }\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/OzoneConnect.DefaultError",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"errorCode\": {\n      \"allOf\": [\n        {\n          \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n        }\n      ],\n      \"description\": \"Generic error code set by the LFI. Non-namespaced error codes are allowed for compatibility versions prior to v2.0.\"\n    },\n    \"errorMessage\": {\n      \"type\": \"string\",\n      \"description\": \"Message describing what problem has occurred\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

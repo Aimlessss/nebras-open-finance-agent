@@ -1,0 +1,204 @@
+{
+  "id": "knowledge-base/articles/payment-account-permissions",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/knowledge-base/articles/payment-account-permissions.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "6cff484d131c4733f021bb8c6e9644351673e3b31c21f48df9dc27645512c72b",
+    "dependencies": [
+      "payments openid"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Account Permissions in a Payment Consent",
+    "description": "How to use ReadAccountsBasic, ReadAccountsDetail, and ReadBalances on a payment consent, which endpoints they unlock, and why they're useful during a payment flow.",
+    "category": "Payments",
+    "readTime": "6 min",
+    "updated": "2026-04-21",
+    "tags": [
+      "Payments",
+      "Permissions",
+      "Account Data"
+    ],
+    "url": "https://nebras-open-finance.com/knowledge-base/articles/payment-account-permissions",
+    "doc_version": "unversioned"
+  },
+  "content": {
+    "title": "Account Permissions in a Payment Consent",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "What account access enables during a payment flow",
+        "level": 2,
+        "anchor": "why",
+        "category": "Why include them",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "During a payment flow the TPP typically needs to:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Display the payer's debit account — the user should be able to confirm which account they are paying from before authorizing.",
+              "Show the available balance — helps the user check they have sufficient funds before approving the payment.",
+              "Pre-fill the debit account — some UX patterns let the user pick an account; ReadAccountsBasic provides the list."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "Without these permissions the TPP only receives a payment access token that is scoped to initiate and track the payment — it cannot call any account endpoints."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Three reads, one refund-routing extra",
+        "level": 2,
+        "anchor": "available",
+        "category": "Available permissions",
+        "blocks": [
+          {
+            "type": "table",
+            "headers": [
+              "Permission",
+              "Endpoint unlocked",
+              "What it returns"
+            ],
+            "rows": [
+              [
+                "ReadAccountsBasic",
+                "GET /accounts",
+                "List of accounts with basic metadata (account type, currency, nickname). Does not include the full account number or IBAN."
+              ],
+              [
+                "ReadAccountsDetail",
+                "GET /accounts/{AccountId}",
+                "Full account record including the IBAN/account identification. Requires ReadAccountsBasic to first retrieve an AccountId."
+              ],
+              [
+                "ReadBalances",
+                "GET /accounts/{AccountId}/balances",
+                "Current balance for a specific account (available balance, credit/debit indicator, and currency)."
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "ReadRefundAccount is a fourth permission on a payment consent. It unlocks GET /payment-consents/{ConsentId}/refund and is used to retrieve account details for routing a refund — it is not an account-reading permission in the same sense."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "The Request JWT scope changes",
+        "level": 2,
+        "anchor": "scope",
+        "category": "Scope impact",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Including any of the three permissions above changes the required scope in the /par Request JWT."
+          },
+          {
+            "type": "table",
+            "headers": [
+              "Consent includes",
+              "Scope in Request JWT"
+            ],
+            "rows": [
+              [
+                "Payment only (no account permissions)",
+                "payments openid"
+              ],
+              [
+                "Payment with ReadAccountsBasic, ReadAccountsDetail, or ReadBalances",
+                "accounts payments openid"
+              ]
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "If account-reading permissions are present in authorization_details but accounts is omitted from the scope, the API Hub will reject the /par request."
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Add to authorization_details and update the scope",
+        "level": 2,
+        "anchor": "request",
+        "category": "Requesting the permissions",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "Add the Permissions array to authorization_details.consent in your /par request alongside the payment fields:"
+          },
+          {
+            "type": "paragraph",
+            "text": "And update the scope in your Request JWT:"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Use the same access token returned after the payment consent is authorized",
+        "level": 2,
+        "anchor": "calling",
+        "category": "Calling the account endpoints",
+        "blocks": [],
+        "subsections": [
+          {
+            "heading": "GET /accounts — requires ReadAccountsBasic",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "GET /accounts/{AccountId} — requires ReadAccountsDetail",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "GET /accounts/{AccountId}/balances — requires ReadBalances",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          }
+        ]
+      },
+      {
+        "heading": "Same model, scoped to the payment context",
+        "level": 2,
+        "anchor": "relationship",
+        "category": "vs Bank Data Sharing",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "These permissions follow the same permission model as Bank Data Sharing but are scoped to the payment context:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Access expires when the payment consent expires.",
+              "Access is limited to the accounts the user authorized at the LFI.",
+              "Only these three account endpoints are available — no transactions, beneficiaries, statements, or other sub-resources."
+            ]
+          },
+          {
+            "type": "paragraph",
+            "text": "If you need access to the full range of account data, create a separate Bank Data Sharing consent."
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

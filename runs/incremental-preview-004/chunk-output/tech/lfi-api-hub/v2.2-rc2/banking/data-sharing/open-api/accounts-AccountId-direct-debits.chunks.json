@@ -1,0 +1,1098 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+  "chunk_count": 32,
+  "chunks": [
+    {
+      "id": "b6cbdda3-0d77-58be-bca1-108d0179a123",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > API /accounts/{accountId}/direct-debits\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - Bank Data Sharing APIs\",\n \"contact\": {\n \"name\": \"Ozone Financial Technology Limited\"\n },\n \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor Bank Data Sharing APIs for Ozone Connect.\\n\\nThese APIs should be implemented by an financial institution so that Ozone\\ncan expose these end-points to TPPs.\\n\\n#### Implementer Notes\\n\\nImplementers should note that this API prescribes a positive response for correctly executed\\noperations including those where no data is returned. This is consistent with the general principles\\nof REST.\\nFor example, if the operation \\n`get /accounts/{accountId}/products` is invoked and no product data is found for the account\\nassociated with the value of `accountId` then the correct response is to return a `200` and an empty\\narray: `{ \\\"data\\\": [] }`.\\n\\nPlease refer to the API Hub documentation for details of test cases that are \\navailable for this API using the Ozone Connect test suite.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n**Please adhere to the deprecated flags in your implementation. Do not implement deprecated properties when** **implementing new functionality.**\\n\\n### v2.2.3\\n* Changed `emiratesId` on `CustomerPersonClaims` to carry\\n `pattern: ^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$`, so the Emirates ID returned by `get /customer` and\\n `get /accounts/{accountId}/customer` is well-formed. This is the pattern already used by the Insurance API\\n description and, from v2.2, by `post /leads` in the Bank Products Data API description. Per OFP-009.\\n\\n* Changed `fullName`, `givenName`, `familyName`, `middleName` and `nickname` on `CustomerPersonClaims` to accept\\n Latin letters, space, apostrophe, period and hyphen only, and `businessName` on `CustomerCorporateClaims` to\\n accept those plus digits, ampersand, comma, parentheses and forward slash. Field lengths are unchanged.\\n Per OFP-009.\\n\\n### v2.2.2\\n* Changed `transactionInformation` on `CbuaeTransaction` to be required, so every transaction returned by\\n `get /accounts/{accountId}/transactions` carries a narrative by which the customer can recognise the entry.\\n The field also gains `minLength: 1` and `maxLength: 500`, matching the bounds the TPP-facing\\n `TransactionInformation` schema has carried since v2.1. The same requirement is applied to `AETransaction` in\\n the Standards Account Information API description, since the API Hub can only return a narrative the LFI\\n supplied.\\n\\n* Changed the `post /customers/action/cop-query` request to carry the account IBAN only. `data.account.name` is\\n removed, along with the `PersonName` and `BusinessName` Schema Objects it referenced. The LFI performs no\\n matching, so the name submitted by the TPP is no longer sent to it.\\n\\n* Changed the `post /customers/action/cop-query` response to carry the account holder's name directly. Each\\n entry in `data` is now an `id` and a `name`, which is either a `CbuaeCopPersonName` (`fullName` required) or a\\n `CbuaeCopBusinessName` (`businessName` required). The `verifiedClaims` / `verification` identity-assurance\\n envelope is removed from this operation, along with the `CbuaeVerifiedCopClaim` and\\n `ConfirmationOfPayeePersonClaims` Schema Objects and the wider customer data the latter carried — none of it\\n is needed to compare two names, and Confirmation of Payee runs without a consent. `number` is dropped for the\\n same reason; `id` is retained as the handle for investigating a disputed result. Structured name fields\\n (`firstName`, `middleName`, `lastName`, `fullNameAr`, `alsoKnownAs`, `businessNameAr`) are retained as\\n optional members so the matching algorithm can be improved without a further change to this contract.\\n `get /accounts/{accountId}/customer` is unaffected: it has its own `CbuaeCustomer` / `CbuaeVerifiedClaim`\\n Schema Objects.\\n\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards.\\n* Changed `get /accounts/{accountId}/products` to return `ExpectedProfitRates`, providing one-or-more deposit\\n rates for Sharia-compliant products. Each rate carries `RateType` (`FixedProfit` or `VariableProfit`),\\n `DepositRateType` (`ExpectedProfitRate` or `IndicativeProfitRate`), `ProfitSharingRatio`,\\n `ProfitDistributionMethod`, `ProfitDistributionFrequency`, an optional `Description`, and `RateDetails`.\\n\\n* Changed `get /accounts/{accountId}/products` to return `ShariaFinanceRates`, providing one-or-more finance\\n rates for Sharia-compliant products. As with `FinanceRates`, this can be provided in cleartext or as a JWE\\n based on the preference of the LFI for sharing this information. Each cleartext rate is discriminated on\\n `RateType` as a fixed profit rate, a variable profit rate or a hybrid profit rate, and carries\\n `ProfitCalculationMethod` with the values `PrincipalBalance`, `OutstandingBalance`,\\n `InitialDrawdownAmount`, `UnusedCreditLine` or `UtilizedLimit`.\\n\\n* Changed `get /accounts/{accountId}/products` to return `TakafulRequired`, indicating whether Takaful\\n coverage is required for the product, and `TakafulDescription`, describing the type and purpose of the\\n required coverage.\\n\\n* Changed `get /accounts/{accountId}/products` to return `ProfitCalculationMethod` on charge components, for\\n use in place of `InterestCalculationMethod` where the product uses Islamic calculat",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "API /accounts/{accountId}/direct-debits",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /accounts/{accountId}/direct-debits\"],\"\"]:0:part:0",
+      "content_hash": "d4667a7e5a1a9b3cd1d7abdec302a19c57ae28282d9a355ff0853058da651f24",
+      "schema_version": 2
+    },
+    {
+      "id": "46aea085-78cd-5a91-a4af-5d0a47c1d25b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > API /accounts/{accountId}/direct-debits\n\nion methods.\\n\\n* Changed `InterestCalculationMethod` on charge components returned by\\n `get /accounts/{accountId}/products` to apply to interest only. Islamic calculation methods are now\\n described by `ProfitCalculationMethod`.\\n\\n* Changed `RateDetails` on the deposit rates returned by `get /accounts/{accountId}/products` to reference a\\n shared Schema Object, so that the same rate structure is used by both `DepositRates` and\\n `ExpectedProfitRates`. No change to the properties returned.\\n\\n* Changed `get /accounts/{accountId}/balances`, `get /accounts/{accountId}/transactions` and\\n `get /accounts/{accountId}/statements` to return `BalanceDescription`, allowing a description of the\\n balance to be provided identifying the specific Shari'ah compliant charges, payments and rewards made\\n which can affect the balance.\\n\",\n \"version\": \"v2.2.3\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/accounts/{accountId}/direct-debits\",\n \"operations\": {\n \"get\": {\n \"tags\": [\n \"direct-debits\"\n ],\n \"summary\": \"Fetch the direct debits specified by the account id\",\n \"description\": \"Return the direct debits for the account specified by the accountId\",\n \"operationId\": \"findDirectDebitByAccountId\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/aspspId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/consentId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/ozoneInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/psuIdentifier\"\n },\n {\n \"name\": \"accountId\",\n \"in\": \"path\",\n \"description\": \"Id of the account to be queried\",\n \"required\": true,\n \"schema\": {\n \"type\": \"string\"\n }\n },\n {\n \"$ref\": \"#/components/parameters/page\"\n },\n {\n \"$ref\": \"#/components/parameters/page-size\"\n }\n ],\n \"responses\": {\n \"200\": {\n \"description\": \"successful operation\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/DirectDebitsResponse\"\n }\n }\n }\n },\n \"400\": {\n \"$ref\": \"#/components/responses/BadRequestError\"\n },\n \"401\": {\n \"$ref\": \"#/components/responses/UnauthorizedError\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/ForbiddenError\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/InternalServerError\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/Error\"\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "API /accounts/{accountId}/direct-debits",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /accounts/{accountId}/direct-debits\"],\"\"]:0:part:1",
+      "content_hash": "9458d6822b6ee53b7262e7eaf25f45e8f1988a1124bda5b4e4047f5a062ebd54",
+      "schema_version": 2
+    },
+    {
+      "id": "47e32c31-378c-5589-8367-7fa951cfa9a3",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targetted to\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/providerId\"],\"\"]:0",
+      "content_hash": "2d837b9579f441e0c6aac623b44eda2e0ebfb836b21abdb9b56c03a20518156a",
+      "schema_version": 2
+    },
+    {
+      "id": "95064a70-2242-5aaf-b2a8-b2399108283b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/aspspId\n\n{\n \"name\": \"o3-aspsp-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"deprecated\": true,\n \"description\": \"Identifier for the financial institution that the request is targetted to. This header is deprecated and will be removed in a future version of Ozone Connect. Use `o3-provider-id` instead.\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/aspspId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/aspspId\"],\"\"]:0",
+      "content_hash": "54b5c411196bd787d81a0236a24a37b4c7e0d6c222c6588c1e6fd6a367e0f537",
+      "schema_version": 2
+    },
+    {
+      "id": "32dc91df-ea65-55bb-bcbf-34c6f5977fc2",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerOrgId\"],\"\"]:0",
+      "content_hash": "6e46026212fb7563e901a157768ec64b459c6e74063a16652dd24f2863d07b86",
+      "schema_version": 2
+    },
+    {
+      "id": "c182256b-f63d-5c2f-a065-06b15a72e777",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerClientId\"],\"\"]:0",
+      "content_hash": "d86667033dd746784cf3b658f5290822edadd0ed2da03fe9f76381b21f0c4416",
+      "schema_version": 2
+    },
+    {
+      "id": "df5c6948-31dc-55e9-9d8a-78f06c5712a9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "a01912ba36f8422f39056a713f49b1b4116a833abd9f1ff6da5d4722e31cfc55",
+      "schema_version": 2
+    },
+    {
+      "id": "600d7e53-475c-5b12-8248-aa0c74eb4569",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The parameterised URL of the API being called by the caller\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiUri\"],\"\"]:0",
+      "content_hash": "30e6d4d7724c8f9048eae8f59c827fef11fca06991ae6d83e5415b5f006f8714",
+      "schema_version": 2
+    },
+    {
+      "id": "a442afe5-07ca-52f1-93b0-0baab59503af",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiOperation\"],\"\"]:0",
+      "content_hash": "d3b9732595424f10b98974d381e5c4842f91c8a9c635ad6b5fdcecaa9ae39116",
+      "schema_version": 2
+    },
+    {
+      "id": "e80988a5-0275-55eb-8221-a51454e1dfeb",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/consentId\n\n{\n \"name\": \"o3-consent-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The consentId for which this call is being made\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/consentId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/consentId\"],\"\"]:0",
+      "content_hash": "4f483e06af9707d513a0bffa0ff7b1fbdeec457d4b7822600d7cd865979c457c",
+      "schema_version": 2
+    },
+    {
+      "id": "85107301-fe69-537a-a007-f59fc94abffb",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerInteractionId\"],\"\"]:0",
+      "content_hash": "23f74627fd6ff87292df19bfcc8704e41fae6211466319a56e4e0e875f4e0730",
+      "schema_version": 2
+    },
+    {
+      "id": "2af23c5f-d113-50ee-9d1c-3887ac4f874c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "b64ffdb33651807df5222a3140c9f13ba2c39908bb885f8a6f60d32bff98d221",
+      "schema_version": 2
+    },
+    {
+      "id": "12c1a2c2-8162-5b2a-b582-adc221c9344c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/psuIdentifier\n\n{\n \"name\": \"o3-psu-identifier\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"A Base64 encoded representation of the psuIdentifier JSON object.\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/psuIdentifier",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/psuIdentifier\"],\"\"]:0",
+      "content_hash": "ae02cff06b5ae10859e995a9585211cd31015437b6996ba10ead9d4df7b0e04b",
+      "schema_version": 2
+    },
+    {
+      "id": "51502c04-124d-506b-ab9b-8243d09a1b93",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/page\n\n{\n \"name\": \"page\",\n \"in\": \"query\",\n \"description\": \"Page of results to request (standard pagination)\",\n \"required\": true,\n \"schema\": {\n \"default\": 1,\n \"type\": \"integer\"\n },\n \"style\": \"form\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/page",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/page\"],\"\"]:0",
+      "content_hash": "a914bce19b52b0c40b7dcdb77c9ac5bcd5c175d7c539b29d68c2560ee7575b68",
+      "schema_version": 2
+    },
+    {
+      "id": "f6784ff5-405d-5f3b-b9e7-5c2a49129ffa",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/parameters/page-size\n\n{\n \"name\": \"page-size\",\n \"in\": \"query\",\n \"description\": \"Page size to request. Default is 100 to comply with the Operating Guidelines for the Open Finance Framework.\",\n \"required\": true,\n \"schema\": {\n \"default\": 100,\n \"type\": \"integer\"\n },\n \"style\": \"form\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/parameters/page-size",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/page-size\"],\"\"]:0",
+      "content_hash": "77b02419d0e7666af03f23022e7b23e4b2df443fe1f92f0865653a5f3d6186ec",
+      "schema_version": 2
+    },
+    {
+      "id": "288c0b4f-0df1-50ef-8a89-09fe69bf2aa8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/DirectDebitsResponse\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/CbuaeDirectDebit\"\n },\n \"description\": \"Primary data for the resource.\"\n },\n \"meta\": {\n \"$ref\": \"#/components/schemas/Meta\"\n }\n },\n \"description\": \"The properties of a direct debit.\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/DirectDebitsResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/DirectDebitsResponse\"],\"\"]:0",
+      "content_hash": "271181ee240aad5b27c62a3d565b01f08280206143b793c263e7d79bec4466d4",
+      "schema_version": 2
+    },
+    {
+      "id": "058bd5bc-c73c-5590-8067-83dacdc3ded7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/CbuaeDirectDebit\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"accountId\": {\n \"description\": \"A unique and immutable identifier produced by the financial institution to identify the account resource.This identifier has no meaning to the account owner (User 1).\",\n \"type\": \"string\"\n },\n \"directDebitId\": {\n \"description\": \"A unique and immutable identifier used to identify the direct debit resource. This identifier has no meaning to the account owner.\",\n \"type\": \"string\"\n },\n \"mandateIdentification\": {\n \"description\": \"This is the unique and immutable reference to the User 1 for the Direct Debit mandate.\",\n \"type\": \"string\"\n },\n \"directDebitStatusCode\": {\n \"$ref\": \"#/components/schemas/DirectDebitStatusEnum\"\n },\n \"name\": {\n \"description\": \"This is the name of the regulated beneficiary entity that initiates the Direct Debit collection.\",\n \"type\": \"string\"\n },\n \"frequency\": {\n \"description\": \"Specifies the frequency of the Direct Debit collections to the User 1 account.\",\n \"type\": \"string\",\n \"enum\": [\n \"Annual\",\n \"Daily\",\n \"Fortnightly\",\n \"HalfYearly\",\n \"Monthly\",\n \"NotKnown\",\n \"Quarterly\",\n \"Weekly\"\n ]\n },\n \"previousPaymentDateTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"The date of most recent direct debit collection to the User account.\"\n }\n ]\n },\n \"previousPaymentAmount\": {\n \"$ref\": \"#/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\"\n }\n },\n \"required\": [\n \"accountId\",\n \"directDebitId\",\n \"directDebitStatusCode\",\n \"mandateIdentification\",\n \"name\",\n \"frequency\"\n ],\n \"description\": \"Account to or from which a cash entry is made.\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/CbuaeDirectDebit",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaeDirectDebit\"],\"\"]:0",
+      "content_hash": "c45df544cd7acee5062774f999688d8813539e9c64917d58ba87f0be041c8f96",
+      "schema_version": 2
+    },
+    {
+      "id": "b56380ac-a8f8-5da3-9dad-7c8feaf81244",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/DirectDebitStatusEnum\n\n{\n \"description\": \"Specifies the status of the direct debit.\",\n \"type\": \"string\",\n \"enum\": [\n \"Active\",\n \"Inactive\"\n ]\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/DirectDebitStatusEnum",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/DirectDebitStatusEnum\"],\"\"]:0",
+      "content_hash": "de47faf141b24b3f6b0ff314681e13be606c1d7b1671d08ca5a54adc232989ef",
+      "schema_version": 2
+    },
+    {
+      "id": "1f828221-718e-5d44-bd9b-47cc464c5eb1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/AEDateTime\n\n{\n \"title\": \"AEDateTime\",\n \"description\": \"An instant in time, per ISO 8601 / RFC 3339, with a mandatory offset. Recipients MUST apply the offset, and\\nMUST NOT read the date and time components as local time. Encodings of the same instant are equivalent and MUST\\nbehave identically: `2027-07-22T00:00:00Z` and `2027-07-22T04:00:00+04:00` identify the same moment.\\n\\nIssuers SHOULD emit UTC, using `Z` or `+00:00`. The negative zero offset `-00:00` MUST NOT be used. Fractional\\nseconds are optional and carry no specified precision; implementations MUST accept both their presence and\\ntheir absence.\\n\",\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}(\\\\.\\\\d+)?(Z|\\\\+\\\\d{2}:\\\\d{2}|-(?:0[1-9]|1[0-2]):\\\\d{2})$\",\n \"example\": \"2027-07-22T00:00:00Z\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEDateTime",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDateTime\"],\"\"]:0",
+      "content_hash": "84dc9e35acd0e143f0f5924f086e58d527d138f3d02d08d60b3a0609cf3b0ffa",
+      "schema_version": 2
+    },
+    {
+      "id": "9cd4d301-09c7-5e97-a2fc-f78c2af34d8b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\n\n{\n \"type\": \"object\",\n \"required\": [\n \"amount\",\n \"currency\"\n ],\n \"properties\": {\n \"amount\": {\n \"$ref\": \"#/components/schemas/AEActiveCurrencyAndAmount_SimpleType\"\n },\n \"currency\": {\n \"$ref\": \"#/components/schemas/ActiveOrHistoricCurrencyCode_1\"\n }\n },\n \"description\": \"The amount and currency code for a given payment or transaction.\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OBActiveOrHistoricCurrencyAndAmount_8\"],\"\"]:0",
+      "content_hash": "50c9df05e63e94c1963e2007221932eb16b4a84771a7978c6f0b4701773e56c4",
+      "schema_version": 2
+    },
+    {
+      "id": "d37deeec-c1f5-5c41-b7e6-ba8f8bc204f9",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/AEActiveCurrencyAndAmount_SimpleType\n\n{\n \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n \"type\": \"string\",\n \"pattern\": \"^\\\\d{1,13}$|^\\\\d{1,13}\\\\.\\\\d{1,5}$\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/AEActiveCurrencyAndAmount_SimpleType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEActiveCurrencyAndAmount_SimpleType\"],\"\"]:0",
+      "content_hash": "3938ebcd377365fcf1eb65bb99a3474cf7882a7240fe0f6d7152b4c9af1903cf",
+      "schema_version": 2
+    },
+    {
+      "id": "0ab5b4c2-f15b-50f3-9b6d-f48b71f7b028",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/ActiveOrHistoricCurrencyCode_1\n\n{\n \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"example\": \"SAR\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/ActiveOrHistoricCurrencyCode_1",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ActiveOrHistoricCurrencyCode_1\"],\"\"]:0",
+      "content_hash": "8c4e9dc5a61785175f3ae9e9a0844ccbe7ce19b05dd1c6fb080ede948c28256d",
+      "schema_version": 2
+    },
+    {
+      "id": "f89cefaf-b868-5f30-9655-80e590426347",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/Meta\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"totalPages\": {\n \"type\": \"number\",\n \"description\": \"The number of expected pages for the query.\\n\"\n },\n \"totalRecords\": {\n \"type\": \"number\",\n \"description\": \"The total number of records in the full set.\\n\"\n }\n },\n \"description\": \"Metadata relevant to the resource.\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/Meta",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Meta\"],\"\"]:0",
+      "content_hash": "838c95a5b6b218cc6436291d7c4dd0d4ec4e6d436f0917921c356dadeb31f812",
+      "schema_version": 2
+    },
+    {
+      "id": "5f5b56dd-7f19-520d-ad2b-077adf9bb9a8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/responses/BadRequestError\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/responses/BadRequestError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/BadRequestError\"],\"\"]:0",
+      "content_hash": "86ad8a6fb5988093a57101b00254b9f9ae3cf016d313bc2c67b284c94d530a0c",
+      "schema_version": 2
+    },
+    {
+      "id": "8fd779d2-ffc3-5af9-9231-a23f8c90a018",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/Error400\n\n{\n \"description\": \"Default error response payload structure for Ozone Connect\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error400\"],\"\"]:0",
+      "content_hash": "97dfe08013b361703ab97510770cf796f4be098287c00a1602dc420d895c1126",
+      "schema_version": 2
+    },
+    {
+      "id": "53301bdb-9d81-528f-96c5-55b62534519d",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/ErrorMessage\n\n{\n \"description\": \"Message describing the problem that has occurred.\",\n \"type\": \"string\"\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/ErrorMessage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ErrorMessage\"],\"\"]:0",
+      "content_hash": "35175e81d6ba479a85d0361f740940b5a5eae07a839cb34abaef0024b1b3da05",
+      "schema_version": 2
+    },
+    {
+      "id": "0df19bf6-6295-5f8c-b6ee-1daacc7428df",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/responses/UnauthorizedError\n\n{\n \"description\": \"Operation failed due to an invalid credential or missing token\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n \"type\": \"string\"\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/responses/UnauthorizedError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/UnauthorizedError\"],\"\"]:0",
+      "content_hash": "772c6327bac26624227b730f666f6708c7bdffe104afefe3784bd51d18b1a3ec",
+      "schema_version": 2
+    },
+    {
+      "id": "c28a2899-8877-575f-aa42-102d7a87ef67",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/responses/ForbiddenError\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/responses/ForbiddenError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/ForbiddenError\"],\"\"]:0",
+      "content_hash": "0fd4f83d3d13f9e65fb16008bf6ff0474d9a19a4e957c164b3f0a9fc617d1160",
+      "schema_version": 2
+    },
+    {
+      "id": "b7798411-5bc3-5a0b-a135-260a5b160a78",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/Error403\n\n{\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error403\"],\"\"]:0",
+      "content_hash": "7359866306028be7c01130d4ab24e07a92dfbe97dfe72a8a72ca82fdbf7289ce",
+      "schema_version": 2
+    },
+    {
+      "id": "91b7ec61-f026-5e28-9123-743419bede5e",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/responses/InternalServerError\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/responses/InternalServerError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/InternalServerError\"],\"\"]:0",
+      "content_hash": "1159f3740eb5eeb177b661bdf83951e463458dbecf223d05f1c86899c90e9739",
+      "schema_version": 2
+    },
+    {
+      "id": "49f59bf9-b666-5160-ac23-7e7a454970d8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/schemas/Error500\n\n{\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/schemas/Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error500\"],\"\"]:0",
+      "content_hash": "02aa44b3b256337405a1bb40951a782cebd385daf289cce4e67bf2e2c4e8d8a4",
+      "schema_version": 2
+    },
+    {
+      "id": "95fd1628-68c9-5258-9278-9418674b3df6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+      "type": "section",
+      "text": "Get Direct Debits for an Account > OpenAPI definition #/components/responses/Error\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n \"type\": \"string\"\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Get Direct Debits for an Account",
+        "section": "OpenAPI definition #/components/responses/Error",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "c7749cf1cddaf11712fdfe24e9fa3b9c897375752b9c21bcf0ec57f3a3392d7f",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/data-sharing/open-api/accounts-AccountId-direct-debits",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/Error\"],\"\"]:0",
+      "content_hash": "b394ed4d45c29852a668cf7f1192853909be9e215b46c4f04f6d22cbab7ef515",
+      "schema_version": 2
+    }
+  ]
+}

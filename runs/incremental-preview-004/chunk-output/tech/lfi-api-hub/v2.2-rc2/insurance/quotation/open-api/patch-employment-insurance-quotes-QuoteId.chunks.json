@@ -1,0 +1,1954 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+  "chunk_count": 57,
+  "chunks": [
+    {
+      "id": "a9ab8aa2-73f3-5dab-8b3f-7ab0cbc3d96f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > API /employment-insurance-quotes/{QuoteId}\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - UAE Insurance API Description\",\n \"description\": \"## Ozone Connect - UAE Insurance API Description\\n\\nThis document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html) for Insurance APIs for Ozone Connect.\\n\\nThese APIs should be implemented by a financial institution to facilitate integration with the API Hub.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where: \\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n\\n### v2.2.2\\n\\n* Changed every date-time field to reference the shared `AEDateTime` Schema Object. `AEDateTime` states that a\\n date-time value identifies an instant, that the offset is part of the value and must be applied by the\\n recipient, and that two encodings of the same instant are equivalent and must behave identically. It carries\\n a `pattern` requiring an offset and forbidding `-00:00`; all other offsets remain conformant. Each field\\n description now states only what is specific to that field. Per OFP-014.\\n\\n\\n### v2.2.1\\n\\n\\n* Added the optional `PolicyEndDate` property to the `get /life-insurance-policies` response, which was the only\\n insurance policy list schema not to carry it. It matches the `PolicyEndDate` in the corresponding UAE Insurance\\n API description response, which is an unconstrained string described as the date on which cover ends, rather than\\n the `format: date` property used by the other insurance types.\\n\\n\\n* Changed the `get /{industryType}-insurance-policies/{InsurancePolicyId}` operation to return\\n `CreditDebitIndicator` within `Premium.Adjustments`, indicating whether a premium adjustment is a credit,\\n reducing the premium payable, or a debit, increasing the premium payable. `CreditDebitIndicator` and\\n `AdjustmentAmount` are both mandatory for each entry in `Adjustments`.\\n\\n\\n* Removed the `maximum` of 100 from `AEInsuranceServiceRatingRateOrRatio`, which is referenced by the\\n `ServiceRating` properties `SolvencyRatio`, `ClaimsPaymentCapacityRatio`, `AverageClaimSettlementTime`, and\\n `CustomerComplaintRate`. None of these is a 0-100 percentage: both ratios routinely exceed 100% for a solvent\\n insurer, and the other two are measured in calendar days and in complaints per 1,000 active policies\\n respectively. The two genuine percentages, `ClaimSettlementRatio` and `ClaimRejectionRate`, now reference a new\\n `AEInsuranceServiceRatingPercentage` schema, which retains `maximum: 100` and adds `minimum: 0`.\\n\\n\\n### v2.1.3\\n\\n\\n* Changed the `get /{insurance-type}-insurance-quotes/{QuoteId}` operation to return the correct type for `Pending`\\n `QuoteStatus` responses.\\n\\n\\n### v2.1.2\\n\\n\\n* Changed the `insurancePolicyIds` parameter from optional to mandatory for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n* Changed the guidance for `insurancePolicyIds` parameter for the `get /{industryType}-insurance-policies` operation.\\n\\n\\n### v2.1.1\\n\\n\\n* Initial version that delivers v2.1 requirements (see separate, detailed changelog for changes from last v2.1.x version).\\n\\n\",\n \"version\": \"v2.2.2\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/employment-insurance-quotes/{QuoteId}\",\n \"operations\": {\n \"patch\": {\n \"operationId\": \"EmploymentInsuranceUpdateInsuranceQuoteByQuoteIdOperation\",\n \"summary\": \"Accept an employment insurance quote\",\n \"description\": \"Update the quote status to `Accepted` in readiness to send the quote data to \\ncreate a new insurance policy. The TPP must update the status to Accepted before\\nretrieving any additional data through their Data Sharing permissions, to include\\nin the new insurance policy request.\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/OzoneConnect.ozoneInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/AEInsurance.QuoteId\"\n }\n ],\n \"responses\": {\n \"200\": {\n \"description\": \"The request has succeeded.\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"type\": \"object\",\n \"properties\": {\n \"PolicyIssuanceAllowed\": {\n \"type\": \"object\",\n \"properties\": {\n \"CustomerVerification\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to complete capture of customer verification information and documents for this quote.\"\n },\n \"Payment\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to host payment checkout.\"\n },\n \"PolicyDocuments\": {\n \"type\": \"boolean\",\n \"description\": \"Broker allowed to provide policy documents to customer.\"\n }\n },\n \"required\": [\n \"CustomerVerification\",\n \"Payment\",\n \"PolicyDocuments\"\n ],\n \"description\": \"Broker requests to handle following steps of policy issuance process.\"\n }\n },\n \"minProperties\": 1,\n \"description\": \"This response **MUST** only be used where there are instruction for TPP acting as a Broker. Please use a `204` response if Broker instructions are not required.\"\n },\n \"links\": {\n \"type\": \"object\",\n \"properties\": {\n \"PaymentUrl\": {\n \"type\": \"string\",\n",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "API /employment-insurance-quotes/{QuoteId}",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /employment-insurance-quotes/{QuoteId}\"],\"\"]:0:part:0",
+      "content_hash": "151563ec063f6b888a58ecc19c320747ae3d719af1cb3b91766d79d0a1acb439",
+      "schema_version": 2
+    },
+    {
+      "id": "87d26491-1f02-5522-b780-8024b3e6d0ed",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > API /employment-insurance-quotes/{QuoteId}\n\n \"format\": \"uri\",\n \"description\": \"Hosted payment URL for TPP to present to customer. Required when the Payment field is true.\"\n }\n },\n \"required\": [\n \"PaymentUrl\"\n ],\n \"description\": \"Links to other resources. Can be omitted where `PaymentUrl` is not returned.\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n },\n \"204\": {\n \"description\": \"No content\"\n },\n \"400\": {\n \"$ref\": \"#/components/responses/error400Response\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/error403Response\"\n },\n \"409\": {\n \"$ref\": \"#/components/responses/error409Response\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/error500Response\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/errorResponse\"\n }\n },\n \"tags\": [\n \"Employment Insurance\"\n ],\n \"requestBody\": {\n \"required\": true,\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAcceptQuoteRequestProperties\"\n }\n },\n \"required\": [\n \"data\"\n ]\n }\n }\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n },\n \"OzoneConnectServiceInitiationToken\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Service Initiation Token.\\n\\nThe API Hub will set an Access Token based on a value set by the LFI, which has been patched onto the associated consent. The value will be transmitted in the `Authorization` header, which is represented as a `Bearer` in this Security Scheme Object.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Bearer\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "API /employment-insurance-quotes/{QuoteId}",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /employment-insurance-quotes/{QuoteId}\"],\"\"]:0:part:1",
+      "content_hash": "a4162e4ba3fb96118450c37a6c250a53acc6866a53d8fe1a8d031c5cd56199c3",
+      "schema_version": 2
+    },
+    {
+      "id": "530d3e81-fd69-5999-b233-89ef8085718c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targeted to\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.providerId\"],\"\"]:0",
+      "content_hash": "288fc1c05658a02a6b777a2dec05284bd07baa54b846957ff453c9eaee13cb7b",
+      "schema_version": 2
+    },
+    {
+      "id": "c504f1ce-360c-52ca-ad2a-bbc574c729d8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerOrgId\"],\"\"]:0",
+      "content_hash": "f0c517006fe605b1ac81744f7884c10f705cb948c34d7214919e7c96d9a533cf",
+      "schema_version": 2
+    },
+    {
+      "id": "6181239f-bce8-594b-9e38-e5b34f1bd33b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerClientId\"],\"\"]:0",
+      "content_hash": "090e6b00405aea9e095a64c66aa57b92de35f62dce557855b040ff366b4cc362",
+      "schema_version": 2
+    },
+    {
+      "id": "4131ffde-1522-57cf-a3a2-18ff5420d744",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "4d1db24695c88ea4dc5ba958cadcbf9f004bf4d47bdf277a18147872538e9baa",
+      "schema_version": 2
+    },
+    {
+      "id": "0564d046-75a5-5701-a64e-5c3268297c85",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The URL of the API being called by the caller\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiUri\"],\"\"]:0",
+      "content_hash": "12c22019e2e8abd0ce9e7406db9d264d6f3181980ab564d891de25eb2674d81d",
+      "schema_version": 2
+    },
+    {
+      "id": "65125662-1885-5ff7-baa8-e1334a9b19f5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.apiOperation\"],\"\"]:0",
+      "content_hash": "f8981ddf2db99ca179c5eb72a7e18c94b68620dafe3d00b1acf9948e4b99dbb6",
+      "schema_version": 2
+    },
+    {
+      "id": "fc737972-bd8c-569f-83fa-f7c31fdd33b1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.callerInteractionId\"],\"\"]:0",
+      "content_hash": "a1973deaffc81af95c312818e3d9a8f44c8f0b135b4952769fcfa5d7ed361d87",
+      "schema_version": 2
+    },
+    {
+      "id": "90daae96-d033-54cd-b4d9-5e5d4b3fb34d",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\",\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/OzoneConnect.ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "35004e3436d25fd476bc1812a77139bb8475da1fa5bb63aac56464e2250f3285",
+      "schema_version": 2
+    },
+    {
+      "id": "165f55d3-030f-5eec-8302-0cf6c10244b8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/parameters/AEInsurance.QuoteId\n\n{\n \"name\": \"QuoteId\",\n \"in\": \"path\",\n \"required\": true,\n \"description\": \"Unique identifier for a quote created by an LFI\",\n \"schema\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/parameters/AEInsurance.QuoteId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/AEInsurance.QuoteId\"],\"\"]:0",
+      "content_hash": "63cba2369c91d92f245c499a46c7c62f240c871f52bff6bbf69d36b7fe7e3dcc",
+      "schema_version": 2
+    },
+    {
+      "id": "d00565c2-faac-5dba-a2f9-7a424af2dabe",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 128,\n \"description\": \"Unique identifier for a given insurance policy. \\n\\nA uuid v4 is recommended for consistency but not mandatory.\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceResourceIdentifierType\"],\"\"]:0",
+      "content_hash": "df623fe04b924c3c779a9c34f7dc98ca5fa8ac9a20d3efdced467ae5284f1c4f",
+      "schema_version": 2
+    },
+    {
+      "id": "f65dafc3-dfec-5d73-ad75-e3003ce522af",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/responses/error400Response\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error400Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error400Response\"],\"\"]:0",
+      "content_hash": "38cb2bf263edc8d4665aeecdf9a7d785ef42078267c8278a51e7a7cb7ee1826c",
+      "schema_version": 2
+    },
+    {
+      "id": "4b05b385-ce6a-5314-8c4d-bfc1dd60e8da",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error400\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError400Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Default error response payload structure for Ozone Connect\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error400\"],\"\"]:0",
+      "content_hash": "fec90ff6e5e910d896e306ca2d9562f976cb4014a36fa5eacd19dfb91139c056",
+      "schema_version": 2
+    },
+    {
+      "id": "7adb5c95-50fd-5f78-b828-1d1969bb4377",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEError400Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWS.InvalidPayload\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEError400Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError400Codes\"],\"\"]:0",
+      "content_hash": "f97f6c228e347278785620fbfe6c7f9184fc770d890e3f45e0249bef08651b15",
+      "schema_version": 2
+    },
+    {
+      "id": "a21ea016-bcce-5c63-b448-0726460d1798",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AECustomErrorCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AECustomErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AECustomErrorCode\"],\"\"]:0",
+      "content_hash": "29b09cca9363490cd3e2c0bc11673481bfd33ef6f2de19dbe2eb85ea1eb91ea8",
+      "schema_version": 2
+    },
+    {
+      "id": "7053023e-0c37-5f5c-8ec7-a10428f10866",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\n\n{\n \"type\": \"string\",\n \"description\": \"Custom error code without prefix, retained for compatibility with version 1.2.\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.AEDefaultErrorCode\"],\"\"]:0",
+      "content_hash": "6a7ea121a9cf0660e4d0ba6b18f5bbc69c6b0130b75c8d035ddcd773f3ff95a6",
+      "schema_version": 2
+    },
+    {
+      "id": "303fc63c-ff3f-571b-8399-63feffda14bf",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/responses/error403Response\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error403Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error403Response\"],\"\"]:0",
+      "content_hash": "2ed71ec5777284a2e1586af0bf6b5e314ad84bd2011a5eb19a158d8a3a6aa99b",
+      "schema_version": 2
+    },
+    {
+      "id": "a2830a2b-8410-53c6-a342-7dee0e541432",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error403\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEError403Codes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n \\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error403\"],\"\"]:0",
+      "content_hash": "27511e6f531c8d2011f557e89773b74d7f52ec1bffba731641e651ea6fa95fac",
+      "schema_version": 2
+    },
+    {
+      "id": "f43d9538-ffa5-5b03-857f-fec14060440f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEError403Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEError403Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEError403Codes\"],\"\"]:0",
+      "content_hash": "9a5ab35851d31b28849f1b5b490f54c76bc779a873961fa0ba27fb7c96788a30",
+      "schema_version": 2
+    },
+    {
+      "id": "79b5b245-df3f-5baa-a929-806d9cccffff",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/responses/error409Response\n\n{\n \"description\": \"Operation failed due to a conflict\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error409\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error409Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error409Response\"],\"\"]:0",
+      "content_hash": "a52d10897c079ee478208be4f34b6d34a90588a5073660f992b7505af67e8f6e",
+      "schema_version": 2
+    },
+    {
+      "id": "6b38e80e-436d-52b9-b603-4050b716b9dd",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error409\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error409",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error409\"],\"\"]:0",
+      "content_hash": "a139802c5fee039f470786fa8cfe7a9ac0e4801263dc5a0ff5139efaf8ac079f",
+      "schema_version": 2
+    },
+    {
+      "id": "5f8b1b6e-cb1f-5b53-b0d6-6543db17bc3e",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEErrorGenericCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEErrorGenericCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEErrorGenericCodes\"],\"\"]:0",
+      "content_hash": "fb788433205a56999a274118e3bf0927db88fe911ced4631110a028063665edf",
+      "schema_version": 2
+    },
+    {
+      "id": "d2becd35-3a46-54f1-85aa-c20bc326ede5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/responses/error500Response\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/error500Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/error500Response\"],\"\"]:0",
+      "content_hash": "32b6a6b1499bd4c4113d1185b069a4c58327d68a06167b9378aa8504f78c4142",
+      "schema_version": 2
+    },
+    {
+      "id": "f4ed02bf-0b4d-566c-b752-c2a4dfc2ca37",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.Error500\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/AEErrorGenericCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/AECustomErrorCode\"\n },\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\\n\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n },\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.Error500\"],\"\"]:0",
+      "content_hash": "85902c58ebca55799f5703dbe23ae601dab2336f2b1b3d81af728c917d57d97e",
+      "schema_version": 2
+    },
+    {
+      "id": "d7965588-c067-56b5-b4eb-ad00097fad99",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/responses/errorResponse\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/OzoneConnect.DefaultError\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/responses/errorResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/errorResponse\"],\"\"]:0",
+      "content_hash": "1a7c1bc83de05e0f7df4b061a41de093d0f66b737dc7c91a0d0766c2d1e29937",
+      "schema_version": 2
+    },
+    {
+      "id": "51c0d563-74d1-506b-a08d-7923bd8f7f1f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/OzoneConnect.AEDefaultErrorCode\"\n }\n ],\n \"description\": \"Generic error code set by the LFI. Non-namespaced error codes are allowed for compatibility versions prior to v2.0.\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/OzoneConnect.DefaultError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/OzoneConnect.DefaultError\"],\"\"]:0",
+      "content_hash": "d2e8d844b6546330b55c876fefb47ff8f1648d4f87760c44f326f9b7b26e6f5d",
+      "schema_version": 2
+    },
+    {
+      "id": "b95cdf47-a7d6-5cbf-b6cb-1d1c44c4b976",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAcceptQuoteRequestProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"QuoteStatus\",\n \"QuoteReference\",\n \"InsuranceSubType\",\n \"Premium\",\n \"Commission\",\n \"QuoteCreationDateTime\"\n ],\n \"properties\": {\n \"QuoteStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\"\n }\n ],\n \"description\": \"Quote status.\"\n },\n \"QuoteReference\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"\n },\n \"InsuranceSubType\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Insurance sub-type (the name of the plan as provided by the Insurer) describing the insurance type specific to the sector.\\n\\nValues are specific to the LFI.\"\n },\n \"Premium\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePremiumProperties\"\n }\n ],\n \"description\": \"Details of the quoted premium, as provided in the quote response.\"\n },\n \"Commission\": {\n \"type\": \"object\",\n \"properties\": {\n \"CommissionAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total monetary value of the commission paid to the TPP if the User proceeds with the quote application and purchases the policy based on the quote information provided.\"\n },\n \"PaymentMethod\": {\n \"type\": \"string\",\n \"enum\": [\n \"DirectToTPP\",\n \"ThroughAPIHub\"\n ],\n \"description\": \"The method to be used to pay the commission to the TPP if the User elects to proceed with the application and successfully purchases the policy.\"\n }\n },\n \"required\": [\n \"PaymentMethod\"\n ],\n \"description\": \"Details of the commission, as provided in the quote response.\"\n },\n \"CustomerSalary\": {\n \"type\": \"string\",\n \"enum\": [\n \"Under4K\",\n \"Over4K\"\n ],\n \"description\": \"Confirmation whether the customer monthly salary is less than or greater than AED 4,000 each month. Required for Health Insurance.\"\n },\n \"QuoteCreationDateTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"The quote creation date and time, as supplied by the LFI in the property `CreationDateTime`.\"\n }\n ]\n },\n \"ExpirationDateTime\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEDateTime\"\n },\n {\n \"description\": \"The expiration date of the quote, as provided in the quote response, if provided by the LFI.\"\n }\n ]\n },\n \"PolicyIssuanceRequest\": {\n \"type\": \"object\",\n \"properties\": {\n \"CustomerVerification\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to complete capture of customer verification information and documents for this quote.\"\n },\n \"Payment\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to host payment checkout.\"\n },\n \"PolicyDocuments\": {\n \"type\": \"boolean\",\n \"description\": \"Broker request to provide policy documents to customer.\"\n }\n },\n \"required\": [\n \"CustomerVerification\",\n \"Payment\",\n \"PolicyDocuments\"\n ],\n \"description\": \"Broker requests to handle following steps of policy issuance process.\"\n },\n \"Documents\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n },\n \"description\": \"Customer documents encoded for submission to the LFI. Omitted if not required or quote status is `ApplicationPending`.\"\n },\n \"RedirectUris\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"Type\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Type of redirect URI. Omitted if not defined by LFI.\"\n },\n \"Description\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Description of redirect URI.\"\n },\n \"Uri\": {\n \"type\": \"string\",\n \"format\": \"uri\",\n \"minLength\": 1,\n \"maxLength\": 1024,\n \"description\": \"Redirect URI value.\"\n }\n },\n \"required\": [\n \"Description\",\n \"Uri\"\n ]\n },\n \"minItems\": 1\n },\n \"VerifiedDetails\": {\n \"type\": \"object\",\n \"properties\": {\n \"Policy\": {\n \"type\": \"object\",\n \"properties\": {\n \"PolicyStartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy start date\"\n },\n \"PolicyEndDate\": {\n \"type\": \"string\",\n \"description\": \"The date on which cover ends.\"\n },\n \"SchemeCategory\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEEmploymentInsuranceCoverType1Codes\"\n },\n \"Sector\": {\n \"type\": \"string\",\n \"enum\": [\n \"Private\",\n \"FederalGovernment\"\n ],\n \"description\": \"For Involuntary Loss of Employment Insurance (ILOE) confirmation of the customer's employment Sector\"\n },\n \"PolicyTerm\": {\n \"type\": \"string\",\n \"pattern\": \"^P(\\\\d+Y)?(\\\\d+M)?$\",\n \"format\": \"duration\",\n \"description\": \"The insurance policy term in years and months, using ISO 8601 compatible duration format\",\n \"example\": \"P2Y3M\"\n },\n \"PremiumFrequency\": {\n \"type\": \"string\",\n \"enum\": [\n \"Annually\",\n \"OneTime\",\n \"Monthly\",\n \"Quarterly\",\n \"BiAnnual\",\n \"Limited\",\n \"Other\"\n ],\n \"description\": \"The payment frequency the calculated Premium has been based on.\"\n },\n \"RequiredAddOnCoverId\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePolicyRequiredAddOnCoverId1Type\"\n },\n \"minItems\": 1\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n },\n \"PolicyHolder\": {\n \"type\": \"object\",\n \"properties\": {\n \"Salutation\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceSalutationCodes\"\n }\n ],\n \"description\": \"The salutation of the individual or customer.\"\n },\n \"FirstName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"First Name of the individual.\"\n },\n \"MiddleName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Middle Name of the individual.\"\n },\n \"LastName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Last Name (Surname) of the individual.\"\n },\n \"Gender\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceGender\"\n }\n ],\n \"description\": \"The gender of the customer\"\n },\n \"DateOfBirth\": {\n \"type\": \"string\",\n \"format\": \"date\",\n",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 3,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:0",
+      "content_hash": "2cf12476cf7bfc5fd2774720949e2039bc3b9c2920f4fa501704bd39aca82a0b",
+      "schema_version": 2
+    },
+    {
+      "id": "174b84c1-2484-581a-a416-3f4bb61b759b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAcceptQuoteRequestProperties\n\n \"description\": \"Date of birth of the individual.\"\n },\n \"MaritalStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceMaritalStatus\"\n }\n ],\n \"description\": \"The marital status of the individual.\"\n },\n \"ResidentialLocation\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Residential Location of the individual.\"\n },\n \"LandlineNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"\n }\n ],\n \"pattern\": \"^\\\\+?[1-9]\\\\d{1,14}$\",\n \"description\": \"The landline telephone number of the individual.\"\n },\n \"Nationality\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3}$\",\n \"description\": \"The nationality of the individual based on the ISO 3166-1 alpha-3 codes\"\n },\n \"PrimaryLanguage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AECustomerPrimaryLanguage\"\n }\n ],\n \"description\": \"Primary language spoken by the insurance policy customer\"\n },\n \"MobileNumber\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"\n }\n ],\n \"description\": \"The mobile telephone number of the individual.\"\n },\n \"EmailAddress\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmailAddressType\"\n }\n ],\n \"description\": \"Email address of the individual.\"\n },\n \"Address\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"AddressType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Billing\",\n \"Business\",\n \"Correspondence\",\n \"DeliveryTo\",\n \"MailTo\",\n \"POBox\",\n \"Postal\",\n \"Permanent\",\n \"Residential\",\n \"Statement\",\n \"Other\"\n ],\n \"description\": \"The type of address.\"\n },\n \"AddressLine\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddressLine\"\n },\n \"minItems\": 1,\n \"maxItems\": 7,\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\\n\\nThis value should be used where the address is provided or stored as a single string.\"\n },\n \"BuildingNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The unit, apartment, or villa number within a building or community\"\n },\n \"BuildingName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of the building or house.\"\n },\n \"Floor\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Floor or storey within a building.\"\n },\n \"StreetName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the street or road where the property is located\"\n },\n \"DistrictName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The district, community, or neighbourhood where the property is located\"\n },\n \"PostBox\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery\"\n },\n \"TownName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of a built-up area, such as a town or city\"\n },\n \"CountrySubDivision\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Country subdivision, such as state or province. This is the Emirate where the address is registered.\"\n },\n \"Country\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCountryCode\"\n }\n ],\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\"\n }\n },\n \"description\": \"The template for adding optional properties.\"\n },\n \"minItems\": 1,\n \"description\": \"Address details\"\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n },\n \"Identity\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\"\n }\n ],\n \"minProperties\": 1,\n \"description\": \"Revised identity details, verified by the TPP.\"\n },\n \"Employment\": {\n \"type\": \"object\",\n \"properties\": {\n \"Profession\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"The individuals profession.\"\n },\n \"ProfessionDescription\": {\n \"type\": \"string\",\n \"description\": \"A description of the individual's Profession\"\n },\n \"JobTitle\": {\n \"type\": \"string\",\n \"description\": \"Individual's job title\"\n },\n \"Designation\": {\n \"type\": \"string\",\n \"description\": \"An individual's professional qualifications, special licenses and certifications\"\n },\n \"NatureOfEmployerBusiness\": {\n \"type\": \"string\",\n \"description\": \"Nature of employer business\"\n },\n \"EmployerName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Employer name.\"\n },\n \"EmployerAddress\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddressProperties\"\n }\n ],\n \"description\": \"The address details of the individual's employer\"\n },\n \"EmploymentStatus\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmploymentStatus\"\n },\n \"StartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Individual's employment start date\"\n },\n \"SourceOfIncome\": {\n \"type\": \"string\",\n \"description\": \"Source of the individual's income as a free form description\"\n },\n \"MonthlyIncomeAmount\": {\n \"type\": \"object\",\n \"properties\": {\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n },\n \"Amount\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n }\n },\n \"description\": \"Monthly income amount and currency\"\n },\n \"AnnualIncomeAmount\": {\n \"type\": \"object\",\n \"properties\": {\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n },\n \"Amount\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n }\n },\n \"description\": \"Annual income amount and currency\"\n },\n \"AdditionalCompensation\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 3,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:1",
+      "content_hash": "eda81690d65cf5f5c5e56e205757f26ede0d7689828d46024f4a32fd403e1dc8",
+      "schema_version": 2
+    },
+    {
+      "id": "21fef7d5-9a48-55c3-bd84-10283aec5f92",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAcceptQuoteRequestProperties\n\n \"properties\": {\n \"Description\": {\n \"type\": \"string\",\n \"description\": \"Free form description of the additional compensation\"\n },\n \"CompensationAmount\": {\n \"type\": \"object\",\n \"properties\": {\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n },\n \"Amount\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n }\n },\n \"description\": \"The amount of the additional compensation\"\n }\n }\n },\n \"minItems\": 1,\n \"description\": \"Provided when the individual has additional income.\"\n }\n },\n \"description\": \"Revised details, verified by the TPP.\",\n \"minProperties\": 1\n },\n \"ExistingInsurance\": {\n \"type\": \"array\",\n \"items\": {\n \"type\": \"object\",\n \"properties\": {\n \"InsurerName\": {\n \"type\": \"string\",\n \"description\": \"The Insurance Company Name when an existing cover is held.\"\n },\n \"ExistingPolicyNumber\": {\n \"type\": \"string\",\n \"description\": \"The Insurance Policy Number when an existing cover is held.\"\n },\n \"PolicyStartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy start date\"\n },\n \"PolicyEndDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy end date\"\n }\n },\n \"description\": \"The template for adding optional properties.\"\n },\n \"minItems\": 1,\n \"description\": \"One-or-more existing insurance policies, omitted if none are held.\"\n },\n \"TPPPaymentMethod\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteTPPPaymentMethod1Type\"\n }\n ],\n \"description\": \"Allows the TPP to identify how they want to be paid.\"\n }\n },\n \"description\": \"Verified details captured by the TPP, when the TPP is a Broker. Omitted if not required.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAcceptQuoteRequestProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 2,
+      "part_count": 3,
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceQuoteAcceptQuoteRequestProperties\"],\"\"]:0:part:2",
+      "content_hash": "8b73c1928867912e5c33ec3a00d4fff1b8f1fb4e1cae01aa2a58d5d6105c547e",
+      "schema_version": 2
+    },
+    {
+      "id": "23c5f010-487b-5519-a592-6e7cdf2b024a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"ApplicationPending\",\n \"KYCCaptured\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAcceptedByUserQuoteStatusCodes\"],\"\"]:0",
+      "content_hash": "d8ecca88aa9fc0776b5ed667f235c8ff93700f12789c48aa232745e32c3685ee",
+      "schema_version": 2
+    },
+    {
+      "id": "5eef495f-00df-51b8-90e3-a583995b7514",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\n\n{\n \"type\": \"string\",\n \"description\": \"The unique quote reference number generated by the TPP for tracking the quote\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteReferenceType\"],\"\"]:0",
+      "content_hash": "c8d3e9ddf74e84e372173cfa622f7599c631e60c00ae346678fae71d2102ca3e",
+      "schema_version": 2
+    },
+    {
+      "id": "e86306da-c386-5fb4-adf2-8b3e24f2fcee",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"PremiumAmountExcludingVAT\",\n \"VATAmount\",\n \"TotalPremiumAmount\",\n \"PaymentFrequency\"\n ],\n \"properties\": {\n \"Status\": {\n \"type\": \"string\",\n \"enum\": [\n \"Initial\",\n \"StartingFrom\",\n \"Final\"\n ],\n \"description\": \"Confirmation whether the premium quoted is an initial premium, starting from, or final.\"\n },\n \"TotalDiscountAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total discount amount applied to the final premium amount\"\n },\n \"DiscountApplied\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\"\n },\n \"minItems\": 1,\n \"description\": \"Details of the discounts applied\"\n },\n \"PremiumAmountExcludingVAT\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The Premium Amount excluding any VAT amount\"\n },\n \"VATAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The Premium VAT amount.\"\n },\n \"VATPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceVATPercentage\"\n }\n ],\n \"description\": \"The VAT percentage rate charged to the premium.\"\n },\n \"TotalPremiumAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total Premium amount including VAT\"\n },\n \"PaymentFrequency\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"\n }\n ],\n \"description\": \"The payment frequency the calculated Premium has been based on.\"\n },\n \"InstallmentOptions\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"\n },\n \"minItems\": 1,\n \"description\": \"The possible Premium instalment frequency options available to the customer\"\n },\n \"PremiumChangeRationale\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 500,\n \"description\": \"Insurer provided rationale for why the premium has changed during renewal.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumProperties\"],\"\"]:0",
+      "content_hash": "6098c78929ad05b3c1b91ae1b6830b838896ac8ffd0c1746f1bfb7d60c32e10f",
+      "schema_version": 2
+    },
+    {
+      "id": "97e0f13f-15de-533d-8ea7-bf238273d9db",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Currency\",\n \"Amount\"\n ],\n \"properties\": {\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n },\n \"Amount\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n }\n },\n \"description\": \"The Currency and Amount relating to the Payment, Refund or Request to Pay\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\"],\"\"]:0",
+      "content_hash": "3629d03679e3f6708687d48b198f103adcb8c15818fee68b83ff20a5f23fc8ca",
+      "schema_version": 2
+    },
+    {
+      "id": "0222357a-96ec-5499-9545-2de21b34e466",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n \"example\": \"AED\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"],\"\"]:0",
+      "content_hash": "698d8449f5a9545fab2f152fa05aab2918308ccd8821233c78a8a5ead03b0d52",
+      "schema_version": 2
+    },
+    {
+      "id": "b34c21b0-6263-5d8c-81a3-934c6cbe3a18",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\n\n{\n \"type\": \"string\",\n \"pattern\": \"^\\\\d{1,16}\\\\.\\\\d{2}$\",\n \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n \"example\": \"100.00\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"],\"\"]:0",
+      "content_hash": "0b47c2f6f67f1fbef401f2f11ff82c730305bb4cab9dbebce20c85bd411d22b1",
+      "schema_version": 2
+    },
+    {
+      "id": "279ea8ba-9f0d-5ab8-a41e-58e2855c1d29",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\n\n{\n \"type\": \"object\",\n \"required\": [\n \"DiscountName\",\n \"DiscountAmount\"\n ],\n \"properties\": {\n \"DiscountName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the discount applied to the insurance premium\"\n },\n \"DiscountPercentage\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsurancePercentageValue\"\n }\n ],\n \"description\": \"The percentage reduction applied to the insurance premium as part of the discount.\"\n },\n \"DiscountAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The monetary value of the discount applied to the insurance premium\"\n }\n },\n \"description\": \"Details of discounts applied to the insurance premium\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePremiumDiscountApplied\"],\"\"]:0",
+      "content_hash": "73ff8579bc408c608f9e1818ec5adc5d9af196f8aac6c7de0a44ee01c02d3ff1",
+      "schema_version": 2
+    },
+    {
+      "id": "84af9f8b-6f90-586c-9f26-d35c96f47634",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue\n\n{\n \"type\": \"number\",\n \"format\": \"decimal\",\n \"minimum\": 0,\n \"maximum\": 100\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePercentageValue\"],\"\"]:0",
+      "content_hash": "71781e545129d8310ab125debfe41d97af091d2878930c60f5d0ef0e6bea2f7c",
+      "schema_version": 2
+    },
+    {
+      "id": "1d26555e-ee98-59f2-bd9f-73c027dc4b22",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage\n\n{\n \"type\": \"number\",\n \"format\": \"decimal\",\n \"minimum\": 0,\n \"maximum\": 100\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceVATPercentage\"],\"\"]:0",
+      "content_hash": "d3467ea4d622daf1084347949be25f950f6938c9fd75f61fb351628ac4c240ca",
+      "schema_version": 2
+    },
+    {
+      "id": "8619e9db-33d0-5c0f-aae5-f93e1d273216",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Annually\",\n \"OneTime\",\n \"Monthly\",\n \"Quarterly\",\n \"BiAnnual\",\n \"Other\",\n \"Limited\"\n ],\n \"description\": \"Frequencies\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePaymentFrequency\"],\"\"]:0",
+      "content_hash": "e8f8c86543bb1dd62b1d1f46fc401195f14e9d652d859f61b625c078126351c7",
+      "schema_version": 2
+    },
+    {
+      "id": "98773455-5b18-52f6-9605-54a569075e34",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEDateTime\n\n{\n \"title\": \"AEDateTime\",\n \"description\": \"An instant in time, per ISO 8601 / RFC 3339, with a mandatory offset. Recipients MUST apply the offset, and\\nMUST NOT read the date and time components as local time. Encodings of the same instant are equivalent and MUST\\nbehave identically: `2027-07-22T00:00:00Z` and `2027-07-22T04:00:00+04:00` identify the same moment.\\n\\nIssuers SHOULD emit UTC, using `Z` or `+00:00`. The negative zero offset `-00:00` MUST NOT be used. Fractional\\nseconds are optional and carry no specified precision; implementations MUST accept both their presence and\\ntheir absence.\\n\",\n \"type\": \"string\",\n \"format\": \"date-time\",\n \"pattern\": \"^\\\\d{4}-\\\\d{2}-\\\\d{2}T\\\\d{2}:\\\\d{2}:\\\\d{2}(\\\\.\\\\d+)?(Z|\\\\+\\\\d{2}:\\\\d{2}|-(?:0[1-9]|1[0-2]):\\\\d{2})$\",\n \"example\": \"2027-07-22T00:00:00Z\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEDateTime",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEDateTime\"],\"\"]:0",
+      "content_hash": "b2a45af9da3203643450a75cd211cb9639a8c1a3583bdc1e0663d2903e5a4fc9",
+      "schema_version": 2
+    },
+    {
+      "id": "6d5c9ee7-770c-5a4b-90a6-2ddf675dc1c4",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Type\",\n \"FileName\",\n \"ContentType\",\n \"Content\",\n \"HashType\",\n \"Hash\"\n ],\n \"properties\": {\n \"Type\": {\n \"type\": \"string\",\n \"description\": \"The type of document that has been provided. For example, Policy Booklet, Terms & Conditions\"\n },\n \"FileName\": {\n \"type\": \"string\",\n \"description\": \"Original file name for operator reference (no paths). Should include a suitable extension (e.g., policy.pdf, terms.pdf).\"\n },\n \"ContentType\": {\n \"type\": \"string\",\n \"enum\": [\n \"application/pdf\",\n \"image/jpeg\",\n \"image/png\"\n ],\n \"description\": \"Content (MIME) type of the document, using IANA-registered media types, and based on types supported in the Open Finance Framework.\"\n },\n \"Content\": {\n \"type\": \"string\",\n \"format\": \"base64\",\n \"description\": \"Base64-encoded representation of the document content. The encoded string must be generated from the raw file bytes and decoded by the LFI to restore the original file.\"\n },\n \"HashType\": {\n \"type\": \"string\",\n \"enum\": [\n \"SHA256\"\n ],\n \"description\": \"Approach used to create checksum or hash of the file. SHA256 is supported.\"\n },\n \"Hash\": {\n \"type\": \"string\",\n \"description\": \"Checksum of the original file bytes created using the method indicated by `HashType`. Required to enable integrity verification by comparing with the hash or checksum calculated on the decoded file.\"\n },\n \"AdditionalInformation\": {\n \"type\": \"string\",\n \"maxLength\": 1000,\n \"description\": \"Optional free text notes providing context on the document.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\"],\"\"]:0",
+      "content_hash": "559295fa7eead861d19b28acd79787e4b823070acfc63278ce06d6317bd4d731",
+      "schema_version": 2
+    },
+    {
+      "id": "828f94ce-7be9-5eac-8d2a-2d790414f636",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceCoverType1Codes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"CategoryA\",\n \"CategoryB\"\n ],\n \"description\": \"For Involuntary Loss of Employment Insurance (ILOE) confirmation of the customer's Salary Category.\\n\\nCategories are defined as follows:\\n\\n* Category A - Salary of AED16,000 or less\\n* Category B - Salary Exceeding AED16,000\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceCoverType1Codes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEEmploymentInsuranceCoverType1Codes\"],\"\"]:0",
+      "content_hash": "3d087a613e65484e17696ed6bbc2645efad820f1043c0eb664dc5b5222862f8b",
+      "schema_version": 2
+    },
+    {
+      "id": "f0d040ed-9e6c-52a8-9260-9de9af2735ca",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePolicyRequiredAddOnCoverId1Type\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePolicyRequiredAddOnCoverId1Type",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePolicyRequiredAddOnCoverId1Type\"],\"\"]:0",
+      "content_hash": "01be0dadea9b4016f15bc411dd3169c9ff19721781acca61c0918127e8517a1b",
+      "schema_version": 2
+    },
+    {
+      "id": "f84cc39e-d28f-5614-8502-bdb0ac6e0100",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Mr\",\n \"Mrs\",\n \"Ms\",\n \"Miss\",\n \"Dr\",\n \"Prof\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceSalutationCodes\"],\"\"]:0",
+      "content_hash": "af2d878ad2e0937be0b95e1206ec8a100b9e3242d5a9701c1a6d45349f7d4569",
+      "schema_version": 2
+    },
+    {
+      "id": "eb005a59-7aba-5c0d-8c01-fb38b986b73b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Male\",\n \"Female\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceGender\"],\"\"]:0",
+      "content_hash": "c025a9af09449e2d95a4f34d1effef3117d925eb41c2937dd62167b66f824f75",
+      "schema_version": 2
+    },
+    {
+      "id": "32ab9e9a-8cb5-5aec-8fd6-f6772efdbb39",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Single\",\n \"Married\",\n \"Divorced\",\n \"Widowed\",\n \"Separated\",\n \"Other\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceMaritalStatus\"],\"\"]:0",
+      "content_hash": "50b753c33934b10f791e096debde9c820e80fce4ec8ad5578bbe01c66ad306d8",
+      "schema_version": 2
+    },
+    {
+      "id": "c40e5041-1921-5ddb-9ea6-2d81f5efbc27",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AbuDhabi\",\n \"Ajman\",\n \"Dubai\",\n \"Fujairah\",\n \"RasAlKhaimah\",\n \"Sharjah\",\n \"UmmAlQuwain\"\n ]\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\"],\"\"]:0",
+      "content_hash": "4549f928bb8a6a35b2aae6facfa3548a330dbb705c7deae1f69112ab4878d25c",
+      "schema_version": 2
+    },
+    {
+      "id": "2042fda4-78c6-592f-8db5-fa15413f5bb7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType\n\n{\n \"type\": \"string\",\n \"pattern\": \"^\\\\+?[1-9]\\\\d{1,14}$\",\n \"example\": \"+971501234567\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsurancePhoneNumberType\"],\"\"]:0",
+      "content_hash": "6d30f6f15e01a268252c1ab8966e1b492de7563aadb682897f74af6e5d7b343b",
+      "schema_version": 2
+    },
+    {
+      "id": "b119d350-e5d4-54b6-9e4c-982970fccae4",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"English\",\n \"Arabic\",\n \"Other\"\n ],\n \"description\": \"Primary language spoken by the insurance policy customer\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AECustomerPrimaryLanguage\"],\"\"]:0",
+      "content_hash": "03862519e7e99a601434cf74bda985b26f60fe327ef93b17a1db0b1f9998375b",
+      "schema_version": 2
+    },
+    {
+      "id": "79ce7e7b-f21d-55ec-b13d-acf644e7a925",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\.[a-zA-Z]{2,}$\",\n \"example\": \"ali.hamad@example.openfinanceplatform.ae\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmailAddressType\"],\"\"]:0",
+      "content_hash": "44f454e907002e821691ee68486545f7c7fd2a8ce56a8ed3c3bd9dafed22bc63",
+      "schema_version": 2
+    },
+    {
+      "id": "7214b851-6658-5873-be24-f83590ce0bb6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressLine\"],\"\"]:0",
+      "content_hash": "173fb620eda9282734c0eba294062c1bd852d90806888e177196e2768eda9efd",
+      "schema_version": 2
+    },
+    {
+      "id": "806e6698-abe2-5c1a-9083-198a4e87de5f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"[A-Z]{2}\",\n \"description\": \"Country code that conforms with ISO 3166, 3 character alpha code\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceCountryCode\"],\"\"]:0",
+      "content_hash": "d3139cfe027ef93f9bb61662bafd94095f7ebc1da1804aa9a103e60d79f1b8db",
+      "schema_version": 2
+    },
+    {
+      "id": "d02abb69-48a0-5dba-a34a-693845689a40",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"EmiratesId\": {\n \"type\": \"object\",\n \"properties\": {\n \"EmiratesIdNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$\",\n \"description\": \"Emirates identification number\"\n },\n \"EmiratesIdExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Emirates ID expiry date\"\n }\n },\n \"description\": \"Verified Emirates ID details, captured by the TPP.\"\n },\n \"Passport\": {\n \"type\": \"object\",\n \"properties\": {\n \"PassportNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z0-9]+$\",\n \"description\": \"Passport number\"\n },\n \"IssuingCountry\": {\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"The country the passport is issued by.\"\n },\n \"NameOnPassport\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The applicant, policyholder or insured person name as detailed on their passport\"\n },\n \"IssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The passport issue date\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The passport expiry date\"\n }\n },\n \"description\": \"Verified Passport details, captured by the TPP.\"\n },\n \"Visa\": {\n \"type\": \"object\",\n \"properties\": {\n \"VisaType\": {\n \"type\": \"string\",\n \"enum\": [\n \"Employment\",\n \"Residence\",\n \"Business\",\n \"Investor\",\n \"Freelance\",\n \"VirtualWork\",\n \"Retirement\",\n \"Student\",\n \"Family\",\n \"Green\",\n \"Golden\",\n \"Blue\"\n ],\n \"description\": \"The type of visa issues, based on an available code list\"\n },\n \"VisaNumber\": {\n \"type\": \"string\",\n \"pattern\": \"^[0-9]+$\",\n \"description\": \"Visa number\"\n },\n \"IssueDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The visa issue date\"\n },\n \"ExpiryDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"The visa expiry date\"\n },\n \"IssuingEmirate\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Emirate that issued the visa\"\n }\n },\n \"description\": \"Verified Passport details, captured by the TPP.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteVerifiedIdentityProperties\"],\"\"]:0",
+      "content_hash": "751b383077244f6f4d862c012e13140bf8ebff3ce63428cfe6fefb201ea92019",
+      "schema_version": 2
+    },
+    {
+      "id": "2965d0ce-0183-55fc-96be-0005cfcf7557",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"AddressLine\",\n \"Country\"\n ],\n \"properties\": {\n \"AddressLine\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceAddressLine\"\n },\n \"minItems\": 1,\n \"maxItems\": 7,\n \"description\": \"Information that locates and identifies a specific address for a transaction entry, that is presented in free format text.\\n\\nThis value should be used where the address is provided or stored as a single string.\"\n },\n \"BuildingNumber\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The unit, apartment, or villa number within a building or community\"\n },\n \"BuildingName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of the building or house.\"\n },\n \"Floor\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70,\n \"description\": \"Floor or storey within a building.\"\n },\n \"StreetName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The name of the street or road where the property is located\"\n },\n \"DistrictName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"The district, community, or neighbourhood where the property is located\"\n },\n \"PostBox\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 16,\n \"description\": \"The P.O. Box number assigned to the recipient for mail delivery\"\n },\n \"TownName\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140,\n \"description\": \"Name of a built-up area, such as a town or city\"\n },\n \"CountrySubDivision\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"Country subdivision, such as state or province. This is the Emirate where the address is registered.\"\n },\n \"Country\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceCountryCode\"\n }\n ],\n \"description\": \"The country associated with the address, represented using the ISO 3166-1 alpha-2 country code.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceAddressProperties\"],\"\"]:0",
+      "content_hash": "f2a11fc21a330a42375890bd74a53e3373e00363fa8be871d26fc3daf74f4ed3",
+      "schema_version": 2
+    },
+    {
+      "id": "4282a093-f264-5b7f-aa49-30c7f940554f",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmploymentStatus\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Employed\",\n \"SelfEmployed\",\n \"BusinessOwner\",\n \"Unemployed\",\n \"Dependent\",\n \"Retired\",\n \"Student\",\n \"DomesticWorker\",\n \"Other\"\n ],\n \"description\": \"The applicant or policyholder employment status\"\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmploymentStatus",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmploymentStatus\"],\"\"]:0",
+      "content_hash": "79c81225eebdce093ae8945276017fd244a048b2ae0a6ea8c24b6f27e40d3010",
+      "schema_version": 2
+    },
+    {
+      "id": "ddea3161-b8dd-58ae-94f2-c45c3d9d1180",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+      "type": "section",
+      "text": "Accept a Employment Insurance Quote > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteTPPPaymentMethod1Type\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n}",
+      "metadata": {
+        "title": "Accept a Employment Insurance Quote",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteTPPPaymentMethod1Type",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "4989022f10ee6abfef62bf2405ae90c0f976cac1ce3ab95330704f81b19aff01",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/insurance/quotation/open-api/patch-employment-insurance-quotes-QuoteId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-insurance-openapi.yaml",
+            "hash": "4f76f7e0645c92d1fb5e13554700787e845674140ae6a899e7dff7a39e9bd4e0"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteTPPPaymentMethod1Type\"],\"\"]:0",
+      "content_hash": "4e7a82aa9cfe84a1353e3aa63247eb78a2d396ac9f8911ce4ae5b0459ca7fb4f",
+      "schema_version": 2
+    }
+  ]
+}

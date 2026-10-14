@@ -1,0 +1,158 @@
+{
+  "id": "tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/personal-identifiable-information/api-guide/verify-tpp-signature",
+  "source": {
+    "repo": "community-standards",
+    "file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/personal-identifiable-information/api-guide/verify-tpp-signature.vue",
+    "parser": "vue-sfc",
+    "parser_version": "3",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "hash": "fd0f93a0fd9c731e9cbdb830c4fc5c78349d0e20cbd20cffc1475f0b2ef658e3",
+    "dependencies": [
+      "jose"
+    ],
+    "assets": [],
+    "extraction_warnings": [
+      "Static extraction may omit imported or dynamic content; review before indexing."
+    ]
+  },
+  "metadata": {
+    "title": "Verifying the TPP JWS Signature",
+    "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/service-initiation/personal-identifiable-information/api-guide/verify-tpp-signature",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Verifying the TPP JWS Signature",
+    "intro": [
+      {
+        "type": "paragraph",
+        "text": "The PersonalIdentifiableInformation field is embedded within a request that the API Hub has already verified was signed by the TPP. The outer JWS signature confirms that the PII was submitted by the authenticated TPP and has not been modified in transit."
+      },
+      {
+        "type": "paragraph",
+        "text": "Verifying the inner JWS signature on the PII payload is therefore not required, but LFIs may choose to implement it as a defence-in-depth measure."
+      }
+    ],
+    "sections": [
+      {
+        "heading": "Reasons to verify the inner JWS",
+        "level": 2,
+        "anchor": "when-to-consider",
+        "category": "When to consider this",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "You may want to verify the TPP's JWS signature on the PII if:"
+          },
+          {
+            "type": "list",
+            "items": [
+              "Your security policy requires independent verification of all signed payloads, regardless of upstream validation.",
+              "You want to confirm the specific TPP identity that constructed the PII (available in the iss and sub claims).",
+              "You are building an audit trail that requires cryptographic proof tied to the TPP's signing key."
+            ]
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "Resolve the JWKS, verify the signature",
+        "level": 2,
+        "anchor": "how-to-verify",
+        "category": "How to verify",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "text": "The inner JWS (the result of decrypting the JWE) is signed by the TPP using their signing key. The JWS header contains the kid of the TPP's signing key, and the iss / sub claims identify the TPP's client_id."
+          }
+        ],
+        "subsections": [
+          {
+            "heading": "Step 1 — Discover the TPP's JWKS",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "The TPP's public signing keys are published through the Trust Framework directory. You can resolve the TPP's JWKS URI using the o3-caller-software-statement-id header from the inbound request:"
+              },
+              {
+                "type": "paragraph",
+                "text": "The URL above returns the TPP's currently active keys. That is sufficient only if you verify at /consent/action/validate or the post consent event, where the signature is seconds old — Pattern A on the decryption guide."
+              },
+              {
+                "type": "paragraph",
+                "text": "A TPP may rotate its signing key at any time, and a rotated kid leaves the active set. If you verify during the authorisation journey, on /consent/event/patch, or at POST /payments, you MUST fall back to the parallel inactive/ JWKS when the kid is not in the active set. See Verifying the PII Signature — Rotated Keys and the Inactive JWKS."
+              },
+              {
+                "type": "paragraph",
+                "text": "Published JWKS entries carry kty, use, kid and x5c, but no alg. Pin PS256 — the only signing algorithm in the UAE Open Finance FAPI profile — rather than accepting whatever the JWS header proposes."
+              }
+            ]
+          },
+          {
+            "heading": "Step 2 — Verify the JWS",
+            "level": 3,
+            "anchor": null,
+            "blocks": []
+          },
+          {
+            "heading": "Claims to validate",
+            "level": 3,
+            "anchor": null,
+            "blocks": [
+              {
+                "type": "paragraph",
+                "text": "If you verify the JWS, you SHOULD also validate the following claims:"
+              },
+              {
+                "type": "table",
+                "headers": [
+                  "Claim",
+                  "Validation"
+                ],
+                "rows": [
+                  [
+                    "iss",
+                    "Must match the TPP's client_id (available in the o3-caller-client-id request header)"
+                  ],
+                  [
+                    "sub",
+                    "Must match the TPP's client_id"
+                  ],
+                  [
+                    "aud",
+                    "Must contain your LFI's issuer identifier"
+                  ],
+                  [
+                    "exp",
+                    "Evaluate against the consent's CreationDateTime, not the current time — see below"
+                  ],
+                  [
+                    "nbf",
+                    "Evaluate against the consent's CreationDateTime, not the current time — see below"
+                  ],
+                  [
+                    "iat",
+                    "Must be in the past, and consistent with the consent's CreationDateTime"
+                  ],
+                  [
+                    "jti",
+                    "Record for replay detection if required by your security policy"
+                  ]
+                ]
+              },
+              {
+                "type": "paragraph",
+                "text": "exp, iat and nbf on the PII JWS are set by the TPP when it signs the PII, and they bound the PAR submission window — not the moment you happen to be verifying. The same PII is replayed unchanged on every payment made under the consent, so on a long-lived consent those claims will normally have lapsed long before execution."
+              },
+              {
+                "type": "paragraph",
+                "text": "jwtVerify and its equivalents enforce exp and nbf against the current time by default. If you verify anywhere other than consent creation, evaluate them against the consent's CreationDateTime or disable the check — otherwise valid PII will start failing verification as consents age. Whether the consent is still usable today is answered by the API Hub's consent validation on every request, not by a claim inside the PII."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

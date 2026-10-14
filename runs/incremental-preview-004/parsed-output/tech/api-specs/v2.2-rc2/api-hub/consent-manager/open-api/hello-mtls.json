@@ -1,0 +1,77 @@
+{
+  "id": "tech/api-specs/v2.2-rc2/api-hub/consent-manager/open-api/hello-mtls",
+  "source": {
+    "repo": "Nebras-Open-Finance/community-standards",
+    "file": "src/pages/tech/api-specs/[...slug].vue",
+    "hash": "4afae4a382ddde80ba22e00a4651a1cfe4a2957714f10b316286648e3f253d17",
+    "commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+    "parser": "api-registry",
+    "parser_version": "3",
+    "dependencies": [
+      "src/data/endpoints/index.ts",
+      "src/data/versions.ts",
+      "src/data/endpoints/standards.ts",
+      "src/data/endpoints/api-hub.ts",
+      "src/data/endpoints/ozone-connect.ts",
+      "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+    ],
+    "assets": [
+      {
+        "file": "src/data/endpoints/index.ts",
+        "hash": "b03f2c8281f445c0631bbea2236ee88ca7b58f83a03e8f8706a1374dec89f5cc"
+      },
+      {
+        "file": "src/data/versions.ts",
+        "hash": "bda7e0851781e7356779991acddf480407e8cacebc350eb6552962b97e7bcff2"
+      },
+      {
+        "file": "src/data/endpoints/standards.ts",
+        "hash": "80a7b1aef3934be4c86b244bdb7c51670ab2e8aac731f3fe4a2ebc11e94872e8"
+      },
+      {
+        "file": "src/data/endpoints/api-hub.ts",
+        "hash": "f9e9112aad971ff8651f2a34a6e59af5918c2294a0fdbeaa27678967ae2463c3"
+      },
+      {
+        "file": "src/data/endpoints/ozone-connect.ts",
+        "hash": "4dcb5b24fc2c4f5e239b6aa0c1d76707c24addb3456a07bb50d98d4931cd06ee"
+      },
+      {
+        "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+        "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+      }
+    ],
+    "extraction_warnings": []
+  },
+  "metadata": {
+    "title": "Hello MTLS",
+    "url": "https://nebras-open-finance.com/tech/api-specs/v2.2-rc2/api-hub/consent-manager/open-api/hello-mtls",
+    "doc_version": "v2.2-rc2"
+  },
+  "content": {
+    "title": "Hello MTLS",
+    "intro": [],
+    "sections": [
+      {
+        "heading": "API /hello-mtls",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"info\": {\n    \"title\": \"Consent Manager API\",\n    \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor the Consent Manager API.\\n\\nThese APIs are implemented by Ozone and should be called by the financial institution to find, modify and delete consents.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.2.2\\n* Changed the `status` query parameter on `get /psu/{userId}/consents` to a comma-separated list of\\n  `AEConsentStatus` values (`style: form`, `explode: false`), evaluated as a union — for example\\n  `?status=Authorized,Suspended`. The parameter is now typed, so an unrecognised value is rejected with `400`\\n  rather than returning an empty array. The operation no longer references the shared\\n  `#/components/parameters/status` component, which is deliberately unchanged: `get /consents`,\\n  `get /consent-groups/{consentGroupId}/consents` and `get /accounts/{accountId}/consents` continue to take a\\n  single untyped value.\\n\\n* Added `paymentResponse.paymentRail` to `patch /payment-log/{id}` and `get /payment-log`, recording the rail\\n  over which the LFI settled the payment — `AANI`, `FTS`, or `LFI` for a payment settled internally.\\n\\n* Changed the `patch /payment-log/{id}` request body to a `oneOf` selected by `paymentResponse.paymentRail`, which\\n  is now required on every patch and stated first. Each rail carries its own contract:\\n\\n  * `AANI` — statuses `AcceptedSettlementCompleted`, `AcceptedWithoutPosting` and `Rejected`, where\\n    `AcceptedSettlementCompleted` is **not terminal** and records the payment having been passed to AANI; the LFI\\n    patches again to `AcceptedWithoutPosting` once AANI confirms it. `paymentResponse.paymentTransactionId`\\n    carries the AANI-issued identifier. `paymentResponse.OpenFinanceBilling` is not available on this rail, and\\n    reject reason codes are `AANI.*` only.\\n\\n  * `LFI` — statuses `AcceptedCreditSettlementCompleted` and `Rejected`, both terminal.\\n    `paymentResponse.paymentTransactionId` is not available, since nothing outside the LFI issues an identifier.\\n    `paymentResponse.OpenFinanceBilling` is not available on this rail, and reject reason codes are `LFI.*` only.\\n\\n  * `FTS` — statuses `AcceptedSettlementCompleted`, `AcceptedCreditSettlementCompleted` and `Rejected`, where\\n    `AcceptedSettlementCompleted` is **not terminal** and records the payment having been passed to UAEFTS; the LFI\\n    patches again to `AcceptedCreditSettlementCompleted` once UAEFTS confirms it.\\n    `paymentResponse.paymentTransactionId` carries the UAEFTS-issued identifier.\\n    `paymentResponse.OpenFinanceBilling` is not available on this rail, and reject reason codes are `FTS.*` only.\\n\\n  `Pending` is no longer a patchable status on any rail, and `paymentResponse.OpenFinanceBilling` is no longer\\n  patchable through this operation on any rail.\\n\\n* Changed the `paymentResponse` returned by `get /payment-log` to the matching `oneOf`, so a payment reads back in\\n  the shape it was patched in. The previously inline object is now `CbuaePaymentLogPaymentResponse`, with one member\\n  per rail plus `CbuaePaymentLogPaymentResponseUnrouted` for a payment the LFI has not routed yet, which carries no\\n  `paymentRail` and is `Pending` or `Rejected`. `paymentTransactionId` is now returned on the `AANI` and `FTS`\\n  members, having been absent from this operation's response since v2.1 although the patch operation set it.\\n\\n* Changed `get /payment-log` to be paginated, taking the shared `page` and `pageSize` parameters already used by\\n  the consent list operations and returning `paginationMetadata` in place of the empty `meta` object. Callers\\n  written against v2.1 received every payment for the consent in one response and MUST now follow `page` to\\n  retrieve the rest.\\n\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards.\\n* Changed `patch /insurance-quote-log/{logId}` to add `InsurancePolicyId` when `QuoteStatus` is `PolicyIssued`.\\n* Changed `DebtorReference` and `CreditorReferences` to implement Aani-compatible pattern.\\n\",\n    \"version\": \"v2.2.2\"\n  },\n  \"servers\": [\n    {\n      \"url\": \"https://cm.[LFICODE].apihub.openfinance.ae\"\n    },\n    {\n      \"url\": \"https://cm.[LFICODE].preprod.apihub.openfinance.ae\"\n    }\n  ],\n  \"source_path\": \"/hello-mtls\",\n  \"operations\": {\n    \"get\": {\n      \"operationId\": \"helloMtls\",\n      \"tags\": [\n        \"health-check\"\n      ],\n      \"summary\": \"check connectivity including mtls and provides information about the client cert that the server received\",\n      \"description\": \"This health check is used to check that the end-to-end network connectivity is working as expected including mutual tls. This health check endpoint assists in debugging mutual tls client issues. The health check returns information about the client certificate and the issuer of the client certificate that the server received.\",\n      \"responses\": {\n        \"200\": {\n          \"description\": \"OK\",\n          \"content\": {\n            \"application/json\": {\n              \"schema\": {\n                \"$ref\": \"#/components/schemas/HealthCheckCertResponse\"\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"security\": [\n    {},\n    {\n      \"OzoneConnectJwtAuth\": []\n    }\n  ],\n  \"securitySchemes\": {\n    \"OzoneConnectJwtAuth\": {\n      \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n      \"type\": \"http\",\n      \"scheme\": \"Ozone-Connect-JWT-Auth\"\n    }\n  }\n}"
+          }
+        ],
+        "subsections": []
+      },
+      {
+        "heading": "OpenAPI definition #/components/schemas/HealthCheckCertResponse",
+        "blocks": [
+          {
+            "type": "code",
+            "text": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"connectionEstablished\": {\n      \"type\": \"boolean\"\n    },\n    \"mtlsStatus\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"established\",\n        \"not-established\"\n      ]\n    },\n    \"hostName\": {\n      \"type\": \"string\"\n    },\n    \"clientCertificate\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"subject\": {\n          \"type\": \"string\"\n        },\n        \"issuer\": {\n          \"type\": \"string\"\n        }\n      },\n      \"required\": [\n        \"subject\",\n        \"issuer\"\n      ]\n    }\n  },\n  \"required\": [\n    \"connectionEstablished\",\n    \"mtlsStatus\",\n    \"hostName\",\n    \"clientCertificate\"\n  ]\n}"
+          }
+        ],
+        "subsections": []
+      }
+    ]
+  }
+}

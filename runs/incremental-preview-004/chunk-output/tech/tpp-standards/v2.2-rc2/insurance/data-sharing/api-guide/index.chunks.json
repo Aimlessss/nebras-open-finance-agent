@@ -1,0 +1,691 @@
+{
+  "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+  "chunk_count": 20,
+  "chunks": [
+    {
+      "id": "b75d5929-77eb-51ab-beb1-ded69e260add",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "intro",
+      "text": "Insurance Data Sharing — API Guide\n\nCreate an Insurance Data Sharing consent, redirect the user to authenticate at their LFI, exchange the authorization code for tokens, and call the policy APIs — an end-to-end walkthrough of the customer-present insurance data-sharing flow.",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"intro\"]:0",
+      "content_hash": "5361f423b92fbd66ff4b329eeb4bcc09930275f8cbb4b05405046ed56c591e3e",
+      "schema_version": 2
+    },
+    {
+      "id": "9b8326d0-2868-5f08-9755-8351f40e8514",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "section",
+      "text": "Insurance Data Sharing — API Guide > Prerequisites > What you need before creating a consent\n\nBefore creating an Insurance Data Sharing consent, ensure the following requirements are met:\n\n- Registered Application — the application must be created within the Trust Framework and assigned the ISP role as defined in Roles.\n- Valid Transport Certificate — an active transport certificate must be issued and registered in the Trust Framework to establish secure mTLS communication.\n- Valid Signing Certificate — an active signing certificate must be issued and registered in the Trust Framework. This certificate is used to sign request objects and client assertions.\n- Valid Encryption Certificate — required to decrypt the Premium JWE when the customer has granted ReadInsurancePremium. See Encrypted Premiums.\n- Registration with the relevant API Hub (Authorisation Server) — the application must be registered with the API Hub (Server) of the LFI for which you intend to create an Insurance Data Sharing consent.\n- Understanding of the FAPI Security Profile and Tokens & Assertions — you should understand how request object signing, client authentication, and access token validation underpin secure API interactions.\n- Understanding of Consents — you should understand how to create, retrieve, and manage consents, including consent states and lifecycle transitions.",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "What you need before creating a consent",
+        "category": "Prerequisites",
+        "anchor": "prerequisites",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"prerequisites\",\"\"]:0",
+      "content_hash": "04027b6a4a28c2679e508ca5cc0425a4d05d67886f1a791f94a8d5d1c581617a",
+      "schema_version": 2
+    },
+    {
+      "id": "455547d6-49f0-5628-abc3-14fba5a42821",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "section",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload\n\nTo send a /par request, first we need to generate the request JWT. We do this by first constructing authorization_details of type ( urn:openfinanceuae:insurance-consent:v2.2 ).",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-1-authorization-details\",\"\"]:0",
+      "content_hash": "e2b4abdc65b223d8c252bd312d5b8500f4b42a063706db58f518c2b31c4bc7c5",
+      "schema_version": 2
+    },
+    {
+      "id": "fcf14586-faa7-58b4-911c-00236fc1114d",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > authorization_details\n\nField | Type | Description | Example\ntype * | enum | Must be urn:openfinanceuae:insurance-consent:v2.2 | urn:openfinanceuae:insurance-consent:v2.2\nconsent * | object | Properties of the consent agreed by the User with the TPP. Described below. | Described below\nsubscription | object | Optional subscription to Event Notifications, to be sent to the TPP Webhook Url. Described below. | Described below",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "authorization_details",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-1-authorization-details\",\"authorization_details\"]:0",
+      "content_hash": "3ba56c825c970f470fd948fd1a617167fcebef17a15d276d52581c73ea594823",
+      "schema_version": 2
+    },
+    {
+      "id": "791c4166-cbad-5cbf-bbb1-71f25f4e1cd0",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > consent (Required) | authorization_details.consent\n\nField | Type | Description | Example\nConsentId * | string (uuid) | Unique ID assigned by the TPP (1–128 chars) | 123e4567-e89b-12d3-a456-426614174001\nBaseConsentId | string (uuid) | Used when renewing or modifying an existing consent | 123e4567-e89b-12d3-a456-426614174000\nPermissions * | array<object> | One entry per insurance sector being consented — described below | Described below\nExpirationDateTime * | date-time | Expiry date/time (ISO 8601 with timezone, max 1 year) | 2025-11-03T15:46:00+00:00\nOpenFinanceBilling * | object | Billing parameters specified by the TPP. Described below. | Described below\nOnBehalfOf | object | Provided when TPP is acting for another regulated entity. Described below. | Described below",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "consent (Required) | authorization_details.consent",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-1-authorization-details\",\"consent (Required) | authorization_details.consent\"]:0",
+      "content_hash": "239e1add7f15829958623fe00a2d209021561dfcedb97fc0d65d5db3100013d4",
+      "schema_version": 2
+    },
+    {
+      "id": "a2774963-e5bb-5d06-9dca-828f279bc1e2",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > Permissions entry | authorization_details.consent.Permissions[*]\n\nField | Type | Allowed Values\nInsuranceType * | enum | Employment, Health, Home, Life, Motor, Renters, Travel\nPermissions * | array<enum> | ReadInsurancePolicies, ReadCustomerBasic, ReadCustomerDetail, ReadCustomerPaymentDetails, ReadInsuranceProduct, ReadCustomerClaims, ReadInsurancePremium",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "Permissions entry | authorization_details.consent.Permissions[*]",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-1-authorization-details\",\"Permissions entry | authorization_details.consent.Permissions[*]\"]:0",
+      "content_hash": "7f4c3dc0107605117a6b6d3d3035618f148f1b1db9d6f6ccf9967ba067ff4217",
+      "schema_version": 2
+    },
+    {
+      "id": "8a7390ac-73f3-5d40-8dd3-8b38b1faaa9f",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > OpenFinanceBilling (Required) | authorization_details.consent.OpenFinanceBilling\n\nField | Type | Allowed Values | Example\nUserType * | enum | Retail, SME, Corporate | Retail\nPurpose * | enum | AccountAggregation, RiskAssessment, TaxFiling, Onboarding, Verification, QuoteComparison, BudgetingAnalysis, FinancialAdvice, AuditReconciliation | QuoteComparison",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "OpenFinanceBilling (Required) | authorization_details.consent.OpenFinanceBilling",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-1-authorization-details\",\"OpenFinanceBilling (Required) | authorization_details.consent.OpenFinanceBilling\"]:0",
+      "content_hash": "af9d823af52efaccc3f87ae338eabf0c32dc80863613440a0f1f610ab7792d63",
+      "schema_version": 2
+    },
+    {
+      "id": "0c875505-c30d-5641-b687-74d34e3ada60",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > OnBehalfOf (Optional) | authorization_details.consent.OnBehalfOf\n\nField | Type | Description | Example\nTradingName | string | Trading name if acting on behalf of another entity | Acme Ltd\nLegalName | string | Legal name of represented entity | Acme Legal Name\nIdentifierType | enum | Only Other currently supported | Other\nIdentifier | string | Identifier value | 9876543210",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "OnBehalfOf (Optional) | authorization_details.consent.OnBehalfOf",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-1-authorization-details\",\"OnBehalfOf (Optional) | authorization_details.consent.OnBehalfOf\"]:0",
+      "content_hash": "4e52a43f5750865088b42733b727765f751e63513f9af357fbc434dc8d74e6a7",
+      "schema_version": 2
+    },
+    {
+      "id": "6b9c833d-8943-5bcc-9900-664ebc6bad68",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > subscription (Optional) | authorization_details.subscription\n\nField | Type | Description | Example\nWebhook * | object | Described below. | Described below",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "subscription (Optional) | authorization_details.subscription",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-1-authorization-details\",\"subscription (Optional) | authorization_details.subscription\"]:0",
+      "content_hash": "8d5203178cae1cdca7cb9f1ef40a5cb727c71eb3324f6630db09e9245149eaa2",
+      "schema_version": 2
+    },
+    {
+      "id": "6fc3d772-411e-5c2d-b6cb-2a7634e9084d",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > Webhook (Required) | authorization_details.subscription.Webhook\n\nField | Type | Description | Example\nUrl * | string | HTTPS callback URL | https://tpp.example.com/webhook\nIsActive * | boolean | Whether webhook is active | true",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "Webhook (Required) | authorization_details.subscription.Webhook",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-1-authorization-details\",\"Webhook (Required) | authorization_details.subscription.Webhook\"]:0",
+      "content_hash": "6521b1668e09d0deda8ff6462ef3d076d2ea7b306ec987207ca1f4972585813a",
+      "schema_version": 2
+    },
+    {
+      "id": "f708b73f-af8e-590f-9966-30aaebd05a5b",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "subsection",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 1 — Constructing Authorization Details > Build the consent payload > Example request\n\nSee an example of a valid authorization_details for urn:openfinanceuae:insurance-consent:v2.2:",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Build the consent payload",
+        "category": "POST /par · Step 1 — Constructing Authorization Details",
+        "subsection": "Example request",
+        "anchor": "step-1-authorization-details",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"subsection\",\"step-1-authorization-details\",\"Example request\"]:0",
+      "content_hash": "64e859e0fca79752824ce2e7e2a1b56360a11e23dfbb11892861033ffb6b130d",
+      "schema_version": 2
+    },
+    {
+      "id": "6a31a231-31e4-5d49-b8a2-2a6d44ecb49b",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "section",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 2 — Constructing the Request JWT > Bind PKCE and authorization details into a signed JWT\n\nWith your authorization_details ready, generate a PKCE code pair then use the buildRequestJWT() helper from the FAPI page, passing openid insurance as the scope.\n\nSave codeVerifier in your server-side session or an httpOnly cookie. You will need it in Step 7 to exchange the authorization code for tokens.\n\nSee Preparing the Request JWT for the full JWT claim reference and PKCE helpers.",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Bind PKCE and authorization details into a signed JWT",
+        "category": "POST /par · Step 2 — Constructing the Request JWT",
+        "anchor": "step-2-request-jwt",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-2-request-jwt\",\"\"]:0",
+      "content_hash": "5926c03e96183a25e705ed0e1eaa2060c5c6e9b82a1cf12d46183a413a736777",
+      "schema_version": 2
+    },
+    {
+      "id": "a86384d2-7bbf-5a2a-aeed-adea4bf95614",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "section",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 3 — Creating a Client Assertion > Prove the application's identity to the API Hub\n\nEvery call to the API Hub (Authorisation Server) requires a client assertion — a short-lived signed JWT that proves your application's identity in place of a client secret. Use the signJWT() helper from the FAPI Message Signing page:\n\nSee Tokens & Assertions for the full claims reference and Preparing Your Client Assertion for a step-by-step walkthrough.",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Prove the application's identity to the API Hub",
+        "category": "POST /par · Step 3 — Creating a Client Assertion",
+        "anchor": "step-3-client-assertion",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-3-client-assertion\",\"\"]:0",
+      "content_hash": "49cde4d5e27ba022d4e4b421d8100096edb513a4e5b5dd7e87ed717f8e02acb7",
+      "schema_version": 2
+    },
+    {
+      "id": "c7bb185f-de68-5a6d-a3ad-1297adcb30d7",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "section",
+      "text": "Insurance Data Sharing — API Guide > POST /par · Step 4 — Sending the /par Request > Push the request to the API Hub\n\nWith your signed Request JWT and client assertion ready, POST both to the API Hub's /par endpoint. The connection must use your mTLS transport certificate.\n\nInclude x-fapi-interaction-id — a UUID v4 you generate per request. The API Hub echoes it in the response, enabling end-to-end traceability. See Request Headers for the full header reference.\n\nYou must present your transport certificate on every connection to the API Hub and resource APIs. In Node.js, configure an https.Agent with your PEM certificate and private key. See Certificates for how to obtain and configure your transport certificate.\n\nThe /par response contains:\n\nField | Description | Example\nrequest_uri | A single-use reference to your pushed authorization request | urn:ietf:params:oauth:request-uri:bwc4JDpSd7\nexpires_in | Seconds until the request_uri expires — redirect the user before this window closes | 90",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Push the request to the API Hub",
+        "category": "POST /par · Step 4 — Sending the /par Request",
+        "anchor": "step-4-par-request",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-4-par-request\",\"\"]:0",
+      "content_hash": "c842404760446647db7ac1a73108d3c2e3620580dffc0a724ca65d24b087bd05",
+      "schema_version": 2
+    },
+    {
+      "id": "04cdf831-b81f-58f9-aa04-bd4f6881ea0c",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "section",
+      "text": "Insurance Data Sharing — API Guide > Redirecting the User · Step 5 — Building the Authorization URL > Send the user to the LFI to authenticate\n\nUse the request_uri returned by /par to build the redirect URL. The authorization_endpoint is found in the LFI's.well-known/openid-configuration — not constructed from the issuer URL directly. All authorization parameters are already inside the signed Request JWT, so the only query parameters needed are client_id, response_type, and request_uri.\n\nSee User Experience for screen mockups of the Consent and Authorization pages the user sees at their insurer, including the per-sector permission previews.\n\nAfter redirecting, the user will:\n\n- Authenticate with their insurer.\n- Review the consent — sectors, policies, permissions, and expiry — on the insurer's authorization screen.\n- Approve or decline.",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Send the user to the LFI to authenticate",
+        "category": "Redirecting the User · Step 5 — Building the Authorization URL",
+        "anchor": "step-5-authorization-url",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-5-authorization-url\",\"\"]:0",
+      "content_hash": "d49b0f02be225d0b91d4e24f4488d16ef8d9c5e2fa367b0a506ee2e9812f3b20",
+      "schema_version": 2
+    },
+    {
+      "id": "caf49c3a-5178-59b3-ac01-e73ca874d3a9",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "section",
+      "text": "Insurance Data Sharing — API Guide > Handling the Callback · Step 6 — Extracting the Authorization Code > Validate state and issuer on the redirect\n\nAfter the user approves, the insurer redirects them back to your redirect_uri. The callback includes an authorization code, the state you sent in your Request JWT, and the iss (issuer) of the API Hub Authorisation Server:\n\nExtract all three parameters and validate state and iss before proceeding:\n\nSee Handling Authorization Callbacks for a full guide on security best practices including issuer verification, replay prevention, and keeping callback logic minimal.",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Validate state and issuer on the redirect",
+        "category": "Handling the Callback · Step 6 — Extracting the Authorization Code",
+        "anchor": "step-6-extract-code",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-6-extract-code\",\"\"]:0",
+      "content_hash": "663ca0c08cdf6fb77f6ff933cda910b831b5be26945b805eae492d8cc017eefe",
+      "schema_version": 2
+    },
+    {
+      "id": "ce057bb0-b2b0-5cba-95ac-b43918445b46",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "section",
+      "text": "Insurance Data Sharing — API Guide > Exchanging the Code for Tokens · Step 7 — POST /token (Authorization Code) > Swap the auth code for an access and refresh token\n\nExchange the authorization code for an access token and refresh token. Include the code_verifier from Step 2 — the API Hub will verify it against the code_challenge in your Request JWT before issuing tokens.\n\nStore both tokens securely. The access token expires in 10 minutes; the refresh token remains valid for the lifetime of the consent.\n\nNever store tokens in localStorage. Use httpOnly cookies or a server-side session store. See Tokens & Assertions for the full token lifecycle and expiry guidance.",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Swap the auth code for an access and refresh token",
+        "category": "Exchanging the Code for Tokens · Step 7 — POST /token (Authorization Code)",
+        "anchor": "step-7-post-token-authorization-code",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-7-post-token-authorization-code\",\"\"]:0",
+      "content_hash": "fe4de7362c221fcc49ddce24b79ea17c284de42fc9ed0df47a363a224e570c65",
+      "schema_version": 2
+    },
+    {
+      "id": "7e83c8e3-60ee-5a6e-8519-b5b9486bc628",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "section",
+      "text": "Insurance Data Sharing — API Guide > Calling the Policy APIs · Step 8 — GET /{type}-insurance-policies > Retrieve the consented policies for a sector\n\nWith a valid access token, retrieve all policies of a given sector the user consented to share. The endpoint is the same shape for every sector — substitute the sector slug ( employment, health, home, life, motor, renters, travel ) into the path. Include x-fapi-interaction-id on every request, and when the customer is present also send x-fapi-customer-ip-address, x-customer-user-agent, and x-fapi-auth-date. See Request Headers.\n\nInsurance policy endpoints return the full set of consented policies for the named sector in a single response. There is no page query parameter, and Meta does not carry TotalPages or TotalRecords.\n\nRepeat the call once per sector the consent grants — one for each InsuranceType in the Permissions array. See the OpenAPI reference for every sector under Insurance Data Sharing.",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Retrieve the consented policies for a sector",
+        "category": "Calling the Policy APIs · Step 8 — GET /{type}-insurance-policies",
+        "anchor": "step-8-get-policies",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-8-get-policies\",\"\"]:0",
+      "content_hash": "06d83adeed71583f4ec8d8051511229bdcfd380c5f93ea612458e514b177d94b",
+      "schema_version": 2
+    },
+    {
+      "id": "e0f743de-2702-5662-bf29-ada2b5a2f8bb",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "section",
+      "text": "Insurance Data Sharing — API Guide > Calling the Policy APIs · Step 9 — GET /{type}-insurance-policies/{InsurancePolicyId} > Fetch detailed information for a specific policy\n\nUse an InsurancePolicyId returned in Step 8 to fetch the detailed policy — cover, riders, claims, premium, and beneficiaries. Each field set requires the matching permission in the consented sector. Apply the same FAPI headers as Step 8.\n\nPermissions and the data fields they unlock:\n\nPermission | Unlocks\nReadInsurancePolicies | Core policy attributes — ID, number, status, dates, sums insured, coverage.\nReadCustomerBasic | Basic policy-holder identity and contact details.\nReadCustomerDetail | Full customer details, including additional verification fields.\nReadCustomerPaymentDetails | Customer payment methods recorded on the policy.\nReadInsuranceProduct | Underwritten product detail — cover type, features, terms, add-ons.\nReadCustomerClaims | Claims raised against the policy — status, dates, amounts.\nReadInsurancePremium | The Premium field. Returned as a JWE that the customer device decrypts — see Encrypted Premiums.\n\nWhen the consent grants ReadInsurancePremium, the Premium field on the policy is returned as a compact JWE string. The TPP server MUST NOT decrypt it — forward it to the customer’s device, where it is unwrapped. Full walkthrough: Encrypted Premiums.",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Fetch detailed information for a specific policy",
+        "category": "Calling the Policy APIs · Step 9 — GET /{type}-insurance-policies/{InsurancePolicyId}",
+        "anchor": "step-9-get-policy-detail",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-9-get-policy-detail\",\"\"]:0",
+      "content_hash": "60236a9120ef789728072c6088caeac28dd2ae96fbdfc9c794f123b53d657baf",
+      "schema_version": 2
+    },
+    {
+      "id": "49eeee2e-0218-5c5e-ac9e-ab73f229adcf",
+      "document_id": "tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+      "type": "section",
+      "text": "Insurance Data Sharing — API Guide > Refresh Token Flow · Step 10 — Refreshing the Access Token > Keep the session alive without re-authorisation\n\nAccess tokens expire after 10 minutes. Track the expires_in value returned by /token and refresh proactively rather than waiting for a 401 Unauthorized. Each refresh requires a fresh client assertion.\n\nAlways replace both access_token and refresh_token from the response. If the API Hub rotates refresh tokens, continuing to use the old one will return 400 invalid_grant.\n\nThe refresh token remains valid until the consent's ExpirationDateTime. Once expired, the user must go through the full authorization flow again — send a new /par request with a new ConsentId.",
+      "metadata": {
+        "title": "Insurance Data Sharing — API Guide",
+        "section": "Keep the session alive without re-authorisation",
+        "category": "Refresh Token Flow · Step 10 — Refreshing the Access Token",
+        "anchor": "step-10-refreshing-the-access-token",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide/index.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "83cb7df1bdf8e24e4261114018247e73bfb7d29aad929b50269417d7dbe03e41",
+        "url": "https://nebras-open-finance.com/tech/tpp-standards/v2.2-rc2/insurance/data-sharing/api-guide",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "./pkce",
+          "./request-jwt",
+          "./sign-jwt",
+          "node:crypto"
+        ],
+        "assets": [],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",\"step-10-refreshing-the-access-token\",\"\"]:0",
+      "content_hash": "9b30d9b1c42320a44aa5aafc028314e7a18fecaf9d46f1d728184482bb813af4",
+      "schema_version": 2
+    }
+  ]
+}

@@ -1,0 +1,962 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+  "chunk_count": 28,
+  "chunks": [
+    {
+      "id": "bb53ed5c-7ee6-5920-8506-1c2fa360bc5a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > API /customers/action/cop-query\n\n{\n \"info\": {\n \"title\": \"Ozone Connect - Bank Data Sharing APIs\",\n \"contact\": {\n \"name\": \"Ozone Financial Technology Limited\"\n },\n \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor Bank Data Sharing APIs for Ozone Connect.\\n\\nThese APIs should be implemented by an financial institution so that Ozone\\ncan expose these end-points to TPPs.\\n\\n#### Implementer Notes\\n\\nImplementers should note that this API prescribes a positive response for correctly executed\\noperations including those where no data is returned. This is consistent with the general principles\\nof REST.\\nFor example, if the operation \\n`get /accounts/{accountId}/products` is invoked and no product data is found for the account\\nassociated with the value of `accountId` then the correct response is to return a `200` and an empty\\narray: `{ \\\"data\\\": [] }`.\\n\\nPlease refer to the API Hub documentation for details of test cases that are \\navailable for this API using the Ozone Connect test suite.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `v2.0.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n**Please adhere to the deprecated flags in your implementation. Do not implement deprecated properties when** **implementing new functionality.**\\n\\n### v2.2.3\\n* Changed `emiratesId` on `CustomerPersonClaims` to carry\\n `pattern: ^784-?[0-9]{4}-?[0-9]{7}-?[0-9]{1}$`, so the Emirates ID returned by `get /customer` and\\n `get /accounts/{accountId}/customer` is well-formed. This is the pattern already used by the Insurance API\\n description and, from v2.2, by `post /leads` in the Bank Products Data API description. Per OFP-009.\\n\\n* Changed `fullName`, `givenName`, `familyName`, `middleName` and `nickname` on `CustomerPersonClaims` to accept\\n Latin letters, space, apostrophe, period and hyphen only, and `businessName` on `CustomerCorporateClaims` to\\n accept those plus digits, ampersand, comma, parentheses and forward slash. Field lengths are unchanged.\\n Per OFP-009.\\n\\n### v2.2.2\\n* Changed `transactionInformation` on `CbuaeTransaction` to be required, so every transaction returned by\\n `get /accounts/{accountId}/transactions` carries a narrative by which the customer can recognise the entry.\\n The field also gains `minLength: 1` and `maxLength: 500`, matching the bounds the TPP-facing\\n `TransactionInformation` schema has carried since v2.1. The same requirement is applied to `AETransaction` in\\n the Standards Account Information API description, since the API Hub can only return a narrative the LFI\\n supplied.\\n\\n* Changed the `post /customers/action/cop-query` request to carry the account IBAN only. `data.account.name` is\\n removed, along with the `PersonName` and `BusinessName` Schema Objects it referenced. The LFI performs no\\n matching, so the name submitted by the TPP is no longer sent to it.\\n\\n* Changed the `post /customers/action/cop-query` response to carry the account holder's name directly. Each\\n entry in `data` is now an `id` and a `name`, which is either a `CbuaeCopPersonName` (`fullName` required) or a\\n `CbuaeCopBusinessName` (`businessName` required). The `verifiedClaims` / `verification` identity-assurance\\n envelope is removed from this operation, along with the `CbuaeVerifiedCopClaim` and\\n `ConfirmationOfPayeePersonClaims` Schema Objects and the wider customer data the latter carried — none of it\\n is needed to compare two names, and Confirmation of Payee runs without a consent. `number` is dropped for the\\n same reason; `id` is retained as the handle for investigating a disputed result. Structured name fields\\n (`firstName`, `middleName`, `lastName`, `fullNameAr`, `alsoKnownAs`, `businessNameAr`) are retained as\\n optional members so the matching algorithm can be improved without a further change to this contract.\\n `get /accounts/{accountId}/customer` is unaffected: it has its own `CbuaeCustomer` / `CbuaeVerifiedClaim`\\n Schema Objects.\\n\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards.\\n* Changed `get /accounts/{accountId}/products` to return `ExpectedProfitRates`, providing one-or-more deposit\\n rates for Sharia-compliant products. Each rate carries `RateType` (`FixedProfit` or `VariableProfit`),\\n `DepositRateType` (`ExpectedProfitRate` or `IndicativeProfitRate`), `ProfitSharingRatio`,\\n `ProfitDistributionMethod`, `ProfitDistributionFrequency`, an optional `Description`, and `RateDetails`.\\n\\n* Changed `get /accounts/{accountId}/products` to return `ShariaFinanceRates`, providing one-or-more finance\\n rates for Sharia-compliant products. As with `FinanceRates`, this can be provided in cleartext or as a JWE\\n based on the preference of the LFI for sharing this information. Each cleartext rate is discriminated on\\n `RateType` as a fixed profit rate, a variable profit rate or a hybrid profit rate, and carries\\n `ProfitCalculationMethod` with the values `PrincipalBalance`, `OutstandingBalance`,\\n `InitialDrawdownAmount`, `UnusedCreditLine` or `UtilizedLimit`.\\n\\n* Changed `get /accounts/{accountId}/products` to return `TakafulRequired`, indicating whether Takaful\\n coverage is required for the product, and `TakafulDescription`, describing the type and purpose of the\\n required coverage.\\n\\n* Changed `get /accounts/{accountId}/products` to return `ProfitCalculationMethod` on charge components, for\\n use in place of `InterestCalculationMethod` where the product uses Islamic ",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "API /customers/action/cop-query",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /customers/action/cop-query\"],\"\"]:0:part:0",
+      "content_hash": "fce9eed14aed11d9c9e3bc74b4ec366fef27c5a910934520d967991f31c638bf",
+      "schema_version": 2
+    },
+    {
+      "id": "e3bc925e-1106-59a2-9466-b87bc13cc687",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > API /customers/action/cop-query\n\ncalculation methods.\\n\\n* Changed `InterestCalculationMethod` on charge components returned by\\n `get /accounts/{accountId}/products` to apply to interest only. Islamic calculation methods are now\\n described by `ProfitCalculationMethod`.\\n\\n* Changed `RateDetails` on the deposit rates returned by `get /accounts/{accountId}/products` to reference a\\n shared Schema Object, so that the same rate structure is used by both `DepositRates` and\\n `ExpectedProfitRates`. No change to the properties returned.\\n\\n* Changed `get /accounts/{accountId}/balances`, `get /accounts/{accountId}/transactions` and\\n `get /accounts/{accountId}/statements` to return `BalanceDescription`, allowing a description of the\\n balance to be provided identifying the specific Shari'ah compliant charges, payments and rewards made\\n which can affect the balance.\\n\",\n \"version\": \"v2.2.3\"\n },\n \"servers\": [\n {\n \"url\": \"https://[Ozone_Connect_API]\"\n }\n ],\n \"source_path\": \"/customers/action/cop-query\",\n \"operations\": {\n \"post\": {\n \"tags\": [\n \"customers\"\n ],\n \"summary\": \"Fetches customer data based on a confirmation of payee query\",\n \"description\": \"Used by the API Hub to find the name(s) held against an account, so that the Hub can answer a Confirmation of Payee query.\\n\\nThe API Hub sends an IBAN, and nothing else. The LFI returns the name(s) it holds against that account. **The LFI performs no matching** — the name the TPP submitted is not sent to it, and it MUST NOT filter, rank, or omit holders on any basis. The API Hub owns the matching rules and applies them to what is returned.\\n\\nA joint account MUST return **one entry per holder**. The API Hub evaluates every entry in `data`; it does not stop at the first.\\n\\n**Not found is `200` with an empty `data` array** — never `204`, `404`, `201`, or `202`. Return it where the account does not exist, is under a bar, or the customer has opted out of Confirmation of Payee. The three cases are deliberately indistinguishable to the TPP, so that a CoP query cannot be used to probe for the existence of an account.\\n\\nFrom v2.2 the request carries the IBAN only, and the response is **flattened**: each entry in `data` carries `name` directly. The v2.1 `verifiedClaims` / `verification` identity-assurance envelope is removed from this operation — the API Hub never read it.\\n\\nThis operation is not carried out under a consent, and the call will not have an `o3-consent-id` header. The response MUST therefore carry only the name data this question requires, and no wider customer data.\\n\",\n \"operationId\": \"findCustomerForCop\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/providerId\"\n },\n {\n \"$ref\": \"#/components/parameters/aspspId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerOrgId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerClientId\"\n },\n {\n \"$ref\": \"#/components/parameters/callerSoftwareStatementId\"\n },\n {\n \"$ref\": \"#/components/parameters/apiUri\"\n },\n {\n \"$ref\": \"#/components/parameters/apiOperation\"\n },\n {\n \"$ref\": \"#/components/parameters/callerInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/ozoneInteractionId\"\n },\n {\n \"$ref\": \"#/components/parameters/page\"\n },\n {\n \"$ref\": \"#/components/parameters/page-size\"\n }\n ],\n \"requestBody\": {\n \"required\": true,\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/ConfirmationRequest\"\n }\n }\n }\n },\n \"responses\": {\n \"200\": {\n \"description\": \"successful operation\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/ConfirmationResponse\"\n }\n }\n }\n },\n \"400\": {\n \"$ref\": \"#/components/responses/BadRequestError\"\n },\n \"401\": {\n \"$ref\": \"#/components/responses/UnauthorizedError\"\n },\n \"403\": {\n \"$ref\": \"#/components/responses/ForbiddenError\"\n },\n \"500\": {\n \"$ref\": \"#/components/responses/InternalServerError\"\n },\n \"default\": {\n \"$ref\": \"#/components/responses/Error\"\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectApiKey\": []\n },\n {\n \"OzoneConnectClientCredentials\": [\n \"placeholder\"\n ]\n },\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectApiKey\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using an API Key, which is a secret shared between the API Hub and the LFI.\",\n \"type\": \"apiKey\",\n \"in\": \"header\",\n \"name\": \"Authorization\"\n },\n \"OzoneConnectClientCredentials\": {\n \"type\": \"oauth2\",\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using a Client Credentials grant type.\\n\\nLFIs must host an OAuth 2.0 Authorization Server to utilise this security pattern. Scope values are set during the onboarding process, and represented by a placeholder in this API description.\\n\",\n \"flows\": {\n \"clientCredentials\": {\n \"tokenUrl\": \"https://example.lfi.ae/token\",\n \"scopes\": {\n \"placeholder\": \"Placeholder for scopes, which are set by the LFI during onboarding\"\n }\n }\n }\n },\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "API /customers/action/cop-query",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /customers/action/cop-query\"],\"\"]:0:part:1",
+      "content_hash": "fa65b231238e562ea34007df82e365d5f83efaa230c4cf16a4db10281b33d139",
+      "schema_version": 2
+    },
+    {
+      "id": "54325919-ead1-5b94-a5a6-73f6edb4a32b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/parameters/providerId\n\n{\n \"name\": \"o3-provider-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"Identifier for the financial institution that the request is targetted to\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/parameters/providerId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/providerId\"],\"\"]:0",
+      "content_hash": "368d8e4d9a4bb70aa0ab9873931e29f5fe7c2a384e73fda4aaaf60d3e9dada7d",
+      "schema_version": 2
+    },
+    {
+      "id": "aee46a0c-1746-5642-9d46-9db49854a110",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/parameters/aspspId\n\n{\n \"name\": \"o3-aspsp-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"deprecated\": true,\n \"description\": \"Identifier for the financial institution that the request is targetted to. This header is deprecated and will be removed in a future version of Ozone Connect. Use `o3-provider-id` instead.\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/parameters/aspspId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/aspspId\"],\"\"]:0",
+      "content_hash": "959ec1329912ebbae5a35ee7a1a272588fa28106716e2d714a5b84cd2ab30806",
+      "schema_version": 2
+    },
+    {
+      "id": "c4721a51-ce73-5cf4-b0a2-83884e8eb40c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/parameters/callerOrgId\n\n{\n \"name\": \"o3-caller-org-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the organization calling the API\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/parameters/callerOrgId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerOrgId\"],\"\"]:0",
+      "content_hash": "a673b252f41a20e925b58983dd0a773ef9c3c716382a8770ae197d25a23ff194",
+      "schema_version": 2
+    },
+    {
+      "id": "4cc75ed8-e8ad-5b36-bda5-104619a5ba97",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/parameters/callerClientId\n\n{\n \"name\": \"o3-caller-client-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the OIDC clientId calling the API\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/parameters/callerClientId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerClientId\"],\"\"]:0",
+      "content_hash": "fcb8f5756b7c6a36b265dfded738e6ab971c5d97cdfb4150f929281807a07529",
+      "schema_version": 2
+    },
+    {
+      "id": "169d6461-5b73-5da6-a138-6df8a4a46de4",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/parameters/callerSoftwareStatementId\n\n{\n \"name\": \"o3-caller-software-statement-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An identifier for the software statement calling the API\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/parameters/callerSoftwareStatementId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerSoftwareStatementId\"],\"\"]:0",
+      "content_hash": "eee8b86a790d11891168aaa5aa45d7f5cedc0090e80c40a9d329b76158e32756",
+      "schema_version": 2
+    },
+    {
+      "id": "fee05b75-0a2e-5419-8fb5-8cd5275829b7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/parameters/apiUri\n\n{\n \"name\": \"o3-api-uri\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The parameterised URL of the API being called by the caller\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/parameters/apiUri",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiUri\"],\"\"]:0",
+      "content_hash": "f76287f18e1c81d0909aac385454a942b53ebe8c5ca27439461f2e79aa58e521",
+      "schema_version": 2
+    },
+    {
+      "id": "0e522e46-c54a-5a29-9ec8-d5417dd88b9a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/parameters/apiOperation\n\n{\n \"name\": \"o3-api-operation\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"The API operation carried out by the caller (e.g. GET, POST, PUT, DELETE, PATCH)\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/parameters/apiOperation",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/apiOperation\"],\"\"]:0",
+      "content_hash": "704a32d40e62d8ab0a08596f6fe990fd207103579b0ad124db0478905ba15da3",
+      "schema_version": 2
+    },
+    {
+      "id": "94eeb4ec-46f4-58be-a1c3-ee2c33a89ca0",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/parameters/callerInteractionId\n\n{\n \"name\": \"o3-caller-interaction-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": false,\n \"description\": \"The interaction ID passed in by the caller, if any\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/parameters/callerInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/callerInteractionId\"],\"\"]:0",
+      "content_hash": "916e35a1c2aeba2a4b4a44b4cadb6df85803cac90ccd816056f67063de83cc80",
+      "schema_version": 2
+    },
+    {
+      "id": "265b1a0a-664f-504e-89c3-a4cbe1cf7e16",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/parameters/ozoneInteractionId\n\n{\n \"name\": \"o3-ozone-interaction-id\",\n \"in\": \"header\",\n \"schema\": {\n \"type\": \"string\"\n },\n \"required\": true,\n \"description\": \"An interaction ID generated by Ozone if the caller did not send in one. If the callerInteractionId is specified, this takes the same value.\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/parameters/ozoneInteractionId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/ozoneInteractionId\"],\"\"]:0",
+      "content_hash": "97de3007eaec13613173fcad45143194a5f8fe9fe00f0f933c6babe35dc4710a",
+      "schema_version": 2
+    },
+    {
+      "id": "351bfe0c-78c1-530e-81a8-712086cb7cba",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/parameters/page\n\n{\n \"name\": \"page\",\n \"in\": \"query\",\n \"description\": \"Page of results to request (standard pagination)\",\n \"required\": true,\n \"schema\": {\n \"default\": 1,\n \"type\": \"integer\"\n },\n \"style\": \"form\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/parameters/page",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/page\"],\"\"]:0",
+      "content_hash": "fa06bcf324ef902bff4b55f187b02ca0c8d181fd1e25b3c6a4a10754df431a7f",
+      "schema_version": 2
+    },
+    {
+      "id": "7ba7545d-4222-5b3f-8345-112964816c5b",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/parameters/page-size\n\n{\n \"name\": \"page-size\",\n \"in\": \"query\",\n \"description\": \"Page size to request. Default is 100 to comply with the Operating Guidelines for the Open Finance Framework.\",\n \"required\": true,\n \"schema\": {\n \"default\": 100,\n \"type\": \"integer\"\n },\n \"style\": \"form\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/parameters/page-size",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/page-size\"],\"\"]:0",
+      "content_hash": "22c6b29bca46568eba0277b8ec4e8267d6acda9a59121f9914f8a0a98dedfb2f",
+      "schema_version": 2
+    },
+    {
+      "id": "55835881-d79c-51cb-8bc4-b3b2d7c133d1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/schemas/ConfirmationRequest\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"type\": \"object\",\n \"properties\": {\n \"account\": {\n \"type\": \"object\",\n \"required\": [\n \"schemeName\",\n \"identification\"\n ],\n \"properties\": {\n \"schemeName\": {\n \"type\": \"string\",\n \"enum\": [\n \"IBAN\"\n ],\n \"description\": \"Name of the identification scheme for the account. Encoded with allowable values published in an external list.\"\n },\n \"identification\": {\n \"type\": \"string\",\n \"description\": \"Identification for the account assigned by the LFI based on the Account Scheme Name. This identification is known by the User account owner. For IBAN, refer to the ISO Standard 13616.\"\n }\n },\n \"description\": \"The account the Confirmation of Payee query is about, identified by IBAN. From v2.2 the name the TPP submitted is NOT sent to the LFI — the LFI returns the name(s) it holds against this account, and the API Hub compares them.\"\n }\n },\n \"description\": \"Primary data for the resource.\"\n }\n },\n \"description\": \"Properties of a Confirmation of Payee request\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/schemas/ConfirmationRequest",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ConfirmationRequest\"],\"\"]:0",
+      "content_hash": "09caee1a0f027d1a4c500921393456ab6d50285c461bf6821a0738e397ab1751",
+      "schema_version": 2
+    },
+    {
+      "id": "dc815f50-81bc-5d5d-8e64-831a8b5e42e1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/schemas/ConfirmationResponse\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"data\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/CbuaeCopCustomer\"\n },\n \"description\": \"Primary data for the resource\"\n },\n \"meta\": {\n \"$ref\": \"#/components/schemas/Meta\"\n }\n },\n \"description\": \"The properties of a Confirmation of Payee query response\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/schemas/ConfirmationResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ConfirmationResponse\"],\"\"]:0",
+      "content_hash": "a2e873f8e1c0ed684c18a0e2011669393fc0c173b92885c556c8706dd53799b3",
+      "schema_version": 2
+    },
+    {
+      "id": "27843d05-b8d5-553f-a0b4-e6a982d67800",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/schemas/CbuaeCopCustomer\n\n{\n \"description\": \"One account holder returned for a Confirmation of Payee query.\\nA joint account returns one entry per holder. The API Hub evaluates EVERY entry in `data` — returning the holders in any order is safe, and the LFI MUST NOT attempt to order them by likelihood of match.\\n\",\n \"type\": \"object\",\n \"required\": [\n \"id\",\n \"name\"\n ],\n \"additionalProperties\": false,\n \"properties\": {\n \"id\": {\n \"description\": \"A unique and immutable identifier used to identify the customer resource. This identifier has no meaning to the account owner.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 40\n },\n \"name\": {\n \"description\": \"The name held against the account for this holder — a personal name or a business name.\",\n \"oneOf\": [\n {\n \"$ref\": \"#/components/schemas/CbuaeCopPersonName\"\n },\n {\n \"$ref\": \"#/components/schemas/CbuaeCopBusinessName\"\n }\n ]\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/schemas/CbuaeCopCustomer",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaeCopCustomer\"],\"\"]:0",
+      "content_hash": "4196d92cbebe63dadce8d5b62351ff96b510dcae887710c7d57001a210d9254f",
+      "schema_version": 2
+    },
+    {
+      "id": "93888cf3-91bc-5161-b61c-4a86396e1b61",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/schemas/CbuaeCopPersonName\n\n{\n \"description\": \"The name of a personal account holder, as held by the LFI.\\n`fullName` is the only required field and is what the API Hub matches on today. The remaining fields are OPTIONAL and are not required for a match to succeed — supply them where your systems hold them separately, so that improvements to the matching algorithm can use them without a further change to this contract.\\n\",\n \"type\": \"object\",\n \"required\": [\n \"fullName\"\n ],\n \"additionalProperties\": false,\n \"properties\": {\n \"fullName\": {\n \"description\": \"The full name of the account holder, as it appears on the account, as a single string.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"firstName\": {\n \"description\": \"Given name of the account holder. Optional. Named `firstName` rather than the v2.1 `givenName`, which the v2.1 schema already recorded as withdrawn.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"middleName\": {\n \"description\": \"Middle name(s) of the account holder. Optional.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"lastName\": {\n \"description\": \"Family name of the account holder. Optional. Named `lastName` rather than the v2.1 `familyName`, which the v2.1 schema already recorded as withdrawn.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 70\n },\n \"fullNameAr\": {\n \"description\": \"The full name of the account holder in Arabic script, where the LFI holds one. Optional. Not matched today.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"alsoKnownAs\": {\n \"description\": \"Other names the account is legitimately known by — for example a maiden name, or a transliteration variant the LFI holds. Optional. Not matched today.\",\n \"type\": \"array\",\n \"items\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/schemas/CbuaeCopPersonName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaeCopPersonName\"],\"\"]:0",
+      "content_hash": "816c8169af56b437f77941fcb21515a0d5c1f55e4ce78acdbb0973cf7235c655",
+      "schema_version": 2
+    },
+    {
+      "id": "315dd6b0-dd24-5ebc-9b83-e11f8b9b7a9c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/schemas/CbuaeCopBusinessName\n\n{\n \"description\": \"The name of a business account holder, as held by the LFI.\\n`businessName` is the only required field and is what the API Hub matches on today. The remaining fields are OPTIONAL inputs to future matching.\\n\",\n \"type\": \"object\",\n \"required\": [\n \"businessName\"\n ],\n \"additionalProperties\": false,\n \"properties\": {\n \"businessName\": {\n \"description\": \"The registered business name on the account.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"businessNameAr\": {\n \"description\": \"The registered business name in Arabic script, where the LFI holds one. Optional. Not matched today.\",\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n },\n \"alsoKnownAs\": {\n \"description\": \"Other names the business is legitimately known by — for example a trading name distinct from the registered name. Optional. Not matched today.\",\n \"type\": \"array\",\n \"items\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 140\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/schemas/CbuaeCopBusinessName",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/CbuaeCopBusinessName\"],\"\"]:0",
+      "content_hash": "bdf09a6d0981dbec825c8b754b007c40d33f17c23eedc04f7b396263a2268d6b",
+      "schema_version": 2
+    },
+    {
+      "id": "824ab9a0-ce7b-5f29-9447-c498c1836b42",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/schemas/Meta\n\n{\n \"type\": \"object\",\n \"properties\": {\n \"totalPages\": {\n \"type\": \"number\",\n \"description\": \"The number of expected pages for the query.\\n\"\n },\n \"totalRecords\": {\n \"type\": \"number\",\n \"description\": \"The total number of records in the full set.\\n\"\n }\n },\n \"description\": \"Metadata relevant to the resource.\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/schemas/Meta",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Meta\"],\"\"]:0",
+      "content_hash": "3385abf5e0dcce54b4e22634b26247a8df08fe3cbe6fffc70fdcd6712639f357",
+      "schema_version": 2
+    },
+    {
+      "id": "bacc388f-5eeb-5035-a2f2-288aa1720a0c",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/responses/BadRequestError\n\n{\n \"description\": \"Operation failed due to a invalid request parameter\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error400\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/responses/BadRequestError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/BadRequestError\"],\"\"]:0",
+      "content_hash": "76f68493bde6e343e9049443a3bc425fa86c50e73e63551858026f28470374c2",
+      "schema_version": 2
+    },
+    {
+      "id": "fc41ff5b-2b0f-5c3b-b5e5-daa1acfe3123",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/schemas/Error400\n\n{\n \"description\": \"Default error response payload structure for Ozone Connect\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation. organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"Consent.Invalid\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.InvalidUserIdentifier\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"GenericRecoverableError\",\n \"GenericError\",\n \"Event.UnexpectedEvent\",\n \"Body.InvalidFormat\",\n \"Resource.InvalidFormat\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/schemas/Error400",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error400\"],\"\"]:0",
+      "content_hash": "a03fded2d0303a29e0e366d02856478f17af9e306a2da9dabf85db1af7811fcc",
+      "schema_version": 2
+    },
+    {
+      "id": "a4c04489-90ab-5dca-ba14-a8eb14e2f80e",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/schemas/ErrorMessage\n\n{\n \"description\": \"Message describing the problem that has occurred.\",\n \"type\": \"string\"\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/schemas/ErrorMessage",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/ErrorMessage\"],\"\"]:0",
+      "content_hash": "b9edf28475d0382f894e29dab4ce4067a6c3fa62d0d2bfabf15f1043c4573f21",
+      "schema_version": 2
+    },
+    {
+      "id": "57a307f7-f2c6-54f7-a174-7ff2b247ebe7",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/responses/UnauthorizedError\n\n{\n \"description\": \"Operation failed due to an invalid credential or missing token\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n \"type\": \"string\"\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/responses/UnauthorizedError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/UnauthorizedError\"],\"\"]:0",
+      "content_hash": "cf00905adab80be0525eed5abf32592e789e6e4c7ac089683881b9eae628763a",
+      "schema_version": 2
+    },
+    {
+      "id": "bfe481dd-3304-5e31-8ba0-ddb7b02af5b1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/responses/ForbiddenError\n\n{\n \"description\": \"Operation failed as access to the requested resource is forbidden\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error403\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/responses/ForbiddenError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/ForbiddenError\"],\"\"]:0",
+      "content_hash": "b30bcf23cbf47e03dc0f25955e943d86823a424a7a7446298cb7cf00dde6407d",
+      "schema_version": 2
+    },
+    {
+      "id": "9ce70bc3-2da6-52fe-aa2b-d1be56eecdd1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/schemas/Error403\n\n{\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Consent.TransientAccountAccessFailure\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.PermanentAccountAccessFailure\",\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/schemas/Error403",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error403\"],\"\"]:0",
+      "content_hash": "0ee36885555258c9d1bf0cf60bf57c03e9306dc4870a7861d475136bc357e3b4",
+      "schema_version": 2
+    },
+    {
+      "id": "462bb4b3-30b9-5eb4-ad45-50601bd043f1",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/responses/InternalServerError\n\n{\n \"description\": \"Operation failed due to an internal server error\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/Error500\"\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/responses/InternalServerError",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/InternalServerError\"],\"\"]:0",
+      "content_hash": "f4e31ab93f852e1020f2431ece46e9b2306cabfbd1e075cbe002ff8ec8ffb7bb",
+      "schema_version": 2
+    },
+    {
+      "id": "6e5ed8ae-4ad0-54c2-938e-a3238c163cb6",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/schemas/Error500\n\n{\n \"description\": \"Error code identifying the problem that occurred. The first part of the code is the namespace, which is the name of the organisation or system that is rejecting the payment, and the second part is the specific rejection reason code for the originating organisation or system.\\nLFIs should implement error codes based on the prescribed codes or guidance in the standards, with non-specific codes maintained for backward compatibility with version 1.2.\",\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed Error Code(s) or a namespaced Error Code where the namespace is the system or organisation that has responded with the error, and the code is the code specific to the system or organisation.\",\n \"anyOf\": [\n {\n \"type\": \"string\",\n \"enum\": [\n \"GenericRecoverableError\",\n \"GenericError\"\n ]\n },\n {\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n },\n {\n \"type\": \"string\"\n }\n ]\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/schemas/Error500",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/Error500\"],\"\"]:0",
+      "content_hash": "10a77be4b0b3991fb49c5b50bc0ab8afcd4ea3dcafb48fa2a147650295189d78",
+      "schema_version": 2
+    },
+    {
+      "id": "5e225054-9e80-5d8b-b8ff-2933583c4363",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+      "type": "section",
+      "text": "Confirm the IBAN matches the Name on the Account > OpenAPI definition #/components/responses/Error\n\n{\n \"description\": \"Default error response\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"type\": \"object\",\n \"properties\": {\n \"errorCode\": {\n \"description\": \"Error code identifying the problem that occurred. Should be implemented based on guidance in standards and API Hub documentation, but custom error code lists maintained for backwards compatibility with v1.2.\",\n \"type\": \"string\"\n },\n \"errorMessage\": {\n \"$ref\": \"#/components/schemas/ErrorMessage\"\n }\n }\n }\n }\n }\n}",
+      "metadata": {
+        "title": "Confirm the IBAN matches the Name on the Account",
+        "section": "OpenAPI definition #/components/responses/Error",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "0fd23b609822c089557c48e373ad4995ee336307b31c797eb56195b2271114bb",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/banking/confirmation-of-payee/open-api/cop-query",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/ozone-connect/uae-ozone-connect-bank-data-sharing-openapi.yaml",
+            "hash": "8251ebb11eb456bd6e2c2dc05da5105334ca0e4c6dba9091d63e748fa0972975"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/Error\"],\"\"]:0",
+      "content_hash": "2d2668e57ec9cf66adf00ca997867309462f23c9a8d37115cc08bbfca737033f",
+      "schema_version": 2
+    }
+  ]
+}

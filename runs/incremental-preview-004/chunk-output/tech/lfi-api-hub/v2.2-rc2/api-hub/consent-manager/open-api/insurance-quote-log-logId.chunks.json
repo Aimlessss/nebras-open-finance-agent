@@ -1,0 +1,826 @@
+{
+  "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+  "chunk_count": 24,
+  "chunks": [
+    {
+      "id": "ded73f11-aa26-5873-9ea4-0c179c6c3345",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > API /insurance-quote-log/{logId}\n\n{\n \"info\": {\n \"title\": \"Consent Manager API\",\n \"description\": \"This document provides an API description in [OpenAPI](https://spec.openapis.org/oas/v3.0.1.html)\\nfor the Consent Manager API.\\n\\nThese APIs are implemented by Ozone and should be called by the financial institution to find, modify and delete consents.\\n\\n### Versioning\\n\\nThe `version` property implements the following pattern `{standards-major}.{standards-minor}.{ozone-connect-version}`, where:\\n\\n* `standards-major` is the major version of the latest UAE standard that the API description implements.\\n\\n* `standards-minor` is the minor version of the latest UAE standard that the API description implements.\\n\\n* `ozone-connect-version` is the version of the Ozone Connect API description.\\n\\nSo, for example, `.1` indicates the first version of the Ozone Connect API description that implements the UAE standard version 2.0.\\n### v2.2.2\\n* Changed the `status` query parameter on `get /psu/{userId}/consents` to a comma-separated list of\\n `AEConsentStatus` values (`style: form`, `explode: false`), evaluated as a union — for example\\n `?status=Authorized,Suspended`. The parameter is now typed, so an unrecognised value is rejected with `400`\\n rather than returning an empty array. The operation no longer references the shared\\n `#/components/parameters/status` component, which is deliberately unchanged: `get /consents`,\\n `get /consent-groups/{consentGroupId}/consents` and `get /accounts/{accountId}/consents` continue to take a\\n single untyped value.\\n\\n* Added `paymentResponse.paymentRail` to `patch /payment-log/{id}` and `get /payment-log`, recording the rail\\n over which the LFI settled the payment — `AANI`, `FTS`, or `LFI` for a payment settled internally.\\n\\n* Changed the `patch /payment-log/{id}` request body to a `oneOf` selected by `paymentResponse.paymentRail`, which\\n is now required on every patch and stated first. Each rail carries its own contract:\\n\\n * `AANI` — statuses `AcceptedSettlementCompleted`, `AcceptedWithoutPosting` and `Rejected`, where\\n `AcceptedSettlementCompleted` is **not terminal** and records the payment having been passed to AANI; the LFI\\n patches again to `AcceptedWithoutPosting` once AANI confirms it. `paymentResponse.paymentTransactionId`\\n carries the AANI-issued identifier. `paymentResponse.OpenFinanceBilling` is not available on this rail, and\\n reject reason codes are `AANI.*` only.\\n\\n * `LFI` — statuses `AcceptedCreditSettlementCompleted` and `Rejected`, both terminal.\\n `paymentResponse.paymentTransactionId` is not available, since nothing outside the LFI issues an identifier.\\n `paymentResponse.OpenFinanceBilling` is not available on this rail, and reject reason codes are `LFI.*` only.\\n\\n * `FTS` — statuses `AcceptedSettlementCompleted`, `AcceptedCreditSettlementCompleted` and `Rejected`, where\\n `AcceptedSettlementCompleted` is **not terminal** and records the payment having been passed to UAEFTS; the LFI\\n patches again to `AcceptedCreditSettlementCompleted` once UAEFTS confirms it.\\n `paymentResponse.paymentTransactionId` carries the UAEFTS-issued identifier.\\n `paymentResponse.OpenFinanceBilling` is not available on this rail, and reject reason codes are `FTS.*` only.\\n\\n `Pending` is no longer a patchable status on any rail, and `paymentResponse.OpenFinanceBilling` is no longer\\n patchable through this operation on any rail.\\n\\n* Changed the `paymentResponse` returned by `get /payment-log` to the matching `oneOf`, so a payment reads back in\\n the shape it was patched in. The previously inline object is now `CbuaePaymentLogPaymentResponse`, with one member\\n per rail plus `CbuaePaymentLogPaymentResponseUnrouted` for a payment the LFI has not routed yet, which carries no\\n `paymentRail` and is `Pending` or `Rejected`. `paymentTransactionId` is now returned on the `AANI` and `FTS`\\n members, having been absent from this operation's response since v2.1 although the patch operation set it.\\n\\n* Changed `get /payment-log` to be paginated, taking the shared `page` and `pageSize` parameters already used by\\n the consent list operations and returning `paginationMetadata` in place of the empty `meta` object. Callers\\n written against v2.1 received every payment for the consent in one response and MUST now follow `page` to\\n retrieve the rest.\\n\\n### v2.2.1\\n* Added new version compatible with v2.2 of standards.\\n* Changed `patch /insurance-quote-log/{logId}` to add `InsurancePolicyId` when `QuoteStatus` is `PolicyIssued`.\\n* Changed `DebtorReference` and `CreditorReferences` to implement Aani-compatible pattern.\\n\",\n \"version\": \"v2.2.2\"\n },\n \"servers\": [\n {\n \"url\": \"https://cm.[LFICODE].apihub.openfinance.ae\"\n },\n {\n \"url\": \"https://cm.[LFICODE].preprod.apihub.openfinance.ae\"\n }\n ],\n \"source_path\": \"/insurance-quote-log/{logId}\",\n \"operations\": {\n \"patch\": {\n \"operationId\": \"UpdateInsuranceQuoteLog\",\n \"tags\": [\n \"resource-log\"\n ],\n \"summary\": \"Patch the status of an insurance quote.\",\n \"description\": \"Patch the status of an Insurance quote request. Insurance quote requests are not associated with a consent, but always use an `QuoteId` value, which is the value of `logId`.\",\n \"parameters\": [\n {\n \"$ref\": \"#/components/parameters/logId\"\n }\n ],\n \"requestBody\": {\n \"description\": \"Properties of the patch. `Premium` and `Commission` are only included when the status is\",\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"oneOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventAvailableStatus\"\n },\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventTerminalStatus\"\n },\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventPendingCompletionStatus\"\n },\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventCompletedStatus\"\n }\n ]\n }\n }\n }\n },\n \"responses\": {\n \"204\": {\n \"$ref\": \"#/components/responses/noContentResponse\"\n },\n \"400\": {\n \"description\": \"Failed to patch the log\",\n",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "API /insurance-quote-log/{logId}",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 0,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /insurance-quote-log/{logId}\"],\"\"]:0:part:0",
+      "content_hash": "6d2b6e8d5416cd9ab2494f7a8857aeec19ed6ed6745d15c136af400315d9c163",
+      "schema_version": 2
+    },
+    {
+      "id": "c826aabb-499d-5ea4-95da-872790d3a765",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > API /insurance-quote-log/{logId}\n\n \"content\": {\n \"application/json\": {\n \"schema\": {\n \"$ref\": \"#/components/schemas/error400Response\"\n }\n }\n }\n }\n }\n }\n },\n \"security\": [\n {},\n {\n \"OzoneConnectJwtAuth\": []\n }\n ],\n \"securitySchemes\": {\n \"OzoneConnectJwtAuth\": {\n \"description\": \"Communications between the API Hub and the LFI Ozone Connect implementation are secured using the \\\"JWT Auth\\\" mechanism, where the Client presents a signed JSON Web Token as a credential.\\n\\nThe Server MUST verify the signature in order to authenticate the Client.\\n\\nPlease note that the value of the `scheme` parameter is not a registered HTTP Authentication Scheme, to indicate it is specific to Ozone Connect. Please refer to API Hub documentation for further details.\\n\",\n \"type\": \"http\",\n \"scheme\": \"Ozone-Connect-JWT-Auth\"\n }\n }\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "API /insurance-quote-log/{logId}",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "part_index": 1,
+      "part_count": 2,
+      "chunk_key": "[\"section\",[\"\",\"API /insurance-quote-log/{logId}\"],\"\"]:0:part:1",
+      "content_hash": "0d69c2e09d8298252a6897a8b1ae8e3db0e497014eba2637667ec8d8f7c3e9e7",
+      "schema_version": 2
+    },
+    {
+      "id": "924f910c-c100-5f35-a791-1bf91ac21eef",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/parameters/logId\n\n{\n \"name\": \"logId\",\n \"description\": \"Unique identifier for a given log entry, which relates to the original unique identifier created for resource. For example, for an FX Quote this will be the `FxQuoteId` value.\",\n \"in\": \"path\",\n \"required\": true,\n \"schema\": {\n \"type\": \"string\"\n }\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/parameters/logId",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/parameters/logId\"],\"\"]:0",
+      "content_hash": "7eea9988393d4ab1cc6875055295614762285edb8182df98bc9453eee37d20a2",
+      "schema_version": 2
+    },
+    {
+      "id": "5902c68d-dcfe-5d21-b93b-58ad7c9b8bef",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventAvailableStatus\n\n{\n \"title\": \"Available Status\",\n \"type\": \"object\",\n \"required\": [\n \"QuoteStatus\"\n ],\n \"properties\": {\n \"QuoteStatus\": {\n \"description\": \"Available quote status.\",\n \"type\": \"string\",\n \"enum\": [\n \"Available\"\n ]\n }\n }\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventAvailableStatus",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventAvailableStatus\"],\"\"]:0",
+      "content_hash": "dc6beb8547291af707dad58e0305a5e4375ba2860a3f0f4aab63c5090d81b332",
+      "schema_version": 2
+    },
+    {
+      "id": "a666f6e9-42c7-5056-ac5d-5e72da1514bf",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventTerminalStatus\n\n{\n \"title\": \"Terminal Status\",\n \"type\": \"object\",\n \"required\": [\n \"QuoteStatus\"\n ],\n \"properties\": {\n \"QuoteStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteNegativeTerminalStatusCodes\"\n }\n ],\n \"description\": \"Terminal quote status.\"\n },\n \"Reason\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteStatusUpdateReason\"\n }\n ],\n \"description\": \"Optional explanation for the unsuccessful completion of the quote.\"\n }\n },\n \"description\": \"Quote status updates indicating a terminal state.\"\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventTerminalStatus",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventTerminalStatus\"],\"\"]:0",
+      "content_hash": "24f1f752041b9b858136da00952bcbd32d28b7535c38a330b27516c03985ffec",
+      "schema_version": 2
+    },
+    {
+      "id": "817a125c-23cd-5659-8df3-88a88366b912",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteNegativeTerminalStatusCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"Expired\",\n \"Rejected\",\n \"CustomerCancelled\",\n \"LFICancelled\"\n ]\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteNegativeTerminalStatusCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteNegativeTerminalStatusCodes\"],\"\"]:0",
+      "content_hash": "e393dd40262b6115467e87bbbb67bef34cd18ca99e0700224de98cf226a8ec32",
+      "schema_version": 2
+    },
+    {
+      "id": "42b91d41-2206-5ba7-8d66-ffd8b1a8ff90",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteStatusUpdateReason\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 1000\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteStatusUpdateReason",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteStatusUpdateReason\"],\"\"]:0",
+      "content_hash": "2b6a12f249a5c9ce58f07b639a09fc9311fc4bc31a7502e9f23c294d47da2780",
+      "schema_version": 2
+    },
+    {
+      "id": "62b1b570-384d-559d-b227-2e4f096e343e",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventPendingCompletionStatus\n\n{\n \"title\": \"Pending Completion Status\",\n \"type\": \"object\",\n \"required\": [\n \"QuoteStatus\"\n ],\n \"properties\": {\n \"QuoteStatus\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEventCompletionPendingStatusCodes\"\n }\n ],\n \"description\": \"Pending completion quote status.\"\n },\n \"BrokerInstructions\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteEventBrokerInstructions\"\n },\n \"minItems\": 1,\n \"description\": \"Instructions and actions required by the Broker to allow the application to proceed.\"\n },\n \"Documents\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n },\n \"minItems\": 1,\n \"description\": \"Policy documents to be issued to the Customer via the TPP.\"\n },\n \"InsurancePolicyId\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsuranceResourceIdentifierType\"\n }\n ],\n \"description\": \"Unique policy identifier for a given policy. Optionally provided when the `QuoteStatus` is `PolicyIssued`\"\n },\n \"ConfirmedPolicyStartDate\": {\n \"$ref\": \"#/components/schemas/AEInsurancePolicyConfirmedPolicyStartDateStartDate1Type\"\n },\n \"ConfirmedPolicyEndDate\": {\n \"$ref\": \"#/components/schemas/AEInsurancePolicyConfirmedPolicyEndDateStartDate1Type\"\n }\n },\n \"description\": \"Quote status updates indicating a pending state, with optional instructions for TPPs.\"\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventPendingCompletionStatus",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventPendingCompletionStatus\"],\"\"]:0",
+      "content_hash": "47ebdccd7ffda01b69fd049c7af7a147abb78924a42f4a5e614113335f458179",
+      "schema_version": 2
+    },
+    {
+      "id": "66fd6e3b-88a6-5a36-a309-e5e9b8d551b0",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEventCompletionPendingStatusCodes\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"ApplicationPending\",\n \"ApplicationApproved\",\n \"PaymentRequired\",\n \"PolicyIssued\"\n ]\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEventCompletionPendingStatusCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEventCompletionPendingStatusCodes\"],\"\"]:0",
+      "content_hash": "5b13e5436f7f2b3bcd6fb318fc1680499213a03966f12597c9c2695f097160e2",
+      "schema_version": 2
+    },
+    {
+      "id": "a9cbf6e1-dd3c-5f35-930c-b4f82c136e50",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventBrokerInstructions\n\n{\n \"type\": \"object\",\n \"minProperties\": 1,\n \"properties\": {\n \"ActionRequired\": {\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 1000,\n \"description\": \"Free-text description that provides confirmation of the action required by the Broker.\"\n },\n \"Reason\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceQuoteStatusUpdateReason\"\n }\n ],\n \"description\": \"Free-text explanation of why the action must be performed by the Broker.\"\n },\n \"Url\": {\n \"type\": \"string\",\n \"format\": \"uri\",\n \"description\": \"URL provided by the LFI for the Broker to collect a one-off premium payment or set up recurring premium payments.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventBrokerInstructions",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventBrokerInstructions\"],\"\"]:0",
+      "content_hash": "2a0ee4f9af1f391657591012bb568a310ee0f91f9506d3d48bf78fcd07a0e70f",
+      "schema_version": 2
+    },
+    {
+      "id": "ab692e44-d7a6-5490-9c06-3f0b17b8ee65",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Type\",\n \"FileName\",\n \"ContentType\",\n \"Content\",\n \"HashType\",\n \"Hash\"\n ],\n \"properties\": {\n \"Type\": {\n \"type\": \"string\",\n \"description\": \"The type of document that has been provided. For example, Policy Booklet, Terms & Conditions\"\n },\n \"FileName\": {\n \"type\": \"string\",\n \"description\": \"Original file name for operator reference (no paths). Should include a suitable extension (e.g., policy.pdf, terms.pdf).\"\n },\n \"ContentType\": {\n \"type\": \"string\",\n \"enum\": [\n \"application/pdf\",\n \"image/jpeg\",\n \"image/png\"\n ],\n \"description\": \"Content (MIME) type of the document, using IANA-registered media types, and based on types supported in the Open Finance Framework.\"\n },\n \"Content\": {\n \"type\": \"string\",\n \"format\": \"base64\",\n \"description\": \"Base64-encoded representation of the document content. The encoded string must be generated from the raw file bytes and decoded by the LFI to restore the original file.\"\n },\n \"HashType\": {\n \"type\": \"string\",\n \"enum\": [\n \"SHA256\"\n ],\n \"description\": \"Approach used to create checksum or hash of the file. SHA256 is supported.\"\n },\n \"Hash\": {\n \"type\": \"string\",\n \"description\": \"Checksum of the original file bytes created using the method indicated by `HashType`. Required to enable integrity verification by comparing with the hash or checksum calculated on the decoded file.\"\n },\n \"AdditionalInformation\": {\n \"type\": \"string\",\n \"maxLength\": 1000,\n \"description\": \"Optional free text notes providing context on the document.\"\n }\n }\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEDocumentProperties\"],\"\"]:0",
+      "content_hash": "257a81bbaf516129088aaa0b5cff252d37051cc035ae788ce2b97a226a5bc37f",
+      "schema_version": 2
+    },
+    {
+      "id": "8c8842b8-3c41-5bf0-9ea0-41f59e0bdaa0",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsuranceResourceIdentifierType\n\n{\n \"type\": \"string\",\n \"minLength\": 1,\n \"maxLength\": 128,\n \"description\": \"Unique identifier for a given insurance policy. \\n\\nA uuid v4 is recommended for consistency but not mandatory.\"\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsuranceResourceIdentifierType",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsuranceResourceIdentifierType\"],\"\"]:0",
+      "content_hash": "ec7aaa12e511a89d238cc5c742183e6844eb4fcfd0e479022f0d17634b44b630",
+      "schema_version": 2
+    },
+    {
+      "id": "aeddb5f5-3630-5f32-a7ef-f276efe8cf56",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurancePolicyConfirmedPolicyStartDateStartDate1Type\n\n{\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"LFI confirmed or revised start date for policy plan at issuance. Optionally provided when `QuoteStatus` is `PolicyIssued`.\"\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurancePolicyConfirmedPolicyStartDateStartDate1Type",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurancePolicyConfirmedPolicyStartDateStartDate1Type\"],\"\"]:0",
+      "content_hash": "7d3a2b8c35869902cb1d92f35fda8f74fe63828b38f6fa08a62a430595e5411f",
+      "schema_version": 2
+    },
+    {
+      "id": "dcd92d2d-57b2-5bd2-8c3f-6e3b02213a01",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurancePolicyConfirmedPolicyEndDateStartDate1Type\n\n{\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"LFI confirmed or revised end date for policy plan at issuance. Optionally provided when `QuoteStatus` is `PolicyIssued`.\"\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurancePolicyConfirmedPolicyEndDateStartDate1Type",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurancePolicyConfirmedPolicyEndDateStartDate1Type\"],\"\"]:0",
+      "content_hash": "c0c85d7b79b0f3b0310b19d2ac19b40306ab2208c8a607be05a53786997682b7",
+      "schema_version": 2
+    },
+    {
+      "id": "bb9bbc3e-48fc-56d0-a725-37025a5c6889",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventCompletedStatus\n\n{\n \"title\": \"Completed Status\",\n \"type\": \"object\",\n \"required\": [\n \"QuoteStatus\",\n \"PolicyTerm\",\n \"Premium\",\n \"CustomerPaidInFull\",\n \"PolicyCountrySubDivision\"\n ],\n \"properties\": {\n \"QuoteStatus\": {\n \"type\": \"string\",\n \"enum\": [\n \"Completed\"\n ],\n \"description\": \"Completed status.\"\n },\n \"PolicyStartDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy start date\"\n },\n \"PolicyEndDate\": {\n \"type\": \"string\",\n \"format\": \"date\",\n \"description\": \"Policy end date\"\n },\n \"PolicyTerm\": {\n \"type\": \"string\",\n \"pattern\": \"^P(\\\\d+Y)?(\\\\d+M)?$\",\n \"format\": \"duration\",\n \"description\": \"The insurance policy term in years and months, using ISO 8601 compatible duration format\",\n \"example\": \"P2Y3M\"\n },\n \"Premium\": {\n \"type\": \"object\",\n \"properties\": {\n \"OneYearPremiumExcludingVAT\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The details of the final insurance premium, reflecting the total value of premiums excluding VAT payable either annually or over the life of the policy when the coverage period is less than one year.\"\n },\n \"VATAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The Premium VAT amount.\"\n },\n \"TotalOneYearPremium\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The details of the final insurance premium, reflecting the total value of premiums including VAT payable either annually or over the life of the policy when the coverage period is less than one year.\"\n },\n \"TotalPolicyPremium\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total value of premiums, including VAT, payable over the life of the policy.\"\n }\n },\n \"required\": [\n \"OneYearPremiumExcludingVAT\",\n \"VATAmount\",\n \"TotalOneYearPremium\"\n ],\n \"description\": \"Details for the policy premium.\"\n },\n \"CustomerSalary\": {\n \"type\": \"string\",\n \"enum\": [\n \"Under4K\",\n \"Over4K\"\n ],\n \"description\": \"Confirmation whether the customer monthly salary is less than or greater than AED 4,000 each month. Required for Health Insurance.\"\n },\n \"Commission\": {\n \"type\": \"object\",\n \"properties\": {\n \"CommissionAmount\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveCurrencyAmount\"\n }\n ],\n \"description\": \"The total monetary value of the commission paid to the TPP if the User proceeds with the quote application and purchases the policy based on the quote information provided.\"\n },\n \"PaymentMethod\": {\n \"type\": \"string\",\n \"enum\": [\n \"DirectToTPP\",\n \"ThroughAPIHub\"\n ],\n \"description\": \"The method to be used to pay the commission to the TPP if the User elects to proceed with the application and successfully purchases the policy.\"\n }\n },\n \"required\": [\n \"PaymentMethod\"\n ],\n \"description\": \"Commission amount, where the LFI is responsible for calculating the value.\"\n },\n \"Documents\": {\n \"type\": \"array\",\n \"items\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEDocumentProperties\"\n },\n \"minItems\": 1,\n \"description\": \"Policy documents to be issued to the Customer via the TPP.\"\n },\n \"CustomerPaidInFull\": {\n \"type\": \"boolean\",\n \"description\": \"Indicates the Customer has paid for the policy in full.\"\n },\n \"PolicyCountrySubDivision\": {\n \"allOf\": [\n {\n \"$ref\": \"#/components/schemas/AEInsurance.AEInsuranceEmirate\"\n }\n ],\n \"description\": \"The Emirate state where the policy was issued.\"\n }\n },\n \"description\": \"Quote has been Completed.\"\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventCompletedStatus",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceQuoteEventCompletedStatus\"],\"\"]:0",
+      "content_hash": "69e8c8b4e03f4a0994d5f875cdfe4d830989be7ed4654052bfadefb684ed757b",
+      "schema_version": 2
+    },
+    {
+      "id": "9e8d0886-cedf-5139-a4b2-2706340bef01",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\n\n{\n \"type\": \"object\",\n \"required\": [\n \"Currency\",\n \"Amount\"\n ],\n \"properties\": {\n \"Currency\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"\n },\n \"Amount\": {\n \"$ref\": \"#/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"\n }\n },\n \"description\": \"The Currency and Amount relating to the Payment, Refund or Request to Pay\"\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveCurrencyAmount\"],\"\"]:0",
+      "content_hash": "cc0b9b69aae9f9bace45931e9b213246aa9453341bcafaaea212b2aa6b34b175",
+      "schema_version": 2
+    },
+    {
+      "id": "81d36010-04fb-5d1c-8141-fbd9225d932a",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\n\n{\n \"type\": \"string\",\n \"pattern\": \"^[A-Z]{3,3}$\",\n \"description\": \"A 3 character alphabetic code allocated to a currency under an international currency identification scheme, as described in the latest edition of the international standard ISO 4217 'Codes for the representation of currencies and funds'.\",\n \"example\": \"AED\"\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricCurrencyCode\"],\"\"]:0",
+      "content_hash": "ef838e469b352a139240495fb186486747753854d0caf30fbba301cfbcbfb1eb",
+      "schema_version": 2
+    },
+    {
+      "id": "d919e592-495b-5f5f-895d-5854990f3caa",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\n\n{\n \"type\": \"string\",\n \"pattern\": \"^\\\\d{1,16}\\\\.\\\\d{2}$\",\n \"description\": \"A number of monetary units specified in an active currency where the unit of currency is explicit and compliant with ISO 4217.\",\n \"example\": \"100.00\"\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEActiveOrHistoricAmount\"],\"\"]:0",
+      "content_hash": "00e47db447c818a3535f52defefa85bb1dc390c5464bf74158fcd8da0df05f7e",
+      "schema_version": 2
+    },
+    {
+      "id": "a42327c9-633e-55bf-ad35-ea00e3d14938",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\n\n{\n \"type\": \"string\",\n \"enum\": [\n \"AbuDhabi\",\n \"Ajman\",\n \"Dubai\",\n \"Fujairah\",\n \"RasAlKhaimah\",\n \"Sharjah\",\n \"UmmAlQuwain\"\n ]\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/AEInsurance.AEInsuranceEmirate\"],\"\"]:0",
+      "content_hash": "fe4cef79fa8d1c252eb7ab076295ec8df3351668886081bfa22f8b874eb3c948",
+      "schema_version": 2
+    },
+    {
+      "id": "f934e53d-44b0-56f4-9698-2abc46138f43",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/responses/noContentResponse\n\n{\n \"description\": \"Indicates a successful operation. The response does not have a body.\"\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/responses/noContentResponse",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/responses/noContentResponse\"],\"\"]:0",
+      "content_hash": "caddff8b97ef77e17ac20fb7bec9dbd804b44d163c4d051e6736af691d66f6a8",
+      "schema_version": 2
+    },
+    {
+      "id": "07cf7fb3-9104-5aea-9feb-0faf78469ed5",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/error400Response\n\n{\n \"type\": \"object\",\n \"required\": [\n \"errorCode\",\n \"errorMessage\"\n ],\n \"properties\": {\n \"errorCode\": {\n \"$ref\": \"#/components/schemas/errorReasonCodes\"\n },\n \"errorMessage\": {\n \"type\": \"string\",\n \"description\": \"Message describing what problem has occurred\"\n }\n }\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/error400Response",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/error400Response\"],\"\"]:0",
+      "content_hash": "925def7c82b72ed4f6085619864756926fdcee52dc175ffe0121534705d96d35",
+      "schema_version": 2
+    },
+    {
+      "id": "6888bd28-3d89-582a-9be4-b56824f55e49",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/errorReasonCodes\n\n{\n \"description\": \"Error code identifying the problem that occurred. This may either be one of the prescribed error code(s), a code that observes the namespaced pattern, or a custom error codes specific to the API Hub.\",\n \"anyOf\": [\n {\n \"$ref\": \"#/components/schemas/standardErrorCodes\"\n },\n {\n \"$ref\": \"#/components/schemas/standardErrorCodePattern\"\n },\n {\n \"type\": \"string\"\n }\n ]\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/errorReasonCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/errorReasonCodes\"],\"\"]:0",
+      "content_hash": "4cfb66f3b7ba5e847402586e4d9cc47e5093f6f193172e7bfdb7cc14ec8b66fd",
+      "schema_version": 2
+    },
+    {
+      "id": "2d729a89-2af5-5895-b392-0f8aab0c3c13",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/standardErrorCodes\n\n{\n \"description\": \"Standardized error codes used across open finance components\",\n \"type\": \"string\",\n \"enum\": [\n \"AccessToken.InvalidScope\",\n \"Body.InvalidFormat\",\n \"Consent.AccountTemporarilyBlocked\",\n \"Consent.BusinessRuleViolation\",\n \"Consent.FailsControlParameters\",\n \"Consent.Invalid\",\n \"Consent.InvalidUserIdentifier\",\n \"Consent.PermanentAccountAccessFailure\",\n \"Consent.TransientAccountAccessFailure\",\n \"Event.UnexpectedEvent\",\n \"JWE.DecryptionError\",\n \"JWE.InvalidHeader\",\n \"JWS.InvalidClaim\",\n \"JWS.InvalidHeader\",\n \"JWS.InvalidSignature\",\n \"JWS.Malformed\",\n \"Resource.InvalidFormat\"\n ]\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/standardErrorCodes",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/standardErrorCodes\"],\"\"]:0",
+      "content_hash": "e7d2921b48fc4ac2c48f10cecfb13def09b3521fb2d143a42cec115dc2ff774a",
+      "schema_version": 2
+    },
+    {
+      "id": "76dff898-2c6d-5059-9b93-dbdff5758fb8",
+      "document_id": "tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+      "type": "section",
+      "text": "Patch Insurance Quote Log > OpenAPI definition #/components/schemas/standardErrorCodePattern\n\n{\n \"description\": \"Namespaced error codes, indicating the source of the error code prior to the period, and the error code itself after the period e.g. `AANI.AM04` indicates insufficient funds.\",\n \"type\": \"string\",\n \"pattern\": \"^[A-Za-z]+\\\\.[A-Za-z0-9]+$\"\n}",
+      "metadata": {
+        "title": "Patch Insurance Quote Log",
+        "section": "OpenAPI definition #/components/schemas/standardErrorCodePattern",
+        "source_repo": "Nebras-Open-Finance/community-standards",
+        "source_file": "src/pages/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId.vue",
+        "parser": "vue-sfc",
+        "source_commit": "67e5ca444c9ee40e4624fe6ea88d382e62c0d50f",
+        "source_hash": "21ea5849d1e30fd9825a7af92969d7bf284ba36819da594fa7ff19dda00b53ae",
+        "url": "https://nebras-open-finance.com/tech/lfi-api-hub/v2.2-rc2/api-hub/consent-manager/open-api/insurance-quote-log-logId",
+        "doc_version": "v2.2-rc2",
+        "parser_version": "3",
+        "chunker_version": "4",
+        "dependencies": [
+          "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml"
+        ],
+        "assets": [
+          {
+            "file": "public/openapi/v2.2-rc2/api-hub/uae-api-hub-consent-manager-openapi.yaml",
+            "hash": "58497674a49085ec77836d70fc4458a682fc0afa7669c318ef68fd75d1bdee66"
+          }
+        ],
+        "extraction_warnings": [
+          "Static extraction may omit imported or dynamic content; review before indexing."
+        ]
+      },
+      "chunk_key": "[\"section\",[\"\",\"OpenAPI definition #/components/schemas/standardErrorCodePattern\"],\"\"]:0",
+      "content_hash": "763e85c8b753ec78e920bdc065875c4e5498ee8ed36bc5dab7e4f33650b80a15",
+      "schema_version": 2
+    }
+  ]
+}
