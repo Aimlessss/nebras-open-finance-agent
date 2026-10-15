@@ -1,0 +1,157 @@
+name: Scheduled documentation sync
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: nebras-ingestion-state
+  cancel-in-progress: false
+jobs:
+  sync:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      STATE_BUCKET: atharva-nebras-ingestion-state
+      AWS_REGION: eu-north-1
+      AWS_PAGER: ""
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install and test
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install --no-package-lock; fi
+          npm test
+      - name: Connect to AWS using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::916861645417:role/GitHubNebrasIngestion
+          aws-region: eu-north-1
+      - name: Resume pending update first
+        id: resume
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+          EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL }}
+          EMBEDDING_DIMENSIONS: ${{ vars.EMBEDDING_DIMENSIONS }}
+          EMBEDDING_TASK_TYPE: ${{ vars.EMBEDDING_TASK_TYPE }}
+        run: node src/scripts/resume-s3.js
+      - name: Verify identity and restore original baseline from S3
+        if: steps.resume.outputs.resumed != 'true'
+        run: |
+          set -euo pipefail
+          account_id="$(aws sts get-caller-identity --query Account --output text)"
+          if [ "$account_id" != "916861645417" ]; then
+            echo "Unexpected AWS account: $account_id" >&2
+            exit 1
+          fi
+          baseline_key="baselines/baseline-ts5.tar.gz"
+          # A failed listing is an error, never treated as an empty bucket.
+          aws s3api list-objects-v2 --bucket "$STATE_BUCKET" --prefix "$baseline_key" --output json > "$RUNNER_TEMP/baseline-list.json"
+          count="$(node -e "const fs=require('fs');const r=JSON.parse(fs.readFileSync(process.argv[1]));console.log((r.Contents||[]).filter(o=>o.Key===process.argv[2]).length)" "$RUNNER_TEMP/baseline-list.json" "$baseline_key")"
+          if [ "$count" = "0" ]; then
+            node -e "require('./src/scripts/embed-upload').loadRun('runs/baseline-ts5/manifest.json')"
+            tar -czf "$RUNNER_TEMP/baseline.tar.gz" -C runs/baseline-ts5 manifest.json chunk-output
+            # One object upload: a failed first upload cannot leave a partial baseline.
+            aws s3 cp "$RUNNER_TEMP/baseline.tar.gz" "s3://$STATE_BUCKET/$baseline_key" --only-show-errors
+          elif [ "$count" != "1" ]; then
+            echo "Unexpected S3 listing result: $count" >&2
+            exit 1
+          fi
+          aws s3api list-objects-v2 --bucket "$STATE_BUCKET" --prefix state/current.json --output json > "$RUNNER_TEMP/state-list.json"
+          state_count="$(node -e 'const r=require(process.argv[1]);console.log((r.Contents||[]).filter(o=>o.Key==="state/current.json").length)' "$RUNNER_TEMP/state-list.json")"
+          if [ "$state_count" = "1" ]; then
+            aws s3 cp "s3://$STATE_BUCKET/state/current.json" "$RUNNER_TEMP/control.json" --only-show-errors
+            baseline_key="$(node -e 'const c=require(process.argv[1]);if(c.pending)throw Error("Resume the pending execution before preparing another preview");if(!c.baseline)throw Error("Missing baseline");console.log(c.baseline)' "$RUNNER_TEMP/control.json")"
+          fi
+          mkdir -p "$RUNNER_TEMP/ingestion-baseline"
+          aws s3 cp "s3://$STATE_BUCKET/$baseline_key" "$RUNNER_TEMP/baseline-restored.tar.gz" --only-show-errors
+          tar -xzf "$RUNNER_TEMP/baseline-restored.tar.gz" -C "$RUNNER_TEMP/ingestion-baseline"
+          BASELINE_MANIFEST="$RUNNER_TEMP/ingestion-baseline/manifest.json" node -e "require('./src/scripts/embed-upload').loadRun(process.env.BASELINE_MANIFEST)"
+      - name: Fetch public documentation and required API assets
+        if: steps.resume.outputs.resumed != 'true'
+        run: |
+          set -euo pipefail
+          git clone --branch main --single-branch https://github.com/Nebras-Open-Finance/community-standards.git "$RUNNER_TEMP/community-standards"
+          source_sha="$(git -C "$RUNNER_TEMP/community-standards" rev-parse HEAD)"
+          git -C "$RUNNER_TEMP/community-standards" checkout --detach "$source_sha"
+          (cd "$RUNNER_TEMP/community-standards" && node scripts/fetch-openapi-specs.mjs)
+          echo "Source commit: $source_sha" >> "$GITHUB_STEP_SUMMARY"
+      - name: Prepare full manifest with public exclusions
+        if: steps.resume.outputs.resumed != 'true'
+        run: |
+          node src/scripts/prepare.js \
+            --source-root "$RUNNER_TEMP/community-standards" \
+            --previous "$RUNNER_TEMP/ingestion-baseline/manifest.json" \
+            --output "$RUNNER_TEMP/ingestion-preview"
+      - name: Record the exact comparison baseline
+        if: steps.resume.outputs.resumed != 'true'
+        run: |
+          node - "$RUNNER_TEMP/ingestion-baseline/manifest.json" "$RUNNER_TEMP/ingestion-preview/baseline-fingerprint.txt" <<'NODE'
+          const fs = require('node:fs'); const {fingerprint} = require('./src/scripts/incremental');
+          fs.writeFileSync(process.argv[3], fingerprint(JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))));
+          NODE
+      - name: Compare changes
+        id: plan
+        if: steps.resume.outputs.resumed != 'true'
+        run: |
+          set -euo pipefail
+          node src/scripts/incremental.js \
+            --previous "$RUNNER_TEMP/ingestion-baseline/manifest.json" \
+            --next "$RUNNER_TEMP/ingestion-preview/manifest.json" \
+            | tee "$RUNNER_TEMP/ingestion-plan.json"
+          node - "$RUNNER_TEMP/ingestion-baseline/manifest.json" "$RUNNER_TEMP/ingestion-preview/manifest.json" "$RUNNER_TEMP/ingestion-preview/deletions.json" <<'NODE'
+          const fs=require('node:fs');const {loadPair,planChanges}=require('./src/scripts/incremental');const {validatePlan}=require('./src/scripts/execute-s3');
+          const {previous,next}=loadPair(process.argv[2],process.argv[3]);
+          const result=validatePlan(previous,next,planChanges(previous.chunks,next.chunks).delete.length);
+          fs.writeFileSync(process.argv[4],JSON.stringify(result.report,null,2));
+          console.log('Deletion reasons:',result.report.reduce((r,c)=>(r[c.reason]=(r[c.reason]||0)+1,r),{}));
+          NODE
+          node - "$RUNNER_TEMP/ingestion-plan.json" <<'NODE'
+          const fs=require('node:fs');const p=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
+          const changed=p.add+p.update+p.metadata+p.delete>0;
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'changed='+changed+'\n'+'deletes='+p.delete+'\n');
+          NODE
+          {
+            echo '### Planned changes'
+            echo '```json'
+            cat "$RUNNER_TEMP/ingestion-plan.json"
+            echo '```'
+            echo 'Changes are applied below only when this plan is non-empty.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Save preview separately in S3
+        if: steps.plan.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          preview_key="previews/$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          tar -czf "$RUNNER_TEMP/preview.tar.gz" -C "$RUNNER_TEMP/ingestion-preview" .
+          aws s3 cp "$RUNNER_TEMP/preview.tar.gz" "s3://$STATE_BUCKET/$preview_key/run.tar.gz" --only-show-errors
+          aws s3 cp "$RUNNER_TEMP/ingestion-plan.json" "s3://$STATE_BUCKET/$preview_key/plan.json" --only-show-errors
+          echo "Preview saved to s3://$STATE_BUCKET/$preview_key/" >> "$GITHUB_STEP_SUMMARY"
+      - name: Apply changes and save verified baseline
+        if: steps.plan.outputs.changed == 'true'
+        env:
+          PREVIEW_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+          EXPECTED_DELETES: ${{ steps.plan.outputs.deletes }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+          EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL }}
+          EMBEDDING_DIMENSIONS: ${{ vars.EMBEDDING_DIMENSIONS }}
+          EMBEDDING_TASK_TYPE: ${{ vars.EMBEDDING_TASK_TYPE }}
+        run: node src/scripts/execute-s3.js
+      - name: No changes
+        if: steps.plan.outputs.changed == 'false'
+        run: echo 'All chunks unchanged. No embedding calls or Qdrant writes needed.' >> "$GITHUB_STEP_SUMMARY"
+
