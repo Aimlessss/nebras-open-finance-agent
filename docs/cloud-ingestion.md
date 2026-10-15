@@ -1,6 +1,6 @@
-# Manual cloud ingestion
+# Cloud ingestion
 
-Both workflows run only on main and share the `nebras-ingestion-state` concurrency group. No schedule is enabled yet. Never run a local writer against this collection while a cloud job is running.
+All three workflows run only on main and share the `nebras-ingestion-state` concurrency group. Scheduled documentation sync runs every six hours. Never run a local writer against this collection while a cloud job is running.
 
 ## Configure GitHub
 
@@ -32,3 +32,17 @@ If interrupted, rerun the execution using the SAME preview ID and deletion count
 Embedding cache files are local to the runner. An abrupt shutdown can require repeating an embedding request whose vector never reached Qdrant; persisted checkpoint plus remote payload verification protects reconciliation correctness. Vector caches are not stored in S3 by this workflow.
 
 Keep baseline and pending preview archives in S3. Do not configure expiry for archives referenced by `state/current.json`. The original baseline remains available as an archive, but restoring it alone does not roll Qdrant back.
+
+## Scheduled updates
+
+**Scheduled documentation sync** runs at 00:17, 06:17, 12:17 and 18:17 UTC (05:47, 11:47, 17:47 and 23:47 IST). GitHub can delay scheduled runs. It also supports Run workflow for an immediate run.
+
+- First it checks S3 for a pending update. If present, it resumes that exact saved preview and exits after successful recovery; new source changes wait until the next run.
+- Otherwise it restores the current baseline, clones public community-standards main, fetches required API assets and prepares the new full manifest.
+- A zero-change plan exits without embedding calls, Qdrant writes or another preview archive.
+- A non-empty plan is archived to S3 and applied automatically, including additions, text changes, metadata changes and deletions. This schedule authorizes the computed deletion count automatically; the separate manual workflow still requests the reviewed count.
+- Parsing failures stop the job before execution. Qdrant verification and durable checkpoints remain enabled. The job has a 120-minute total timeout.
+
+This checks the API assets fetched by the website's fetch-openapi-specs script each time, even when the website repository commit is unchanged. It is not an independent complete ingestion of every file in the API specifications repository.
+
+Manual preview and execution workflows remain available. No extra credentials are required.
