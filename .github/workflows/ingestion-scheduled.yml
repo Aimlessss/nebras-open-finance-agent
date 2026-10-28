@@ -81,11 +81,29 @@ jobs:
           BASELINE_MANIFEST="$RUNNER_TEMP/ingestion-baseline/manifest.json" node -e "require('./src/scripts/embed-upload').loadRun(process.env.BASELINE_MANIFEST)"
       - name: Fetch public documentation and required API assets
         if: steps.resume.outputs.resumed != 'true'
+        env:
+          # The upstream spec fetcher uses this token for GitHub API requests.
+          # Avoid the shared, unauthenticated Actions runner rate limit.
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git clone --branch main --single-branch https://github.com/Nebras-Open-Finance/community-standards.git "$RUNNER_TEMP/community-standards"
           source_sha="$(git -C "$RUNNER_TEMP/community-standards" rev-parse HEAD)"
           git -C "$RUNNER_TEMP/community-standards" checkout --detach "$source_sha"
+          # Check access first so any API failure includes GitHub's response body.
+          specs_branch="$(cat "$RUNNER_TEMP/community-standards/.specs-branch")"
+          specs_url="https://api.github.com/repos/Nebras-Open-Finance/api-specs/contents/dist/standards?ref=$specs_branch"
+          status="$(curl --silent --show-error --location \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GITHUB_TOKEN" \
+            --output "$RUNNER_TEMP/api-specs-preflight.json" \
+            --write-out '%{http_code}' "$specs_url")"
+          if [ "$status" != "200" ]; then
+            echo "::error::GitHub API access to api-specs failed (HTTP $status)." >&2
+            head -c 2000 "$RUNNER_TEMP/api-specs-preflight.json" >&2
+            echo >&2
+            exit 1
+          fi
           (cd "$RUNNER_TEMP/community-standards" && node scripts/fetch-openapi-specs.mjs)
           echo "Source commit: $source_sha" >> "$GITHUB_STEP_SUMMARY"
       - name: Prepare full manifest with public exclusions
